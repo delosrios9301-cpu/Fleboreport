@@ -24,7 +24,7 @@ El panel principal guía el reporte con botones **Siguiente** y **Anterior** en 
 1. Configura el nombre, contacto y logotipo del laboratorio. El logotipo se usa como una sola marca de agua, ampliada y semitransparente en el PDF y el PNG.
 2. Define la fecha, las horas y el responsable de la jornada.
 3. Crea en el catálogo las pruebas que uses y ajusta la forma del recipiente y su color. Cada prueba comienza pendiente de validación clínica; confirma el protocolo según tu laboratorio.
-4. Pulsa `+` una vez por cada prueba realizada. FleboReport agrupa las pruebas iguales y suma cantidades y recipientes.
+4. En el paso **Pruebas**, selecciona cada prueba en la lista desplegable y pulsa **Agregar prueba a la jornada**. Puedes añadir la misma prueba varias veces; FleboReport agrupa las iguales y suma cantidades y recipientes.
 5. Selecciona **Infografía** o **Formal**.
 6. Usa **Descargar PNG** o **Imprimir / PDF**.
 
