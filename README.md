@@ -11,13 +11,13 @@ Abre [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/) desde el na
 
 Después, abre FleboReport desde el nuevo icono de la pantalla de inicio para usarla como aplicación. Cárgala una vez con conexión para que sus archivos queden disponibles sin conexión.
 
-## Datos por sesión
+## Datos guardados
 
-La configuración del laboratorio, el catálogo y la jornada se guardan en este dispositivo para continuar luego. No se sincronizan entre dispositivos ni se envían a un servidor. La app guarda en caché sus archivos de funcionamiento para abrirlos sin conexión.
+El laboratorio, el catálogo y las jornadas se conservan en este dispositivo para continuar luego. No se sincronizan entre dispositivos ni se envían a un servidor. La app guarda en caché sus archivos de funcionamiento para abrirlos sin conexión.
 
 ## Uso en el teléfono
 
-La pantalla móvil se organiza en cuatro pasos compactos: Laboratorio, Jornada, Pruebas y Reporte. Toca los pasos de arriba para avanzar o regresar; solo se muestra una sección a la vez.
+El panel principal guía el reporte con botones **Siguiente** y **Anterior** en tres pasos: Jornada, Pruebas y Reporte. La configuración del laboratorio y del catálogo vive en el módulo separado **Configuración**.
 
 ## Uso
 
