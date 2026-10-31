@@ -252,10 +252,26 @@
       .patient-line,.summary,.item-list,.receptacles{break-inside:avoid}
       .report-item,.stat{break-inside:avoid}
     }
-  </style>
+  
+.app-sidebar{position:fixed;inset:0 auto 0 0;width:238px;z-index:1100;background:#083d77;color:#e9f3ff;padding:20px 14px;display:flex;flex-direction:column}
+.sidebar-brand{font-weight:800;font-size:18px;padding:8px;color:white}.sidebar-nav{display:flex;flex-direction:column;gap:4px}
+.sidebar-nav button{background:transparent;color:#e9f3ff;border:0;text-align:left;padding:12px;border-radius:9px;font-weight:700}
+.sidebar-nav button.active,.sidebar-nav button:hover{background:#0f5ef7}
+.sidebar-overlay{display:none}header{padding-left:260px}.wrap{margin-left:calc(238px + max(0px,calc((100vw - 1420px)/2)))}
+.app-hamburger{display:none}.dashboard-view[hidden],.intro[hidden],.layout[hidden],#configModule[hidden]{display:none!important}
+.dashboard-top{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 0 20px}.dashboard-top h1{font:800 27px Manrope;margin:5px 0}
+.dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:15px}
+.dashboard-stat,.dashboard-panel{background:#fff;border:1px solid #e4ebf0;border-radius:13px;padding:16px}
+.dashboard-stat small{color:#718292}.dashboard-stat strong{display:block;margin-top:6px;font-size:24px;color:#15334b}
+.dashboard-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}.dashboard-panel h2{margin:0 0 12px;font:700 14px Manrope}
+.dash-test-row{display:grid;grid-template-columns:1fr 1fr 30px;gap:8px;align-items:center;margin:10px 0;font-size:11px}.dash-track{height:8px;background:#edf2f5;border-radius:8px}.dash-track i{display:block;height:100%;background:#117c78;border-radius:8px}
+@media(max-width:900px){.dashboard-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.app-sidebar{transform:translateX(-105%);transition:transform .2s;width:min(280px,82vw)}.app-sidebar.open{transform:translateX(0)}.sidebar-overlay.open{display:block;position:fixed;inset:0;background:#1235;z-index:1090}.app-hamburger{display:grid;place-items:center}.wrap{margin:0;padding:0 14px 90px}header{padding:0 14px;gap:9px}header .head-right{display:none}.dashboard-top{display:block;margin:20px 3px}.dashboard-top h1{font-size:23px}.dashboard-columns{grid-template-columns:1fr}}
+.patient-line .patient-field:has(#showPatient),.patient-line .patient-field:has(#showCedula),.patient-line .patient-field:has(#showSampleStatus),.patient-line .patient-field:has(#showPatientNotes),.patient-line .patient-field:has(#showResponsible){display:none!important}
+</style>
 </head>
 <body>
-  <header>
+  <aside class="app-sidebar no-print" id="appSidebar"><div class="sidebar-brand">💧 FleboReport</div><nav class="sidebar-nav" aria-label="Navegación"><button data-view="inicio" onclick="goView('inicio')">⌂ &nbsp; Inicio</button><button data-view="jornada" onclick="goView('jornada')">▦ &nbsp; Jornadas</button><button data-view="pacientes" onclick="goView('pacientes')">♙ &nbsp; Pacientes</button><button data-view="pruebas" onclick="goView('pruebas')">⚗ &nbsp; Pruebas</button><button data-view="reportes" onclick="goView('reportes')">▤ &nbsp; Reportes</button><button data-view="config" onclick="goView('config')">⚙ &nbsp; Configuración</button></nav><p style="margin-top:auto;font-size:10px">Datos guardados en este dispositivo</p></aside><div class="sidebar-overlay no-print" id="sidebarOverlay" onclick="toggleSidebar()"></div><header><button class="app-hamburger no-print" onclick="toggleSidebar()" aria-label="Abrir menú">☰</button>
     <div class="brand">
       <div class="brand-icon">
         <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -273,7 +289,7 @@
   </header>
 
   <main class="wrap">
-    <nav class="module-switch" id="moduleSwitch" aria-label="Módulos">
+<section class="dashboard-view" id="dashboardView" hidden><div class="dashboard-top"><div><div class="eyebrow">PANEL DE ACTIVIDAD</div><h1>Resumen de la jornada</h1><p class="sub">Resumen por horario y cantidades de pruebas.</p></div><div id="dashboardDate"></div></div><div class="dashboard-stats"><div class="dashboard-stat"><small>Jornadas con actividad</small><strong id="dashJourneys">0</strong></div><div class="dashboard-stat"><small>Pacientes registrados</small><strong id="dashPatients">0</strong></div><div class="dashboard-stat"><small>Pruebas realizadas</small><strong id="dashTests">0</strong></div><div class="dashboard-stat"><small>Laboratorio configurado</small><strong id="dashCompanies">0</strong></div></div><div class="dashboard-columns"><section class="dashboard-panel"><h2>Accesos rápidos</h2><button class="btn primary" onclick="goView('jornada')">Continuar jornada</button> <button class="btn" onclick="goView('pacientes')">Registro de pacientes</button><p id="dashboardJourneyRow" class="sub">Aún no se han agregado pruebas.</p></section><section class="dashboard-panel"><h2>Conteo de pruebas</h2><div id="dashboardChart">Aún no se han agregado pruebas.</div></section></div></section>\n    <nav class="module-switch" id="moduleSwitch" aria-label="Módulos">
       <button type="button" class="active" data-module-button="reporte" onclick="showModule('reporte')">Jornada</button>
       <button type="button" data-module-button="config" onclick="showModule('config')">⚙ Configuración</button>
     </nav>
@@ -324,7 +340,7 @@
           </div>
         </section>
 
-        <section class="card" id="patientCard">
+        <section class="card" id="patientCard" data-mobile-step="pacientes">
           <div class="card-head">
             <h2>Paciente</h2>
             <span class="step">2</span>
@@ -551,7 +567,7 @@
     let state=loadState();
     let logoData='';
     let deferredInstallPrompt=null;
-    const reportSteps=['jornada','pruebas','reporte'];
+    const reportSteps=['jornada','pacientes','pruebas','reporte'];
     let currentMobileStep='jornada';
 
     function readStored(key){
@@ -902,6 +918,7 @@
     }
 
     function renderReport(){
+      refreshDashboard();
       const groups = groupedTests();
       const items = state.selected;
       $('testCount').textContent = items.length;
@@ -1475,6 +1492,41 @@
       if(button) button.style.display = 'none';
       deferredInstallPrompt = null;
     });
+  </script>
+<script>
+    function goView(view){
+      $('appSidebar')?.classList.remove('open');$('sidebarOverlay')?.classList.remove('open');
+      const dash=$('dashboardView'),intro=document.querySelector('.intro'),layout=document.querySelector('.layout'),mod=document.getElementById('configModule');
+      document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+      if(dash)dash.hidden=view!=='inicio';
+      if(view==='inicio'){if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=true;refreshDashboard();return;}
+      if(view==='config'){if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=false;showModule('config');if(mod)mod.hidden=false;return;}
+      if(mod)mod.hidden=true;if(intro)intro.hidden=false;if(layout)layout.hidden=false;showModule('reporte');
+      const step=view==='pacientes'?'pacientes':view==='pruebas'?'pruebas':view==='reportes'?'reporte':'jornada';
+      setMobileStep(step);currentMobileStep=step;refreshDashboard();
+      if(matchMedia('(max-width:720px)').matches)window.scrollTo({top:0,behavior:'smooth'});
+    }
+    function toggleSidebar(){$('appSidebar')?.classList.toggle('open');$('sidebarOverlay')?.classList.toggle('open')}
+    function setMobileStep(step){
+      if(!reportSteps.includes(step))return;currentMobileStep=step;
+      document.querySelectorAll('[data-mobile-step]').forEach(el=>el.style.display=matchMedia('(max-width:720px)').matches?(el.dataset.mobileStep===step?'':'none'):'');
+      const titles={jornada:'Jornada actual',pacientes:'Registro de pacientes',pruebas:'Agregar prueba',reporte:'Resumen de la jornada'};
+      const title=$('mobileScreenTitle')?.querySelector('h1');if(title)title.textContent=titles[step]||titles.jornada;
+      document.querySelectorAll('[data-mobile-nav]').forEach(el=>el.classList.toggle('active',el.dataset.mobileNav===step));
+    }
+    function mobileNavigate(tab){if(tab==='mas'){goView('config');return}goView(tab==='reportes'?'reportes':tab==='reporte'?'reportes':tab==='pruebas'?'pruebas':tab==='pacientes'?'pacientes':'jornada')}
+    function refreshDashboard(){
+      if(!$('dashboardView'))return;
+      $('dashboardDate').textContent=new Date().toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      const groups=groupedTests(),selected=state.selected||[],patients=Array.isArray(state.patients)?state.patients:[];
+      $('dashJourneys').textContent=selected.length?'1':'0';$('dashPatients').textContent=patients.length;
+      $('dashTests').textContent=selected.reduce((n,t)=>n+(Number(t.count)||1),0);$('dashCompanies').textContent=(state.labName||'').trim()?'1':'0';
+      const row=$('dashboardJourneyRow');if(row)row.textContent=groups.length?groups.map(g=>g.test.name+': '+g.count).join(' · '):'Aún no se han agregado pruebas.';
+      const chart=$('dashboardChart');if(chart)chart.innerHTML=groups.length?groups.map(g=>'<div class="dash-test-row"><b>'+esc(g.test.name)+'</b><div class="dash-track"><i style="width:'+Math.max(8,Math.round(g.count/Math.max(...groups.map(x=>x.count))*100))+'%"></i></div><b>'+g.count+'</b></div>').join(''):'Aún no se han agregado pruebas.';
+    }
+    document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>goView('inicio'),0));
+    document.addEventListener('input',()=>refreshDashboard());document.addEventListener('change',()=>refreshDashboard());
+    window.addEventListener('resize',()=>{if(!$('dashboardView')?.hidden){return}setMobileStep(currentMobileStep)});
   </script>
 </body>
 </html>
