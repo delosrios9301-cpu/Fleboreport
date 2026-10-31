@@ -346,6 +346,9 @@
 
             <div style="margin-top:16px;">
               <div class="eyebrow" style="margin-bottom:8px;">Últimos pacientes</div>
+              <div class="field" style="margin-bottom:10px;">
+                <input id="patientHistoryFilter" type="search" placeholder="Buscar por nombre, cédula o fecha" aria-label="Buscar paciente">
+              </div>
               <div id="patientHistoryList" class="catalog-admin-list"></div>
             </div>
           </div>
@@ -576,6 +579,7 @@
         catalog:[],
         selected:[],
         patients:[],
+        currentPatientId:'',
         patientName:'',
         patientCedula:'',
         patientNotes:'',
@@ -611,6 +615,7 @@
       if(!Array.isArray(merged.catalog)) merged.catalog=[];
       if(!merged.sampleStatus) merged.sampleStatus='pendiente';
       if(!merged.style) merged.style='infographic';
+      if(!merged.currentPatientId) merged.currentPatientId = '';
 
       merged.catalog = merged.catalog.map(t => ({ ...t, id: t.id || crypto.randomUUID() }));
       merged.selected = merged.selected.map(t => ({ ...t, id: t.id || crypto.randomUUID(), status: t.status || 'pendiente' }));
@@ -634,6 +639,7 @@
         logo: state.logo,
         style: state.style,
         patients: state.patients,
+        currentPatientId: state.currentPatientId,
         patientName: state.patientName,
         patientCedula: state.patientCedula,
         patientNotes: state.patientNotes,
@@ -648,6 +654,7 @@
         shiftStart: state.shiftStart,
         shiftEnd: state.shiftEnd,
         responsible: state.responsible,
+        currentPatientId: state.currentPatientId,
         patientName: state.patientName,
         patientCedula: state.patientCedula,
         patientNotes: state.patientNotes,
@@ -931,6 +938,30 @@
       if(field) field.value = (state.selected || []).map(t => t.name).filter(Boolean).join(', ');
     }
 
+    function loadPatientRecord(id){
+      const patient = (state.patients || []).find(p => p.id === id);
+      if(!patient) return;
+      state.currentPatientId = patient.id;
+      state.patientName = patient.name || '';
+      state.patientCedula = patient.cedula || '';
+      state.patientNotes = patient.notes || '';
+      state.sampleStatus = patient.sampleStatus || 'pendiente';
+      if(Array.isArray(patient.tests) && patient.tests.length){
+        state.selected = patient.tests.map((t, index) => ({
+          ...t,
+          id: t.id || crypto.randomUUID(),
+          instance: crypto.randomUUID(),
+          status: t.status || 'pendiente',
+          name: t.name || `Prueba ${index + 1}`
+        }));
+      }
+      save();
+      syncFields();
+      renderReport();
+      renderPatientHistory();
+      toast('Paciente cargado correctamente.');
+    }
+
     function savePatientRecord(){
       const name = ($('patientName')?.value || '').trim();
       const cedula = ($('patientCedula')?.value || '').trim();
@@ -942,7 +973,7 @@
       }
 
       const record = {
-        id: crypto.randomUUID(),
+        id: state.currentPatientId || crypto.randomUUID(),
         name: name || 'Sin nombre',
         cedula: cedula || 'Sin documento',
         createdAt: new Date().toISOString(),
@@ -951,7 +982,14 @@
         tests: (state.selected || []).map(t => ({ id: t.id, name: t.name, status: t.status || 'pendiente', notes: t.notes || '' }))
       };
 
-      state.patients = [record, ...(state.patients || [])].slice(0,50);
+      const existingIndex = (state.patients || []).findIndex(p => p.id === record.id);
+      if(existingIndex >= 0){
+        state.patients[existingIndex] = record;
+      } else {
+        state.patients = [record, ...(state.patients || [])].slice(0,50);
+      }
+
+      state.currentPatientId = record.id;
       state.patientName = record.name;
       state.patientCedula = record.cedula;
       state.patientNotes = notes;
@@ -964,27 +1002,50 @@
 
     function renderPatientHistory(){
       const host = $('patientHistoryList');
+      const filterInput = $('patientHistoryFilter');
+      const filterText = (filterInput?.value || '').toLowerCase().trim();
       if(!host) return;
-      if(!state.patients || !state.patients.length){
+      let patients = Array.isArray(state.patients) ? state.patients : [];
+      if(filterText){
+        patients = patients.filter(patient => {
+          const str = `${patient.name || ''} ${patient.cedula || ''} ${patient.createdAt || ''}`.toLowerCase();
+          return str.includes(filterText);
+        });
+      }
+      if(!patients.length){
         host.innerHTML = '<div class="catalog-admin-empty">Todavía no hay pacientes registrados.</div>';
         return;
       }
-      host.innerHTML = state.patients.slice(0,10).map(p => `
-        <div class="catalog-admin-row">
+      host.innerHTML = patients.slice(0,12).map(p => {
+        const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('es', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin fecha';
+        const active = state.currentPatientId === p.id ? 'border-color:#117c78;background:#f1faf9;' : '';
+        return `
+        <div class="catalog-admin-row" style="${active}">
           <div class="catalog-admin-info">
             <strong>${esc(p.name || 'Sin nombre')}</strong>
-            <small>${esc(p.cedula || 'Sin documento')} · ${normalizeStatusLabel(p.sampleStatus || 'pendiente')}</small>
+            <small>${esc(p.cedula || 'Sin documento')} · ${date} · ${normalizeStatusLabel(p.sampleStatus || 'pendiente')}</small>
           </div>
-          <button type="button" class="catalog-delete-btn" onclick="deletePatientRecord('${p.id}')">Eliminar</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+            <button type="button" class="catalog-delete-btn" onclick="loadPatientRecord('${p.id}')" style="background:#ebf9f8;color:#117c78;border-color:#cfeae8;">Cargar</button>
+            <button type="button" class="catalog-delete-btn" onclick="deletePatientRecord('${p.id}')">Eliminar</button>
+          </div>
         </div>
-      `).join('');
+      `}).join('');
     }
 
     function deletePatientRecord(id){
       if(!state.patients || !state.patients.length) return;
       state.patients = state.patients.filter(p => p.id !== id);
+      if(state.currentPatientId === id){
+        state.currentPatientId = '';
+        state.patientName = '';
+        state.patientCedula = '';
+        state.patientNotes = '';
+        state.sampleStatus = 'pendiente';
+      }
       save();
       renderPatientHistory();
+      syncFields();
       toast('Paciente eliminado.');
     }
 
@@ -1077,6 +1138,7 @@
     function newShift(){
       if(state.selected.length && !confirm('¿Iniciar una nueva jornada? Se limpiarán las cantidades y el horario actuales.')) return;
       state.selected = [];
+      state.currentPatientId = '';
       state.patientName = '';
       state.patientCedula = '';
       state.patientNotes = '';
@@ -1184,6 +1246,7 @@
         });
       });
 
+      $('patientHistoryFilter')?.addEventListener('input', renderPatientHistory);
       $('mobileCatalogSearch')?.addEventListener('input', renderMobileCatalog);
       $('logoFile')?.addEventListener('change', uploadLogo);
       $('search')?.addEventListener('input', renderCatalog);
@@ -1224,6 +1287,10 @@
       const responsible = xml(state.responsible || 'Por definir');
       const lab = xml(state.labName || 'Nombre del laboratorio');
       const contact = xml(state.labContact || '');
+      const patientName = xml(state.patientName || 'Sin paciente');
+      const patientCedula = xml(state.patientCedula || 'Sin documento');
+      const patientStatus = xml(normalizeStatusLabel(state.sampleStatus || 'pendiente'));
+      const patientNotes = xml(state.patientNotes || 'Sin observaciones');
 
       let lx = margin;
       text(lx, y + 24, lab, 27, 700);
@@ -1231,9 +1298,16 @@
       text(w - margin - 300, y + 23, 'REPORTE DE JORNADA', 16, 700, '#117c78');
       text(w - margin - 300, y + 49, `Fecha: ${shiftDate}`, 15, 600);
       text(w - margin - 300, y + 71, `Horario: ${xml(hours)}`, 14, 400, '#718292');
+      text(w - margin - 300, y + 95, `Paciente: ${patientName}`, 13, 600, '#1f3d4d');
+      text(w - margin - 300, y + 115, `Cédula: ${patientCedula}`, 12, 500, '#5f7583');
+      text(w - margin - 300, y + 135, `Estado: ${patientStatus}`, 12, 500, '#5f7583');
+      let notesLines = wrapLines(`Obs.: ${patientNotes}`, 34);
+      notesLines.forEach((line,i) => text(w - margin - 300, y + 156 + i * 15, xml(line), 11, 400, '#718292'));
       let responsibleLines = wrapLines('Responsable: ' + (state.responsible || 'Por definir'), 34);
-      responsibleLines.forEach((line, i) => text(w - margin - 300, y + 94 + i * 18, xml(line), 13, 400, '#718292'));
-      y += 106 + (responsibleLines.length - 1) * 18;
+      if(responsibleLines.length){
+        responsibleLines.forEach((line,i) => text(w - margin - 300, y + 182 + notesLines.length * 15 + i * 15, xml(line), 11, 400, '#718292'));
+      }
+      y += 210 + notesLines.length * 15 + Math.max(0, responsibleLines.length - 1) * 15;
       lines.push(`<line x1="${margin}" y1="${y}" x2="${w-margin}" y2="${y}" stroke="#dce5e9"/>`);
       y += 30;
 
