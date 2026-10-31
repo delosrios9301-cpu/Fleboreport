@@ -201,6 +201,12 @@ body.module-menu-open{overflow:hidden}
 @media(max-width:760px){.sidebar,.sidebar.open{right:max(14px,env(safe-area-inset-right));bottom:86px;width:min(300px,calc(100vw - 28px));max-height:calc(100dvh - 108px);padding:0}.sidebar .nav-list{gap:7px;padding:6px 3px}.sidebar .nav-list button{min-height:49px;padding:7px 11px}.module-fab{right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom))}}
 @media(max-width:390px){.sidebar,.sidebar.open{width:min(280px,calc(100vw - 24px))}}
 .home-fab{position:fixed;left:max(24px,env(safe-area-inset-left));bottom:max(24px,env(safe-area-inset-bottom));z-index:79;display:flex;align-items:center;justify-content:center;gap:9px;min-height:56px;padding:0 17px;border:1px solid #ffffff75;border-radius:999px;background:linear-gradient(140deg,#228bd2,#1266aa);color:#fff;font-size:11px;font-weight:850;letter-spacing:.15px;box-shadow:0 5px 0 #0b467f,0 14px 28px #0c467d55,inset 0 1px 1px #ffffff70;transition:transform .2s ease,box-shadow .2s ease,opacity .2s ease;transform:translateZ(0)}.home-fab:hover{transform:translateY(-3px);box-shadow:0 8px 0 #0b467f,0 19px 34px #0c467d55,inset 0 1px 1px #ffffff75}.home-fab:active{transform:translateY(3px);box-shadow:0 2px 0 #0b467f,0 7px 16px #0c467d44}.home-fab[hidden]{display:none}.home-fab svg{width:19px;height:19px;filter:drop-shadow(0 1px 1px #073c6b55)}.home-fab span{line-height:1}@media(max-width:760px){.home-fab{left:max(14px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));min-height:52px;padding:0 15px}}@media(max-width:390px){.home-fab{width:52px;height:52px;padding:0}.home-fab span{display:none}}
+
+/* Presentación global sin contornos en tarjetas y paneles */
+.panel,.form-panel,.stat-card,.catalog-card,.journey-patient-card,.patient-test-status,.patient-result-card,.patient-test-option,.patient-personal-item,.service-patient-context,.service-readonly,.quick-card,.op-kpi,.op-active-stat,.op-finance-card,.op-medical-card,.op-funnel-step,.op-quick button,.op-location,.op-alert,.report-paper,.report-metric,.report-test,.archive-report-card,.archive-test-item,.archive-test-vessel,.patient-report-section,.list-row{border-color:transparent!important}
+.topbar{border-bottom-color:transparent!important}
+.panel,.stat-card,.catalog-card,.journey-patient-card,.patient-result-card,.op-kpi,.report-paper,.archive-report-card{box-shadow:0 10px 26px #12364e0b,0 2px 5px #12364e08}
+.nav-list button,.sidebar .nav-list button{border-color:transparent!important}
 </style>
 </head>
 <body>
