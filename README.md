@@ -1,30 +1,26 @@
 # FleboReport
 
-Aplicación adaptable a escritorio y teléfono para organizar jornadas, empresas, pacientes y pruebas clínicas, y generar reportes de cantidades.
+Aplicación adaptable a escritorio y teléfono para gestionar jornadas de laboratorio, empresas, pacientes, catálogo de pruebas y reportes.
 
 ## Abrir
 
 Visita [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/). En teléfono se puede agregar a la pantalla de inicio desde el menú del navegador.
 
-## Empezar desde cero
+## Jornada empresarial
 
-Esta versión inicia con el catálogo y la configuración del laboratorio vacíos. Al abrirla, elimina las claves locales usadas por la versión anterior y no importa el catálogo, logotipo, laboratorio ni pacientes guardados antes. Lo que configures en esta versión se conserva en este dispositivo, hasta que lo borres desde **Configuración → Datos locales**.
+1. Registra una empresa desde **Empresas** o usa **Registrar empresa nueva** dentro de la jornada. Se guarda en este dispositivo y queda disponible en la lista de empresas.
+2. Selecciona la empresa, fecha y horario.
+3. Agrega cada paciente con nombre, cédula y las pruebas que realizará. Al guardar, sus pruebas se suman al conteo de la jornada.
+4. Si no registras cada paciente individualmente, usa el conteo manual; evita contar de nuevo las pruebas asignadas a pacientes.
 
-## Funciones
+El reporte muestra el total de pacientes, cada prueba con su cantidad y la suma general de pruebas. No muestra nombres ni cédulas.
 
-- Panel de inicio con resumen y accesos rápidos.
-- Registro de empresas y asociación con jornadas.
-- Jornada con fecha, horario y conteos ajustables por prueba.
-- Catálogo editable, inicialmente vacío; muestras, recipiente, color visual, volumen, método, instrucciones y confirmación del protocolo.
-- Pacientes guardados localmente en el navegador. Los reportes nunca muestran nombres, documentos ni notas.
-- Vista de reportes infográfica o formal, descarga PNG e impresión a PDF.
-- Logotipo como marca de agua de fondo; el color de los recipientes es personalizable y no representa una validación clínica.
-- Instalación PWA y caché renovada para actualizar dispositivos.
+## Catálogo y reportes
 
-## Privacidad y almacenamiento
+El catálogo parte vacío y permite configurar pruebas, muestra, recipiente, color visual, volumen, método, instrucciones y estado de validación. Los métodos y protocolos quedan pendientes hasta que el laboratorio los confirme.
 
-El sitio es estático y no cuenta con servidor ni sincronización entre dispositivos. Los registros se guardan localmente en el navegador de cada dispositivo. Evita guardar información que necesite respaldo o acceso compartido sin un backend configurado.
+Los reportes se pueden ver como infografía o formato formal, imprimir a PDF o descargar como PNG. El logo se usa como una sola marca de agua en el fondo.
 
-## Publicación
+## Almacenamiento y privacidad
 
-El sitio se publica con GitHub Pages desde la rama principal.
+La aplicación no cuenta con servidor ni sincronización entre dispositivos. Empresas, pacientes, catálogo y configuración se guardan localmente en cada navegador. La versión nueva inicia vacía y no importa la configuración anterior. Puedes borrar los datos nuevos en **Configuración → Datos locales**.
