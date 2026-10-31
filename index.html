@@ -553,7 +553,7 @@
 
   <nav class="mobile-bottom-nav no-print" id="mobileBottomNav" aria-label="Navegación principal">
     <button type="button" data-mobile-nav="jornada" class="active" onclick="mobileNavigate('jornada')"><span>⌂</span>Jornada</button>
-    <button type="button" data-mobile-nav="pruebas" onclick="mobileNavigate('pruebas')"><span>⚗</span>Pruebas</button>
+    <button type="button" data-mobile-nav="pacientes" onclick="mobileNavigate('pacientes')"><span>♙</span>Pacientes</button>
     <button type="button" data-mobile-nav="reporte" onclick="mobileNavigate('reporte')"><span>▥</span>Reportes</button>
     <button type="button" data-mobile-nav="mas" onclick="mobileNavigate('mas')"><span>•••</span>Más</button>
   </nav>
@@ -1499,9 +1499,9 @@
       const dash=$('dashboardView'),intro=document.querySelector('.intro'),layout=document.querySelector('.layout'),mod=document.getElementById('configModule');
       document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
       if(dash)dash.hidden=view!=='inicio';
-      if(view==='inicio'){if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=true;refreshDashboard();return;}
-      if(view==='config'){if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=false;showModule('config');if(mod)mod.hidden=false;return;}
-      if(mod)mod.hidden=true;if(intro)intro.hidden=false;if(layout)layout.hidden=false;showModule('reporte');
+      if(view==='inicio'){if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=true;const sw=document.getElementById('moduleSwitch');if(sw)sw.hidden=true;refreshDashboard();return;}
+      if(view==='config'){const sw=document.getElementById('moduleSwitch');if(sw)sw.hidden=false;if(intro)intro.hidden=true;if(layout)layout.hidden=true;if(mod)mod.hidden=false;showModule('config');if(mod)mod.hidden=false;return;}
+      const sw=document.getElementById('moduleSwitch');if(sw)sw.hidden=false;if(mod)mod.hidden=true;if(intro)intro.hidden=false;if(layout)layout.hidden=false;showModule('reporte');
       const step=view==='pacientes'?'pacientes':view==='pruebas'?'pruebas':view==='reportes'?'reporte':'jornada';
       setMobileStep(step);currentMobileStep=step;refreshDashboard();
       if(matchMedia('(max-width:720px)').matches)window.scrollTo({top:0,behavior:'smooth'});
