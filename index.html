@@ -34,6 +34,21 @@
     button{cursor:pointer}
     input,select,textarea{color:var(--ink)}
 
+    .patient-history-row{display:flex;flex-direction:column;gap:10px;padding:12px 11px;border:1px solid #e4ebf0;border-radius:10px;background:#fff}
+    .patient-history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .patient-history-name{display:flex;flex-direction:column;min-width:0}
+    .patient-history-name strong{display:block;color:#263b49;font-size:12px;overflow-wrap:anywhere}
+    .patient-history-name small{display:block;color:#7a8b96;font-size:10px;margin-top:3px}
+    .patient-history-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+    .patient-history-tests{display:flex;flex-wrap:wrap;gap:6px}
+    .patient-test-pill{padding:5px 8px;border-radius:999px;border:1px solid #dfeaf0;background:#f4f9fa;color:#3b586b;font-size:10px;font-weight:700}
+    .patient-test-pill.pending{background:#fff7e8;border-color:#f3d7a1;color:#89610d}
+    .patient-test-pill.done{background:#eaf8f5;border-color:#bfe5db;color:#0f6f64}
+    .patient-test-empty{padding:4px 0 0;color:#7f8f9e;font-size:10px}
+
+    .catalog-delete-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #f0d9d9;border-radius:8px;background:#fff7f7;color:#a83f46;font-size:11px;font-weight:700}
+    .catalog-delete-btn.secondary{background:#ebf9f8;color:#117c78;border-color:#cfeae8}
+
     header{
       height:70px;background:#fff;border-bottom:1px solid var(--line);
       display:flex;align-items:center;justify-content:space-between;
@@ -85,7 +100,6 @@
     .catalog-admin-info strong{display:block;color:#263b49;font-size:12px;overflow-wrap:anywhere}
     .catalog-admin-info small{display:block;color:#7a8b96;font-size:10px;margin-top:3px}
     .catalog-admin-empty{padding:11px;border:1px dashed #cbd9df;border-radius:9px;color:#718292;font-size:11px;line-height:1.5}
-    .catalog-delete-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #f0d9d9;border-radius:8px;background:#fff7f7;color:#a83f46;font-size:11px;font-weight:700}
 
     .module-switch{display:flex;gap:8px;margin:0 0 18px;padding:4px;background:#eaf0f3;border-radius:11px;width:max-content}
     .module-switch button{border:0;border-radius:8px;padding:10px 16px;background:transparent;color:#627481;font-weight:700}
@@ -345,7 +359,7 @@
             <button class="btn primary" style="width:100%" onclick="savePatientRecord()">Guardar paciente</button>
 
             <div style="margin-top:16px;">
-              <div class="eyebrow" style="margin-bottom:8px;">Últimos pacientes</div>
+              <div class="eyebrow" style="margin-bottom:8px;">Pacientes pendientes</div>
               <div class="field" style="margin-bottom:10px;">
                 <input id="patientHistoryFilter" type="search" placeholder="Buscar por nombre, cédula o fecha" aria-label="Buscar paciente">
               </div>
@@ -619,6 +633,11 @@
 
       merged.catalog = merged.catalog.map(t => ({ ...t, id: t.id || crypto.randomUUID() }));
       merged.selected = merged.selected.map(t => ({ ...t, id: t.id || crypto.randomUUID(), status: t.status || 'pendiente' }));
+      merged.patients = (merged.patients || []).map(p => ({
+        ...p,
+        id: p.id || crypto.randomUUID(),
+        tests: Array.isArray(p.tests) ? p.tests : []
+      }));
       merged.version = 4;
       return merged;
     }
@@ -748,8 +767,6 @@
       const src = getLogoSource();
       wm.innerHTML = src ? `<img alt="" src="${src}">` : '';
       wm.style.display = src ? 'block' : 'none';
-      const image = wm.querySelector('img');
-      if(image) image.onerror = () => toast('No se pudo leer el logotipo guardado. Vuelve a cargarlo desde Configuración.');
     }
 
     function renderCatalogAdmin(){
@@ -954,6 +971,8 @@
           status: t.status || 'pendiente',
           name: t.name || `Prueba ${index + 1}`
         }));
+      } else {
+        state.selected = [];
       }
       save();
       syncFields();
@@ -1008,7 +1027,7 @@
       let patients = Array.isArray(state.patients) ? state.patients : [];
       if(filterText){
         patients = patients.filter(patient => {
-          const str = `${patient.name || ''} ${patient.cedula || ''} ${patient.createdAt || ''}`.toLowerCase();
+          const str = `${patient.name || ''} ${patient.cedula || ''} ${patient.createdAt || ''} ${(patient.tests || []).map(t => t.name || '').join(' ')}`.toLowerCase();
           return str.includes(filterText);
         });
       }
@@ -1018,16 +1037,24 @@
       }
       host.innerHTML = patients.slice(0,12).map(p => {
         const date = p.createdAt ? new Date(p.createdAt).toLocaleDateString('es', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin fecha';
+        const tests = Array.isArray(p.tests) && p.tests.length ? p.tests : [];
         const active = state.currentPatientId === p.id ? 'border-color:#117c78;background:#f1faf9;' : '';
         return `
-        <div class="catalog-admin-row" style="${active}">
-          <div class="catalog-admin-info">
-            <strong>${esc(p.name || 'Sin nombre')}</strong>
-            <small>${esc(p.cedula || 'Sin documento')} · ${date} · ${normalizeStatusLabel(p.sampleStatus || 'pendiente')}</small>
+        <div class="patient-history-row" style="${active}">
+          <div class="patient-history-top">
+            <div class="patient-history-name">
+              <strong>${esc(p.name || 'Sin nombre')}</strong>
+              <small>${esc(p.cedula || 'Sin documento')} · ${date} · ${normalizeStatusLabel(p.sampleStatus || 'pendiente')}</small>
+            </div>
+            <div class="patient-history-actions">
+              <button type="button" class="catalog-delete-btn secondary" onclick="loadPatientRecord('${p.id}')">Cargar</button>
+              <button type="button" class="catalog-delete-btn" onclick="deletePatientRecord('${p.id}')">Eliminar</button>
+            </div>
           </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
-            <button type="button" class="catalog-delete-btn" onclick="loadPatientRecord('${p.id}')" style="background:#ebf9f8;color:#117c78;border-color:#cfeae8;">Cargar</button>
-            <button type="button" class="catalog-delete-btn" onclick="deletePatientRecord('${p.id}')">Eliminar</button>
+          <div class="patient-history-tests">
+            ${tests.length ? tests.map(t => `
+              <span class="patient-test-pill ${((t.status || 'pendiente') === 'tomada' || (t.status || 'pendiente') === 'no_tomada' || (t.status || 'pendiente') === 'retrasada' || (t.status || 'pendiente') === 'problema') ? 'done' : 'pending'}">${esc(t.name || 'Prueba')} · ${normalizeStatusLabel(t.status || 'pendiente')}</span>
+            `).join('') : '<span class="patient-test-empty">Sin pruebas guardadas</span>'}
           </div>
         </div>
       `}).join('');
@@ -1163,10 +1190,6 @@
 
     function printReport(){
       renderWatermark();
-      const logo = document.querySelector('#watermark img');
-      if(logo && !logo.complete){
-        new Promise(resolve => { logo.onload = resolve; logo.onerror = resolve; });
-      }
       window.print();
     }
 
