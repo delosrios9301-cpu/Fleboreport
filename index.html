@@ -1,85 +1,1383 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f3f6fa"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="FleboReport"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icons/fleboreport.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icons/icon-192.png">
-<title>FleboReport · Reportes clínicos</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
-:root{--ink:#172838;--muted:#718292;--line:#e4ebf0;--paper:#fff;--bg:#f3f6fa;--teal:#117c78;--teal2:#e9f6f4;--navy:#1c3548;--amber:#986813;--amberbg:#fff6df;--shadow:0 9px 30px #253b5010}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px 'DM Sans',sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}header{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,calc((100vw - 1420px)/2));position:sticky;top:0;z-index:4}.brand{display:flex;align-items:center;gap:11px;font:800 19px Manrope,sans-serif;letter-spacing:-.6px}.brand-icon{display:grid;place-items:center;background:var(--teal);color:white;width:37px;height:37px;border-radius:12px;font-size:19px}.head-right{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:12px}.secure{display:flex;align-items:center;gap:6px}.wrap{max-width:1420px;margin:28px auto;padding:0 24px}.intro{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}.eyebrow{color:var(--teal);font-weight:700;font-size:11px;letter-spacing:1.3px;text-transform:uppercase}h1{font:800 26px Manrope,sans-serif;letter-spacing:-.7px;margin:4px 0 5px}.sub{color:var(--muted);margin:0}.actions{display:flex;gap:9px}.btn{padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--ink);font-weight:600;box-shadow:0 1px 2px #2030440a}.btn:hover{border-color:#9bb4c2}.btn.primary{background:var(--teal);border-color:var(--teal);color:white}.btn.primary:hover{background:#0d6b68}.btn.soft{color:var(--teal);background:var(--teal2);border-color:#d6eeeb}.btn.danger{color:#aa4242}.layout{display:grid;grid-template-columns:370px minmax(0,1fr);gap:20px;align-items:start}.left{display:flex;flex-direction:column;gap:15px}.card{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}.card-head{padding:17px 18px 0;display:flex;align-items:center;justify-content:space-between}.card-head h2{font:700 14px Manrope;margin:0}.step{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#edf6f5;color:var(--teal);font-size:11px;font-weight:700}.card-body{padding:14px 18px 18px}.field{margin-bottom:11px}.field:last-child{margin:0}.field label{display:block;font-size:11px;color:#687b8a;font-weight:700;margin:0 0 5px}.field input,.field select,.field textarea{width:100%;border:1px solid #dfe7ec;border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink);outline:0}.field input:focus,.field select:focus,.field textarea:focus{border-color:#69aaa4;box-shadow:0 0 0 3px #117c7815}.field input::placeholder{color:#a5b1ba}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.filebox{display:flex;align-items:center;gap:10px}.filebox input{font-size:11px;padding:7px}.logo-preview{width:36px;height:36px;border:1px dashed #bdcbd3;border-radius:8px;object-fit:contain;color:var(--muted);font-size:9px;display:grid;place-items:center}.search{position:relative;margin-bottom:10px}.search input{padding-left:33px}.search span{position:absolute;left:11px;top:9px;color:#8495a1}.catalog-list{max-height:220px;overflow:auto;display:flex;flex-direction:column;gap:6px}.test-option{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #e8edf0;border-radius:9px;padding:9px 10px}.test-option strong{display:block;font-size:12px}.test-option small{display:block;color:#8998a3;font-size:10px;margin-top:2px}.add-mini{width:27px;height:27px;border:0;background:var(--teal2);color:var(--teal);border-radius:8px;font-size:17px}.empty-small{color:#8b99a4;font-size:11px;padding:10px 2px}.linkbutton{border:0;background:none;color:var(--teal);font-weight:700;font-size:11px;padding:0}.catalog-form{border-top:1px solid var(--line);margin-top:13px;padding-top:12px;display:none}.catalog-form.open{display:block}.catalog-note{font-size:10px;color:var(--amber);background:var(--amberbg);border-radius:8px;padding:9px;line-height:1.45;margin:9px 0 12px}.catalog-form textarea{min-height:54px;resize:vertical}.catalog-form .field{margin-bottom:8px}.right{min-width:0}.report-shell{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}.report-toolbar{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}.toolbar-title{font:700 13px Manrope}.styles{display:flex;background:#f0f4f6;border-radius:8px;padding:3px;gap:2px}.styles button{border:0;background:transparent;padding:7px 10px;border-radius:6px;color:#728390;font-size:11px;font-weight:700}.styles button.active{background:white;color:var(--ink);box-shadow:0 1px 4px #1d37441b}.paper{padding:30px 32px 26px;min-height:500px;position:relative;isolation:isolate;overflow:hidden}.watermark{position:absolute;inset:0;display:none;z-index:2;pointer-events:none;overflow:hidden}.watermark img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.24;filter:saturate(.8)}.paper>:not(.watermark){position:relative;z-index:1}.paper-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:19px}.labmark{display:flex;gap:12px;align-items:center}.lablogo{width:45px;height:45px;border-radius:12px;background:#eef6f6;color:var(--teal);display:grid;place-items:center;overflow:hidden;font-size:21px}.lablogo img{width:100%;height:100%;object-fit:contain}.labname{font:800 16px Manrope}.labcontact{font-size:10px;color:var(--muted);margin-top:4px}.report-tag{text-align:right;color:var(--muted);font-size:10px}.report-tag b{display:block;color:var(--ink);font-size:12px;margin-bottom:4px}.patient-line{display:flex;gap:24px;align-items:end;padding:16px 0 18px;border-bottom:1px solid var(--line)}.patient-field{flex:1}.patient-field label{font-size:9px;color:#84939e;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}.patient-field input{border:0;border-bottom:1px solid #e2e8ec;border-radius:0;padding:5px 0;width:100%;outline:0;color:var(--ink);background:transparent}.patient-field input:focus{border-color:var(--teal)}.time-range{display:flex;align-items:center;gap:7px}.time-range input{min-width:0;flex:1}.time-range span{color:#91a0aa}.summary{display:flex;gap:10px;margin:17px 0 19px}.stat{flex:1;border:1px solid #e8edf0;background:#fbfcfd;border-radius:10px;padding:11px 13px}.stat span{font-size:9px;text-transform:uppercase;letter-spacing:.55px;color:#80909b;font-weight:700}.stat strong{font:800 21px Manrope;display:block;margin-top:4px}.section-title{font:700 12px Manrope;margin:0 0 10px}.item-list{display:flex;flex-direction:column;gap:8px}.report-item{border:1px solid #e9eef1;border-radius:10px;padding:11px 12px;display:grid;grid-template-columns:43px minmax(0,1fr) auto auto;align-items:center;gap:11px}.vessel{height:43px;width:43px;background:#f2f6f8;border-radius:10px;display:grid;place-items:center}.vessel svg{width:27px;height:33px}.item-name{font-weight:700;font-size:12px}.quantity{font:800 17px Manrope,sans-serif;color:var(--teal);white-space:nowrap}.quantity small{font:700 9px 'DM Sans',sans-serif;color:var(--muted);display:block;text-align:center}.item-detail{font-size:10px;color:#81909b;margin-top:4px}.sample-taken{font-size:10px;color:#117c78;background:#e9f6f4;padding:6px 8px;border-radius:7px;white-space:nowrap;font-weight:700}.pending{font-size:9px;color:var(--amber);background:var(--amberbg);padding:5px 7px;border-radius:6px;white-space:nowrap}.remove{border:0;background:transparent;color:#9aa8b1;font-size:18px;padding:3px}.remove:hover{color:#b44}.receptacles{margin-top:21px}.rec-chips{display:flex;flex-wrap:wrap;gap:7px}.rec-chip{border:1px solid #e3eaee;border-radius:8px;padding:7px 10px;font-size:10px;color:#627481;background:#fff}.rec-chip b{color:var(--ink);font-size:12px;margin-left:5px}.disclaimer{margin-top:18px;border:1px solid #f1e4bb;background:#fffbf0;color:#876d36;border-radius:8px;padding:10px 12px;font-size:10px;line-height:1.5}.paper-foot{font-size:9px;color:#95a2ac;margin-top:22px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between}.empty-report{text-align:center;padding:47px 18px;color:#8797a2}.empty-art{width:74px;height:74px;border-radius:22px;background:#edf5f5;margin:0 auto 13px;display:grid;place-items:center;font-size:30px}.empty-report b{display:block;color:#536878;font:700 13px Manrope;margin-bottom:5px}.empty-report span{font-size:11px}.formal .summary .stat{background:white;border-radius:5px}.formal .report-item{border-radius:4px;grid-template-columns:35px minmax(0,1fr) auto auto}.formal .vessel{border-radius:9px;width:56px;height:64px}.formal .vessel svg{width:42px;height:54px}.formal .pending{border-radius:4px}.formal .section-title{border-bottom:1px solid #cbd5db;padding-bottom:8px}.formal .paper-head{border-bottom:2px solid #526c7e}.formal .lablogo{border-radius:4px}.infographic .paper{background:linear-gradient(180deg,#fff 0,#fdfefe 100%)}.infographic .summary .stat:first-child{background:#eaf7f5;border:0}.infographic .summary .stat:nth-child(2){background:#eff4fa;border:0}.infographic .summary .stat:nth-child(3){background:#f4f1fa;border:0}.infographic .report-item{grid-template-columns:58px minmax(0,1fr) auto auto;padding:12px}.infographic .vessel{width:82px;height:82px;border-radius:24px;background:radial-gradient(circle at 35% 25%,#fff,#dceef1);border:1px solid #dce9ed;box-shadow:inset 0 1px 2px #fff,0 4px 10px #1a536011}.infographic .vessel svg{width:58px;height:72px;filter:drop-shadow(0 5px 4px #18364725)}.infographic .item-name{font-size:16px;font-weight:800}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#19394b;color:white;padding:11px 16px;border-radius:9px;box-shadow:0 6px 20px #10233144;font-size:12px;z-index:10;display:none}.footer-note{text-align:center;color:#97a4ad;font-size:10px;margin:16px}
-@media(max-width:950px){.layout{grid-template-columns:330px minmax(0,1fr)}.paper{padding:24px 21px}.infographic .report-item{grid-template-columns:48px minmax(0,1fr) auto}.report-item{grid-template-columns:38px minmax(0,1fr) auto}.report-item .remove{grid-column:3}.pending{grid-column:2/4;justify-self:start}}
-@media(max-width:720px){header{height:62px;padding:0 16px}.secure{display:none}.wrap{padding:0 13px;margin:20px auto}.intro{display:block}.intro .actions{margin-top:14px}.layout{grid-template-columns:1fr}.left{order:1}.right{order:2}.report-toolbar{align-items:flex-start;flex-direction:column}.paper{padding:20px 15px}.patient-line{gap:12px}.summary{gap:6px}.stat{padding:9px}.stat strong{font-size:17px}.report-tag{font-size:9px}.labname{font-size:14px}.paper-foot{gap:12px}.paper-foot span:last-child{text-align:right}}
-@media print{@page{size:A4;margin:12mm}body{background:white}.no-print,header,.intro,.left,.footer-note,.toast{display:none!important}.wrap{margin:0;padding:0;max-width:none}.layout{display:block}.right{width:100%}.report-shell{border:0;box-shadow:none;border-radius:0}.report-toolbar{display:none}.paper{padding:0;min-height:0}.report-item,.stat,.disclaimer{break-inside:avoid}.paper-head,.patient-line,.summary,.item-list,.receptacles{break-inside:avoid}}
-.report-item{grid-template-columns:43px minmax(0,1fr) auto auto auto}.infographic .report-item{grid-template-columns:58px minmax(0,1fr) auto auto auto}.formal .report-item{grid-template-columns:62px minmax(0,1fr) auto auto auto}.item-detail{overflow-wrap:anywhere}
-@media(max-width:950px){.report-item{grid-template-columns:38px minmax(0,1fr) auto auto}.report-item .remove{grid-column:auto}.pending{grid-column:auto;justify-self:start}.formal .report-item{grid-template-columns:50px minmax(0,1fr) auto auto}}
-@media(max-width:720px){.patient-line{flex-wrap:wrap;gap:12px}.patient-field{min-width:42%}.patient-field:nth-child(2){min-width:100%}.report-item,.infographic .report-item{grid-template-columns:46px minmax(0,1fr) auto}.report-item .quantity{grid-column:2;grid-row:2;justify-self:start}.report-item .pending{grid-column:2;grid-row:3;justify-self:start}.report-item .remove{grid-column:3;grid-row:2}.formal .report-item{grid-template-columns:50px minmax(0,1fr) auto}.time-range{max-width:320px}}.test-meta{min-width:0;flex:1}.catalog-color-controls,.color-controls{display:flex;align-items:center;gap:6px;margin-top:7px}.catalog-color-controls select,.color-controls select{min-width:0;flex:1;border:1px solid #dfe7ec;border-radius:7px;padding:6px;background:#fff;color:var(--ink);font-size:10px}.catalog-color-controls input[type=color],.color-controls input[type=color]{width:34px;height:29px;padding:2px;border:1px solid #dfe7ec;border-radius:7px;background:#fff;cursor:pointer}.color-note{display:block;color:#728390;font-size:9px;line-height:1.4;margin-top:5px}@media(min-width:721px){.infographic .report-item{grid-template-columns:96px minmax(0,1fr) auto auto auto}.infographic .vessel{width:82px;height:82px}.infographic .vessel svg{width:58px;height:72px}}
-@media(max-width:720px){.infographic .report-item{grid-template-columns:72px minmax(0,1fr) auto}.infographic .vessel{width:64px;height:64px;border-radius:19px}.infographic .vessel svg{width:48px;height:60px}}
-@media(max-width:720px){
-  header{height:58px;padding:0 12px}.brand{font-size:17px;gap:8px}.brand-icon{width:34px;height:34px;border-radius:10px}.head-right{font-size:10px}
-  .wrap{padding:0 10px;margin:14px auto}.intro{margin-bottom:14px}.intro h1{font-size:23px;line-height:1.15}.intro .sub{font-size:13px;line-height:1.4}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}.actions .primary{grid-column:1/-1}.btn{min-height:44px;padding:10px 8px;font-size:13px}
-  .layout{grid-template-columns:minmax(0,1fr);gap:14px}.left,.right{min-width:0;width:100%}.left{order:1}.right{order:2}.card,.report-shell{border-radius:12px}.card-head{padding:15px 15px 0}.card-body{padding:13px 15px 16px}.two{grid-template-columns:minmax(0,1fr);gap:0}.field input,.field select,.field textarea,.search input{font-size:16px;min-height:44px;padding:10px 11px}.field label{font-size:12px}.catalog-form .field{margin-bottom:10px}.catalog-note{font-size:11px}.catalog-list{max-height:300px}.test-option{padding:10px 8px;gap:7px}.test-option strong{font-size:13px}.test-option small{font-size:10px}.add-mini{width:42px;height:42px;flex:0 0 42px;font-size:22px}.catalog-color-controls select{font-size:12px;min-height:42px;padding:6px 3px}.catalog-color-controls input[type=color],.color-controls input[type=color]{width:42px;height:42px;flex:0 0 42px}.color-controls select{font-size:15px}
-  .report-toolbar{align-items:stretch;flex-direction:column;padding:11px 12px}.styles{width:100%;justify-content:stretch}.styles button{flex:1;min-height:42px;font-size:12px}.paper{padding:17px 11px;min-height:460px}.paper-head{align-items:flex-start;gap:10px;padding-bottom:14px}.labname{font-size:14px;overflow-wrap:anywhere}.labcontact{max-width:180px;line-height:1.35;overflow-wrap:anywhere}.report-tag{max-width:48%;font-size:9px;line-height:1.35}.report-tag b{font-size:10px;line-height:1.35}.patient-line{padding:12px 0;gap:8px}.patient-field{min-width:43%}.patient-field:nth-child(2){min-width:100%}.patient-field label{font-size:9px}.patient-field input{font-size:14px;min-height:40px}.time-range{gap:5px;max-width:none}.time-range input{font-size:14px;min-height:40px;padding:7px 3px}.summary{gap:5px;margin:12px 0 15px}.stat{min-width:0;padding:8px 6px;border-radius:8px}.stat span{font-size:8px;line-height:1.3;letter-spacing:.25px}.stat strong{font-size:19px}.section-title{font-size:12px}.report-item,.infographic .report-item,.formal .report-item{grid-template-columns:62px minmax(0,1fr) auto;gap:7px;padding:10px 8px;min-height:88px}.vessel,.infographic .vessel,.formal .vessel{width:54px;height:58px;border-radius:16px}.vessel svg,.infographic .vessel svg,.formal .vessel svg{width:42px;height:52px}.item-name,.infographic .item-name{font-size:14px;line-height:1.3;overflow-wrap:anywhere}.quantity{font-size:16px}.report-item .quantity{grid-column:2;grid-row:2;justify-self:start}.sample-taken{grid-column:2;grid-row:3;justify-self:start;font-size:9px;padding:5px 7px}.report-item .remove{grid-column:3;grid-row:2;width:40px;height:40px;border-radius:8px;background:#f5f7f8;font-size:22px}.receptacles{margin-top:17px}.rec-chip{font-size:11px;padding:8px 9px}.empty-report{padding:30px 12px}.disclaimer{font-size:10px}.watermark img{opacity:.24}.paper-foot{font-size:9px;flex-direction:column;gap:5px}.footer-note{font-size:10px;margin:12px 4px}
-}
-@media(max-width:380px){.wrap{padding:0 8px}.paper{padding:14px 8px}.summary{gap:4px}.stat span{font-size:7px}.report-item,.infographic .report-item,.formal .report-item{grid-template-columns:54px minmax(0,1fr) auto;gap:5px;padding:9px 6px}.vessel,.infographic .vessel,.formal .vessel{width:48px;height:52px}.vessel svg,.infographic .vessel svg,.formal .vessel svg{width:38px;height:46px}.report-tag{max-width:45%}.report-tag b{font-size:9px}.time-range input{font-size:12px}}
-.mobile-stepper{display:none}
-@media(max-width:720px){.mobile-stepper{position:sticky;top:58px;z-index:3;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:-3px 0 12px;padding:7px;background:#f3f6faeF;backdrop-filter:blur(10px);border:1px solid #e4ebf0;border-radius:11px}.mobile-stepper button{min-width:0;min-height:40px;padding:6px 3px;border:0;border-radius:8px;background:#fff;color:#607481;font-size:10px;font-weight:700;white-space:nowrap}.mobile-stepper button.active{background:#117c78;color:#fff}.layout{display:block}.left{display:contents}.layout [data-mobile-step]{display:none}.layout [data-mobile-step].mobile-active{display:block}.layout .right{display:none}.layout .right.mobile-active{display:block}.layout [data-mobile-step].mobile-active .report-shell{display:block}}
-.module-switch{display:flex;gap:8px;margin:0 0 18px;padding:4px;background:#eaf0f3;border-radius:11px;width:max-content}.module-switch button{border:0;border-radius:8px;padding:10px 16px;background:transparent;color:#627481;font-weight:700}.module-switch button.active{background:#fff;color:#117c78;box-shadow:0 1px 4px #1d37441b}.config-heading{margin:8px 0 20px}.config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}.config-hint{margin:0 0 12px;color:#718292;font-size:12px;line-height:1.5}.step-actions{display:none}.report-export-actions{display:flex;gap:7px;flex-wrap:wrap}.report-export-actions .btn{padding:7px 9px;font-size:10px}
-@media(max-width:720px){.module-switch{position:sticky;top:0;z-index:5;width:100%;display:grid;grid-template-columns:1fr 1fr;margin:-7px 0 12px;padding:4px;background:#f3f6faef;backdrop-filter:blur(10px)}.module-switch button{min-height:42px;padding:8px 6px;font-size:12px}.config-heading{margin:4px 0 15px}.config-heading h1{font-size:23px}.config-grid{grid-template-columns:1fr;gap:12px}.step-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #e4ebf0}.step-actions .btn{min-height:42px;flex:1}.step-actions .step-count{font-size:10px;color:#718292;text-align:center;white-space:nowrap}.intro .actions{display:none}.report-export-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.report-export-actions .btn{min-height:40px;font-size:11px}}
-@media print{.module-switch,.mobile-stepper,.step-actions{display:none!important}}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f3f6fa">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FleboReport">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/fleboreport.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <title>FleboReport · Reportes clínicos</title>
+  <style>
+    :root {
+      --ink:#172838;
+      --muted:#718292;
+      --line:#e4ebf0;
+      --paper:#fff;
+      --bg:#f3f6fa;
+      --teal:#117c78;
+      --teal2:#e9f6f4;
+      --navy:#1c3548;
+      --amber:#986813;
+      --amberbg:#fff6df;
+      --shadow:0 9px 30px rgba(37,59,80,.08);
+    }
 
-.new-shift-mobile{display:none}
-@media(max-width:720px){.layout{padding-bottom:92px}.step-actions{position:fixed;left:calc(env(safe-area-inset-left,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:8;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:0;border:0;pointer-events:none}.step-actions .btn{width:58px;height:58px;min-height:58px;flex:0 0 58px;padding:0;border-radius:50%;display:grid;place-items:center;font-size:0;box-shadow:0 8px 24px #142f4038;pointer-events:auto}.step-actions .step-prev{background:#fff;color:#117c78;border:1px solid #d7e5e8}.step-actions .step-next{background:#117c78;color:#fff;border:1px solid #117c78}.step-actions .step-prev::before{content:'←';font:700 25px/1 Arial,sans-serif}.step-actions .step-next::before{content:'→';font:700 25px/1 Arial,sans-serif}.step-actions .step-count{position:absolute;left:50%;transform:translateX(-50%);padding:7px 12px;border:1px solid #dce7ea;border-radius:999px;background:#ffffffed;box-shadow:0 4px 14px #142f4020;font-size:10px;color:#536878}.new-shift-mobile{display:block;width:100%;margin-top:12px}}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:14px 'DM Sans',sans-serif}
+    body{min-height:100vh}
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+    input,select,textarea{color:var(--ink)}
 
-.quantity-controls{display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap}.quantity-controls .quantity{min-width:65px;text-align:center}.qty-adjust{width:38px;height:38px;flex:0 0 38px;border:1px solid #d6e5e8;border-radius:50%;background:#fff;color:#117c78;display:grid;place-items:center;font-size:20px;font-weight:700;line-height:1;box-shadow:0 2px 7px #19354412}.qty-plus{background:#117c78;color:#fff;border-color:#117c78}.qty-adjust:active{transform:scale(.94)}.report-item{grid-template-columns:58px minmax(0,1fr) auto auto}.formal .report-item{grid-template-columns:62px minmax(0,1fr) auto auto}.infographic .report-item{grid-template-columns:96px minmax(0,1fr) auto auto}
-@media(max-width:950px){.report-item,.formal .report-item,.infographic .report-item{grid-template-columns:52px minmax(0,1fr) auto}.report-item .sample-taken{grid-column:2/4;grid-row:2;justify-self:start}.quantity-controls{justify-self:end}}
-@media(max-width:720px){.report-item,.formal .report-item,.infographic .report-item{grid-template-columns:58px minmax(0,1fr);align-items:center}.report-item .quantity-controls{grid-column:2;grid-row:2;justify-self:start}.report-item .sample-taken{grid-column:2;grid-row:3;justify-self:start}.qty-adjust{width:42px;height:42px;flex-basis:42px}.quantity-controls{gap:8px}}
+    header{
+      height:70px;background:#fff;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 max(24px,calc((100vw - 1420px)/2));
+      position:sticky;top:0;z-index:1000
+    }
+    .brand{display:flex;align-items:center;gap:11px;font:800 19px Manrope,sans-serif;letter-spacing:-.6px}
+    .brand-icon{display:grid;place-items:center;background:var(--teal);color:#fff;width:37px;height:37px;border-radius:12px}
+    .brand-icon svg{width:24px;height:24px}
+    .head-right{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:12px}
+    .secure{display:flex;align-items:center;gap:6px}
 
-@media(max-width:720px){.step-actions .btn{position:relative}.step-actions .step-prev::before,.step-actions .step-next::before{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(2px);display:grid;place-items:center;width:100%;height:100%;line-height:1;margin:0}}
+    .wrap{max-width:1420px;margin:28px auto;padding:0 24px}
+    .intro{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px}
+    .eyebrow{color:var(--teal);font-weight:700;font-size:11px;letter-spacing:1.3px;text-transform:uppercase}
+    h1{font:800 26px Manrope,sans-serif;letter-spacing:-.7px;margin:4px 0 5px}
+    .sub{color:var(--muted);margin:0}
+    .actions{display:flex;gap:9px;flex-wrap:wrap}
+    .btn{padding:10px 14px;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(32,48,68,.03)}
+    .btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+    .btn.primary:hover{background:#0d6b68}
+    .btn:hover{border-color:#9bb4c2}
+    .linkbutton{border:0;background:none;color:var(--teal);font-weight:700;font-size:11px;padding:0}
 
-.catalog-admin-list{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}.catalog-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid #e4ebf0;border-radius:9px;background:#fff}.catalog-admin-info{min-width:0}.catalog-admin-info strong{display:block;color:#263b49;font-size:12px;overflow-wrap:anywhere}.catalog-admin-info small{display:block;color:#7a8b96;font-size:10px;margin-top:3px}.catalog-admin-empty{padding:11px;border:1px dashed #cbd9df;border-radius:9px;color:#718292;font-size:11px;line-height:1.5}.catalog-delete-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #f0d9d9;border-radius:8px;background:#fff7f7;color:#a83f46;font-size:11px;font-weight:700}
-.mobile-settings,.mobile-bottom-nav,.mobile-screen-title,.mobile-shift-tests,.mobile-search,.mobile-catalog-list{display:none}
-@media(max-width:720px){
- body{background:#f4f6fa;padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
- header{height:62px;padding:0 16px;box-shadow:0 1px 8px #18364b0a}.brand{font-size:19px;font-weight:800;gap:9px}.brand-icon{background:transparent;color:#07877f;width:31px;height:34px;border-radius:0}.brand-icon svg{width:32px;height:32px}.head-right{display:none}.mobile-settings{display:grid;place-items:center;width:40px;height:40px;border:1px solid #e3eaf0;border-radius:13px;background:#fff;color:#284357;font-size:18px;box-shadow:0 2px 8px #19384a0c}
- .wrap{max-width:none;margin:0;padding:0 14px 18px}.module-switch,.mobile-stepper{display:none!important}.intro{display:none!important}.mobile-screen-title{display:block;margin:20px 3px 14px}.mobile-screen-title h1{font:800 23px/1.2 Manrope,sans-serif;letter-spacing:-.5px;margin:0 0 4px;color:#152b3d}.mobile-screen-title p{margin:0;color:#738492;font-size:13px;text-transform:capitalize}
- .layout{display:block;padding-bottom:5px}.left{display:contents}.layout [data-mobile-step]{display:none!important}.layout [data-mobile-step].mobile-active{display:block!important}.layout .right{display:none!important}.layout .right.mobile-active{display:block!important}
- #shiftCard,#catalogCard,.report-shell{border:1px solid #e9eef2;border-radius:18px;background:#fff;box-shadow:0 7px 24px #18364b0b;overflow:hidden}.card-head{padding:17px 17px 0}.card-head h2{font-size:17px;letter-spacing:-.3px}.card-head .step{display:none}.card-body{padding:15px 16px 18px}.field{margin-bottom:14px}.field label{font-size:12px;color:#637583;margin-bottom:7px}.field input,.field select,.field textarea{border-color:#dfe7ec;background:#fbfcfd;border-radius:11px;min-height:46px;padding:11px 12px;font-size:16px}.two{grid-template-columns:1fr 1fr;gap:10px}.patient-line{flex-wrap:wrap}.mobile-shift-tests{display:block;margin-top:18px;padding-top:15px;border-top:1px solid #edf1f4}.mobile-section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.mobile-section-head h3{font:750 16px Manrope,sans-serif;margin:0}.mobile-section-head span{min-width:27px;height:27px;padding:0 7px;display:grid;place-items:center;background:#e7f5f3;color:#087f78;border-radius:50%;font-weight:800;font-size:12px}
- .mobile-jornada-list{display:flex;flex-direction:column;gap:8px}.mobile-jornada-list .report-item{grid-template-columns:46px minmax(0,1fr) auto;gap:8px;padding:10px;border:1px solid #e8edf0;border-radius:14px;min-height:72px;background:#fff}.mobile-jornada-list .vessel{width:44px;height:48px;border-radius:15px}.mobile-jornada-list .vessel svg{width:34px;height:43px}.mobile-jornada-list .item-name{font-size:13px;line-height:1.3}.mobile-jornada-list .quantity-controls{grid-column:3;grid-row:1;gap:4px}.mobile-jornada-list .quantity{font:800 14px Manrope;color:#18374a;text-align:center;min-width:18px}.mobile-jornada-list .quantity small{display:none}.mobile-jornada-list .qty-adjust{width:30px;height:32px;flex-basis:30px;min-height:32px;border:1px solid #e4e9ed;border-radius:8px;background:#fbfcfd;color:#385265;font-size:17px}.mobile-jornada-list .sample-taken{display:none}.mobile-empty{padding:15px 12px;text-align:center;color:#8796a1;font-size:12px;border:1px dashed #e1e8ec;border-radius:12px;background:#fbfcfd}
- .mobile-add-main{width:100%;height:48px;margin-top:12px;border:0;border-radius:14px;background:#087f78;color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 12px #087f7827}.mobile-add-main span{font-size:21px;vertical-align:-1px;margin-right:5px}
- #catalogCard .card-head{padding:17px 16px 12px}.mobile-search{display:flex;position:relative;align-items:center;margin:0 16px 12px}.mobile-search span{position:absolute;left:13px;font-size:23px;color:#81929e;transform:rotate(-20deg)}.mobile-search input{width:100%;height:47px;border:1px solid #e0e7ec;border-radius:13px;background:#fbfcfd;padding:10px 12px 10px 43px;font-size:16px;outline:none}.mobile-search input:focus{border-color:#82bcb6;box-shadow:0 0 0 3px #117c7815}.mobile-catalog-list{display:flex;flex-direction:column;gap:8px;padding:0 14px 16px}.mobile-test-row{display:flex;align-items:center;gap:11px;min-height:68px;padding:9px 10px;border:1px solid #e8edf0;border-radius:14px;background:#fff}.mobile-test-icon{width:44px;height:48px;flex:0 0 44px;border-radius:50%;background:#edf7f6;display:grid;place-items:center}.mobile-test-icon svg{width:29px;height:38px}.mobile-test-info{min-width:0;flex:1}.mobile-test-info strong{display:block;font-size:13px;line-height:1.3;overflow-wrap:anywhere}.mobile-test-info small{display:block;margin-top:3px;color:#7c8b97;font-size:10px;overflow-wrap:anywhere}.mobile-add-one{width:38px;height:38px;flex:0 0 38px;border:1px solid #dce7e9;border-radius:50%;background:#fff;color:#168780;font-size:23px;line-height:1}.desktop-test-select{display:none!important}
- .report-shell{border-radius:18px}.report-toolbar{padding:14px 14px 12px;gap:12px}.toolbar-title{font-size:16px}.styles{width:100%;padding:3px}.styles button{flex:1;min-height:38px;font-size:12px}.report-export-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.report-export-actions .btn{min-height:43px;border-radius:11px;font-size:12px}.paper{padding:17px 13px;min-height:0}.paper-head{align-items:flex-start;gap:8px;padding-bottom:13px}.labname{font-size:14px}.labcontact{font-size:10px;line-height:1.35}.report-tag{font-size:9px;max-width:45%}.report-tag b{font-size:10px;line-height:1.35}.patient-line{padding:12px 0;gap:8px}.patient-field{min-width:43%}.patient-field:nth-child(2){min-width:100%}.patient-field label{font-size:9px}.patient-field input{min-height:38px;font-size:13px}.summary{gap:6px;margin:12px 0 15px}.stat{padding:9px 6px;border-radius:12px}.stat span{font-size:8px;line-height:1.35}.stat strong{font-size:19px}.report-item,.infographic .report-item,.formal .report-item{grid-template-columns:48px minmax(0,1fr) auto;gap:8px;padding:10px;border-radius:13px}.vessel,.infographic .vessel,.formal .vessel{width:44px;height:48px;border-radius:50%}.vessel svg,.infographic .vessel svg,.formal .vessel svg{width:33px;height:42px}.item-name,.infographic .item-name{font-size:13px}.report-item .quantity-controls{grid-column:3;grid-row:1}.report-item .sample-taken{display:none}.quantity-controls{gap:5px}.quantity{font-size:14px}.qty-adjust{width:30px;height:32px;flex-basis:30px;min-height:32px;border-radius:8px}.receptacles{margin-top:14px}.rec-chip{padding:7px 8px;font-size:10px}.step-actions,.step-actions .new-shift-mobile{display:none!important}.layout{padding-bottom:4px}
- .mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 7px calc(7px + env(safe-area-inset-bottom,0px));border-top:1px solid #e4eaee;background:#ffffffed;backdrop-filter:blur(14px);box-shadow:0 -5px 18px #19384a0a}.mobile-bottom-nav button{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:none;color:#728390;font-size:10px;font-weight:700;padding:3px 2px}.mobile-bottom-nav button span{height:22px;display:grid;place-items:center;font-size:20px;line-height:1;color:#657b8b}.mobile-bottom-nav button.active{color:#087f78}.mobile-bottom-nav button.active span{color:#087f78}.footer-note{display:none}
- #configModule{padding-bottom:10px}.config-heading{margin:19px 3px 14px}.config-grid{grid-template-columns:1fr;gap:12px}.catalog-admin-list{margin-bottom:12px}
-}
-@media(max-width:380px){.wrap{padding-left:10px;padding-right:10px}.two{gap:7px}.card-body{padding-left:13px;padding-right:13px}.mobile-test-row{padding:8px}.report-tag{max-width:43%}.summary{gap:4px}.stat{padding:8px 4px}}
-@media print{.mobile-bottom-nav,.mobile-settings,.mobile-screen-title{display:none!important}}</style>
+    .layout{display:grid;grid-template-columns:370px minmax(0,1fr);gap:20px;align-items:start}
+    .left{display:flex;flex-direction:column;gap:15px}
+    .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+    .card-head{padding:17px 18px 0;display:flex;align-items:center;justify-content:space-between}
+    .card-head h2{font:700 14px Manrope;margin:0}
+    .step{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;background:#edf6f5;color:var(--teal);font-size:11px;font-weight:700}
+    .card-body{padding:14px 18px 18px}
+    .field{margin-bottom:11px}
+    .field:last-child{margin:0}
+    .field label{display:block;margin:0 0 5px;font-size:11px;color:#687b8a;font-weight:700}
+    .field input,.field select,.field textarea{width:100%;border:1px solid #dfe7ec;border-radius:8px;padding:9px 10px;background:#fff;color:var(--ink);outline:0}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:#69aaa4;box-shadow:0 0 0 3px rgba(17,124,120,.08)}
+    .field input::placeholder{color:#a5b1ba}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .filebox{display:flex;align-items:center;gap:10px}.filebox input{font-size:11px;padding:7px}
+    .logo-preview{width:36px;height:36px;border:1px dashed #bdcbd3;border-radius:8px;display:grid;place-items:center;object-fit:contain;color:var(--muted);font-size:20px;background:#f8fbfc}
+    .logo-preview img{width:100%;height:100%;object-fit:contain}
+    .color-note{display:block;color:#728390;font-size:9px;line-height:1.4;margin-top:5px}
+    .catalog-form{border-top:1px solid var(--line);margin-top:13px;padding-top:12px;display:none}
+    .catalog-form.open{display:block}
+    .catalog-note{font-size:10px;color:var(--amber);background:var(--amberbg);border-radius:8px;padding:9px;line-height:1.45;margin:9px 0 12px}
+    .catalog-admin-list{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
+    .catalog-admin-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid #e4ebf0;border-radius:9px;background:#fff}
+    .catalog-admin-info{min-width:0}
+    .catalog-admin-info strong{display:block;color:#263b49;font-size:12px;overflow-wrap:anywhere}
+    .catalog-admin-info small{display:block;color:#7a8b96;font-size:10px;margin-top:3px}
+    .catalog-admin-empty{padding:11px;border:1px dashed #cbd9df;border-radius:9px;color:#718292;font-size:11px;line-height:1.5}
+    .catalog-delete-btn{flex:0 0 auto;min-height:38px;padding:7px 10px;border:1px solid #f0d9d9;border-radius:8px;background:#fff7f7;color:#a83f46;font-size:11px;font-weight:700}
+
+    .module-switch{display:flex;gap:8px;margin:0 0 18px;padding:4px;background:#eaf0f3;border-radius:11px;width:max-content}
+    .module-switch button{border:0;border-radius:8px;padding:10px 16px;background:transparent;color:#627481;font-weight:700}
+    .module-switch button.active{background:#fff;color:var(--teal);box-shadow:0 1px 4px rgba(29,55,68,.12)}
+    .config-heading{margin:8px 0 20px}
+    .config-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+    .config-hint{margin:0 0 12px;color:#718292;font-size:12px;line-height:1.5}
+
+    .right{min-width:0}
+    .report-shell{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+    .report-toolbar{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .toolbar-title{font:700 13px Manrope}
+    .styles{display:flex;background:#f0f4f6;border-radius:8px;padding:3px;gap:2px}
+    .styles button{border:0;background:transparent;padding:7px 10px;border-radius:6px;color:#728390;font-size:11px;font-weight:700}
+    .styles button.active{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(29,55,68,.12)}
+
+    .paper{padding:30px 32px 26px;min-height:500px;position:relative;isolation:isolate;overflow:hidden}
+    .watermark{position:absolute;inset:0;display:none;z-index:2;pointer-events:none;overflow:hidden}
+    .watermark img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:.24;filter:saturate(.8)}
+    .paper > :not(.watermark){position:relative;z-index:1}
+    .paper-head{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:19px}
+    .labmark{display:flex;gap:12px;align-items:center}
+    .lablogo{width:45px;height:45px;border-radius:12px;background:#eef6f6;color:var(--teal);display:grid;place-items:center;overflow:hidden;font-size:21px}
+    .lablogo img{width:100%;height:100%;object-fit:contain}
+    .labname{font:800 16px Manrope}
+    .labcontact{font-size:10px;color:var(--muted);margin-top:4px}
+    .report-tag{text-align:right;color:var(--muted);font-size:10px}
+    .report-tag b{display:block;color:var(--ink);font-size:12px;margin-bottom:4px}
+
+    .patient-line{display:flex;gap:24px;align-items:end;padding:16px 0 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+    .patient-field{flex:1 1 170px;min-width:150px}
+    .patient-field label{font-size:9px;color:#84939e;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+    .patient-field input,.patient-field select{border:0;border-bottom:1px solid #e2e8ec;border-radius:0;padding:5px 0;width:100%;outline:0;color:var(--ink);background:transparent}
+    .patient-field input:focus,.patient-field select:focus{border-color:var(--teal)}
+    .time-range{display:flex;align-items:center;gap:7px}
+    .time-range input{min-width:0;flex:1}
+    .time-range span{color:#91a0aa}
+
+    .summary{display:flex;gap:10px;margin:17px 0 19px;flex-wrap:wrap}
+    .stat{flex:1;min-width:140px;border:1px solid #e8edf0;background:#fbfcfd;border-radius:10px;padding:11px 13px}
+    .stat span{font-size:9px;text-transform:uppercase;letter-spacing:.55px;color:#80909b;font-weight:700}
+    .stat strong{font:800 21px Manrope;display:block;margin-top:4px}
+
+    .section-title{font:700 12px Manrope;margin:0 0 10px}
+    .item-list{display:flex;flex-direction:column;gap:8px}
+    .report-item{border:1px solid #e9eef1;border-radius:10px;padding:11px 12px;display:grid;grid-template-columns:43px minmax(0,1fr) auto auto;align-items:center;gap:11px}
+    .vessel{height:43px;width:43px;background:#f2f6f8;border-radius:10px;display:grid;place-items:center}
+    .vessel svg{width:27px;height:33px}
+    .item-name{font-weight:700;font-size:12px}
+    .item-detail{font-size:10px;color:#81909b;margin-top:4px}
+    .quantity{font:800 17px Manrope,sans-serif;color:var(--teal);white-space:nowrap}
+    .quantity small{font:700 9px 'DM Sans',sans-serif;color:var(--muted);display:block;text-align:center}
+    .sample-taken{font-size:10px;color:#117c78;background:#e9f6f4;padding:6px 8px;border-radius:7px;white-space:nowrap;font-weight:700}
+    .receptacles{margin-top:21px}
+    .rec-chips{display:flex;flex-wrap:wrap;gap:7px}
+    .rec-chip{border:1px solid #e3eaee;border-radius:8px;padding:7px 10px;font-size:10px;color:#627481;background:#fff}
+    .rec-chip b{color:var(--ink);font-size:12px;margin-left:5px}
+    .empty-report{text-align:center;padding:47px 18px;color:#8797a2}
+    .empty-art{width:74px;height:74px;border-radius:22px;background:#edf5f5;margin:0 auto 13px;display:grid;place-items:center;font-size:30px}
+    .empty-report b{display:block;color:#536878;font:700 13px Manrope;margin-bottom:5px}
+    .empty-report span{font-size:11px}
+
+    .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#19394b;color:#fff;padding:11px 16px;border-radius:9px;box-shadow:0 6px 20px rgba(16,35,49,.35);font-size:12px;z-index:1001;display:none}
+    .footer-note{text-align:center;color:#97a4ad;font-size:10px;margin:16px 0 0}
+
+    .mobile-bottom-nav{display:none}
+    .mobile-settings{display:none}
+    .mobile-screen-title{display:none}
+
+    .formal .paper-head{border-bottom:2px solid #526c7e}
+    .formal .summary .stat{background:#fff}
+    .formal .report-item{grid-template-columns:35px minmax(0,1fr) auto auto}
+    .formal .vessel{width:56px;height:64px;border-radius:9px}
+    .formal .vessel svg{width:42px;height:54px}
+    .infographic .paper{background:linear-gradient(180deg,#fff 0,#fdfefe 100%)}
+    .infographic .summary .stat:first-child{background:#eaf7f5;border:0}
+    .infographic .summary .stat:nth-child(2){background:#eff4fa;border:0}
+    .infographic .summary .stat:nth-child(3){background:#f4f1fa;border:0}
+    .infographic .report-item{grid-template-columns:58px minmax(0,1fr) auto auto;padding:12px}
+    .infographic .vessel{width:82px;height:82px;border-radius:24px;background:radial-gradient(circle at 35% 25%,#fff,#dceef1);border:1px solid #dce9ed;box-shadow:inset 0 1px 2px #fff,0 4px 10px rgba(26,83,96,.08)}
+    .infographic .vessel svg{width:58px;height:72px;filter:drop-shadow(0 5px 4px rgba(24,54,71,.12))}
+    .infographic .item-name{font-size:16px;font-weight:800}
+
+    @media (max-width: 920px){
+      .layout{grid-template-columns:1fr}
+      .intro{display:block}
+      .intro .actions{margin-top:14px}
+      .right{width:100%}
+    }
+
+    @media (max-width: 720px){
+      header{height:62px;padding:0 16px}
+      .head-right{display:none}
+      .mobile-settings{display:grid;place-items:center;width:40px;height:40px;border:1px solid #e3eaf0;border-radius:13px;background:#fff;color:#284357;font-size:18px;box-shadow:0 2px 8px rgba(25,56,74,.06)}
+      .wrap{max-width:none;margin:0;padding:0 14px 18px}
+      .module-switch{display:none}
+      .intro{display:none}
+      .mobile-screen-title{display:block;margin:20px 3px 14px}
+      .mobile-screen-title h1{margin:0 0 4px;font-size:23px}
+      .mobile-screen-title p{margin:0;color:var(--muted)}
+      .layout{display:block;padding-bottom:6px}
+      .left{display:flex}
+      .right{display:block}
+      .card{border-radius:18px;background:#fff;box-shadow:0 7px 24px rgba(24,54,71,.08)}
+      .card-head{padding:17px 17px 0}
+      .card-head h2{font-size:17px}
+      .card-body{padding:15px 16px 18px}
+      .field{margin-bottom:14px}
+      .field label{font-size:12px;color:#637583;margin-bottom:7px}
+      .field input,.field select,.field textarea{border-color:#dfe7ec;background:#fbfcfd;border-radius:11px;min-height:46px;padding:11px 12px;font-size:16px}
+      .two{grid-template-columns:1fr}
+      .report-toolbar{padding:14px 14px 12px;gap:12px}
+      .styles{width:100%;padding:3px}
+      .styles button{flex:1;min-height:38px;font-size:12px}
+      .paper{padding:17px 13px;min-height:0}
+      .paper-head{align-items:flex-start;gap:8px;padding-bottom:13px}
+      .labname{font-size:14px}
+      .labcontact{font-size:10px;line-height:1.35}
+      .report-tag{font-size:9px;max-width:45%}
+      .report-tag b{font-size:10px;line-height:1.35}
+      .patient-line{padding:12px 0;gap:8px}
+      .patient-field{min-width:43%}
+      .patient-field:nth-child(2){min-width:100%}
+      .patient-field label{font-size:9px}.patient-field input,.patient-field select{min-height:38px;font-size:13px}
+      .summary{gap:6px;margin:12px 0 15px}
+      .stat{padding:9px 6px;border-radius:12px}
+      .stat span{font-size:8px;line-height:1.35}
+      .stat strong{font-size:19px}
+      .report-item,.infographic .report-item,.formal .report-item{grid-template-columns:48px minmax(0,1fr) auto;gap:8px;padding:10px;border-radius:13px}
+      .vessel,.infographic .vessel,.formal .vessel{width:44px;height:48px;border-radius:50%}
+      .vessel svg,.infographic .vessel svg,.formal .vessel svg{width:33px;height:42px}
+      .item-name,.infographic .item-name{font-size:13px}
+      .quantity{font-size:14px}
+      .sample-taken{display:none}
+      .mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,1fr);padding:7px 7px calc(7px + env(safe-area-inset-bottom,0px));border-top:1px solid #e5edf0;background:#fff}
+      .mobile-bottom-nav button{border:0;background:none;padding:8px 4px 6px;font-size:10px;color:#708191;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:8px}
+      .mobile-bottom-nav button.active{background:#edf7f7;color:var(--teal)}
+      body{padding-bottom:90px}
+    }
+
+    @media print{
+      body{background:#fff}
+      .no-print,.mobile-bottom-nav,.toast,.mobile-settings,.mobile-screen-title{display:none!important}
+      .wrap{margin:0;padding:0;max-width:none}
+      .layout{display:block}
+      .left,.right{display:block;width:100%}
+      .report-shell{border:0;box-shadow:none;border-radius:0}
+      .report-toolbar{display:none}
+      .paper{padding:0;min-height:0}
+      .patient-line,.summary,.item-list,.receptacles{break-inside:avoid}
+      .report-item,.stat{break-inside:avoid}
+    }
+  </style>
 </head>
 <body>
-<header><div class="brand"><div class="brand-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3C13 8 7 14.5 7 20a9 9 0 0 0 18 0c0-5.5-6-12-9-17Z" fill="currentColor"/><path d="M12 21c.5 2.2 2 3.5 4.2 4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg></div><span>FleboReport</span></div><button type="button" class="mobile-settings no-print" onclick="showModule('config')" aria-label="Abrir configuración">⚙</button><div class="head-right"><span class="secure">◈&nbsp; Datos guardados en este dispositivo</span><span id="today"></span></div></header>
-<main class="wrap"><nav class="module-switch" id="moduleSwitch" aria-label="Módulos"><button type="button" class="active" data-module-button="reporte" onclick="showModule('reporte')">Jornada</button><button type="button" data-module-button="config" onclick="showModule('config')">⚙ Configuración</button></nav>
-<div class="intro"><div><div class="eyebrow">Herramienta de reportes</div><h1>Reporte de jornada</h1><p class="sub">Registra cantidades por prueba durante un horario de trabajo.</p></div><div class="actions"><button class="btn install-button" id="installButton" onclick="installApp()">⇩&nbsp; Instalar app</button><button class="btn" onclick="newShift()">＋&nbsp; Nueva jornada</button><button class="btn" onclick="printReport()">▤&nbsp; Imprimir / PDF</button><button class="btn primary" onclick="downloadPNG()">↓&nbsp; Descargar PNG</button></div></div>
-<div class="mobile-screen-title" id="mobileScreenTitle"><h1>Jornada actual</h1><p id="mobileDate"></p></div><div class="layout"><aside class="left no-print">
-<section class="card" id="labCard"><div class="card-head"><h2>Laboratorio</h2><span class="step">1</span></div><div class="card-body"><div class="field"><label>Nombre del laboratorio o empresa</label><input id="labName" placeholder="Nombre de tu laboratorio"></div><div class="field"><label>Contacto</label><input id="labContact" placeholder="Teléfono, correo o dirección"></div><div class="field"><label>Logotipo para el fondo de los reportes</label><div class="filebox"><div class="logo-preview" id="logoPrev">✚</div><input type="file" id="logoFile" accept="image/*"></div><small class="color-note">Aparecerá como marca de agua en la página completa del PNG y PDF.</small></div></div></section>
-<section class="card" id="shiftCard" data-mobile-step="jornada"><div class="card-head"><h2>Jornada actual</h2><span class="step">1</span></div><div class="card-body"><div class="field"><label>Fecha</label><input id="shiftDate" type="date"></div><div class="two"><div class="field"><label>Hora de inicio</label><input id="shiftStart" type="time"></div><div class="field"><label>Hora de fin</label><input id="shiftEnd" type="time"></div></div><div class="field"><label>Responsable (opcional)</label><input id="responsible" placeholder="Nombre del flebotomista"></div><section class="mobile-shift-tests"><div class="mobile-section-head"><h3>Pruebas de la jornada</h3><span id="mobileTestBadge">0</span></div><div id="mobileJornadaItems" class="mobile-jornada-list"><div class="mobile-empty">Aún no agregas pruebas.</div></div><button class="mobile-add-main" type="button" onclick="mobileNavigate('pruebas')"><span>＋</span> Agregar prueba</button></section></div></section>
-<section class="card" id="catalogCard" data-mobile-step="pruebas"><div class="card-head"><h2>Agregar prueba</h2><span class="step">2</span></div><div class="card-body"><div class="field desktop-test-select"><label for="testSelect">Seleccionar prueba del catálogo</label><select id="testSelect"><option value="">Selecciona una prueba…</option></select></div><button id="addSelectedTest" class="btn primary desktop-test-select" style="width:100%" onclick="addSelectedTest()">＋ Agregar prueba a la jornada</button><div class="mobile-search"><span>⌕</span><input id="mobileCatalogSearch" type="search" placeholder="Buscar prueba…" autocomplete="off" aria-label="Buscar prueba del catálogo"></div><div id="mobileCatalogList" class="mobile-catalog-list"></div><div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px"><button class="linkbutton" onclick="showModule('config')">⚙ Configurar catálogo</button></div><div id="catalogForm" class="catalog-form"><div class="catalog-note">Valida cada requisito con el protocolo vigente de tu laboratorio antes de usarlo. Las pruebas nuevas comienzan como pendientes de validación.</div><div class="field"><label>Nombre de la prueba *</label><input id="fName" placeholder="p. ej., Hemograma"></div><div class="two"><div class="field"><label>Muestra</label><input id="fSample" placeholder="Sin configurar"></div><div class="field"><label>Recipiente / tubo</label><input id="fVessel" placeholder="Sin configurar"></div></div><div class="field"><label>Forma de la ilustración <small>(solo visual)</small></label><select id="fIconKind"><option value="auto">Automática según el recipiente</option><option value="tube">Tubo</option><option value="jar">Frasco</option></select></div><div class="two"><div class="field"><label>Color del recipiente <small>(solo visual)</small></label><div class="color-controls"><select id="fColor" onchange="clearCustomColor()"><option value="">Sin configurar</option><option>Rojo</option><option>Azul</option><option>Celeste</option><option>Morado</option><option>Verde</option><option>Gris</option><option>Amarillo</option><option>Negro</option><option>Dorado</option></select><input id="fCustomColor" type="color" value="#117c78" title="Elegir color personalizado" oninput="setCustomColor(this.value)"></div><small class="color-note">Elige un tono libremente; no requiere validación clínica.</small></div><div class="field"><label>Volumen / cantidad</label><input id="fVolume" placeholder="Sin configurar"></div></div><div class="two"><div class="field"><label>Método</label><input id="fMethod" placeholder="Pendiente"></div><div class="field"><label>Instrucciones</label><input id="fInstructions" placeholder="Pendientes"></div></div><div class="field"><label>Validación clínica del método y protocolo</label><select id="fValidated"><option value="no">Pendiente de validación</option><option value="yes">Confirmado por administrador</option></select></div><button class="btn primary" style="width:100%" onclick="addCatalogTest()">Guardar prueba en catálogo</button></div></div></section>
-</aside>
-<section class="right" data-mobile-step="reporte"><div class="report-shell"><div class="report-toolbar no-print"><div class="toolbar-title">Resumen de la jornada</div><div class="styles"><button id="styleInfo" class="active" onclick="setStyle('infographic')">✦ Infografía</button><button id="styleFormal" onclick="setStyle('formal')">▤ Formal</button></div></div><div id="paper" class="paper infographic"><div id="watermark" class="watermark" aria-hidden="true"></div><div class="paper-head"><div class="labmark"><div><div id="showLab" class="labname">Nombre del laboratorio</div><div id="showContact" class="labcontact">Añade los datos de contacto</div></div></div><div class="report-tag"><b>REPORTE DE JORNADA</b><span>Pruebas de laboratorio y atenciones</span></div></div><div class="patient-line"><div class="patient-field"><label>Fecha</label><input id="showDate" type="date"></div><div class="patient-field"><label>Horario de jornada</label><div class="time-range"><input id="showStart" type="time"><span>—</span><input id="showEnd" type="time"></div></div><div class="patient-field"><label>Responsable</label><input id="showResponsible" placeholder="Por definir"></div></div><div class="summary"><div class="stat"><span>Total de pruebas realizadas</span><strong id="testCount">0</strong></div><div class="stat"><span>Tipos de recipiente</span><strong id="kindCount">0</strong></div><div class="stat"><span>Total de recipientes</span><strong id="vesselCount">0</strong></div></div><div><h3 class="section-title">Detalle de pruebas</h3><div id="items" class="item-list"></div></div><div id="receptacles" class="receptacles" style="display:none"><h3 class="section-title">Resumen de recipientes</h3><div id="recChips" class="rec-chips"></div></div><div id="empty" class="empty-report"><div class="empty-art">🧪</div><b>El resumen de la jornada aparecerá aquí</b><span>Agrega cada prueba realizada; el reporte agrupa y cuenta automáticamente por tipo.</span></div></div></div><div class="footer-note">Los datos se guardan localmente en este navegador.</div></section></div><section id="configModule" class="config-module" style="display:none"><div class="config-heading"><div class="eyebrow">Ajustes guardados en este dispositivo</div><h1>Configuración</h1><p class="sub">Administra los datos del laboratorio y el catálogo por separado del reporte de jornada.</p></div><div class="config-grid"><div id="labConfigSlot"></div><section class="card"><div class="card-head"><h2>Catálogo de pruebas</h2><span class="step">2</span></div><div class="card-body"><p class="config-hint">Agrega pruebas y configura los requisitos definidos por tu laboratorio.</p><div id="catalogAdminList" class="catalog-admin-list"></div><div id="catalogConfigSlot"></div></div></section></div></section></main><nav class="mobile-bottom-nav no-print" id="mobileBottomNav" aria-label="Navegación principal"><button type="button" data-mobile-nav="jornada" class="active" onclick="mobileNavigate('jornada')"><span>⌂</span>Jornada</button><button type="button" data-mobile-nav="pruebas" onclick="mobileNavigate('pruebas')"><span>⚗</span>Pruebas</button><button type="button" data-mobile-nav="reporte" onclick="mobileNavigate('reporte')"><span>▥</span>Reportes</button><button type="button" data-mobile-nav="mas" onclick="mobileNavigate('mas')"><span>•••</span>Más</button></nav><div class="toast" id="toast"></div>
-<script>
-const KEY='fleboReport.v1',CONFIG_KEY='fleboReport.config.v1',REPORT_KEY='fleboReport.jornada.v1';let state=loadState(),logoData='';
-function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
-function loadState(){let sources=[];try{for(let i=0;i<localStorage.length;i++){let key=localStorage.key(i),value=readStored(key);if(value&&typeof value==='object'&&(key===KEY||key===CONFIG_KEY||key===REPORT_KEY||Array.isArray(value.catalog)))sources.push(value)}}catch{}let candidates=sources.filter(x=>x&&typeof x==='object').sort((a,b)=>(Number(a.updatedAt)||0)-(Number(b.updatedAt)||0)),merged={version:4,style:'infographic',catalog:[],selected:[]};candidates.forEach(x=>Object.assign(merged,x));let catalogCandidates=candidates.filter(x=>Array.isArray(x.catalog)),marked=catalogCandidates.filter(x=>Number(x.catalogChangedAt)>0);if(marked.length){marked.sort((a,b)=>(Number(a.catalogChangedAt)||0)-(Number(b.catalogChangedAt)||0));merged.catalog=marked[marked.length-1].catalog}else{let nonempty=catalogCandidates.filter(x=>x.catalog.length);if(nonempty.length){nonempty.sort((a,b)=>a.catalog.length-b.catalog.length||(Number(a.updatedAt)||0)-(Number(b.updatedAt)||0));merged.catalog=nonempty[nonempty.length-1].catalog}else merged.catalog=catalogCandidates.length?catalogCandidates[catalogCandidates.length-1].catalog:[]}merged.catalog=merged.catalog.map(t=>({...t,id:t.id||crypto.randomUUID()}));merged.selected=Array.isArray(merged.selected)?merged.selected:[];merged.version=4;delete merged.patientName;delete merged.patientDate;delete merged.reportId;return merged}function save(){state.version=4;state.updatedAt=Date.now();const config={version:4,updatedAt:state.updatedAt,catalog:state.catalog,catalogChangedAt:state.catalogChangedAt||0,labName:state.labName,labContact:state.labContact,logo:state.logo,style:state.style},report={version:4,updatedAt:state.updatedAt,selected:state.selected,shiftDate:state.shiftDate,shiftStart:state.shiftStart,shiftEnd:state.shiftEnd,responsible:state.responsible};try{localStorage.setItem(KEY,JSON.stringify(state))}catch(error){toast('No se pudieron guardar los cambios. Revisa el espacio disponible en el navegador.');return false}try{localStorage.setItem(CONFIG_KEY,JSON.stringify(config));localStorage.setItem(REPORT_KEY,JSON.stringify(report))}catch(error){toast('Los datos principales están guardados; revisa el espacio disponible para mantener la copia de compatibilidad.')}return true}
-function $(id){return document.getElementById(id)}function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function vesselSvg(color,vessel='',iconKind='auto'){let c=color?color.toLowerCase():'';let map={rojo:'#d84949',azul:'#4387c1',celeste:'#69b6dc',morado:'#8659ac',lila:'#a879be',verde:'#1b9b70',gris:'#718392',amarillo:'#d2a92e',negro:'#37444c',dorado:'#bd9440'};let cap=map[c]||(/^#[0-9a-f]{6}$/i.test(c)?c:'#117c78'),kind=(vessel||'').toLowerCase(),shape=iconKind==='tube'?'tube':iconKind==='jar'?'jar':/frasco|vaso|botella/.test(kind)?'jar':/tub|vacutainer/.test(kind)?'tube':'auto';if(shape==='jar')return `<svg viewBox="0 0 64 80" aria-label="Frasco de recolección"><ellipse cx="32" cy="73" rx="19" ry="4" fill="#203c4b" opacity=".12"/><path d="M23 14h18v8l7 8v34a7 7 0 0 1-7 7H23a7 7 0 0 1-7-7V30l7-8z" fill="#f7fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M19 47h26v17a5 5 0 0 1-5 5H24a5 5 0 0 1-5-5z" fill="${cap}" opacity=".26"/><path d="M23 14h18v8H23z" fill="${cap}"/><rect x="19" y="10" width="26" height="7" rx="2" fill="${cap}"/><path d="M23 34h18v10H23z" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M26 38h12M26 41h8" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M21 27v38" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`;if(shape==='tube')return `<svg viewBox="0 0 64 80" aria-label="Tubo de muestra"><ellipse cx="32" cy="73" rx="15" ry="4" fill="#203c4b" opacity=".12"/><path d="M20 15h24v45a10 10 0 0 1-10 10h-4a10 10 0 0 1-10-10z" fill="#f8fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M22 48h20v12a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="${cap}" opacity=".35"/><rect x="17" y="9" width="30" height="10" rx="3" fill="${cap}"/><path d="M22 25h20" stroke="#d4e1e6" stroke-width="2"/><rect x="24" y="31" width="16" height="12" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M27 35h10M27 39h7" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M24 21v38" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`;return `<svg viewBox="0 0 64 80" aria-label="Recipiente genérico, tipo por configurar"><ellipse cx="32" cy="73" rx="18" ry="4" fill="#203c4b" opacity=".12"/><path d="M20 17h24v7l6 7v32a8 8 0 0 1-8 8H22a8 8 0 0 1-8-8V31l6-7z" fill="#f7fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M17 49h30v14a6 6 0 0 1-6 6H23a6 6 0 0 1-6-6z" fill="${cap}" opacity=".24"/><rect x="17" y="11" width="30" height="9" rx="3" fill="${cap}"/><rect x="23" y="33" width="18" height="10" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M27 38h10" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M20 27v36" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`}function init(){let d=new Date().toISOString().slice(0,10);$('today').textContent=new Date().toLocaleDateString('es',{year:'numeric',month:'short',day:'numeric'});$('shiftDate').value=state.shiftDate||d;$('showDate').value=state.shiftDate||d;$('shiftStart').value=state.shiftStart||'';$('showStart').value=state.shiftStart||'';$('shiftEnd').value=state.shiftEnd||'';$('showEnd').value=state.shiftEnd||'';$('responsible').value=state.responsible||'';$('shiftDate').addEventListener('input',()=>{$('mobileDate').textContent=new Date(($('shiftDate').value||d)+'T12:00:00').toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'});});$('mobileDate').textContent=new Date(($('shiftDate').value||d)+'T12:00:00').toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long',year:'numeric'});for(let id of ['labName','labContact'])$(id).value=state[id]||'';if(state.logo){logoData=state.logo;$('logoPrev').innerHTML=`<img src="${logoData}" style="width:100%;height:100%;object-fit:contain">`}$('paper').className='paper '+state.style;['labName','labContact','shiftDate','shiftStart','shiftEnd','responsible'].forEach(id=>$(id).addEventListener('input',syncFields));$('search').addEventListener('input',renderCatalog);$('mobileCatalogSearch').addEventListener('input',renderMobileCatalog);$('logoFile').addEventListener('change',uploadLogo);syncFields();renderCatalog();renderReport();setStyle(state.style,false)}function getLogoSource(){return state.logo||document.querySelector('#logoPrev img')?.src||''}function renderWatermark(){let wm=$('watermark');if(!wm)return;let src=getLogoSource();wm.innerHTML=src?`<img alt="" src="${esc(src)}">`:'';wm.style.display=src?'block':'none';let image=wm.querySelector('img');if(image)image.onerror=()=>toast('No se pudo leer el logotipo guardado. Vuelve a cargarlo desde Configuración.')}function syncFields(){for(let id of ['labName','labContact','shiftDate','shiftStart','shiftEnd','responsible'])state[id]=$(id).value;$('showLab').textContent=state.labName||'Nombre del laboratorio';$('showContact').textContent=state.labContact||'Añade los datos de contacto';$('showDate').value=state.shiftDate;$('showStart').value=state.shiftStart;$('showEnd').value=state.shiftEnd;$('showResponsible').value=state.responsible;renderWatermark();save()}function uploadLogo(e){let f=e.target.files[0];if(!f)return;if(f.size>1500000){toast('El logotipo debe pesar menos de 1.5 MB.');return}let r=new FileReader();r.onload=()=>{let source=new Image();source.onload=()=>{let max=1000,width=source.naturalWidth||source.width,height=source.naturalHeight||source.height,scale=Math.min(1,max/Math.max(width,height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(width*scale));canvas.height=Math.max(1,Math.round(height*scale));let ctx=canvas.getContext('2d');if(ctx){ctx.drawImage(source,0,0,canvas.width,canvas.height);let compact=canvas.toDataURL('image/webp',.84);state.logo=compact.startsWith('data:image/webp')?compact:canvas.toDataURL('image/png')}else state.logo=r.result;logoData=state.logo;$('logoPrev').innerHTML='<img src="'+logoData+'" style="width:100%;height:100%;object-fit:contain">';renderWatermark();if(save())toast('Logotipo guardado para los reportes.')};source.onerror=()=>toast('No se pudo leer la imagen. Prueba con PNG o JPG.');source.src=r.result};r.onerror=()=>toast('No se pudo leer el archivo de imagen.');r.readAsDataURL(f)}function colorToHex(c){let map={rojo:'#d84949',azul:'#4387c1',celeste:'#69b6dc',morado:'#8659ac',lila:'#a879be',verde:'#43a375',gris:'#7f8d96',amarillo:'#d2ae3f',negro:'#37444c',dorado:'#c7a451'};let v=(c||'').toLowerCase();return map[v]||(/^#[0-9a-f]{6}$/i.test(c||'')?c:'#117c78')}function colorOptions(current=''){return ['','Rojo','Azul','Celeste','Morado','Verde','Gris','Amarillo','Negro','Dorado'].map(v=>`<option value="${esc(v)}" ${current===v?'selected':''}>${v||'Sin configurar'}</option>`).join('')}function selectedColor(){return $('fColor').value||$('fCustomColor').dataset.selected||''}function setCustomColor(value){$('fColor').value='';$('fCustomColor').dataset.selected=value}function clearCustomColor(){$('fCustomColor').dataset.selected=''}function setCatalogColor(id,value){let t=state.catalog.find(x=>x.id===id);if(!t)return;t.color=value;state.catalogChangedAt=Date.now();state.selected.filter(x=>x.id===id).forEach(x=>x.color=value);save();renderCatalog();renderReport();toast('Color del recipiente actualizado.')}function setCatalogCustomColor(id,value){setCatalogColor(id,value)}function setCatalogIcon(id,value){let t=state.catalog.find(x=>x.id===id);if(!t)return;t.iconKind=value;state.catalogChangedAt=Date.now();state.selected.filter(x=>x.id===id).forEach(x=>x.iconKind=value);save();renderCatalog();renderReport()}function renderCatalog(){let select=$("testSelect");if(select){let current=select.value;select.innerHTML=`<option value="">${state.catalog.length?"Selecciona una prueba…":"Catálogo vacío; configúralo en Ajustes"}</option>`+state.catalog.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join("");if(state.catalog.some(t=>t.id===current))select.value=current;$("addSelectedTest").disabled=!state.catalog.length}renderMobileCatalog();renderCatalogAdmin()}
-function renderMobileCatalog(){let host=$("mobileCatalogList");if(!host)return;let q=($("mobileCatalogSearch")?.value||"").trim().toLocaleLowerCase("es"),tests=state.catalog.filter(t=>!q||[t.name,t.sample,t.vessel].some(v=>(v||"").toLocaleLowerCase("es").includes(q)));host.innerHTML=tests.length?tests.map(t=>`<article class="mobile-test-row"><div class="mobile-test-icon">${vesselSvg(t.color,t.vessel,t.iconKind)}</div><div class="mobile-test-info"><strong>${esc(t.name)}</strong><small>${esc([t.sample,t.vessel].filter(Boolean).join(" · ")||"Requisitos por configurar")}</small></div><button type="button" class="mobile-add-one" onclick="addTest('${esc(t.id)}')" aria-label="Agregar ${esc(t.name)}">＋</button></article>`).join(""):state.catalog.length?'<div class="mobile-empty">No hay resultados para esa búsqueda.</div>':'<div class="mobile-empty">Tu catálogo está vacío. Configura tus pruebas desde Más.</div>'}function addSelectedTest(){let id=$("testSelect").value;if(!id){toast("Selecciona una prueba del catálogo.");return}addTest(id);$("testSelect").value=""}function toggleCatalog(){$('catalogForm').classList.toggle('open')}function renderCatalogAdmin(){let host=$('catalogAdminList');if(!host)return;if(!state.catalog.length){host.innerHTML='<div class="catalog-admin-empty">Todavía no hay pruebas guardadas. Crea la primera con el formulario de abajo.</div>';return}host.innerHTML=state.catalog.map(t=>`<div class="catalog-admin-row"><div class="catalog-admin-info"><strong>${esc(t.name)}</strong><small>${esc(t.sample||'Muestra sin configurar')} · ${t.validated?'Protocolo confirmado':'Pendiente de validación'}</small></div><button type="button" class="catalog-delete-btn" onclick="deleteCatalogTest('${esc(t.id)}')" aria-label="Eliminar ${esc(t.name)} del catálogo">Eliminar</button></div>`).join('')}function deleteCatalogTest(id){let test=state.catalog.find(t=>t.id===id);if(!test)return;if(!confirm(`¿Eliminar “${test.name}” del catálogo?`))return;state.catalog=state.catalog.filter(t=>t.id!==id);state.catalogChangedAt=Date.now();save();renderCatalog();renderCatalogAdmin();toast('Prueba eliminada del catálogo.')}function addCatalogTest(){let name=$('fName').value.trim();if(!name){toast('Escribe el nombre de la prueba.');$('fName').focus();return}let t={id:crypto.randomUUID(),name,sample:$('fSample').value.trim(),vessel:$('fVessel').value.trim(),color:selectedColor(),iconKind:$('fIconKind').value,volume:$('fVolume').value.trim(),method:$('fMethod').value.trim(),instructions:$('fInstructions').value.trim(),validated:$('fValidated').value==='yes'};state.catalog.push(t);state.catalogChangedAt=Date.now();save();['fName','fSample','fVessel','fVolume','fMethod','fInstructions'].forEach(id=>$(id).value='');$('fValidated').value='no';$('fColor').value='';$('fCustomColor').dataset.selected='';$('fIconKind').value='auto';renderCatalog();renderCatalogAdmin();toast('Prueba guardada en el catálogo.')}function addTest(id){let t=state.catalog.find(x=>x.id===id);if(!t)return;state.selected.push({...t,instance:crypto.randomUUID()});save();renderReport();toast('Prueba agregada al reporte.')}function removeTest(id){state.selected=state.selected.filter(x=>x.instance!==id);save();renderReport()}function groupedTests(){let groups=new Map();state.selected.forEach(t=>{let k=t.id||t.name;if(!groups.has(k))groups.set(k,{test:t,count:0,instances:[]});let g=groups.get(k);g.count++;g.instances.push(t.instance)});return [...groups.values()]}function renderReport(){let groups=groupedTests(),items=state.selected;$('testCount').textContent=items.length;$('mobileTestBadge').textContent=items.length;let rec={};items.forEach(t=>{let k=[t.vessel||'Recipiente sin configurar',t.color||''].filter(Boolean).join(' · ');rec[k]=(rec[k]||0)+1});let total=Object.values(rec).reduce((a,b)=>a+b,0);$('kindCount').textContent=Object.keys(rec).length;$('vesselCount').textContent=total;$('empty').style.display=items.length?'none':'block';let rows=groups.map(g=>{let t=g.test;return `<div class="report-item"><div class="vessel">${vesselSvg(t.color,t.vessel,t.iconKind)}</div><div><div class="item-name">${esc(t.name)}</div></div><div class="quantity-controls"><button type="button" class="qty-adjust qty-minus no-print" onclick="removeTest('${g.instances[g.instances.length-1]}')" aria-label="Restar una ${esc(t.name)}">−</button><strong class="quantity">${g.count} <small>realizadas</small></strong><button type="button" class="qty-adjust qty-plus no-print" onclick="addTest('${esc(t.id)}')" aria-label="Agregar una ${esc(t.name)} más">+</button></div><span class="sample-taken">✓ Muestra tomada</span></div>`}).join('');$('items').innerHTML=rows;$('mobileJornadaItems').innerHTML=rows||'<div class="mobile-empty">Aún no agregas pruebas.</div>';$('receptacles').style.display=items.length?'block':'none';$('recChips').innerHTML=Object.entries(rec).map(([k,v])=>`<span class="rec-chip">${esc(k)} <b>×${v}</b></span>`).join('');save()}function setStyle(s,render=true){state.style=s;$('paper').className='paper '+s;$('styleInfo').classList.toggle('active',s==='infographic');$('styleFormal').classList.toggle('active',s==='formal');save()}function newShift(){if(state.selected.length&&!confirm('¿Iniciar una nueva jornada? Se limpiarán las cantidades y el horario actuales.'))return;state.selected=[];state.shiftDate=new Date().toISOString().slice(0,10);state.shiftStart='';state.shiftEnd='';state.responsible='';$('shiftDate').value=state.shiftDate;$('shiftStart').value='';$('shiftEnd').value='';$('responsible').value='';syncFields();renderReport();toast('Nueva jornada lista.')}async function printReport(){renderWatermark();const logo=document.querySelector('#watermark img');if(logo&&!logo.complete)await new Promise(resolve=>{logo.onload=resolve;logo.onerror=resolve});if(logo&&logo.decode){try{await logo.decode()}catch{}}window.print()}function toast(msg){let e=$('toast');e.textContent=msg;e.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>e.style.display='none',2400)}function wrapLines(value,max=34){let lines=[],line='';String(value).trim().split(/\s+/).forEach(word=>{if(word.length>max){if(line){lines.push(line);line=''}for(let i=0;i<word.length;i+=max)lines.push(word.slice(i,i+max));return}let next=(line+' '+word).trim();if(next.length>max&&line){lines.push(line);line=word}else line=next});if(line)lines.push(line);return lines}
-function downloadPNG(){if(!state.selected.length){toast('Agrega al menos una prueba antes de exportar.');return}let w=1200,margin=70,y=64,formal=state.style==='formal',lines=[],groups=groupedTests();const xml=esc;function text(x,yy,str,size=20,weight=400,color='#172838'){lines.push(`<text x="${x}" y="${yy}" font-family="Arial,sans-serif" font-size="${size}" font-weight="${weight}" fill="${color}">${str}</text>`)}function box(x,yy,ww,hh,fill='#fff',stroke='#e4ebf0',r=12){lines.push(`<rect x="${x}" y="${yy}" width="${ww}" height="${hh}" rx="${r}" fill="${fill}" stroke="${stroke}"/>`)}let rec={};state.selected.forEach(t=>{let k=[t.vessel||'Recipiente sin configurar',t.color||''].filter(Boolean).join(' · ');rec[k]=(rec[k]||0)+1});let vesselTotal=Object.values(rec).reduce((a,b)=>a+b,0),shiftDate=xml(state.shiftDate||''),hours=[state.shiftStart||'—',state.shiftEnd||'—'].join(' - '),responsible=xml(state.responsible||'Por definir'),lab=xml(state.labName||'Nombre del laboratorio'),contact=xml(state.labContact||'');let lx=margin;text(lx,y+24,lab,27,700);text(lx,y+52,contact,15,400,'#718292');text(w-margin-300,y+23,'REPORTE DE JORNADA',16,700,'#117c78');text(w-margin-300,y+49,`Fecha: ${shiftDate}`,15,600);text(w-margin-300,y+71,`Horario: ${xml(hours)}`,14,400,'#718292');let responsibleLines=wrapLines('Responsable: '+(state.responsible||'Por definir'),34);responsibleLines.forEach((line,i)=>text(w-margin-300,y+94+i*18,xml(line),13,400,'#718292'));y+=106+(responsibleLines.length-1)*18;lines.push(`<line x1="${margin}" y1="${y}" x2="${w-margin}" y2="${y}" stroke="#dce5e9"/>`);y+=30;let cards=[['PRUEBAS REALIZADAS',String(state.selected.length)],['TIPOS DE PRUEBA',String(groups.length)],['TOTAL DE RECIPIENTES',String(vesselTotal)]],cardW=(w-2*margin-28)/3;cards.forEach((a,i)=>{let x=margin+i*(cardW+14);box(x,y,cardW,76,formal?'#fff':['#eaf7f5','#eff4fa','#f4f1fa'][i],formal?'#dce5e9':'none',10);text(x+16,y+26,a[0],12,700,'#718292');text(x+16,y+59,a[1],27,700)});y+=104;text(margin,y,'DETALLE DE PRUEBAS',18,700);y+=18;groups.forEach(g=>{let t=g.test;box(margin,y,w-2*margin,78,'#fff','#e4ebf0',formal?3:11);let iconMarkup=vesselSvg(t.color,t.vessel,t.iconKind).replace(/^<svg[^>]*>|<\/svg>$/g,'');lines.push(`<svg x="${margin+10}" y="${y+8}" width="42" height="58" viewBox="0 0 64 80">${iconMarkup}</svg>`);text(margin+62,y+30,xml(t.name),18,700);text(w-margin-156,y+43,`${g.count} REALIZADAS`,15,700,'#117c78');text(w-margin-190,y+23,'MUESTRA TOMADA',11,700,'#117c78');y+=88});y+=8;text(margin,y,'RESUMEN DE RECIPIENTES',17,700);y+=19;Object.entries(rec).forEach(([k,v])=>{box(margin,y,330,40,'#fff','#e4ebf0',8);text(margin+14,y+26,xml(k)+'   ×'+v,14,600);y+=48});y+=10;let height=y+40;let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${height}" viewBox="0 0 ${w} ${height}">${lines.join('')}</svg>`;let img=new Image();img.onload=()=>{let canvas=document.createElement('canvas');canvas.width=w*2;canvas.height=height*2;let ctx=canvas.getContext('2d');ctx.scale(2,2);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,height);ctx.drawImage(img,0,0,w,height);const download=()=>{let a=document.createElement('a');a.download=`FleboReport-jornada-${(state.shiftDate||'fecha')}.png`;a.href=canvas.toDataURL('image/png');a.click();toast('Imagen PNG descargada.')};const logoSource=getLogoSource();if(!logoSource){toast('No hay logotipo guardado; configúralo en Configuración.');download();return}let watermark=new Image();watermark.onload=()=>{if(!watermark.naturalWidth||!watermark.naturalHeight){toast('No se pudo leer el logotipo.');download();return}ctx.save();ctx.globalAlpha=.24;let scale=Math.max(w/watermark.naturalWidth,height/watermark.naturalHeight),ww=watermark.naturalWidth*scale,hh=watermark.naturalHeight*scale;ctx.drawImage(watermark,(w-ww)/2,(height-hh)/2,ww,hh);ctx.restore();download()};watermark.onerror=()=>{toast('No se pudo cargar el logotipo; vuelve a cargarlo desde Configuración.');download()};watermark.src=logoSource};img.onerror=()=>toast('No se pudo generar el PNG en este navegador.');img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}init();
-</script><script>
-let deferredInstallPrompt=null;
-const reportSteps=['jornada','pruebas','reporte'];let currentMobileStep='jornada';
-function detectInstalledApp(){const installed=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;const button=document.getElementById('installButton');if(button)button.style.display=installed?'none':'';}window.addEventListener('appinstalled',()=>{const button=document.getElementById('installButton');if(button)button.style.display='none';deferredInstallPrompt=null;});
-function setMobileStep(step){if(!reportSteps.includes(step))return;currentMobileStep=step;document.querySelectorAll('[data-mobile-step]').forEach(el=>el.classList.toggle('mobile-active',el.dataset.mobileStep===step));document.querySelectorAll('[data-mobile-nav]').forEach(el=>{const active=el.dataset.mobileNav===step;el.classList.toggle('active',active);el.setAttribute('aria-current',active?'page':'false');});const titles={jornada:'Jornada actual',pruebas:'Agregar prueba',reporte:'Resumen de la jornada'};$('mobileScreenTitle').querySelector('h1').textContent=titles[step];}function mobileNavigate(tab){if(tab==='mas'){showModule('config');return}showModule('reporte');setMobileStep(tab);window.scrollTo({top:0,behavior:'smooth'});}
-function changeMobileStep(direction){const next=Math.max(0,Math.min(reportSteps.length-1,reportSteps.indexOf(currentMobileStep)+direction));setMobileStep(reportSteps[next]);}
-function showModule(name){const config=name==='config';document.querySelector('.intro').style.display=config?'none':'';const stepper=document.getElementById('mobileStepper');if(stepper)stepper.style.display=config?'none':'';document.getElementById('mobileScreenTitle').style.display=config?'none':'';document.querySelector('.layout').style.display=config?'none':'';document.querySelector('.footer-note').style.display=config?'none':'';document.getElementById('configModule').style.display=config?'block':'none';document.querySelectorAll('[data-module-button]').forEach(b=>b.classList.toggle('active',b.dataset.moduleButton===(config?'config':'reporte')));document.querySelectorAll('[data-mobile-nav]').forEach(b=>b.classList.toggle('active',b.dataset.mobileNav===(config?'mas':currentMobileStep)));if(!config)setMobileStep('jornada');}
-function setupFlow(){document.getElementById('labConfigSlot').appendChild(document.getElementById('labCard'));const form=document.getElementById('catalogForm');form.classList.add('open');document.getElementById('catalogConfigSlot').appendChild(form);renderCatalogAdmin();const toolbar=document.querySelector('.report-toolbar'),exports=document.createElement('div');exports.className='report-export-actions no-print';['printReport','downloadPNG'].forEach((fn,i)=>{const button=document.querySelector(`.intro button[onclick="${fn}()"]`);if(button){exports.appendChild(button);}});toolbar.appendChild(exports);const install=document.getElementById('installButton');document.getElementById('moduleSwitch').appendChild(install);detectInstalledApp();const panels=[document.getElementById('shiftCard'),document.getElementById('catalogCard'),document.querySelector('.right')];panels.forEach((panel,i)=>{const controls=document.createElement('div');controls.className='step-actions no-print';if(i>0){const prev=document.createElement('button');prev.className='btn step-prev';prev.textContent='Anterior';prev.setAttribute('aria-label','Paso anterior');prev.addEventListener('click',()=>changeMobileStep(-1));controls.appendChild(prev);}else{const fresh=document.querySelector('.intro button[onclick="newShift()"]');if(fresh){const copy=fresh.cloneNode(true);copy.className='btn new-shift-mobile';panel.querySelector('.card-body').appendChild(copy);}}const count=document.createElement('span');count.className='step-count';count.textContent=`Paso ${i+1} de 3`;controls.appendChild(count);if(i<panels.length-1){const next=document.createElement('button');next.className='btn primary step-next';next.textContent='Siguiente';next.setAttribute('aria-label','Paso siguiente');next.addEventListener('click',()=>changeMobileStep(1));controls.appendChild(next);}panel.appendChild(controls);});setMobileStep('jornada');}
-document.addEventListener('DOMContentLoaded',setupFlow);
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();deferredInstallPrompt=event;});
-async function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;return;}const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);alert(ios?'Para instalar FleboReport, toca Compartir en Safari y elige “Añadir a pantalla de inicio”.':'Para instalar FleboReport, abre el menú del navegador y toca “Instalar app” o “Añadir a pantalla de inicio”.');}
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
-</script></body></html>
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 3C13 8 7 14.5 7 20a9 9 0 0 0 18 0c0-5.5-6-12-9-17Z" fill="currentColor"/>
+          <path d="M12 21c.5 2.2 2 3.5 4.2 4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span>FleboReport</span>
+    </div>
+    <button type="button" class="mobile-settings no-print" onclick="showModule('config')" aria-label="Abrir configuración">⚙</button>
+    <div class="head-right">
+      <span class="secure">◈&nbsp; Datos guardados en este dispositivo</span>
+      <span id="today"></span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <nav class="module-switch" id="moduleSwitch" aria-label="Módulos">
+      <button type="button" class="active" data-module-button="reporte" onclick="showModule('reporte')">Jornada</button>
+      <button type="button" data-module-button="config" onclick="showModule('config')">⚙ Configuración</button>
+    </nav>
+
+    <div class="intro">
+      <div>
+        <div class="eyebrow">Herramienta de reportes</div>
+        <h1>Reporte de jornada</h1>
+        <p class="sub">Registra cantidades por prueba durante un horario de trabajo.</p>
+      </div>
+      <div class="actions">
+        <button class="btn install-button" id="installButton" onclick="installApp()">⇩&nbsp; Instalar app</button>
+        <button class="btn" onclick="newShift()">＋&nbsp; Nueva jornada</button>
+        <button class="btn" onclick="printReport()">▤&nbsp; Imprimir / PDF</button>
+        <button class="btn primary" onclick="downloadPNG()">↓&nbsp; Descargar PNG</button>
+      </div>
+    </div>
+
+    <div class="mobile-screen-title" id="mobileScreenTitle">
+      <h1>Jornada actual</h1>
+      <p id="mobileDate"></p>
+    </div>
+
+    <div class="layout">
+      <aside class="left no-print">
+        <section class="card" id="labCard">
+          <div class="card-head">
+            <h2>Laboratorio</h2>
+            <span class="step">1</span>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label>Nombre del laboratorio o empresa</label>
+              <input id="labName" placeholder="Nombre de tu laboratorio">
+            </div>
+            <div class="field">
+              <label>Contacto</label>
+              <input id="labContact" placeholder="Teléfono, correo o dirección">
+            </div>
+            <div class="field">
+              <label>Logotipo para el fondo de los reportes</label>
+              <div class="filebox">
+                <div class="logo-preview" id="logoPrev">✚</div>
+                <input type="file" id="logoFile" accept="image/*">
+              </div>
+              <small class="color-note">Aparecerá como marca de agua en la página completa del PNG y PDF.</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="patientCard">
+          <div class="card-head">
+            <h2>Paciente</h2>
+            <span class="step">2</span>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <label>Nombre del paciente</label>
+              <input id="patientName" placeholder="Nombre completo">
+            </div>
+            <div class="field">
+              <label>Cédula / documento</label>
+              <input id="patientCedula" placeholder="Ej. 12345678">
+            </div>
+            <div class="field">
+              <label>Pruebas solicitadas</label>
+              <input id="patientRequestedTests" placeholder="Ej. Hemograma, glucosa" readonly>
+            </div>
+            <div class="field">
+              <label>Estado de la toma / muestra</label>
+              <select id="sampleStatus">
+                <option value="pendiente">Pendiente</option>
+                <option value="tomada">Tomada</option>
+                <option value="no_tomada">No tomada</option>
+                <option value="retrasada">Retrasada</option>
+                <option value="problema">Paciente complicado</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Observaciones</label>
+              <textarea id="patientNotes" rows="3" placeholder="Dificultades venosas, rechazo, procedimiento especial..."></textarea>
+            </div>
+            <button class="btn primary" style="width:100%" onclick="savePatientRecord()">Guardar paciente</button>
+
+            <div style="margin-top:16px;">
+              <div class="eyebrow" style="margin-bottom:8px;">Últimos pacientes</div>
+              <div id="patientHistoryList" class="catalog-admin-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="shiftCard" data-mobile-step="jornada">
+          <div class="card-head">
+            <h2>Jornada actual</h2>
+            <span class="step">3</span>
+          </div>
+          <div class="card-body">
+            <div class="field"><label>Fecha</label><input id="shiftDate" type="date"></div>
+            <div class="two">
+              <div class="field"><label>Hora de inicio</label><input id="shiftStart" type="time"></div>
+              <div class="field"><label>Hora de fin</label><input id="shiftEnd" type="time"></div>
+            </div>
+            <div class="field"><label>Responsable (opcional)</label><input id="responsible" placeholder="Nombre del flebotomista"></div>
+            <section class="mobile-shift-tests">
+              <div class="mobile-section-head">
+                <h3>Pruebas de la jornada</h3>
+                <span id="mobileTestBadge">0</span>
+              </div>
+              <div id="mobileJornadaItems" class="mobile-jornada-list">
+                <div class="mobile-empty">Aún no agregas pruebas.</div>
+              </div>
+              <button class="mobile-add-main" type="button" onclick="mobileNavigate('pruebas')"><span>＋</span> Agregar prueba</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="card" id="catalogCard" data-mobile-step="pruebas">
+          <div class="card-head">
+            <h2>Agregar prueba</h2>
+            <span class="step">4</span>
+          </div>
+          <div class="card-body">
+            <div class="field desktop-test-select">
+              <label for="testSelect">Seleccionar prueba del catálogo</label>
+              <select id="testSelect"><option value="">Selecciona una prueba…</option></select>
+            </div>
+            <button id="addSelectedTest" class="btn primary desktop-test-select" style="width:100%" onclick="addSelectedTest()">＋ Agregar prueba a la jornada</button>
+
+            <div class="mobile-search"><span>⌕</span><input id="mobileCatalogSearch" type="search" placeholder="Buscar prueba…" autocomplete="off" aria-label="Buscar prueba del catálogo"></div>
+            <div id="mobileCatalogList" class="mobile-catalog-list"></div>
+
+            <div style="display:flex;justify-content:flex-end;align-items:center;margin-top:12px">
+              <button class="linkbutton" onclick="showModule('config')">⚙ Configurar catálogo</button>
+            </div>
+
+            <div id="catalogForm" class="catalog-form">
+              <div class="catalog-note">Valida cada requisito con el protocolo vigente de tu laboratorio antes de usarlo. Las pruebas nuevas comienzan como pendientes de validación.</div>
+              <div class="field"><label>Nombre de la prueba *</label><input id="fName" placeholder="p. ej., Hemograma"></div>
+              <div class="two">
+                <div class="field"><label>Muestra</label><input id="fSample" placeholder="Sin configurar"></div>
+                <div class="field"><label>Recipiente / tubo</label><input id="fVessel" placeholder="Sin configurar"></div>
+              </div>
+              <div class="field"><label>Forma de la ilustración <small>(solo visual)</small></label><select id="fIconKind"><option value="auto">Automática según el recipiente</option><option value="tube">Tubo</option><option value="jar">Frasco</option></select></div>
+              <div class="two">
+                <div class="field">
+                  <label>Color del recipiente <small>(solo visual)</small></label>
+                  <div class="color-controls">
+                    <select id="fColor" onchange="clearCustomColor()">
+                      <option value="">Sin configurar</option>
+                      <option>Rojo</option><option>Azul</option><option>Celeste</option><option>Morado</option><option>Verde</option><option>Gris</option><option>Amarillo</option><option>Negro</option><option>Dorado</option>
+                    </select>
+                    <input id="fCustomColor" type="color" value="#117c78" title="Elegir color personalizado" oninput="setCustomColor(this.value)">
+                  </div>
+                  <small class="color-note">Elige un tono libremente; no requiere validación clínica.</small>
+                </div>
+                <div class="field"><label>Volumen / cantidad</label><input id="fVolume" placeholder="Sin configurar"></div>
+              </div>
+              <div class="two">
+                <div class="field"><label>Método</label><input id="fMethod" placeholder="Pendiente"></div>
+                <div class="field"><label>Instrucciones</label><input id="fInstructions" placeholder="Pendientes"></div>
+              </div>
+              <div class="field">
+                <label>Validación clínica del método y protocolo</label>
+                <select id="fValidated"><option value="no">Pendiente de validación</option><option value="yes">Confirmado por administrador</option></select>
+              </div>
+              <button class="btn primary" style="width:100%" onclick="addCatalogTest()">Guardar prueba en catálogo</button>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <section class="right" data-mobile-step="reporte">
+        <div class="report-shell">
+          <div class="report-toolbar no-print">
+            <div class="toolbar-title">Resumen de la jornada</div>
+            <div class="styles">
+              <button id="styleInfo" class="active" onclick="setStyle('infographic')">✦ Infografía</button>
+              <button id="styleFormal" onclick="setStyle('formal')">▤ Formal</button>
+            </div>
+          </div>
+
+          <div id="paper" class="paper infographic">
+            <div id="watermark" class="watermark" aria-hidden="true"></div>
+            <div class="paper-head">
+              <div class="labmark">
+                <div class="lablogo" id="labLogoPreview">✚</div>
+                <div>
+                  <div id="showLab" class="labname">Nombre del laboratorio</div>
+                  <div id="showContact" class="labcontact">Añade los datos de contacto</div>
+                </div>
+              </div>
+              <div class="report-tag">
+                <b>REPORTE DE JORNADA</b>
+                <span>Pruebas de laboratorio y atenciones</span>
+              </div>
+            </div>
+
+            <div class="patient-line">
+              <div class="patient-field"><label>Paciente</label><input id="showPatient" type="text" placeholder="Sin paciente"></div>
+              <div class="patient-field"><label>Cédula</label><input id="showCedula" type="text" placeholder="Sin documento"></div>
+              <div class="patient-field"><label>Estado de muestra</label><select id="showSampleStatus"><option value="pendiente">Pendiente</option><option value="tomada">Tomada</option><option value="no_tomada">No tomada</option><option value="retrasada">Retrasada</option><option value="problema">Paciente complicado</option></select></div>
+              <div class="patient-field"><label>Observaciones</label><input id="showPatientNotes" type="text" placeholder="Sin observaciones"></div>
+              <div class="patient-field"><label>Fecha</label><input id="showDate" type="date"></div>
+              <div class="patient-field">
+                <label>Horario de jornada</label>
+                <div class="time-range"><input id="showStart" type="time"><span>—</span><input id="showEnd" type="time"></div>
+              </div>
+              <div class="patient-field"><label>Responsable</label><input id="showResponsible" placeholder="Por definir"></div>
+            </div>
+
+            <div class="summary">
+              <div class="stat"><span>Total de pruebas realizadas</span><strong id="testCount">0</strong></div>
+              <div class="stat"><span>Tipos de recipiente</span><strong id="kindCount">0</strong></div>
+              <div class="stat"><span>Total de recipientes</span><strong id="vesselCount">0</strong></div>
+            </div>
+
+            <div>
+              <h3 class="section-title">Detalle de pruebas</h3>
+              <div id="items" class="item-list"></div>
+            </div>
+
+            <div id="receptacles" class="receptacles" style="display:none">
+              <h3 class="section-title">Resumen de recipientes</h3>
+              <div id="recChips" class="rec-chips"></div>
+            </div>
+
+            <div id="empty" class="empty-report">
+              <div class="empty-art">🧪</div>
+              <b>El resumen de la jornada aparecerá aquí</b>
+              <span>Agrega cada prueba realizada; el reporte agrupa y cuenta automáticamente por tipo.</span>
+            </div>
+          </div>
+
+          <div class="footer-note">Los datos se guardan localmente en este navegador.</div>
+        </div>
+      </section>
+    </div>
+
+    <section id="configModule" class="config-module" style="display:none">
+      <div class="config-heading">
+        <div class="eyebrow">Ajustes guardados en este dispositivo</div>
+        <h1>Configuración</h1>
+        <p class="sub">Administra los datos del laboratorio y el catálogo por separado del reporte de jornada.</p>
+      </div>
+      <div class="config-grid">
+        <div id="labConfigSlot"></div>
+        <section class="card">
+          <div class="card-head"><h2>Catálogo de pruebas</h2><span class="step">2</span></div>
+          <div class="card-body">
+            <p class="config-hint">Agrega pruebas y configura los requisitos definidos por tu laboratorio.</p>
+            <div id="catalogAdminList" class="catalog-admin-list"></div>
+            <div id="catalogConfigSlot"></div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <nav class="mobile-bottom-nav no-print" id="mobileBottomNav" aria-label="Navegación principal">
+    <button type="button" data-mobile-nav="jornada" class="active" onclick="mobileNavigate('jornada')"><span>⌂</span>Jornada</button>
+    <button type="button" data-mobile-nav="pruebas" onclick="mobileNavigate('pruebas')"><span>⚗</span>Pruebas</button>
+    <button type="button" data-mobile-nav="reporte" onclick="mobileNavigate('reporte')"><span>▥</span>Reportes</button>
+    <button type="button" data-mobile-nav="mas" onclick="mobileNavigate('mas')"><span>•••</span>Más</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const KEY='fleboReport.v1';
+    const CONFIG_KEY='fleboReport.config.v1';
+    const REPORT_KEY='fleboReport.jornada.v1';
+    let state=loadState();
+    let logoData='';
+    let deferredInstallPrompt=null;
+    const reportSteps=['jornada','pruebas','reporte'];
+    let currentMobileStep='jornada';
+
+    function readStored(key){
+      try { return JSON.parse(localStorage.getItem(key) || 'null'); }
+      catch { return null; }
+    }
+
+    function normalizeStatusLabel(status='pendiente') {
+      const map = {
+        pendiente: 'Pendiente',
+        tomada: 'Tomada',
+        no_tomada: 'No tomada',
+        retrasada: 'Retrasada',
+        problema: 'Paciente complicado'
+      };
+      return map[status] || 'Pendiente';
+    }
+
+    function $ (id){ return document.getElementById(id); }
+
+    function esc(s=''){ return String(s).replace(/[&<>"']/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+
+    function loadState(){
+      let sources=[];
+      try{
+        for(let i=0;i<localStorage.length;i++){
+          const key=localStorage.key(i);
+          const value=readStored(key);
+          if(value && typeof value==='object' && (key===KEY || key===CONFIG_KEY || key===REPORT_KEY || Array.isArray(value.catalog))){
+            sources.push(value);
+          }
+        }
+      }catch{}
+
+      let candidates = sources.filter(x => x && typeof x === 'object').sort((a,b)=>(Number(a.updatedAt)||0)-(Number(b.updatedAt)||0));
+      let merged={
+        version:4,
+        style:'infographic',
+        catalog:[],
+        selected:[],
+        patients:[],
+        patientName:'',
+        patientCedula:'',
+        patientNotes:'',
+        sampleStatus:'pendiente',
+        labName:'',
+        labContact:'',
+        logo:'',
+        shiftDate:'',
+        shiftStart:'',
+        shiftEnd:'',
+        responsible:''
+      };
+
+      candidates.forEach(x => Object.assign(merged, x));
+
+      let catalogCandidates = candidates.filter(x => Array.isArray(x.catalog));
+      let marked = catalogCandidates.filter(x => Number(x.catalogChangedAt) > 0);
+      if(marked.length){
+        marked.sort((a,b)=>(Number(a.catalogChangedAt)||0)-(Number(b.catalogChangedAt)||0));
+        merged.catalog = marked[marked.length-1].catalog;
+      } else {
+        let nonempty = catalogCandidates.filter(x => x.catalog.length);
+        if(nonempty.length){
+          nonempty.sort((a,b)=>a.catalog.length-b.catalog.length || ((Number(a.updatedAt)||0)-(Number(b.updatedAt)||0)));
+          merged.catalog = nonempty[nonempty.length-1].catalog;
+        } else if(catalogCandidates.length){
+          merged.catalog = catalogCandidates[catalogCandidates.length-1].catalog;
+        }
+      }
+
+      if(!Array.isArray(merged.patients)) merged.patients=[];
+      if(!Array.isArray(merged.selected)) merged.selected=[];
+      if(!Array.isArray(merged.catalog)) merged.catalog=[];
+      if(!merged.sampleStatus) merged.sampleStatus='pendiente';
+      if(!merged.style) merged.style='infographic';
+
+      merged.catalog = merged.catalog.map(t => ({ ...t, id: t.id || crypto.randomUUID() }));
+      merged.selected = merged.selected.map(t => ({ ...t, id: t.id || crypto.randomUUID(), status: t.status || 'pendiente' }));
+      merged.version = 4;
+      return merged;
+    }
+
+    function save(){
+      state.version = 4;
+      state.updatedAt = Date.now();
+      state.patients = Array.isArray(state.patients) ? state.patients : [];
+      state.sampleStatus = state.sampleStatus || 'pendiente';
+
+      const config={
+        version:4,
+        updatedAt: state.updatedAt,
+        catalog: state.catalog,
+        catalogChangedAt: state.catalogChangedAt || 0,
+        labName: state.labName,
+        labContact: state.labContact,
+        logo: state.logo,
+        style: state.style,
+        patients: state.patients,
+        patientName: state.patientName,
+        patientCedula: state.patientCedula,
+        patientNotes: state.patientNotes,
+        sampleStatus: state.sampleStatus
+      };
+
+      const report={
+        version:4,
+        updatedAt: state.updatedAt,
+        selected: state.selected,
+        shiftDate: state.shiftDate,
+        shiftStart: state.shiftStart,
+        shiftEnd: state.shiftEnd,
+        responsible: state.responsible,
+        patientName: state.patientName,
+        patientCedula: state.patientCedula,
+        patientNotes: state.patientNotes,
+        sampleStatus: state.sampleStatus
+      };
+
+      try {
+        localStorage.setItem(KEY, JSON.stringify(state));
+      } catch (error) {
+        toast('No se pudieron guardar los cambios. Revisa el espacio disponible en el navegador.');
+        return false;
+      }
+
+      try {
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+        localStorage.setItem(REPORT_KEY, JSON.stringify(report));
+      } catch (error) {
+        toast('Los datos principales están guardados; revisa el espacio disponible para mantener la copia de compatibilidad.');
+      }
+      return true;
+    }
+
+    function showModule(name){
+      const config = name === 'config';
+      const intro = document.querySelector('.intro');
+      const layout = document.querySelector('.layout');
+      const configModule = document.getElementById('configModule');
+      const buttons = document.querySelectorAll('[data-module-button]');
+
+      if(intro) intro.style.display = config ? 'none' : '';
+      if(layout) layout.style.display = config ? 'none' : '';
+      if(configModule) configModule.style.display = config ? 'block' : 'none';
+      buttons.forEach((b) => b.classList.toggle('active', b.dataset.moduleButton === (config ? 'config' : 'reporte')));
+      if(!config) setMobileStep('jornada');
+    }
+
+    function setMobileStep(step){
+      if(!reportSteps.includes(step)) return;
+      currentMobileStep = step;
+      document.querySelectorAll('[data-mobile-step]').forEach((el) => {
+        const active = el.dataset.mobileStep === step;
+        el.style.display = active ? '' : 'none';
+      });
+
+      const titles = { jornada: 'Jornada actual', pruebas: 'Agregar prueba', reporte: 'Resumen de la jornada' };
+      const mobileTitle = $('mobileScreenTitle');
+      if(mobileTitle){
+        const h1 = mobileTitle.querySelector('h1');
+        if(h1) h1.textContent = titles[step] || 'Jornada actual';
+      }
+    }
+
+    function mobileNavigate(tab){
+      if(tab === 'mas'){ showModule('config'); return; }
+      showModule('reporte');
+      setMobileStep(tab);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function changeMobileStep(direction){
+      const currentIndex = reportSteps.indexOf(currentMobileStep);
+      const next = Math.max(0, Math.min(reportSteps.length - 1, currentIndex + direction));
+      setMobileStep(reportSteps[next]);
+    }
+
+    function vesselSvg(color,vessel='',iconKind='auto'){
+      let c = color ? color.toLowerCase() : '';
+      let map = {
+        rojo:'#d84949', azul:'#4387c1', celeste:'#69b6dc', morado:'#8659ac', lila:'#a879be',
+        verde:'#1b9b70', gris:'#718392', amarillo:'#d2a92e', negro:'#37444c', dorado:'#bd9440'
+      };
+      let cap = map[c] || (/^#[0-9a-f]{6}$/i.test(c) ? c : '#117c78');
+      let kind = (vessel || '').toLowerCase();
+      let shape = iconKind === 'tube' ? 'tube' : iconKind === 'jar' ? 'jar' : /frasco|vaso|botella/.test(kind) ? 'jar' : /tub|vacutainer/.test(kind) ? 'tube' : 'auto';
+      if(shape === 'jar'){
+        return `<svg viewBox="0 0 64 80" aria-label="Frasco de recolección"><ellipse cx="32" cy="73" rx="19" ry="4" fill="#203c4b" opacity=".12"/><path d="M23 14h18v8l7 8v34a7 7 0 0 1-7 7H23a7 7 0 0 1-7-7V30l7-8z" fill="#f7fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M19 47h26v17a5 5 0 0 1-5 5H24a5 5 0 0 1-5-5z" fill="${cap}" opacity=".26"/><path d="M23 14h18v8H23z" fill="${cap}"/><rect x="19" y="10" width="26" height="7" rx="2" fill="${cap}"/><path d="M23 34h18v10H23z" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M26 38h12M26 41h8" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M21 27v38" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`;
+      }
+      if(shape === 'tube'){
+        return `<svg viewBox="0 0 64 80" aria-label="Tubo de muestra"><ellipse cx="32" cy="73" rx="15" ry="4" fill="#203c4b" opacity=".12"/><path d="M20 15h24v45a10 10 0 0 1-10 10h-4a10 10 0 0 1-10-10z" fill="#f8fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M22 48h20v12a8 8 0 0 1-8 8h-4a8 8 0 0 1-8-8z" fill="${cap}" opacity=".35"/><rect x="17" y="9" width="30" height="10" rx="3" fill="${cap}"/><path d="M22 25h20" stroke="#d4e1e6" stroke-width="2"/><rect x="24" y="31" width="16" height="12" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M27 35h10M27 39h7" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M24 21v38" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`;
+      }
+      return `<svg viewBox="0 0 64 80" aria-label="Recipiente genérico, tipo por configurar"><ellipse cx="32" cy="73" rx="18" ry="4" fill="#203c4b" opacity=".12"/><path d="M20 17h24v7l6 7v32a8 8 0 0 1-8 8H22a8 8 0 0 1-8-8V31l6-7z" fill="#f7fcfd" stroke="#7896a5" stroke-width="2.2"/><path d="M17 49h30v14a6 6 0 0 1-6 6H23a6 6 0 0 1-6-6z" fill="${cap}" opacity=".24"/><rect x="17" y="11" width="30" height="9" rx="3" fill="${cap}"/><rect x="23" y="33" width="18" height="10" rx="2" fill="#fff" stroke="#d6e1e6"/><path d="M27 38h10" stroke="#83a0ae" stroke-width="1.5" stroke-linecap="round"/><path d="M20 27v36" stroke="#fff" stroke-width="2" opacity=".9"/></svg>`;
+    }
+
+    function getLogoSource(){
+      return state.logo || document.querySelector('#logoPrev img')?.src || '';
+    }
+
+    function renderWatermark(){
+      const wm = $('watermark');
+      if(!wm) return;
+      const src = getLogoSource();
+      wm.innerHTML = src ? `<img alt="" src="${src}">` : '';
+      wm.style.display = src ? 'block' : 'none';
+      const image = wm.querySelector('img');
+      if(image) image.onerror = () => toast('No se pudo leer el logotipo guardado. Vuelve a cargarlo desde Configuración.');
+    }
+
+    function renderCatalogAdmin(){
+      const host = $('catalogAdminList');
+      if(!host) return;
+      if(!state.catalog.length){
+        host.innerHTML = '<div class="catalog-admin-empty">Todavía no hay pruebas guardadas. Crea la primera con el formulario de abajo.</div>';
+        return;
+      }
+      host.innerHTML = state.catalog.map((t)=>`
+        <div class="catalog-admin-row">
+          <div class="catalog-admin-info">
+            <strong>${esc(t.name)}</strong>
+            <small>${esc(t.sample || 'Muestra sin configurar')} · ${t.validated ? 'Protocolo confirmado' : 'Pendiente de validación'}</small>
+          </div>
+          <button type="button" class="catalog-delete-btn" onclick="deleteCatalogTest('${esc(t.id)}')">Eliminar</button>
+        </div>
+      `).join('');
+    }
+
+    function renderCatalog(){
+      const select = $('testSelect');
+      if(select){
+        const current = select.value;
+        select.innerHTML = `<option value="">${state.catalog.length ? 'Selecciona una prueba…' : 'Catálogo vacío; configúralo en Ajustes'}</option>` + state.catalog.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+        if(state.catalog.some(t => t.id === current)) select.value = current;
+      }
+      const addBtn = $('addSelectedTest');
+      if(addBtn) addBtn.disabled = !state.catalog.length;
+      renderMobileCatalog();
+      renderCatalogAdmin();
+    }
+
+    function renderMobileCatalog(){
+      const host=$('mobileCatalogList');
+      if(!host) return;
+      const q=($('mobileCatalogSearch')?.value||'').trim().toLocaleLowerCase('es');
+      const tests = state.catalog.filter(t => !q || [t.name, t.sample, t.vessel].some(v => (v || '').toLocaleLowerCase('es').includes(q)));
+      host.innerHTML = tests.length ? tests.map(t => `
+        <article class="mobile-test-row">
+          <div class="mobile-test-icon">${vesselSvg(t.color,t.vessel,t.iconKind)}</div>
+          <div class="mobile-test-info">
+            <strong>${esc(t.name)}</strong>
+            <small>${esc([t.sample,t.vessel].filter(Boolean).join(' · ') || 'Requisitos por configurar')}</small>
+          </div>
+          <button type="button" class="mobile-add-one" onclick="addTest('${esc(t.id)}')" aria-label="Agregar ${esc(t.name)}">＋</button>
+        </article>
+      `).join('') : (state.catalog.length ? '<div class="mobile-empty">No hay resultados para esa búsqueda.</div>' : '<div class="mobile-empty">Tu catálogo está vacío. Configura tus pruebas desde Más.</div>');
+    }
+
+    function addCatalogTest(){
+      const name = $('fName').value.trim();
+      if(!name){ toast('Escribe el nombre de la prueba.'); $('fName').focus(); return; }
+      const test = {
+        id: crypto.randomUUID(),
+        name,
+        sample: $('fSample').value.trim(),
+        vessel: $('fVessel').value.trim(),
+        color: selectedColor(),
+        iconKind: $('fIconKind').value,
+        volume: $('fVolume').value.trim(),
+        method: $('fMethod').value.trim(),
+        instructions: $('fInstructions').value.trim(),
+        validated: $('fValidated').value === 'yes'
+      };
+
+      state.catalog.push(test);
+      state.catalogChangedAt = Date.now();
+      save();
+      ['fName','fSample','fVessel','fVolume','fMethod','fInstructions'].forEach(id => $(id).value = '');
+      $('fValidated').value = 'no';
+      $('fColor').value = '';
+      $('fCustomColor').dataset.selected = '';
+      $('fIconKind').value = 'auto';
+      renderCatalog();
+      renderCatalogAdmin();
+      updatePatientRequestedTests();
+      toast('Prueba guardada en el catálogo.');
+    }
+
+    function addSelectedTest(){
+      const id = $('testSelect').value;
+      if(!id){ toast('Selecciona una prueba del catálogo.'); return; }
+      addTest(id);
+      $('testSelect').value = '';
+    }
+
+    function addTest(id){
+      const t = state.catalog.find(x => x.id === id);
+      if(!t) return;
+      state.selected.push({ ...t, instance: crypto.randomUUID(), status: 'pendiente' });
+      save();
+      renderReport();
+      updatePatientRequestedTests();
+      toast('Prueba agregada al reporte.');
+    }
+
+    function removeTest(id){
+      state.selected = state.selected.filter(x => x.instance !== id);
+      save();
+      renderReport();
+      updatePatientRequestedTests();
+    }
+
+    function groupedTests(){
+      let groups = new Map();
+      state.selected.forEach(t => {
+        const key = t.id || t.name;
+        if(!groups.has(key)) groups.set(key, { test: t, count:0, instances:[] });
+        const g = groups.get(key);
+        g.count++;
+        g.instances.push(t.instance);
+      });
+      return [...groups.values()];
+    }
+
+    function setSampleStatusForTest(testId, status){
+      const item = (state.selected || []).find(t => t.id === testId);
+      if(!item) return;
+      item.status = status;
+      save();
+      renderReport();
+    }
+
+    function getStatusOptionsMarkup(current='pendiente'){
+      return `
+        <option value="pendiente" ${current === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+        <option value="tomada" ${current === 'tomada' ? 'selected' : ''}>Tomada</option>
+        <option value="no_tomada" ${current === 'no_tomada' ? 'selected' : ''}>No tomada</option>
+        <option value="retrasada" ${current === 'retrasada' ? 'selected' : ''}>Retrasada</option>
+        <option value="problema" ${current === 'problema' ? 'selected' : ''}>Paciente complicado</option>
+      `;
+    }
+
+    function renderReport(){
+      const groups = groupedTests();
+      const items = state.selected;
+      $('testCount').textContent = items.length;
+      $('mobileTestBadge').textContent = items.length;
+
+      let rec = {};
+      items.forEach(t => {
+        const key = [t.vessel || 'Recipiente sin configurar', t.color || ''].filter(Boolean).join(' · ');
+        rec[key] = (rec[key] || 0) + 1;
+      });
+
+      const total = Object.values(rec).reduce((a,b)=>a+b,0);
+      $('kindCount').textContent = Object.keys(rec).length;
+      $('vesselCount').textContent = total;
+      $('empty').style.display = items.length ? 'none' : 'block';
+
+      const rows = groups.map(g => {
+        const t = g.test;
+        const status = t.status || 'pendiente';
+        return `
+          <div class="report-item">
+            <div class="vessel">${vesselSvg(t.color,t.vessel,t.iconKind)}</div>
+            <div>
+              <div class="item-name">${esc(t.name)}</div>
+              <div class="item-detail">${normalizeStatusLabel(status)}</div>
+            </div>
+            <div class="quantity-controls" style="display:flex;align-items:center;justify-content:center;gap:7px;white-space:nowrap;">
+              <button type="button" class="qty-adjust qty-minus no-print" onclick="removeTest('${g.instances[g.instances.length-1]}')" aria-label="Restar una ${esc(t.name)}">−</button>
+              <strong class="quantity">${g.count} <small>realizadas</small></strong>
+              <button type="button" class="qty-adjust qty-plus no-print" onclick="addTest('${esc(t.id)}')" aria-label="Agregar una ${esc(t.name)} más">+</button>
+            </div>
+            <div class="sample-taken" style="display:block;">
+              <select onchange="setSampleStatusForTest('${esc(t.id)}', this.value)" style="font-size:10px; padding:4px 6px; border-radius:7px; border:1px solid #dfe7ec; background:#fff; min-width:120px;">
+                ${getStatusOptionsMarkup(status)}
+              </select>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      $('items').innerHTML = rows;
+      $('mobileJornadaItems').innerHTML = rows || '<div class="mobile-empty">Aún no agregas pruebas.</div>';
+      $('receptacles').style.display = items.length ? 'block' : 'none';
+      $('recChips').innerHTML = Object.entries(rec).map(([k,v]) => `<span class="rec-chip">${esc(k)} <b>×${v}</b></span>`).join('');
+      updatePatientRequestedTests();
+      save();
+    }
+
+    function updatePatientRequestedTests(){
+      const field = $('patientRequestedTests');
+      if(field) field.value = (state.selected || []).map(t => t.name).filter(Boolean).join(', ');
+    }
+
+    function savePatientRecord(){
+      const name = ($('patientName')?.value || '').trim();
+      const cedula = ($('patientCedula')?.value || '').trim();
+      const notes = ($('patientNotes')?.value || '').trim();
+      const sampleStatus = $('sampleStatus')?.value || 'pendiente';
+      if(!name && !cedula && !(state.selected || []).length){
+        toast('Completa el nombre o la cédula y agrega al menos una prueba.');
+        return;
+      }
+
+      const record = {
+        id: crypto.randomUUID(),
+        name: name || 'Sin nombre',
+        cedula: cedula || 'Sin documento',
+        createdAt: new Date().toISOString(),
+        sampleStatus,
+        notes,
+        tests: (state.selected || []).map(t => ({ id: t.id, name: t.name, status: t.status || 'pendiente', notes: t.notes || '' }))
+      };
+
+      state.patients = [record, ...(state.patients || [])].slice(0,50);
+      state.patientName = record.name;
+      state.patientCedula = record.cedula;
+      state.patientNotes = notes;
+      state.sampleStatus = sampleStatus;
+      save();
+      renderPatientHistory();
+      syncFields();
+      toast('Paciente guardado correctamente.');
+    }
+
+    function renderPatientHistory(){
+      const host = $('patientHistoryList');
+      if(!host) return;
+      if(!state.patients || !state.patients.length){
+        host.innerHTML = '<div class="catalog-admin-empty">Todavía no hay pacientes registrados.</div>';
+        return;
+      }
+      host.innerHTML = state.patients.slice(0,10).map(p => `
+        <div class="catalog-admin-row">
+          <div class="catalog-admin-info">
+            <strong>${esc(p.name || 'Sin nombre')}</strong>
+            <small>${esc(p.cedula || 'Sin documento')} · ${normalizeStatusLabel(p.sampleStatus || 'pendiente')}</small>
+          </div>
+          <button type="button" class="catalog-delete-btn" onclick="deletePatientRecord('${p.id}')">Eliminar</button>
+        </div>
+      `).join('');
+    }
+
+    function deletePatientRecord(id){
+      if(!state.patients || !state.patients.length) return;
+      state.patients = state.patients.filter(p => p.id !== id);
+      save();
+      renderPatientHistory();
+      toast('Paciente eliminado.');
+    }
+
+    function syncFields(){
+      const patientName = $('patientName');
+      const patientCedula = $('patientCedula');
+      const patientNotes = $('patientNotes');
+      const sampleStatus = $('sampleStatus');
+
+      if(patientName) patientName.value = state.patientName || '';
+      if(patientCedula) patientCedula.value = state.patientCedula || '';
+      if(patientNotes) patientNotes.value = state.patientNotes || '';
+      if(sampleStatus) sampleStatus.value = state.sampleStatus || 'pendiente';
+
+      if($('labName')) state.labName = $('labName').value;
+      if($('labContact')) state.labContact = $('labContact').value;
+      if($('shiftDate')) state.shiftDate = $('shiftDate').value;
+      if($('shiftStart')) state.shiftStart = $('shiftStart').value;
+      if($('shiftEnd')) state.shiftEnd = $('shiftEnd').value;
+      if($('responsible')) state.responsible = $('responsible').value;
+      state.patientName = (patientName?.value || '').trim();
+      state.patientCedula = (patientCedula?.value || '').trim();
+      state.patientNotes = (patientNotes?.value || '').trim();
+      state.sampleStatus = sampleStatus?.value || 'pendiente';
+
+      $('showLab').textContent = state.labName || 'Nombre del laboratorio';
+      $('showContact').textContent = state.labContact || 'Añade los datos de contacto';
+      $('showDate').value = state.shiftDate || '';
+      $('showStart').value = state.shiftStart || '';
+      $('showEnd').value = state.shiftEnd || '';
+      $('showResponsible').value = state.responsible || '';
+      $('showPatient').value = state.patientName || '';
+      $('showCedula').value = state.patientCedula || '';
+      $('showPatientNotes').value = state.patientNotes || '';
+      $('showSampleStatus').value = state.sampleStatus || 'pendiente';
+
+      updatePatientRequestedTests();
+      renderWatermark();
+      save();
+    }
+
+    function uploadLogo(e){
+      const file = e.target.files[0];
+      if(!file) return;
+      if(file.size > 1500000){ toast('El logotipo debe pesar menos de 1.5 MB.'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const source = new Image();
+        source.onload = () => {
+          const max = 1000;
+          const width = source.naturalWidth || source.width;
+          const height = source.naturalHeight || source.height;
+          const scale = Math.min(1, max / Math.max(width, height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(width * scale));
+          canvas.height = Math.max(1, Math.round(height * scale));
+          const ctx = canvas.getContext('2d');
+          if(ctx){
+            ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+            state.logo = canvas.toDataURL('image/png');
+          } else {
+            state.logo = reader.result;
+          }
+          logoData = state.logo;
+          const preview = $('logoPrev');
+          if(preview){
+            preview.innerHTML = `<img src="${state.logo}" style="width:100%;height:100%;object-fit:contain">`;
+          }
+          renderWatermark();
+          if(save()) toast('Logotipo guardado para los reportes.');
+        };
+        source.onerror = () => toast('No se pudo leer la imagen. Prueba con PNG o JPG.');
+        source.src = reader.result;
+      };
+      reader.onerror = () => toast('No se pudo leer el archivo de imagen.');
+      reader.readAsDataURL(file);
+    }
+
+    function setStyle(s, render=true){
+      state.style = s;
+      const paper = $('paper');
+      if(paper) paper.className = 'paper ' + s;
+      const info = $('styleInfo');
+      const formal = $('styleFormal');
+      if(info) info.classList.toggle('active', s === 'infographic');
+      if(formal) formal.classList.toggle('active', s === 'formal');
+      save();
+    }
+
+    function newShift(){
+      if(state.selected.length && !confirm('¿Iniciar una nueva jornada? Se limpiarán las cantidades y el horario actuales.')) return;
+      state.selected = [];
+      state.patientName = '';
+      state.patientCedula = '';
+      state.patientNotes = '';
+      state.sampleStatus = 'pendiente';
+      state.shiftDate = new Date().toISOString().slice(0,10);
+      state.shiftStart = '';
+      state.shiftEnd = '';
+      state.responsible = '';
+      $('shiftDate').value = state.shiftDate;
+      $('shiftStart').value = '';
+      $('shiftEnd').value = '';
+      $('responsible').value = '';
+      $('patientName').value = '';
+      $('patientCedula').value = '';
+      $('patientNotes').value = '';
+      $('sampleStatus').value = 'pendiente';
+      syncFields();
+      renderReport();
+      renderPatientHistory();
+      toast('Nueva jornada lista.');
+    }
+
+    function printReport(){
+      renderWatermark();
+      const logo = document.querySelector('#watermark img');
+      if(logo && !logo.complete){
+        new Promise(resolve => { logo.onload = resolve; logo.onerror = resolve; });
+      }
+      window.print();
+    }
+
+    function toast(msg){
+      const e = $('toast');
+      e.textContent = msg;
+      e.style.display = 'block';
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => e.style.display = 'none', 2400);
+    }
+
+    function selectedColor(){
+      return $('fColor').value || $('fCustomColor').dataset.selected || '';
+    }
+
+    function setCustomColor(value){
+      $('fColor').value = '';
+      $('fCustomColor').dataset.selected = value;
+    }
+
+    function clearCustomColor(){
+      $('fCustomColor').dataset.selected = '';
+    }
+
+    function deleteCatalogTest(id){
+      const test = state.catalog.find(t => t.id === id);
+      if(!test) return;
+      if(!confirm(`¿Eliminar “${test.name}” del catálogo?`)) return;
+      state.catalog = state.catalog.filter(t => t.id !== id);
+      state.catalogChangedAt = Date.now();
+      save();
+      renderCatalog();
+      renderCatalogAdmin();
+      renderReport();
+      toast('Prueba eliminada del catálogo.');
+    }
+
+    function init(){
+      const today = new Date();
+      $('today').textContent = today.toLocaleDateString('es', {year:'numeric', month:'short', day:'numeric'});
+      const currentDate = new Date().toISOString().slice(0,10);
+      $('shiftDate').value = state.shiftDate || currentDate;
+      $('showDate').value = state.shiftDate || currentDate;
+      $('shiftStart').value = state.shiftStart || '';
+      $('showStart').value = state.shiftStart || '';
+      $('shiftEnd').value = state.shiftEnd || '';
+      $('showEnd').value = state.shiftEnd || '';
+      $('responsible').value = state.responsible || '';
+      $('showResponsible').value = state.responsible || '';
+      $('labName').value = state.labName || '';
+      $('labContact').value = state.labContact || '';
+      $('patientName').value = state.patientName || '';
+      $('patientCedula').value = state.patientCedula || '';
+      $('patientNotes').value = state.patientNotes || '';
+      $('sampleStatus').value = state.sampleStatus || 'pendiente';
+      $('showPatient').value = state.patientName || '';
+      $('showCedula').value = state.patientCedula || '';
+      $('showPatientNotes').value = state.patientNotes || '';
+      $('showSampleStatus').value = state.sampleStatus || 'pendiente';
+
+      const configForm = $('catalogForm');
+      if(configForm) configForm.classList.add('open');
+      if($('labConfigSlot')) $('labConfigSlot').appendChild($('labCard'));
+      if($('catalogConfigSlot')) $('catalogConfigSlot').appendChild(configForm);
+
+      ['labName','labContact','shiftDate','shiftStart','shiftEnd','responsible'].forEach((id) => {
+        if($(id)) $(id).addEventListener('input', syncFields);
+      });
+
+      ['patientName','patientCedula','patientNotes','sampleStatus'].forEach((id) => {
+        if($(id)) $(id).addEventListener('input', () => {
+          state.patientName = ($('patientName')?.value || '').trim();
+          state.patientCedula = ($('patientCedula')?.value || '').trim();
+          state.patientNotes = ($('patientNotes')?.value || '').trim();
+          state.sampleStatus = $('sampleStatus')?.value || 'pendiente';
+          syncFields();
+        });
+      });
+
+      $('mobileCatalogSearch')?.addEventListener('input', renderMobileCatalog);
+      $('logoFile')?.addEventListener('change', uploadLogo);
+      $('search')?.addEventListener('input', renderCatalog);
+
+      setStyle(state.style || 'infographic', false);
+      renderCatalog();
+      renderPatientHistory();
+      renderReport();
+      renderWatermark();
+      syncFields();
+      renderCurrentMobileDate();
+      setMobileStep('jornada');
+    }
+
+    function renderCurrentMobileDate(){
+      const value = $('shiftDate')?.value || new Date().toISOString().slice(0,10);
+      const date = new Date(`${value}T12:00:00`);
+      const text = date.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      const el = $('mobileDate');
+      if(el) el.textContent = text;
+    }
+
+    function downloadPNG(){
+      if(!state.selected.length){ toast('Agrega al menos una prueba antes de exportar.'); return; }
+      const w = 1200; let margin = 70; let y = 64; const formal = state.style === 'formal';
+      const lines = []; const xml = esc;
+      function text(x, yy, str, size=20, weight=400, color='#172838'){ lines.push(`<text x="${x}" y="${yy}" font-family="Arial,sans-serif" font-size="${size}" font-weight="${weight}" fill="${color}">${str}</text>`); }
+      function box(x,yy,ww,hh,fill='#fff',stroke='#e4ebf0',r=12){ lines.push(`<rect x="${x}" y="${yy}" width="${ww}" height="${hh}" rx="${r}" fill="${fill}" stroke="${stroke}"/>`); }
+
+      let rec = {};
+      state.selected.forEach(t => {
+        const key = [t.vessel || 'Recipiente sin configurar', t.color || ''].filter(Boolean).join(' · ');
+        rec[key] = (rec[key] || 0) + 1;
+      });
+      const vesselTotal = Object.values(rec).reduce((a,b)=>a+b,0);
+      const shiftDate = xml(state.shiftDate || '');
+      const hours = [state.shiftStart || '—', state.shiftEnd || '—'].join(' - ');
+      const responsible = xml(state.responsible || 'Por definir');
+      const lab = xml(state.labName || 'Nombre del laboratorio');
+      const contact = xml(state.labContact || '');
+
+      let lx = margin;
+      text(lx, y + 24, lab, 27, 700);
+      text(lx, y + 52, contact, 15, 400, '#718292');
+      text(w - margin - 300, y + 23, 'REPORTE DE JORNADA', 16, 700, '#117c78');
+      text(w - margin - 300, y + 49, `Fecha: ${shiftDate}`, 15, 600);
+      text(w - margin - 300, y + 71, `Horario: ${xml(hours)}`, 14, 400, '#718292');
+      let responsibleLines = wrapLines('Responsable: ' + (state.responsible || 'Por definir'), 34);
+      responsibleLines.forEach((line, i) => text(w - margin - 300, y + 94 + i * 18, xml(line), 13, 400, '#718292'));
+      y += 106 + (responsibleLines.length - 1) * 18;
+      lines.push(`<line x1="${margin}" y1="${y}" x2="${w-margin}" y2="${y}" stroke="#dce5e9"/>`);
+      y += 30;
+
+      const cards = [
+        ['PRUEBAS REALIZADAS', String(state.selected.length)],
+        ['TIPOS DE PRUEBA', String(groupedTests().length)],
+        ['TOTAL DE RECIPIENTES', String(vesselTotal)]
+      ];
+      const cardW = (w - 2 * margin - 28) / 3;
+      cards.forEach((a, i) => {
+        const x = margin + i * (cardW + 14);
+        box(x, y, cardW, 76, formal ? '#fff' : ['#eaf7f5','#eff4fa','#f4f1fa'][i], formal ? '#dce5e9' : 'none', 10);
+        text(x + 16, y + 26, a[0], 12, 700, '#718292');
+        text(x + 16, y + 59, a[1], 27, 700);
+      });
+      y += 104;
+      text(margin, y, 'DETALLE DE PRUEBAS', 18, 700);
+      y += 18;
+
+      groupedTests().forEach(g => {
+        const t = g.test;
+        box(margin, y, w - 2 * margin, 78, '#fff', '#e4ebf0', formal ? 3 : 11);
+        const iconMarkup = vesselSvg(t.color, t.vessel, t.iconKind).replace(/^<svg[^>]*>|<\/svg>$/g, '');
+        lines.push(`<svg x="${margin + 10}" y="${y + 8}" width="42" height="58" viewBox="0 0 64 80">${iconMarkup}</svg>`);
+        text(margin + 62, y + 30, xml(t.name), 18, 700);
+        text(w - margin - 156, y + 43, `${g.count} REALIZADAS`, 15, 700, '#117c78');
+        text(w - margin - 190, y + 23, 'MUESTRA TOMADA', 11, 700, '#117c78');
+        y += 88;
+      });
+
+      y += 8;
+      text(margin, y, 'RESUMEN DE RECIPIENTES', 17, 700);
+      y += 19;
+      Object.entries(rec).forEach(([k,v]) => {
+        box(margin, y, 330, 40, '#fff', '#e4ebf0', 8);
+        text(margin + 14, y + 26, xml(k) + '   ×' + v, 14, 600);
+        y += 48;
+      });
+
+      const height = y + 40;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${height}" viewBox="0 0 ${w} ${height}">${lines.join('')}</svg>`;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w * 2;
+        canvas.height = height * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(2,2);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0,0,w,height);
+        ctx.drawImage(img, 0, 0, w, height);
+
+        const download = () => {
+          const a = document.createElement('a');
+          a.download = `FleboReport-jornada-${(state.shiftDate || 'fecha')}.png`;
+          a.href = canvas.toDataURL('image/png');
+          a.click();
+          toast('Imagen PNG descargada.');
+        };
+
+        const logoSource = getLogoSource();
+        if(!logoSource){
+          toast('No hay logotipo guardado; configúralo en Configuración.');
+          download();
+          return;
+        }
+
+        const watermark = new Image();
+        watermark.onload = () => {
+          if(!watermark.naturalWidth || !watermark.naturalHeight){
+            toast('No se pudo leer el logotipo.');
+            download();
+            return;
+          }
+          ctx.save();
+          ctx.globalAlpha = .24;
+          let scale = Math.max(w / watermark.naturalWidth, height / watermark.naturalHeight);
+          let ww = watermark.naturalWidth * scale;
+          let hh = watermark.naturalHeight * scale;
+          ctx.drawImage(watermark, (w - ww) / 2, (height - hh) / 2, ww, hh);
+          ctx.restore();
+          download();
+        };
+        watermark.onerror = () => {
+          toast('No se pudo cargar el logotipo; vuelve a cargarlo desde Configuración.');
+          download();
+        };
+        watermark.src = logoSource;
+      };
+      img.onerror = () => toast('No se pudo generar el PNG en este navegador.');
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    function wrapLines(value, max=34){
+      const lines=[]; let line='';
+      String(value).trim().split(/\s+/).forEach((word) => {
+        if(word.length > max){
+          if(line){ lines.push(line); line=''; }
+          for(let i=0;i<word.length;i += max){ lines.push(word.slice(i, i + max)); }
+          return;
+        }
+        const next = (line + ' ' + word).trim();
+        if(next.length > max && line){
+          lines.push(line); line = word;
+        } else {
+          line = next;
+        }
+      });
+      if(line) lines.push(line);
+      return lines;
+    }
+
+    function detectInstalledApp(){
+      const installed = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      const button = document.getElementById('installButton');
+      if(button) button.style.display = installed ? 'none' : '';
+    }
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+    });
+
+    async function installApp(){
+      if(deferredInstallPrompt){
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+        deferredInstallPrompt = null;
+        return;
+      }
+      const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      alert(ios ? 'Para instalar FleboReport, toca Compartir en Safari y elige “Añadir a pantalla de inicio”.' : 'Para instalar FleboReport, abre el menú del navegador y toca “Instalar app” o “Añadir a pantalla de inicio”.');
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+    }
+
+    window.addEventListener('appinstalled', () => {
+      const button = document.getElementById('installButton');
+      if(button) button.style.display = 'none';
+      deferredInstallPrompt = null;
+    });
+  </script>
+</body>
+</html>
