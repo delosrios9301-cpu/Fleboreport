@@ -47,9 +47,9 @@ Deno.serve(async(req:Request)=>{
    const memberships=await membership.json();
    if(!membership.ok||!memberships[0]?.active||memberships[0].role!=="admin")return json({error:"Solo un administrador activo puede gestionar usuarios."},403);
    if(action==="admin-list-users"){
-    const res=await fetch(url+"/rest/v1/workspace_members?select=user_id,role,active,profiles(display_name,username)&workspace_id=eq."+encodeURIComponent(workspaceId)+"&order=created_at.asc",{headers:adminHeaders});
+    const res=await fetch(url+"/rest/v1/workspace_members?select=user_id,role,active,created_at&workspace_id=eq."+encodeURIComponent(workspaceId)+"&order=created_at.asc",{headers:adminHeaders});
     const rows=await res.json();if(!res.ok)throw new Error("No se pudo cargar la lista de usuarios.");
-    const users=await Promise.all(rows.map(async(m:any)=>{const ur=await fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders});const u=ur.ok?await ur.json():{};return{user_id:m.user_id,role:m.role,active:m.active,display_name:m.profiles?.display_name||u.user?.user_metadata?.display_name||"",username:m.profiles?.username||u.user?.user_metadata?.username||"",email:u.user?.email||""}}));
+    const users=await Promise.all(rows.map(async(m:any)=>{const [pr,ur]=await Promise.all([fetch(url+"/rest/v1/profiles?select=display_name,username&user_id=eq."+encodeURIComponent(m.user_id)+"&limit=1",{headers:adminHeaders}),fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders})]);const profiles=pr.ok?await pr.json():[];const u=ur.ok?await ur.json():{};return{user_id:m.user_id,role:m.role,active:m.active,display_name:profiles[0]?.display_name||u.user?.user_metadata?.display_name||"",username:profiles[0]?.username||u.user?.user_metadata?.username||"",email:u.user?.email||""}}));
     return json({users});
    }
    if(action==="admin-create-user"){
