@@ -10,7 +10,9 @@ Deno.serve(async(req:Request)=>{
   const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const adminHeaders={"apikey":service,"Authorization":"Bearer "+service,"Content-Type":"application/json"};
   const validUsername=(v:string)=>/^[a-z0-9._-]{3,30}$/.test(v);
+  if(action==="registration-status"){const countRes=await fetch(url+"/rest/v1/profiles?select=user_id&limit=1",{headers:adminHeaders});if(!countRes.ok)throw new Error("No se pudo consultar el estado del registro.");const rows=await countRes.json();return json({available:rows.length===0});}
   if(action==="signup"){
+   const existing=await fetch(url+"/rest/v1/profiles?select=user_id&limit=1",{headers:adminHeaders});if(!existing.ok)throw new Error("No se pudo validar el registro inicial.");if((await existing.json()).length)return json({error:"El registro público está cerrado. Solicita al administrador que cree tu usuario."},403);
    if(!validUsername(username))return json({error:"El usuario debe tener entre 3 y 30 caracteres (letras, números, punto, guion o guion bajo)."},400);
    const email=String(body.email||"").trim().toLowerCase(),password=String(body.password||""),displayName=String(body.display_name||"").trim();
    if(!email||password.length<8||!displayName)return json({error:"Completa nombre, correo y contraseña de al menos 8 caracteres."},400);
