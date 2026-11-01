@@ -79,3 +79,12 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   assert.match(domicilios, /Observación de no toma/);
   assert.match(domicilios, /Actualiza el estado de cada prueba antes de continuar/);
 });
+
+test('la autenticación global protege la aplicación y controla los módulos por rol', () => {
+ const auth = require('node:fs').readFileSync(new URL('../supabase-auth.js', import.meta.url), 'utf8');
+ assert.match(auth, /fleboAuthGate/);
+ assert.match(auth, /function roleModules/);
+ assert.match(auth, /function canAccess/);
+ assert.match(auth, /fleboGlobalSignOut/);
+ assert.match(auth, /admin-create-user/);
+});
