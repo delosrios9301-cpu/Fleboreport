@@ -33,7 +33,7 @@ Deno.serve(async(req:Request)=>{
    if(!found.ok)throw new Error("No se pudo consultar el usuario.");
    const rows=await found.json();if(!rows.length)return json({error:"Usuario o contraseña incorrectos."},401);
    const userRes=await fetch(url+"/auth/v1/admin/users/"+rows[0].user_id,{headers:adminHeaders});if(!userRes.ok)return json({error:"Usuario o contraseña incorrectos."},401);
-   const authUser=await userRes.json();email=authUser.user?.email;if(!email)return json({error:"La cuenta no tiene un correo de acceso válido."},401);
+   const authUser=await userRes.json();email=authUser.email||authUser.user?.email;if(!email)return json({error:"La cuenta no tiene un correo de acceso válido."},401);
    const signed=await fetch(url+"/auth/v1/token?grant_type=password",{method:"POST",headers:{"apikey":anon,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
    const session=await signed.json();if(!signed.ok)return json({error:"Usuario o contraseña incorrectos."},401);
    return json({user:session.user,session});
@@ -60,7 +60,7 @@ Deno.serve(async(req:Request)=>{
    if(action==="admin-list-users"){
     const res=await fetch(url+"/rest/v1/workspace_members?select=user_id,role,active,created_at&workspace_id=eq."+encodeURIComponent(workspaceId)+"&order=created_at.asc",{headers:adminHeaders});
     const rows=await res.json();if(!res.ok)throw new Error("No se pudo cargar la lista de usuarios.");
-    const users=await Promise.all(rows.map(async(m:any)=>{const [pr,ur]=await Promise.all([fetch(url+"/rest/v1/profiles?select=display_name,username&user_id=eq."+encodeURIComponent(m.user_id)+"&limit=1",{headers:adminHeaders}),fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders})]);const profiles=pr.ok?await pr.json():[];const u=ur.ok?await ur.json():{};return{user_id:m.user_id,role:m.role,active:m.active,display_name:profiles[0]?.display_name||u.user?.user_metadata?.display_name||"",username:profiles[0]?.username||u.user?.user_metadata?.username||"",email:u.user?.email||""}}));
+    const users=await Promise.all(rows.map(async(m:any)=>{const [pr,ur]=await Promise.all([fetch(url+"/rest/v1/profiles?select=display_name,username&user_id=eq."+encodeURIComponent(m.user_id)+"&limit=1",{headers:adminHeaders}),fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders})]);const profiles=pr.ok?await pr.json():[];const u=ur.ok?await ur.json():{};const metadata=u.user_metadata||u.user?.user_metadata||{};return{user_id:m.user_id,role:m.role,active:m.active,display_name:profiles[0]?.display_name||metadata.display_name||"",username:profiles[0]?.username||metadata.username||"",email:u.email||u.user?.email||""}}));
     return json({users});
    }
    if(action==="admin-create-user"){
