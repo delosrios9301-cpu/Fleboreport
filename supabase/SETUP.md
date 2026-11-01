@@ -43,6 +43,17 @@ Las notificaciones de correo/WhatsApp, sensores físicos y sincronización del n
 
 El frontend carga `supabase-auth.js` antes de `domicilios.js`. Utiliza exclusivamente la URL del proyecto y la clave publicable; nunca debe incluirse una clave `service_role` o secreta en GitHub Pages.
 
+### Actualizar la función de inicio de sesión
+
+El archivo `supabase/functions/flebo-username-auth/index.ts` se ejecuta en Supabase Edge Functions; publicar GitHub Pages no actualiza esa función. Después de cambios en ese archivo, actualízala desde PowerShell con la CLI de Supabase:
+
+```powershell
+npx supabase login
+npx supabase functions deploy flebo-username-auth --project-ref knfjwvafwbhallhpsjqe
+```
+
+La sesión de la CLI debe corresponder a una cuenta que tenga acceso de despliegue a ese proyecto. No compartas contraseñas ni claves secretas en el chat ni en el código del navegador.
+
 En el módulo Domicilios:
 1. El primer administrador registra su nombre, correo, contraseña y nombre del laboratorio.
 2. Si la confirmación de correo está habilitada, debe confirmar el mensaje recibido y después iniciar sesión.
