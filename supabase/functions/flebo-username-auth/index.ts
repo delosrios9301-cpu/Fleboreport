@@ -36,12 +36,21 @@ Deno.serve(async(req:Request)=>{
    const session=await signed.json();if(!signed.ok)return json({error:"Usuario o contraseña incorrectos."},401);
    return json({user:session.user,session});
   }
-  if(["admin-list-users","admin-create-user","admin-update-user"].includes(action)){
+  if(["get-membership","admin-list-users","admin-create-user","admin-update-user"].includes(action)){
    const token=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"");
    if(!token)return json({error:"Se requiere una sesión autenticada."},401);
    const who=await fetch(url+"/auth/v1/user",{headers:{"apikey":anon,"Authorization":"Bearer "+token}});
    if(!who.ok)return json({error:"La sesión no es válida o expiró."},401);
-   const actor=await who.json(),workspaceId=String(body.workspace_id||"");
+   const actor=await who.json();
+   if(action==="get-membership"){
+    const mr=await fetch(url+"/rest/v1/workspace_members?select=workspace_id,role,active&user_id=eq."+encodeURIComponent(actor.id)+"&limit=1",{headers:adminHeaders});
+    const rows=await mr.json();if(!mr.ok)throw new Error("No se pudo verificar la membresía.");
+    if(!rows.length)return json({membership:null});
+    const wr=await fetch(url+"/rest/v1/workspaces?select=name&id=eq."+encodeURIComponent(rows[0].workspace_id)+"&limit=1",{headers:adminHeaders});
+    const workspaces=wr.ok?await wr.json():[];
+    return json({membership:{...rows[0],workspaces:workspaces[0]||{name:"FleboReport"}}});
+   }
+   const workspaceId=String(body.workspace_id||"");
    if(!workspaceId)return json({error:"Falta el espacio de trabajo."},400);
    const membership=await fetch(url+"/rest/v1/workspace_members?select=role,active&workspace_id=eq."+encodeURIComponent(workspaceId)+"&user_id=eq."+encodeURIComponent(actor.id)+"&limit=1",{headers:adminHeaders});
    const memberships=await membership.json();
