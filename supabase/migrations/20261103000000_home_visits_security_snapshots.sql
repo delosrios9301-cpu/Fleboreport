@@ -309,7 +309,7 @@ create or replace function public.stamp_home_visit_test_creator()
 returns trigger
 language plpgsql
 set search_path = ''
-as $
+as $$
 declare
   service_name text;
   service_fields jsonb;
@@ -364,7 +364,7 @@ begin
   new.added_at := now();
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists home_visit_tests_stamp_creator on public.home_visit_tests;
 create trigger home_visit_tests_stamp_creator
