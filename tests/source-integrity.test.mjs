@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
+const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -67,4 +68,14 @@ test('el flebotomista no puede alterar la asignación ni los datos clínicos ori
   assert.match(homeVisitMigration, /home_visit_tests_insert_staff_or_assignee/i);
   assert.match(homeVisitMigration, /El flebotomista solo puede añadir pruebas adicionales del catálogo/i);
   assert.match(homeVisitMigration, /catalog_snapshot := jsonb_build_object/i);
+});
+
+test('el módulo de domicilios valida incidencias y observaciones por prueba', () => {
+  assert.doesNotThrow(() => new Function(domicilios), 'domicilios.js debe tener sintaxis válida');
+  for (const status of ['Paciente ausente', 'Paciente rechazó la toma', 'No realizado']) {
+    assert.ok(domicilios.includes(status), `falta el estado: ${status}`);
+  }
+  assert.match(domicilios, /Indica por qué no se pudo tomar esta prueba/);
+  assert.match(domicilios, /Observación de no toma/);
+  assert.match(domicilios, /Actualiza el estado de cada prueba antes de continuar/);
 });
