@@ -232,6 +232,7 @@ body.module-menu-open{overflow:hidden}
 <button class="active" data-nav="home" onclick="navigate('home')"><span>⌂</span>Inicio</button>
 <button data-nav="journey" onclick="navigate('journey')"><span>▦</span>Jornadas</button><button data-nav="companies" onclick="navigate('companies')"><span>▣</span>Empresas</button>
 <button data-nav="patients" onclick="navigate('patients')"><span>♙</span>Pacientes</button>
+<button data-nav="domicilios" onclick="navigate('domicilios')"><span>⌂</span>Domicilios</button>
 <button data-nav="catalog" onclick="navigate('catalog')"><span>⚗</span>Pruebas</button>
 <button data-nav="reports" onclick="navigate('reports')"><span>▤</span>Reportes</button>
 <button data-nav="report-history" onclick="navigate('report-history')"><span>◷</span>Historial de reportes</button><button data-nav="clinical-studies" onclick="navigate('clinical-studies')"><span>🧪</span>Estudios Clínicos</button><button data-nav="clinical-processing" onclick="navigate('clinical-processing')"><span>⚗</span>Procesamiento de muestras</button>
@@ -1448,4 +1449,5 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
 .aliquot-inputs{display:grid;gap:5px;min-width:105px}.aliquot-inputs label{display:grid;grid-template-columns:1fr 48px;gap:5px;align-items:center;font-size:11px}.aliquot-inputs input{width:52px;border:0;background:#f0f5fa;border-radius:8px;padding:5px}
 @media(max-width:700px){.cryo-grid{grid-template-columns:1fr}.cryo-card{padding:14px}}
 </style>
+<script src="./domicilios.js"></script>
 </body></html>

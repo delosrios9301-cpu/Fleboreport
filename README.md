@@ -24,3 +24,8 @@ La versión publicada actualmente guarda información en el almacenamiento del n
 El esquema inicial, con usuarios, roles, seguridad por espacio de trabajo, trazabilidad y módulos de operación, está en `supabase/migrations`. Sigue [la guía de configuración](supabase/SETUP.md). La app no se conectará a la nube hasta configurar el proyecto Supabase y su clave pública en el cliente. Nunca publiques una clave `service_role`.
 
 No uses esta app local para expedientes que requieran acceso compartido y controlado hasta terminar la conexión y validación del backend.
+
+
+## Agenda de domicilios
+
+Consulta supabase/DOMICILIOS.md para el alcance, el modo local y los pasos para activar Supabase y WhatsApp Cloud API.
