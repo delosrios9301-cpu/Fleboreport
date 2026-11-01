@@ -1,6 +1,6 @@
 # Módulo de domicilios · FleboReport
 
-La interfaz de agenda se integra en `index.html` y reutiliza el catálogo maestro y los pacientes locales. Mientras no se conecte un backend, los domicilios se guardan únicamente en este navegador; no hay sincronización entre dispositivos.
+La interfaz de agenda se integra en `index.html` y reutiliza el catálogo maestro y los pacientes locales. El frontend utiliza Supabase Auth, las tablas operativas de domicilios y Supabase Realtime. El inicio de sesión admite nombre de usuario y contraseña mediante la Edge Function `flebo-username-auth`; el correo se utiliza al registrar la cuenta y para la confirmación de identidad.
 
 ## Flujo local validado
 
@@ -23,7 +23,7 @@ Aplicar en este orden, cuando se haya identificado y activado el proyecto destin
 
 La tercera migración refuerza RLS para que agenda pueda consultar todos los domicilios del espacio de trabajo y el flebotomista únicamente sus asignaciones. También protege los datos originales de la visita y de las pruebas, registra el actor de los eventos desde la sesión autenticada y conserva los snapshots del catálogo. Un técnico solo puede añadir pruebas adicionales que estén en el catálogo activo y que correspondan a un domicilio asignado y aceptado.
 
-Las migraciones cuarta y quinta restringen la ejecución directa de funciones privilegiadas y publican las cinco tablas operativas de domicilios en Supabase Realtime. Esto prepara la base para sincronización, pero el frontend aún debe conectarse y autenticarse.
+Las migraciones cuarta y quinta restringen la ejecución directa de funciones privilegiadas y publican las cinco tablas operativas de domicilios en Supabase Realtime. El frontend ya consulta y escribe las tablas operativas y se suscribe a cambios Realtime. Antes de producción, hay que validar los permisos con usuarios reales de agenda y flebotomistas.
 
 Antes de usar datos reales hay que conectar Auth, vincular cada profesional con su usuario autenticado, crear el espacio de trabajo y probar las políticas con cuentas separadas de agenda y flebotomista. No basta con ocultar registros en la interfaz: RLS y los triggers aplican la restricción en la base de datos.
 
