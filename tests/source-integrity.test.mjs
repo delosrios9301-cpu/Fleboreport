@@ -54,3 +54,13 @@ test('las pruebas de domicilios conservan una copia de los requisitos del catál
   assert.match(homeVisitMigration, /add column if not exists catalog_snapshot jsonb/i);
   assert.match(homeVisitMigration, /Copia inmutable de los requisitos del catálogo/i);
 });
+
+test('el flebotomista no puede alterar la asignación ni los datos clínicos originales', () => {
+  assert.match(homeVisitMigration, /guard_home_visit_assignment_update/i);
+  assert.match(homeVisitMigration, /guard_home_visit_technician_update/i);
+  assert.match(homeVisitMigration, /guard_home_visit_test_update/i);
+  assert.match(homeVisitMigration, /No puedes alterar la prueba ni su snapshot del catálogo/i);
+  assert.match(homeVisitMigration, /patient_absent/);
+  assert.match(homeVisitMigration, /patient_refused/);
+  assert.match(homeVisitMigration, /stamp_home_visit_event/i);
+});
