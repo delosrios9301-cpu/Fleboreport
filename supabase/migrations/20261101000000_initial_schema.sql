@@ -105,7 +105,7 @@ create table if not exists public.reports(
 );
 create table if not exists public.invoices(
  id uuid primary key default gen_random_uuid(),workspace_id uuid not null references public.workspaces(id) on delete cascade,
- attention_id uuid not null,invoice_number text not null,subtotal numeric(12,2) not null default 0 check(subtotal>=0),tax numeric(12,2) not null default 0 check(tax>=0),total numeric(12,2) not null default 0 check(total>=0),currency text not null default 'USD',status text not null default 'pending' check(status in('pending','partial','paid','void')),issued_at timestamptz not null default now(),unique(workspace_id,invoice_number),foreign key(workspace_id,attention_id) references public.attentions(workspace_id,id) on delete restrict
+ attention_id uuid not null,invoice_number text not null,subtotal numeric(12,2) not null default 0 check(subtotal>=0),tax numeric(12,2) not null default 0 check(tax>=0),total numeric(12,2) not null default 0 check(total>=0),currency text not null default 'USD',status text not null default 'pending' check(status in('pending','partial','paid','void')),issued_at timestamptz not null default now(),unique(workspace_id,id),unique(workspace_id,invoice_number),foreign key(workspace_id,attention_id) references public.attentions(workspace_id,id) on delete restrict
 );
 create table if not exists public.payments(
  id uuid primary key default gen_random_uuid(),workspace_id uuid not null references public.workspaces(id) on delete cascade,
