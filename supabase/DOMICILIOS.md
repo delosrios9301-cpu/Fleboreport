@@ -18,8 +18,12 @@ Aplicar en este orden, cuando se haya identificado y activado el proyecto destin
 1. `20261101000000_initial_schema.sql`
 2. `20261102000000_home_visits.sql`
 3. `20261103000000_home_visits_security_snapshots.sql`
+4. `20261101195613_lock_down_security_definer_functions.sql`
+5. `20261101195637_enable_home_visit_realtime.sql`
 
 La tercera migración refuerza RLS para que agenda pueda consultar todos los domicilios del espacio de trabajo y el flebotomista únicamente sus asignaciones. También protege los datos originales de la visita y de las pruebas, registra el actor de los eventos desde la sesión autenticada y conserva los snapshots del catálogo. Un técnico solo puede añadir pruebas adicionales que estén en el catálogo activo y que correspondan a un domicilio asignado y aceptado.
+
+Las migraciones cuarta y quinta restringen la ejecución directa de funciones privilegiadas y publican las cinco tablas operativas de domicilios en Supabase Realtime. Esto prepara la base para sincronización, pero el frontend aún debe conectarse y autenticarse.
 
 Antes de usar datos reales hay que conectar Auth, vincular cada profesional con su usuario autenticado, crear el espacio de trabajo y probar las políticas con cuentas separadas de agenda y flebotomista. No basta con ocultar registros en la interfaz: RLS y los triggers aplican la restricción en la base de datos.
 
