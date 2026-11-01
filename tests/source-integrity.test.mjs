@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
+const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -81,7 +82,6 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
 });
 
 test('la autenticación global protege la aplicación y controla los módulos por rol', () => {
- const auth = require('node:fs').readFileSync(new URL('../supabase-auth.js', import.meta.url), 'utf8');
  assert.match(auth, /fleboAuthGate/);
  assert.match(auth, /function roleModules/);
  assert.match(auth, /function canAccess/);
