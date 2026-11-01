@@ -46,7 +46,7 @@ test('los domicilios limitan a cada técnico a sus asignaciones', () => {
     assert.ok(homeVisitMigration.includes(policy), `falta política de acceso: ${policy}`);
   }
   assert.match(homeVisitMigration, /assigned_user_id = \(select auth\.uid\(\)\)/);
-  assert.match(homeVisitMigration, /array\['admin','clinician','reception','viewer'\]/);
+  assert.match(homeVisitMigration, /array\['admin','clinician','reception'\]/);
   assert.match(homeVisitMigration, /drop policy if exists home_visits_read_member/i);
 });
 
@@ -65,4 +65,7 @@ test('el flebotomista no puede alterar la asignación ni los datos clínicos ori
   assert.match(homeVisitMigration, /stamp_home_visit_event/i);
   assert.match(homeVisitMigration, /home_visit_tests_insert_staff_only/i);
   assert.match(homeVisitMigration, /stamp_home_visit_test_creator/i);
+  assert.match(homeVisitMigration, /home_visit_tests_insert_staff_or_assignee/i);
+  assert.match(homeVisitMigration, /El flebotomista solo puede añadir pruebas adicionales del catálogo/i);
+  assert.match(homeVisitMigration, /catalog_snapshot := jsonb_build_object/i);
 });
