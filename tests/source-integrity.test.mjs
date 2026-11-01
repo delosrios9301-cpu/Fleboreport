@@ -63,7 +63,6 @@ test('el flebotomista no puede alterar la asignación ni los datos clínicos ori
   assert.match(homeVisitMigration, /patient_absent/);
   assert.match(homeVisitMigration, /patient_refused/);
   assert.match(homeVisitMigration, /stamp_home_visit_event/i);
-  assert.match(homeVisitMigration, /home_visit_tests_insert_staff_only/i);
   assert.match(homeVisitMigration, /stamp_home_visit_test_creator/i);
   assert.match(homeVisitMigration, /home_visit_tests_insert_staff_or_assignee/i);
   assert.match(homeVisitMigration, /El flebotomista solo puede añadir pruebas adicionales del catálogo/i);
