@@ -283,3 +283,27 @@ drop trigger if exists home_visit_events_stamp_actor on public.home_visit_events
 create trigger home_visit_events_stamp_actor
 before insert on public.home_visit_events
 for each row execute function public.stamp_home_visit_event();
+
+
+-- Las pruebas nuevas las registra agenda; el técnico solo actualiza el resultado de las ya asignadas.
+drop policy if exists home_visit_tests_insert_staff_or_assignee on public.home_visit_tests;
+create policy home_visit_tests_insert_staff_only on public.home_visit_tests
+for insert to authenticated
+with check (public.has_workspace_role(workspace_id, array['admin','clinician','reception']));
+
+create or replace function public.stamp_home_visit_test_creator()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.added_by := (select auth.uid());
+  new.added_at := now();
+  return new;
+end;
+$$;
+
+drop trigger if exists home_visit_tests_stamp_creator on public.home_visit_tests;
+create trigger home_visit_tests_stamp_creator
+before insert on public.home_visit_tests
+for each row execute function public.stamp_home_visit_test_creator();
