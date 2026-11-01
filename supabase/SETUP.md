@@ -38,3 +38,15 @@ La migración no importa automáticamente el respaldo JSON. Antes del uso compar
 Empresas, jornadas, pacientes, atenciones, profesionales, servicios/paquetes, pruebas, evidencias, firmas, reportes, facturas, pagos, inventario, citas, recordatorios, auditoría, estudios clínicos, muestras, historia, congeladores, gavetas, racks, bandejas, cajas y crioviales. Los congeladores se crean con cuatro gavetas; los racks generan cinco bandejas; cada bandeja tiene cuatro posiciones de caja.
 
 Las notificaciones de correo/WhatsApp, sensores físicos y sincronización del navegador necesitan su configuración adicional. El esquema registra operaciones, pero no envía mensajes ni obtiene lecturas de sensores.
+
+## Autenticación inicial de FleboReport
+
+El frontend carga `supabase-auth.js` antes de `domicilios.js`. Utiliza exclusivamente la URL del proyecto y la clave publicable; nunca debe incluirse una clave `service_role` o secreta en GitHub Pages.
+
+En el módulo Domicilios:
+1. El primer administrador registra su nombre, correo, contraseña y nombre del laboratorio.
+2. Si la confirmación de correo está habilitada, debe confirmar el mensaje recibido y después iniciar sesión.
+3. Al iniciar sesión, si todavía no pertenece a un espacio de trabajo, puede crear uno mediante `public.create_workspace(text)`. La función asigna el rol `admin` al usuario autenticado.
+4. Los usuarios adicionales deben ser creados y asociados por un administrador; no deben autoprovisionarse como administradores.
+
+La autenticación ya está preparada en la interfaz. La persistencia de domicilios en la nube y la sincronización Realtime siguen pendientes de la integración de datos y de las pruebas con dos cuentas.
