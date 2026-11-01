@@ -1,26 +1,26 @@
 # FleboReport
 
-Aplicación adaptable a escritorio y teléfono para gestionar jornadas de laboratorio, empresas, pacientes, catálogo de pruebas y reportes.
+Aplicación web instalable para jornadas, atención individual, reportes y trazabilidad de muestras de estudios clínicos.
+
+## Módulos actuales
+
+- Inicio y resumen operativo.
+- Empresas, jornadas, pacientes y catálogo de pruebas.
+- Reportes PNG, impresión/PDF e historial.
+- Atención individual con formularios dinámicos, archivos, firma y edición.
+- Estudios clínicos: protocolos, recepción, procesamiento, alícuotas, crioviales y almacenamiento.
+- Configuración e historial local de actividad.
 
 ## Abrir
 
 Visita [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/). En teléfono se puede agregar a la pantalla de inicio desde el menú del navegador.
 
-## Jornada empresarial
+## Datos locales y respaldo
 
-1. Registra una empresa desde **Empresas** o usa **Registrar empresa nueva** dentro de la jornada. Se guarda en este dispositivo y queda disponible en la lista de empresas.
-2. Selecciona la empresa, fecha y horario.
-3. Agrega cada paciente con nombre, cédula y las pruebas que realizará. Al guardar, sus pruebas se suman al conteo de la jornada.
-4. Si no registras cada paciente individualmente, usa el conteo manual; evita contar de nuevo las pruebas asignadas a pacientes.
+La versión publicada actualmente guarda información en el almacenamiento del navegador. No tiene todavía conexión de autenticación ni sincronización Supabase; los datos de distintos navegadores o dispositivos no se comparten. En **Configuración → Datos locales** se puede descargar y restaurar un respaldo JSON. El respaldo incluye información sensible y no está cifrado: protégelo como un expediente.
 
-El reporte muestra el total de pacientes, cada prueba con su cantidad y la suma general de pruebas. No muestra nombres ni cédulas.
+## Backend Supabase en preparación
 
-## Catálogo y reportes
+El esquema inicial, con usuarios, roles, seguridad por espacio de trabajo, trazabilidad y módulos de operación, está en `supabase/migrations`. Sigue [la guía de configuración](supabase/SETUP.md). La app no se conectará a la nube hasta configurar el proyecto Supabase y su clave pública en el cliente. Nunca publiques una clave `service_role`.
 
-El catálogo parte vacío y permite configurar pruebas, muestra, recipiente, color visual, volumen, método, instrucciones y estado de validación. Los métodos y protocolos quedan pendientes hasta que el laboratorio los confirme.
-
-Los reportes se pueden ver como infografía o formato formal, imprimir a PDF o descargar como PNG. El logo se usa como una sola marca de agua en el fondo.
-
-## Almacenamiento y privacidad
-
-La aplicación no cuenta con servidor ni sincronización entre dispositivos. Empresas, pacientes, catálogo y configuración se guardan localmente en cada navegador. La versión nueva inicia vacía y no importa la configuración anterior. Puedes borrar los datos nuevos en **Configuración → Datos locales**.
+No uses esta app local para expedientes que requieran acceso compartido y controlado hasta terminar la conexión y validación del backend.
