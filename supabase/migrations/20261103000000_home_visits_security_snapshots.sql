@@ -14,7 +14,7 @@ for select to authenticated
 using (
   public.is_workspace_member(workspace_id)
   and (
-    public.has_workspace_role(workspace_id, array['admin','clinician','reception','viewer'])
+    public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
     or exists (
       select 1
       from public.home_visit_assignments a
@@ -31,7 +31,7 @@ for select to authenticated
 using (
   public.is_workspace_member(workspace_id)
   and (
-    public.has_workspace_role(workspace_id, array['admin','clinician','reception','viewer'])
+    public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
     or assigned_user_id = (select auth.uid())
   )
 );
@@ -42,7 +42,7 @@ for select to authenticated
 using (
   public.is_workspace_member(workspace_id)
   and (
-    public.has_workspace_role(workspace_id, array['admin','clinician','reception','viewer'])
+    public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
     or exists (
       select 1
       from public.home_visit_assignments a
@@ -100,7 +100,7 @@ for select to authenticated
 using (
   public.is_workspace_member(workspace_id)
   and (
-    public.has_workspace_role(workspace_id, array['admin','clinician','reception','viewer'])
+    public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
     or exists (
       select 1
       from public.home_visit_assignments a
@@ -132,7 +132,7 @@ for select to authenticated
 using (
   public.is_workspace_member(workspace_id)
   and (
-    public.has_workspace_role(workspace_id, array['admin','clinician','reception','viewer'])
+    public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
     or recipient_user_id = (select auth.uid())
   )
 );
@@ -287,21 +287,84 @@ for each row execute function public.stamp_home_visit_event();
 
 -- Las pruebas nuevas las registra agenda; el técnico solo actualiza el resultado de las ya asignadas.
 drop policy if exists home_visit_tests_insert_staff_or_assignee on public.home_visit_tests;
-create policy home_visit_tests_insert_staff_only on public.home_visit_tests
+create policy home_visit_tests_insert_staff_or_assignee on public.home_visit_tests
 for insert to authenticated
-with check (public.has_workspace_role(workspace_id, array['admin','clinician','reception']));
+with check (
+  public.has_workspace_role(workspace_id, array['admin','clinician','reception'])
+  or (
+    source = 'additional'
+    and service_id is not null
+    and exists (
+      select 1
+      from public.home_visit_assignments a
+      where a.workspace_id = home_visit_tests.workspace_id
+        and a.home_visit_id = home_visit_tests.home_visit_id
+        and a.assigned_user_id = (select auth.uid())
+        and a.status = 'accepted'
+    )
+  )
+);
 
 create or replace function public.stamp_home_visit_test_creator()
 returns trigger
 language plpgsql
 set search_path = ''
-as $$
+as $
+declare
+  service_name text;
+  service_fields jsonb;
+  is_staff boolean;
 begin
+  is_staff := public.has_workspace_role(new.workspace_id, array['admin','clinician','reception']);
+
+  if not is_staff then
+    if new.source <> 'additional' or new.service_id is null then
+      raise exception 'El flebotomista solo puede añadir pruebas adicionales del catálogo';
+    end if;
+    if not exists (
+      select 1 from public.home_visit_assignments a
+      where a.workspace_id = new.workspace_id
+        and a.home_visit_id = new.home_visit_id
+        and a.assigned_user_id = (select auth.uid())
+        and a.status = 'accepted'
+    ) then
+      raise exception 'No tienes una asignación aceptada para este domicilio';
+    end if;
+  end if;
+
+  if new.service_id is not null then
+    select s.name, s.fields
+      into service_name, service_fields
+      from public.services s
+      where s.workspace_id = new.workspace_id
+        and s.id = new.service_id
+        and s.active;
+
+    if service_name is null then
+      raise exception 'La prueba seleccionada no existe o está inactiva en el catálogo';
+    end if;
+
+    new.test_name := service_name;
+    new.vessel := coalesce(service_fields->>'vessel', '');
+    new.catalog_snapshot := jsonb_build_object(
+      'sample', coalesce(service_fields->>'sample', ''),
+      'vessel', coalesce(service_fields->>'vessel', ''),
+      'colorName', coalesce(service_fields->>'colorName', ''),
+      'fasting', coalesce(service_fields->>'fasting', ''),
+      'conditions', coalesce(service_fields->>'conditions', ''),
+      'instructions', coalesce(service_fields->>'instructions', ''),
+      'volume', coalesce(service_fields->>'volume', ''),
+      'method', coalesce(service_fields->>'method', ''),
+      'color', coalesce(service_fields->>'color', ''),
+      'shape', coalesce(service_fields->>'shape', '')
+    );
+  end if;
+
   new.added_by := (select auth.uid());
   new.added_at := now();
   return new;
 end;
-$$;
+$;
 
 drop trigger if exists home_visit_tests_stamp_creator on public.home_visit_tests;
 create trigger home_visit_tests_stamp_creator
