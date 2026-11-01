@@ -991,7 +991,7 @@ var clinicalConfigDefs={
  sponsors:{title:'Patrocinadores',description:'Directorio de patrocinadores para reutilizar en los protocolos.',fields:[['name','Nombre','text',true],['contact','Contacto','text',false],['email','Correo','email',false],['phone','Teléfono','tel',false]]},
  cros:{title:'CRO',description:'Directorio de CRO para reutilizar en los protocolos.',fields:[['name','Nombre','text',true],['contact','Contacto','text',false],['email','Correo','email',false],['phone','Teléfono','tel',false]]},
  staff:{title:'Personal',description:'Personal disponible para registrar quién procesó cada muestra.',fields:[['name','Nombre','text',true],['role','Cargo','text',true],['status','Estado','select',false,['Activo','Inactivo']]]},
- locations:{title:'Ubicaciones de congelador',description:'Configura cada caja en su posición: Congelador → Gaveta (1–4) → Rack (1–4) → Bandeja (1–5) → Identificador de caja → Posición (1–4).',fields:[['freezer','Congelador','text',true],['drawer','Gaveta','select',true,['Gaveta 1','Gaveta 2','Gaveta 3','Gaveta 4']],['rack','Rack','select',true,['Rack 1','Rack 2','Rack 3','Rack 4']],['tray','Bandeja','select',true,['Bandeja 1','Bandeja 2','Bandeja 3','Bandeja 4','Bandeja 5']],['box','Identificador de caja','text',true],['position','Posición de caja en bandeja','select',true,['Posición 1','Posición 2','Posición 3','Posición 4']]]}
+ locations:{title:'Almacenamiento en congeladores',description:'Crea congeladores, asigna racks por gaveta y registra cajas en bandejas y posiciones disponibles.',fields:[]}
 };
 function clinicalArray(type){var key={visits:'clinicalVisits',sampleTypes:'clinicalSampleTypes',statuses:'clinicalStatuses',sponsors:'clinicalSponsors',cros:'clinicalCros',staff:'clinicalStaff',locations:'clinicalLocations'}[type];return key?state[key]:(state[type]||[])}
 function clinicalLocationLabel(x){return [x.freezer&&(String(x.freezer).toLowerCase().indexOf('congelador')===0?x.freezer:'Congelador '+x.freezer),x.drawer,x.rack,x.tray,x.box&&'Caja '+x.box,x.position].filter(Boolean).join(' · ')||'Ubicación'}
@@ -1091,4 +1091,158 @@ var clinicalBaseStudyEdit=editClinicalStudy;editClinicalStudy=function(id){clini
 function renderClinicalCatalogList(){var type=clinicalConfigType,items=clinicalArray(type),host=document.getElementById('clinicalConfigList');if(!host)return;items=items.slice().sort(function(a,b){return(type==='visits'?(Number(a.order)||999)-(Number(b.order)||999):String(a.name||clinicalLocationLabel(a)).localeCompare(String(b.name||clinicalLocationLabel(b)),'es'))});host.innerHTML=items.length?items.map(function(x){var title=type==='locations'?clinicalLocationLabel(x):x.name,detail=type==='visits'?[x.code,x.order&&('Orden '+x.order),x.dayScheduled!=null&&('Día '+x.dayScheduled)].filter(Boolean).join(' · '):type==='sampleTypes'?[x.code,x.tube&&('Tubo '+x.tube),x.volume&&('Volumen '+x.volume),x.processingRequired&&('Procesamiento '+x.processingRequired),x.description].filter(Boolean).join(' · '):type==='staff'?[x.role,x.status].filter(Boolean).join(' · '):[x.contact,x.email,x.phone].filter(Boolean).join(' · ');return'<div class="clinical-config-row"><span><strong>'+esc(title)+'</strong><small>'+esc(detail||'Configurado')+'</small></span><span class="clinical-actions"><button class="btn" onclick="editClinicalCatalogItem(\''+type+'\',\''+esc(x.id)+'\')">Editar</button><button class="btn danger" onclick="deleteClinicalCatalogItem(\''+type+'\',\''+esc(x.id)+'\')">Eliminar</button></span></div>'}).join(''):'<div class="empty-state">Este catálogo está vacío.</div>'}
 function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x){return x.id===id});if(!s||!confirm('Eliminar este sujeto, sus muestras y movimientos asociados?'))return;var sampleIds=state.clinicalSamples.filter(function(x){return x.subjectId===id}).map(function(x){return x.id});state.clinicalSubjects=state.clinicalSubjects.filter(function(x){return x.id!==id});state.clinicalSamples=state.clinicalSamples.filter(function(x){return x.subjectId!==id});state.clinicalSampleHistory=state.clinicalSampleHistory.filter(function(x){return sampleIds.indexOf(x.sampleId)<0});state.clinicalProcessing=state.clinicalProcessing.filter(function(x){return x.subjectId!==id});save();auditAdd('Estudios Clínicos','Eliminó sujeto '+s.code+' y sus registros');renderClinicalStudies();toast('Sujeto y muestras asociadas eliminados.')}
 </script>
+
+<script>
+(function(){
+ state.clinicalFreezers=Array.isArray(state.clinicalFreezers)?state.clinicalFreezers:[];
+ state.clinicalRacks=Array.isArray(state.clinicalRacks)?state.clinicalRacks:[];
+ state.clinicalLocations=Array.isArray(state.clinicalLocations)?state.clinicalLocations:[];
+ var drawers=['Gaveta 1','Gaveta 2','Gaveta 3','Gaveta 4'],trays=['Bandeja 1','Bandeja 2','Bandeja 3','Bandeja 4','Bandeja 5'],positions=['Posición 1','Posición 2','Posición 3','Posición 4'];
+ function storageId(prefix){return prefix+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
+ function sameText(a,b){return String(a||'').trim().toLocaleLowerCase('es')===String(b||'').trim().toLocaleLowerCase('es')}
+ function ensureStorageStructure(){
+  var changed=false;
+  state.clinicalLocations.forEach(function(box){
+   if(!box||!box.freezer||!box.rack||!box.tray||!box.box)return;
+   var freezer=state.clinicalFreezers.find(function(f){return f.id===box.freezerId||sameText(f.name,box.freezer)});
+   if(!freezer){freezer={id:box.freezerId||storageId('freezer'),name:String(box.freezer),createdAt:box.createdAt||new Date().toISOString()};state.clinicalFreezers.push(freezer);changed=true}
+   if(box.freezerId!==freezer.id){box.freezerId=freezer.id;changed=true}
+   var drawer=box.drawer||'Gaveta 1';if(box.drawer!==drawer){box.drawer=drawer;changed=true}
+   var rack=state.clinicalRacks.find(function(r){return r.id===box.rackId||(r.freezerId===freezer.id&&r.drawer===drawer&&sameText(r.name,box.rack))});
+   if(!rack){rack={id:box.rackId||storageId('rack'),freezerId:freezer.id,drawer:drawer,name:String(box.rack),trays:trays.slice(),createdAt:box.createdAt||new Date().toISOString()};state.clinicalRacks.push(rack);changed=true}
+   if(box.rackId!==rack.id){box.rackId=rack.id;changed=true}
+   var oldTray=box.tray,oldPosition=box.position;box.tray=String(box.tray);box.position=box.position||'Posición 1';box.positionNo=Number(String(box.position).match(/\d+/)?.[0]||1);
+   if(!box.position.startsWith('Posición '))box.position='Posición '+box.positionNo;
+   if(!box.drawerNo)box.drawerNo=Number(String(drawer).match(/\d+/)?.[0]||1);
+   if(!box.trayNo)box.trayNo=Number(String(box.tray).match(/\d+/)?.[0]||1);
+   if(oldTray!==box.tray||oldPosition!==box.position)changed=true;
+  });
+  if(changed)save();
+ }
+ function locationLabel(box){
+  var freezer=state.clinicalFreezers.find(function(f){return f.id===box.freezerId});
+  var rack=state.clinicalRacks.find(function(r){return r.id===box.rackId});
+  var freezerName=freezer?freezer.name:(box.freezer||'');
+  var rackName=rack?rack.name:(box.rack||'');
+  var parts=[freezerName,box.drawer,rackName,box.tray,box.box&&'Caja '+box.box,box.position];
+  return parts.filter(Boolean).join(' · ')||'Ubicación anterior';
+ }
+ clinicalLocationLabel=locationLabel;
+ function optionsHtml(items,value,label,placeholder){
+  return '<option value="">'+esc(placeholder||'Seleccionar…')+'</option>'+items.map(function(x){return '<option value="'+esc(value(x))+'">'+esc(label(x))+'</option>'}).join('');
+ }
+ function fillSelect(id,items,value,label,placeholder,selected){
+  var el=document.getElementById(id);if(!el)return;
+  var old=selected!==undefined?selected:el.value;
+  el.innerHTML=optionsHtml(items,value,label,placeholder);
+  if(items.some(function(x){return String(value(x))===String(old)}))el.value=old;
+ }
+ function selectedValue(id){var e=document.getElementById(id);return e?e.value:''}
+ function renderStorageManagement(){
+  var host=document.getElementById('clinicalConfigFields'),list=document.getElementById('clinicalConfigList');if(!host||!list)return;
+  var freezerOptions=state.clinicalFreezers.slice().sort(function(a,b){return a.name.localeCompare(b.name,'es')});
+  var rackFreezer=selectedValue('storageRackFreezer'),rackDrawer=selectedValue('storageRackDrawer'),boxFreezer=selectedValue('storageBoxFreezer'),boxDrawer=selectedValue('storageBoxDrawer'),boxRack=selectedValue('storageBoxRack'),boxTray=selectedValue('storageBoxTray');
+  host.className='storage-admin';
+  var actions=document.querySelector('#clinicalGenericEditor > .form-actions');if(actions)actions.hidden=true;
+  host.innerHTML=
+   '<section class="storage-card"><div class="storage-step">1</div><div><h3>Crear congelador</h3><p>Registra cada equipo por separado. Cada uno dispone de 4 gavetas.</p><div class="storage-inline"><label class="sr-only" for="storageFreezerName">Nombre del congelador</label><input id="storageFreezerName" placeholder="Ej. Congelador A"><button class="btn primary" onclick="createClinicalFreezer()">Crear congelador</button></div></div></section>'+
+   '<section class="storage-card"><div class="storage-step">2</div><div><h3>Asignar rack a una gaveta</h3><p>Máximo 4 racks por gaveta. Cada rack incluye 5 bandejas.</p><div class="storage-form-grid"><label>Congelador<select id="storageRackFreezer" onchange="renderClinicalStorageManagement()">'+optionsHtml(freezerOptions,function(x){return x.id},function(x){return x.name},'Selecciona congelador')+'</select></label><label>Gaveta<select id="storageRackDrawer">'+optionsHtml(drawers,function(x){return x},function(x){return x},'Selecciona gaveta')+'</select></label><label>Nombre o código del rack<input id="storageRackName" placeholder="Ej. Rack A1"></label></div><button class="btn primary" onclick="createClinicalRack()">Agregar rack a gaveta</button></div></section>'+
+   '<section class="storage-card"><div class="storage-step">3</div><div><h3>Crear caja en una bandeja</h3><p>Elige un rack y una de sus 5 bandejas. Cada bandeja admite hasta 4 cajas, una por posición.</p><div class="storage-form-grid"><label>Congelador<select id="storageBoxFreezer" onchange="renderClinicalStorageManagement()">'+optionsHtml(freezerOptions,function(x){return x.id},function(x){return x.name},'Selecciona congelador')+'</select></label><label>Gaveta<select id="storageBoxDrawer" onchange="renderClinicalStorageManagement()">'+optionsHtml(drawers,function(x){return x},function(x){return x},'Selecciona gaveta')+'</select></label><label>Rack<select id="storageBoxRack" onchange="renderClinicalStorageManagement()"><option value="">Selecciona rack</option></select></label><label>Bandeja<select id="storageBoxTray">'+optionsHtml(trays,function(x){return x},function(x){return x},'Selecciona bandeja')+'</select></label><label>Identificador de caja<input id="storageBoxName" placeholder="Ej. Caja HEM-01"></label><label>Posición de la caja<select id="storageBoxPosition">'+optionsHtml(positions,function(x){return x},function(x){return x},'Selecciona posición')+'</select></label></div><button class="btn primary" onclick="createClinicalStorageBox()">Registrar caja en bandeja</button></div></section>';
+  var rf=document.getElementById('storageRackFreezer');if(rf){rf.value=rackFreezer;var rd=document.getElementById('storageRackDrawer');if(rd)rd.value=rackDrawer}
+  var bf=document.getElementById('storageBoxFreezer');if(bf)bf.value=boxFreezer;
+  var bd=document.getElementById('storageBoxDrawer');if(bd)bd.value=boxDrawer;
+  var rackChoices=state.clinicalRacks.filter(function(r){return(!boxFreezer||r.freezerId===boxFreezer)&&(!boxDrawer||r.drawer===boxDrawer)}).sort(function(a,b){return a.name.localeCompare(b.name,'es')});
+  fillSelect('storageBoxRack',rackChoices,function(x){return x.id},function(x){return x.name},'Selecciona rack',boxRack);
+  var bt=document.getElementById('storageBoxTray');if(bt)bt.value=boxTray;
+  var oldBoxes=state.clinicalLocations.filter(function(x){return !x.freezerId||!x.rackId});
+  var freezerRows=freezerOptions.map(function(f){var rackCount=state.clinicalRacks.filter(function(r){return r.freezerId===f.id}).length,boxCount=state.clinicalLocations.filter(function(b){return b.freezerId===f.id}).length;return '<div class="storage-list-row"><span><strong>'+esc(f.name)+'</strong><small>4 gavetas · '+rackCount+' racks · '+boxCount+' cajas</small></span><button class="btn danger" onclick="deleteClinicalFreezer(\''+esc(f.id)+'\')">Eliminar</button></div>'}).join('');
+  var rackRows=state.clinicalRacks.slice().sort(function(a,b){var af=freezerOptions.find(function(f){return f.id===a.freezerId});var bf=freezerOptions.find(function(f){return f.id===b.freezerId});return String(af&&af.name).localeCompare(String(bf&&bf.name),'es')||a.drawer.localeCompare(b.drawer,'es')||a.name.localeCompare(b.name,'es')}).map(function(r){var f=freezerOptions.find(function(x){return x.id===r.freezerId});var count=state.clinicalLocations.filter(function(b){return b.rackId===r.id}).length;return '<div class="storage-list-row"><span><strong>'+esc(r.name)+'</strong><small>'+esc(f?f.name:'Congelador eliminado')+' · '+esc(r.drawer)+' · 5 bandejas · '+count+' cajas</small></span><button class="btn danger" onclick="deleteClinicalRack(\''+esc(r.id)+'\')">Eliminar</button></div>'}).join('');
+  var boxRows=state.clinicalLocations.filter(function(x){return !!x.freezerId&&!!x.rackId}).slice().sort(function(a,b){return locationLabel(a).localeCompare(locationLabel(b),'es')}).map(function(b){return '<div class="storage-list-row"><span><strong>'+esc(b.box?'Caja '+b.box:'Caja')+'</strong><small>'+esc(locationLabel(b))+'</small></span><button class="btn danger" onclick="deleteClinicalStorageBox(\''+esc(b.id)+'\')">Eliminar</button></div>'}).join('');
+  list.innerHTML='<h3>Congeladores configurados</h3>'+(freezerRows||'<p class="muted">Aún no hay congeladores.</p>')+'<div class="divider"></div><h3>Racks asignados</h3>'+(rackRows||'<p class="muted">Aún no hay racks.</p>')+'<div class="divider"></div><h3>Cajas y posiciones</h3>'+(boxRows||'<p class="muted">Aún no hay cajas.</p>')+(oldBoxes.length?'<div class="divider"></div><h3>Ubicaciones anteriores</h3>'+oldBoxes.map(function(b){return '<div class="storage-list-row"><span><strong>'+esc(locationLabel(b))+'</strong><small>Registro previo</small></span></div>'}).join(''):'');
+ }
+ window.renderClinicalStorageManagement=renderStorageManagement;
+ function createClinicalFreezer(){
+  var input=document.getElementById('storageFreezerName'),name=input&&input.value.trim();if(!name){toast('Escribe un nombre para el congelador.');return}
+  if(state.clinicalFreezers.some(function(f){return sameText(f.name,name)})){toast('Ese congelador ya está registrado.');return}
+  state.clinicalFreezers.unshift({id:storageId('freezer'),name:name,drawers:drawers.slice(),createdAt:new Date().toISOString()});
+  if(!save())return;auditAdd('Configuración · Almacenamiento','Creó el congelador '+name);renderStorageManagement();toast('Congelador creado con 4 gavetas disponibles.');
+ }
+ window.createClinicalFreezer=createClinicalFreezer;
+ function createClinicalRack(){
+  var freezerId=selectedValue('storageRackFreezer'),drawer=selectedValue('storageRackDrawer'),input=document.getElementById('storageRackName'),name=input&&input.value.trim(),freezer=state.clinicalFreezers.find(function(x){return x.id===freezerId});
+  if(!freezer||!drawer||!name){toast('Selecciona el congelador y la gaveta, y escribe el nombre del rack.');return}
+  var assigned=state.clinicalRacks.filter(function(r){return r.freezerId===freezerId&&r.drawer===drawer});
+  if(assigned.length>=4){toast(drawer+' ya tiene sus 4 racks.');return}
+  if(assigned.some(function(r){return sameText(r.name,name)})){toast('Ese rack ya está asignado a esta gaveta.');return}
+  state.clinicalRacks.unshift({id:storageId('rack'),freezerId:freezerId,drawer:drawer,name:name,trays:trays.slice(),createdAt:new Date().toISOString()});
+  if(!save())return;auditAdd('Configuración · Almacenamiento','Asignó rack '+name+' a '+freezer.name+' · '+drawer);renderStorageManagement();toast('Rack asignado; tiene 5 bandejas disponibles.');
+ }
+ window.createClinicalRack=createClinicalRack;
+ function createClinicalStorageBox(){
+  var freezerId=selectedValue('storageBoxFreezer'),drawer=selectedValue('storageBoxDrawer'),rackId=selectedValue('storageBoxRack'),tray=selectedValue('storageBoxTray'),boxName=(document.getElementById('storageBoxName')||{}).value.trim(),position=selectedValue('storageBoxPosition'),freezer=state.clinicalFreezers.find(function(x){return x.id===freezerId}),rack=state.clinicalRacks.find(function(x){return x.id===rackId});
+  if(!freezer||!drawers.includes(drawer)||!rack||rack.freezerId!==freezerId||rack.drawer!==drawer||!trays.includes(tray)||!boxName||!positions.includes(position)){toast('Completa todos los campos de la caja y su posición.');return}
+  if(state.clinicalLocations.some(function(b){return b.rackId===rackId&&b.tray===tray&&b.position===position})){toast('Esa posición de la bandeja ya tiene una caja asignada.');return}
+  if(state.clinicalLocations.some(function(b){return b.freezerId===freezerId&&sameText(b.box,boxName)})){toast('Ya existe una caja con ese identificador en este congelador.');return}
+  var item={id:storageId('box'),freezerId:freezerId,freezer:freezer.name,drawer:drawer,drawerNo:Number(drawer.match(/\d+/)[0]),rackId:rackId,rack:rack.name,tray:tray,trayNo:Number(tray.match(/\d+/)[0]),box:boxName,position:position,positionNo:Number(position.match(/\d+/)[0]),createdAt:new Date().toISOString()};
+  state.clinicalLocations.unshift(item);if(!save())return;auditAdd('Configuración · Almacenamiento','Creó caja '+boxName+' en '+locationLabel(item));renderStorageManagement();renderClinicalStudies();toast('Caja registrada en la posición seleccionada.');
+ }
+ window.createClinicalStorageBox=createClinicalStorageBox;
+ function deleteClinicalFreezer(id){
+  var f=state.clinicalFreezers.find(function(x){return x.id===id});if(!f)return;
+  if(state.clinicalRacks.some(function(r){return r.freezerId===id})||state.clinicalLocations.some(function(b){return b.freezerId===id})){toast('Primero elimina o reasigna los racks y cajas de este congelador.');return}
+  if(!confirm('¿Eliminar el congelador '+f.name+'?'))return;
+  state.clinicalFreezers=state.clinicalFreezers.filter(function(x){return x.id!==id});save();auditAdd('Configuración · Almacenamiento','Eliminó congelador '+f.name);renderStorageManagement();
+ }
+ window.deleteClinicalFreezer=deleteClinicalFreezer;
+ function deleteClinicalRack(id){
+  var r=state.clinicalRacks.find(function(x){return x.id===id});if(!r)return;
+  if(state.clinicalLocations.some(function(b){return b.rackId===id})||state.clinicalSamples.some(function(x){return x.locationId&&state.clinicalLocations.some(function(b){return b.id===x.locationId&&b.rackId===id})})){toast('Primero retira o reasigna las cajas de este rack.');return}
+  if(!confirm('¿Eliminar el rack '+r.name+'?'))return;
+  state.clinicalRacks=state.clinicalRacks.filter(function(x){return x.id!==id});save();auditAdd('Configuración · Almacenamiento','Eliminó rack '+r.name);renderStorageManagement();
+ }
+ window.deleteClinicalRack=deleteClinicalRack;
+ function deleteClinicalStorageBox(id){
+  var b=state.clinicalLocations.find(function(x){return x.id===id});if(!b)return;
+  if(state.clinicalSamples.some(function(x){return x.locationId===id})){toast('No se puede eliminar: hay muestras almacenadas en esta caja.');return}
+  if(!confirm('¿Eliminar la caja '+b.box+' de esta posición?'))return;
+  state.clinicalLocations=state.clinicalLocations.filter(function(x){return x.id!==id});save();auditAdd('Configuración · Almacenamiento','Eliminó caja '+b.box);renderStorageManagement();renderClinicalStudies();
+ }
+ window.deleteClinicalStorageBox=deleteClinicalStorageBox;
+ var oldRenderForm=renderClinicalCatalogForm;
+ renderClinicalCatalogForm=function(item){
+  var host=document.getElementById('clinicalConfigFields');
+  var actions=document.querySelector('#clinicalGenericEditor > .form-actions');
+  if(clinicalConfigType!=='locations'){if(actions)actions.hidden=false;host.className='fields';oldRenderForm(item);return}
+  renderStorageManagement();
+ };
+ var oldRenderList=renderClinicalCatalogList;
+ renderClinicalCatalogList=function(){
+  if(clinicalConfigType==='locations'){renderStorageManagement();return}
+  oldRenderList();
+ };
+ var oldEdit=editClinicalCatalogItem;
+ editClinicalCatalogItem=function(type,id){if(type==='locations'){toast('Las cajas se administran desde la sección de almacenamiento.');return}oldEdit(type,id)};
+ var oldReset=resetClinicalCatalogForm;
+ resetClinicalCatalogForm=function(){if(clinicalConfigType==='locations'){renderStorageManagement();return}oldReset()};
+ window.clinicalLocationLabel=locationLabel;
+ ensureStorageStructure();
+ renderClinicalStudies();
+})();
+</script>
+<style>
+.storage-admin{display:grid;gap:14px}
+.storage-card{display:grid;grid-template-columns:36px 1fr;gap:14px;padding:20px;border-radius:18px;background:linear-gradient(145deg,#fff,#f0f7fb);box-shadow:0 10px 28px rgba(17,51,80,.08);margin-bottom:6px}
+.storage-card h3{margin:0 0 6px;color:#173b63}
+.storage-card p{margin:0 0 14px;color:#64758b;font-size:13px}
+.storage-step{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#0e8d88,#13c0b2);color:#fff;font-weight:800;box-shadow:0 5px 12px rgba(13,139,132,.25)}
+.storage-inline{display:flex;gap:10px;max-width:650px}.storage-inline input{flex:1;min-width:150px}
+.storage-form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:8px 0 14px}
+.storage-form-grid label{display:grid;gap:7px;font-weight:650;color:#344a64}
+.storage-form-grid input,.storage-form-grid select,.storage-inline input{border:0;border-radius:12px;padding:11px 12px;background:#f3f7fb;color:#193a59;min-height:42px}
+.storage-card button{margin-top:8px}
+.storage-list-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;background:#f6f8fb;border-radius:12px;margin:8px 0}
+.storage-list-row span{display:grid;gap:4px}.storage-list-row small{color:#687b91}
+.storage-admin-list h3{margin:12px 0 4px}
+@media(max-width:680px){.storage-card{grid-template-columns:30px 1fr;padding:14px}.storage-step{width:30px;height:30px}.storage-inline{display:grid}.storage-inline .btn{width:100%}.storage-form-grid{grid-template-columns:1fr}.storage-list-row{align-items:flex-start;flex-direction:column}.storage-list-row .btn{align-self:stretch}}
+</style>
 </body></html>
