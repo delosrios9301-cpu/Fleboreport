@@ -31,3 +31,26 @@ test('el esquema incluye seguridad por espacio y trazabilidad', () => {
   assert.match(migration, /seed_freezer_drawers/i);
   assert.match(migration, /seed_rack_trays/i);
 });
+
+
+const homeVisitMigration = await readFile(new URL('../supabase/migrations/20261103000000_home_visits_security_snapshots.sql', import.meta.url), 'utf8');
+
+test('los domicilios limitan a cada técnico a sus asignaciones', () => {
+  for (const policy of [
+    'home_visits_read_scoped',
+    'home_visit_assignments_read_scoped',
+    'home_visit_tests_read_scoped',
+    'home_visit_events_read_scoped',
+    'home_visit_notifications_read_scoped'
+  ]) {
+    assert.ok(homeVisitMigration.includes(policy), `falta política de acceso: ${policy}`);
+  }
+  assert.match(homeVisitMigration, /assigned_user_id = \(select auth\.uid\(\)\)/);
+  assert.match(homeVisitMigration, /array\['admin','clinician','reception','viewer'\]/);
+  assert.match(homeVisitMigration, /drop policy if exists home_visits_read_member/i);
+});
+
+test('las pruebas de domicilios conservan una copia de los requisitos del catálogo', () => {
+  assert.match(homeVisitMigration, /add column if not exists catalog_snapshot jsonb/i);
+  assert.match(homeVisitMigration, /Copia inmutable de los requisitos del catálogo/i);
+});
