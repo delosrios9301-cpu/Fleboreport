@@ -50,21 +50,40 @@ function dbVisit(row){
 async function ensureVisitAssignment(v){
  if(!v||!v.assignedTo||!['admin','clinician','reception'].includes(cloud.role))return;
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user?.id;
+ /* Resolver siempre la cuenta real del profesional seleccionado. Nunca usar al creador como destinatario alternativo. */
  let prof=null;
- if(v.assignedProfessionalId){const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('id',v.assignedProfessionalId).eq('active',true).maybeSingle();if(r.error)throw r.error;prof=r.data;}
- if(!prof){const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('name',v.assignedTo).eq('active',true).maybeSingle();if(r.error)throw r.error;prof=r.data;}
- if(!prof?.user_id){cloudNotice('El domicilio de '+v.assignedTo+' no tiene una cuenta activa vinculada; no se puede enviar el aviso.',true);return;}
- let assignmentId=v.assignmentId||null;
- if(!assignmentId){const existing=await c.from('home_visit_assignments').select('id,status').eq('workspace_id',w).eq('home_visit_id',v.id).maybeSingle();if(existing.error)throw existing.error;
-  if(existing.data){assignmentId=existing.data.id;v.assignmentStatus=existing.data.status;}
-  else{assignmentId=makeId();const ins=await c.from('home_visit_assignments').insert({id:assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:prof.id,assigned_user_id:prof.user_id,status:'invited',created_by:u});if(ins.error)throw ins.error;v.assignmentStatus='invited';}
-  v.assignmentId=assignmentId;v.assignedProfessionalId=prof.id;
+ if(v.assignedProfessionalId){
+  const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('id',v.assignedProfessionalId).eq('active',true).maybeSingle();
+  if(r.error)throw r.error;prof=r.data;
  }
- if(v.assignmentStatus==='invited'){
-  const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignmentId}});
-  if(notice.error)cloudNotice('La asignación quedó guardada, pero falló el envío de notificación: '+(notice.error.message||'error de Supabase'),true);
-  else if(!(Number(notice.data?.push_sent)>0))cloudNotice('La asignación quedó guardada, pero el servidor no confirmó entrega Push. Revisa el registro del dispositivo del flebotomista y los detalles del envío.',true);
+ if(!prof){
+  const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('name',v.assignedTo).eq('active',true).maybeSingle();
+  if(r.error)throw r.error;prof=r.data;
  }
+ if(!prof||!prof.user_id){cloudNotice('No se puede asignar el domicilio: '+v.assignedTo+' no tiene un profesional activo con una cuenta de usuario vinculada.',true);return;}
+ const latest=await c.from('home_visit_assignments').select('id,status,professional_id,assigned_user_id').eq('workspace_id',w).eq('home_visit_id',v.id).order('assigned_at',{ascending:false}).limit(1).maybeSingle();
+ if(latest.error)throw latest.error;
+ let assignment=latest.data||null;
+ /* Misma persona: conservar invitación/aceptación/rechazo. No duplicar ni reabrir una invitación rechazada. */
+ if(assignment&&assignment.assigned_user_id===prof.user_id&&assignment.professional_id===prof.id){
+  v.assignmentId=assignment.id;v.assignmentStatus=assignment.status;v.assignedProfessionalId=prof.id;
+  if(assignment.status==='invited'){
+   const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignment.id}});
+   if(notice.error)cloudNotice('La asignación está guardada, pero falló el aviso: '+(notice.error.message||'error de Supabase'),true);
+   else if(!(Number(notice.data?.push_sent)>0))cloudNotice('La invitación está guardada, pero no se confirmó entrega Push. Verifica el dispositivo del profesional.',true);
+  }else if(assignment.status==='rejected'){
+   cloudNotice('Esta persona ya rechazó el domicilio. Para continuar, selecciona otro flebotomista y guarda la reasignación.',true);
+  }
+  return;
+ }
+ /* Persona distinta o primera asignación: insertar una nueva fila. La anterior queda intacta como historial. */
+ const assignmentId=makeId();
+ const ins=await c.from('home_visit_assignments').insert({id:assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:prof.id,assigned_user_id:prof.user_id,status:'invited',created_by:u});
+ if(ins.error)throw ins.error;
+ v.assignmentId=assignmentId;v.assignmentStatus='invited';v.assignedProfessionalId=prof.id;v.assignedTo=prof.name||v.assignedTo;
+ const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignmentId}});
+ if(notice.error)cloudNotice('La nueva asignación quedó guardada, pero falló el envío de notificación: '+(notice.error.message||'error de Supabase'),true);
+ else if(!(Number(notice.data?.push_sent)>0))cloudNotice('La nueva asignación quedó guardada, pero el servidor no confirmó entrega Push. Verifica el dispositivo del profesional.',true);
 }
 async function loadCloudVisits(){
  const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true});
