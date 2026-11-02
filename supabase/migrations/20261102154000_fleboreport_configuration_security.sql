@@ -127,7 +127,7 @@ do $$
 begin
   if not exists(select 1 from pg_constraint where conname='audit_logs_site_fk') then
     alter table public.audit_logs add constraint audit_logs_site_fk
-      foreign key(workspace_id,site_id) references public.sedes(workspace_id,id) on delete set null;
+      foreign key(site_id) references public.sedes(id) on delete set null;
   end if;
 end $$;
 
@@ -377,6 +377,7 @@ revoke all on public.sedes,public.user_sedes,public.role_permissions,public.memb
 grant select,insert,update,delete on public.sedes,public.user_sedes,public.role_permissions,
   public.member_permissions,public.workspace_security_settings,public.approval_requests,public.sync_devices
   to authenticated;
+revoke update on public.sedes,public.role_permissions,public.member_permissions,public.workspace_security_settings,public.approval_requests,public.sync_devices from authenticated;
 grant usage on schema public to authenticated;
 grant select,insert on public.audit_logs to authenticated;
 grant update(name,address,phone,active,updated_at) on public.sedes to authenticated;
