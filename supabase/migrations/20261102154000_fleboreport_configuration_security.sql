@@ -172,6 +172,9 @@ as $$
   );
 $$;
 revoke all on function private.has_workspace_permission(uuid,text,text,uuid) from public;
+revoke all on function private.prevent_primary_admin_membership_change() from public,anon,authenticated;
+revoke all on function private.prevent_primary_admin_settings_change() from public,anon,authenticated;
+revoke all on function private.seed_workspace_configuration() from public,anon,authenticated;
 grant execute on function private.has_workspace_permission(uuid,text,text,uuid) to authenticated;
 
 create or replace function private.prevent_primary_admin_membership_change()
@@ -339,7 +342,7 @@ using(public.has_workspace_role(workspace_id,array['admin']::text[]))
 with check(public.has_workspace_role(workspace_id,array['admin']::text[]));
 
 create policy approval_read_related on public.approval_requests for select to authenticated
-using(requested_by=(select auth.uid()) or approved_by=(select auth.uid()) or public.has_workspace_role(workspace_id,array['admin']::text[]));
+using(requested_by=(select auth.uid()) or approved_by=(select auth.uid()) or public.has_workspace_role(workspace_id,array['admin']::text[]) or private.has_workspace_permission(workspace_id,'approvals','approve'));
 create policy approval_create_request on public.approval_requests for insert to authenticated
 with check(requested_by=(select auth.uid()) and approved_by is null and status='pending'
   and private.has_workspace_permission(workspace_id,'approvals','request'));
