@@ -74,30 +74,51 @@ async function loadCloudVisits(){
 }
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
- const technicianResponse=cloud.role==='technician'&&v.assignmentId&&['Aceptado','Rechazado'].includes(v.status)&&v.assignmentStatus!=='accepted'&&v.assignmentStatus!=='rejected';
- /* El técnico responde exclusivamente sobre su asignación. No debe hacer upsert
-    de home_visits: esa tabla conserva escritura restringida al personal de agenda. */
+ const technician=cloud.role==='technician';
+ const technicianResponse=technician&&v.assignmentId&&['Aceptado','Rechazado'].includes(v.status)&&v.assignmentStatus!=='accepted'&&v.assignmentStatus!=='rejected';
+ const notes=JSON.stringify({flebo_meta:true,patientName:v.patientName,document:v.document||'',assignedTo:v.assignedTo||'',assignedPhone:v.assignedPhone||''});
+ let dbStatus=statusToDb[v.status]||'pending_assignment';
+ if(technicianResponse)dbStatus='pending_acceptance';
+ const row={id:v.id,workspace_id:w,patient_id:asUuid(v.patientId),scheduled_at:new Date(v.scheduledDate+'T'+v.scheduledTime+':00-05:00').toISOString(),address:v.address,latitude:v.latitude??null,longitude:v.longitude??null,patient_phone:v.phone||null,status:dbStatus,priority:v.priority||'normal',notes,cancellation_reason:v.reason||null,created_by:v.createdById||u,created_at:v.createdAtDb||v.createdAt||new Date().toISOString(),completed_at:v.completedAt||null};
+ /* Los técnicos actualizan el registro existente; nunca usan UPSERT/INSERT en home_visits. */
+ const saved=technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
+ if(saved.error)throw saved.error;
+ if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
+ if(!technician||!technicianResponse){
+  const testRows=[];
+  for(const t of (v.tests||[])){
+   let serviceId=t.serviceId||t.testId||null;
+   if(t.source==='adicional'){
+    const match=await c.from('services').select('id,name').eq('workspace_id',w).eq('id',serviceId).eq('active',true).maybeSingle();
+    if(match.error)throw match.error;
+    if(!match.data){
+     const byName=await c.from('services').select('id,name').eq('workspace_id',w).eq('name',t.name).eq('active',true).limit(1).maybeSingle();
+     if(byName.error)throw byName.error;
+     serviceId=byName.data?.id||null;
+    }
+    if(!serviceId)throw new Error('La prueba adicional '+t.name+' no existe activa en el catálogo maestro. Selecciona una prueba de la lista de coincidencias.');
+   }
+   testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:t.addedById||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||{sample:t.sample||'',vessel:t.vessel||'',colorName:t.colorName||'',fasting:t.fasting||'',conditions:t.conditions||'',instructions:t.instructions||'',volume:t.volume||'',method:t.method||'',color:t.color||'',shape:t.shape||'tube'}});
+  }
+  if(testRows.length){const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}
+ }
+ const eventRows=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>{
+  const transition=(e.detail||'').match(/([^→]+)→\s*([^·]+)/);
+  return{id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:transition?.[1]?.trim()||null,to_status:transition?.[2]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}};
+ });
+ if(eventRows.length){const er=await c.from('home_visit_events').insert(eventRows);if(er.error)throw er.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
  if(technicianResponse){
   const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId).eq('workspace_id',w).eq('assigned_user_id',u).eq('status','invited').select('id,status').maybeSingle();
   if(response.error)throw response.error;
-  if(!response.data)throw new Error('No se confirmó la respuesta. Verifica que este domicilio siga asignado a tu cuenta y que aún esté pendiente de aceptación.');
+  if(!response.data)throw new Error('No se confirmó la respuesta. Verifica que el domicilio siga pendiente de aceptación.');
   v.assignmentStatus=response.data.status;
-  const ev=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>({id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Respuesta de asignación',description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}}));
-  if(ev.length){const r=await c.from('home_visit_events').insert(ev);if(r.error)throw r.error;ev.forEach(e=>persistedEventIds.add(e.id))}
-  return;
  }
- const notes=JSON.stringify({flebo_meta:true,patientName:v.patientName,document:v.document||'',assignedTo:v.assignedTo||'',assignedPhone:v.assignedPhone||''});
- const dbStatus=statusToDb[v.status]||'pending_assignment';
- const row={id:v.id,workspace_id:w,patient_id:asUuid(v.patientId),scheduled_at:new Date(v.scheduledDate+'T'+v.scheduledTime+':00-05:00').toISOString(),address:v.address,latitude:v.latitude??null,longitude:v.longitude??null,patient_phone:v.phone||null,status:dbStatus,priority:v.priority||'normal',notes,cancellation_reason:v.reason||null,created_by:v.createdById||u,created_at:v.createdAtDb||v.createdAt||new Date().toISOString(),completed_at:v.completedAt||null};
- const saved=cloud.role==='technician'?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});if(saved.error)throw saved.error;if(cloud.role==='technician'&&!saved.data)throw new Error('No se pudo actualizar el domicilio: verifica que siga asignado a tu cuenta y que esté aceptado.');
- const testRows=[];for(const t of (v.tests||[])){let serviceId=t.serviceId||t.testId||null;if(t.source==='adicional'){const match=await c.from('services').select('id,name').eq('workspace_id',w).eq('id',serviceId).eq('active',true).maybeSingle();if(match.error)throw match.error;if(!match.data){const byName=await c.from('services').select('id,name').eq('workspace_id',w).eq('name',t.name).eq('active',true).limit(1).maybeSingle();if(byName.error)throw byName.error;serviceId=byName.data?.id||null;}if(!serviceId)throw new Error('La prueba adicional '+t.name+' no existe activa en el catálogo maestro. Selecciona una prueba de la lista de coincidencias.');}testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:t.addedById||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||{sample:t.sample||'',vessel:t.vessel||'',colorName:t.colorName||'',fasting:t.fasting||'',conditions:t.conditions||'',instructions:t.instructions||'',volume:t.volume||'',method:t.method||'',color:t.color||'',shape:t.shape||'tube'}})}
- if(testRows.length){const r=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(r.error)throw r.error}
- const eventRows=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>({id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:(e.detail||'').match(/→\s*([^·]+)/)?.[1]?.trim()||null,to_status:(e.detail||'').match(/→\s*([^·]+)/)?.[1]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}}));
- if(eventRows.length){const r=await c.from('home_visit_events').insert(eventRows);if(r.error)throw r.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
- if(technicianResponse){const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId).eq('workspace_id',w).eq('assigned_user_id',u).eq('status','invited').select('id,status').maybeSingle();if(response.error)throw response.error;if(!response.data)throw new Error('No se confirmó la respuesta. Verifica que el domicilio siga pendiente de aceptación.');v.assignmentStatus=response.data.status}
- const latestEvent=(v.events||[]).slice(0,1)[0];if(latestEvent&&latestEvent.id&&!persistedEventIds.has(latestEvent.id)===false){/* evento persistido arriba */}
- if(latestEvent&&latestEvent.action==='Estado actualizado'){const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'status-update',visit_id:v.id,event_type:latestEvent.action,description:latestEvent.detail||'',status:v.status}});if(notice.error)console.warn('No se pudo notificar el cambio de domicilio:',notice.error.message||notice.error)}
- if(v.assignedTo&&['admin','clinician','reception'].includes(cloud.role)){await ensureVisitAssignment(v);}
+ const latestEvent=(v.events||[])[0];
+ if(latestEvent&&latestEvent.action==='Estado actualizado'){
+  const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'status-update',visit_id:v.id,event_type:latestEvent.action,description:latestEvent.detail||'',status:v.status}});
+  if(notice.error)console.warn('No se pudo notificar el cambio de domicilio:',notice.error.message||notice.error);
+ }
+ if(v.assignedTo&&['admin','clinician','reception'].includes(cloud.role))await ensureVisitAssignment(v);
 }
 async function save(v){
  if(!cloud.ready||!cloud.client){say('No se guardó: inicia sesión y conecta el laboratorio a Supabase.');return false}
