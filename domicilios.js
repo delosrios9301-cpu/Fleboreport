@@ -81,7 +81,15 @@ async function persistVisit(v){
  if(technicianResponse)dbStatus='pending_acceptance';
  const row={id:v.id,workspace_id:w,patient_id:asUuid(v.patientId),scheduled_at:new Date(v.scheduledDate+'T'+v.scheduledTime+':00-05:00').toISOString(),address:v.address,latitude:v.latitude??null,longitude:v.longitude??null,patient_phone:v.phone||null,status:dbStatus,priority:v.priority||'normal',notes,cancellation_reason:v.reason||null,created_by:v.createdById||u,created_at:v.createdAtDb||v.createdAt||new Date().toISOString(),completed_at:v.completedAt||null};
  /* Los técnicos actualizan el registro existente; nunca usan UPSERT/INSERT en home_visits. */
- const saved=technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
+ /* La aceptación/rechazo se confirma primero en la asignación. En ese paso NO se toca home_visits:
+    el trigger de seguridad solo permite editar la visita después de que la asignación esté accepted. */
+ if(technicianResponse){
+  const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId).eq('workspace_id',w).eq('assigned_user_id',u).eq('status','invited').select('id,status').maybeSingle();
+  if(response.error)throw response.error;
+  if(!response.data)throw new Error('No se confirmó la respuesta. Esta invitación ya fue respondida o no pertenece a tu cuenta.');
+  v.assignmentStatus=response.data.status;
+ }
+ const saved=technicianResponse?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
  if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
  if(!technician||!technicianResponse){
@@ -108,12 +116,6 @@ async function persistVisit(v){
   return{id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:transition?.[1]?.trim()||null,to_status:transition?.[2]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}};
  });
  if(eventRows.length){const er=await c.from('home_visit_events').insert(eventRows);if(er.error)throw er.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
- if(technicianResponse){
-  const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId).eq('workspace_id',w).eq('assigned_user_id',u).eq('status','invited').select('id,status').maybeSingle();
-  if(response.error)throw response.error;
-  if(!response.data)throw new Error('No se confirmó la respuesta. Verifica que el domicilio siga pendiente de aceptación.');
-  v.assignmentStatus=response.data.status;
- }
  const latestEvent=(v.events||[])[0];
  if(latestEvent&&eventRows.length){
   const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'status-update',visit_id:v.id,event_type:latestEvent.action,description:latestEvent.detail||'',status:v.status}});
