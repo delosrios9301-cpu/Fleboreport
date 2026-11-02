@@ -1,5 +1,5 @@
-const CACHE_NAME='fleboreport-shell-v74';
-const APP_SHELL=['./','./index.html','./domicilios.js','./supabase-auth.js','./manifest.webmanifest','./icons/fleboreport.svg','./icons/icon-192.png','./icons/icon-512.png'];
+const CACHE_NAME='fleboreport-shell-v75';
+const APP_SHELL=['./','./index.html','./domicilios.js','./supabase-auth.js','./notifications-center.js','./manifest.webmanifest','./icons/fleboreport.svg','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
 self.addEventListener('push',event=>{let data={};try{data=event.data?event.data.json():{}}catch(_){data={body:event.data?event.data.text():'Tienes una actualización en FleboReport.'}}event.waitUntil(self.registration.showNotification(data.title||'FleboReport', {body:data.body||'Tienes una nueva asignación.',icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag:data.tag||'fleboreport-notification',data:{url:data.url||'./?view=domicilios'}}))});
