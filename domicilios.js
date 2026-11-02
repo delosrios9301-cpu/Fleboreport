@@ -87,6 +87,7 @@ async function persistVisit(v){
  if(!technician||!technicianResponse){
   const testRows=[];
   for(const t of (v.tests||[])){
+   if(!asUuid(t.id))t.id=makeId();
    let serviceId=t.serviceId||t.testId||null;
    if(t.source==='adicional'){
     const match=await c.from('services').select('id,name').eq('workspace_id',w).eq('id',serviceId).eq('active',true).maybeSingle();
