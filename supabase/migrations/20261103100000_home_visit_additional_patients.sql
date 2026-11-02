@@ -106,3 +106,71 @@ drop trigger if exists home_visit_additional_patients_guard
 create trigger home_visit_additional_patients_guard
 before update on public.home_visit_additional_patients
 for each row execute function public.guard_home_visit_additional_patient_review();
+
+
+-- Revisión transaccional: al aprobar, crea o reutiliza el expediente central y lo vincula.
+create or replace function public.review_home_visit_additional_patient(
+  p_additional_patient_id uuid,
+  p_status text,
+  p_review_note text default null
+) returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_additional public.home_visit_additional_patients%rowtype;
+  v_patient_id uuid;
+  v_user_id uuid := (select auth.uid());
+begin
+  if v_user_id is null then raise exception 'Se requiere una sesión autenticada'; end if;
+  if p_status not in ('approved','rejected') then raise exception 'Estado de revisión no válido'; end if;
+  select * into v_additional
+  from public.home_visit_additional_patients
+  where id = p_additional_patient_id
+  for update;
+  if not found then raise exception 'Paciente adicional no encontrado'; end if;
+  if not private.has_workspace_permission(v_additional.workspace_id,'domicilios','manage') then
+    raise exception 'No tienes permiso para revisar pacientes adicionales';
+  end if;
+  if v_additional.status <> 'pending_review' then raise exception 'Este paciente ya fue revisado'; end if;
+
+  if p_status = 'approved' then
+    if not private.has_workspace_permission(v_additional.workspace_id,'patients','view') then
+      raise exception 'Falta permiso para consultar expedientes de pacientes';
+    end if;
+    if v_additional.document_number is not null and btrim(v_additional.document_number) <> '' then
+      perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_additional.workspace_id::text || ':' || btrim(v_additional.document_number),0));
+      select id into v_patient_id
+      from public.patients
+      where workspace_id = v_additional.workspace_id
+        and document_number = btrim(v_additional.document_number)
+      order by created_at asc
+      limit 1;
+    end if;
+    if v_patient_id is null then
+      if not private.has_workspace_permission(v_additional.workspace_id,'patients','create') then
+        raise exception 'Falta permiso para crear el expediente central del paciente';
+      end if;
+      insert into public.patients (
+        workspace_id, document_number, first_name, last_name, birth_date,
+        phone, email, address, created_by
+      ) values (
+        v_additional.workspace_id,
+        nullif(btrim(v_additional.document_number),''),
+        v_additional.first_name, v_additional.last_name, v_additional.birth_date,
+        v_additional.phone, v_additional.email, v_additional.address, v_user_id
+      ) returning id into v_patient_id;
+    end if;
+  end if;
+
+  update public.home_visit_additional_patients
+  set patient_id = case when p_status='approved' then v_patient_id else null end,
+      status = p_status,
+      review_note = case when p_status='rejected' then nullif(btrim(p_review_note),'') else null end
+  where id = p_additional_patient_id;
+  return v_patient_id;
+end;
+$$;
+revoke all on function public.review_home_visit_additional_patient(uuid,text,text) from public;
+grant execute on function public.review_home_visit_additional_patient(uuid,text,text) to authenticated;
