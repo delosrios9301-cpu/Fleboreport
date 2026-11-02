@@ -226,7 +226,7 @@ begin
 
   insert into public.role_permissions(workspace_id,role_key,module_key,action_key,allowed)
   select new.id,'admin',m.module_key,a.action_key,true
-  from unnest(array['dashboard','users','permissions','sites','studies','domicilios','reception','processing','materials','reports','documents','notifications','audit','settings','approvals']::text[]) m(module_key)
+  from unnest(array['dashboard','users','permissions','sites','studies','domicilios','reception','processing','materials','reports','documents','notifications','audit','settings','approvals','journeys','companies','patients','catalog']::text[]) m(module_key)
   cross join unnest(array['view','create','edit','delete','approve','assign','export','print','manage','configure','request']::text[]) a(action_key)
   on conflict(workspace_id,role_key,module_key,action_key) do nothing;
 
@@ -234,6 +234,7 @@ begin
   select new.id,d.role_key,d.module_key,a.action_key,true
   from (values
     ('clinician','dashboard',array['view']::text[]),
+    ('clinician','journeys',array['view','create','edit']::text[]),('clinician','companies',array['view','create','edit']::text[]),('clinician','patients',array['view','create','edit']::text[]),('clinician','catalog',array['view','create','edit']::text[]),
     ('clinician','users',array['view']::text[]),
     ('clinician','sites',array['view']::text[]),
     ('clinician','studies',array['view']::text[]),
@@ -243,12 +244,14 @@ begin
     ('clinician','reports',array['view','export','print']::text[]),
     ('clinician','approvals',array['request']::text[]),
     ('reception','dashboard',array['view']::text[]),
+    ('reception','journeys',array['view','create','edit']::text[]),('reception','companies',array['view','create','edit']::text[]),('reception','patients',array['view','create','edit']::text[]),('reception','catalog',array['view']::text[]),
     ('reception','sites',array['view']::text[]),
     ('reception','studies',array['view']::text[]),
     ('reception','domicilios',array['view','create','edit']::text[]),
     ('reception','reception',array['view','create','edit']::text[]),
     ('reception','reports',array['view','export','print']::text[]),
     ('technician','dashboard',array['view']::text[]),
+    ('technician','patients',array['view']::text[]),
     ('technician','domicilios',array['view','edit']::text[]),
     ('technician','reports',array['view']::text[]),
     ('viewer','dashboard',array['view']::text[]),
@@ -279,15 +282,15 @@ insert into public.role_permissions(workspace_id,role_key,module_key,action_key,
 select w.id,d.role_key,d.module_key,a.action_key,true
 from public.workspaces w
 cross join (values
-  ('clinician','dashboard',array['view']::text[]),('clinician','users',array['view']::text[]),
+  ('clinician','dashboard',array['view']::text[]),('clinician','journeys',array['view','create','edit']::text[]),('clinician','companies',array['view','create','edit']::text[]),('clinician','patients',array['view','create','edit']::text[]),('clinician','catalog',array['view','create','edit']::text[]),('clinician','users',array['view']::text[]),
   ('clinician','sites',array['view']::text[]),('clinician','studies',array['view']::text[]),
   ('clinician','domicilios',array['view','create','edit','assign']::text[]),
   ('clinician','reception',array['view','create','edit']::text[]),('clinician','processing',array['view','create','edit']::text[]),
   ('clinician','reports',array['view','export','print']::text[]),('clinician','approvals',array['request']::text[]),
-  ('reception','dashboard',array['view']::text[]),('reception','sites',array['view']::text[]),('reception','studies',array['view']::text[]),
+  ('reception','dashboard',array['view']::text[]),('reception','journeys',array['view','create','edit']::text[]),('reception','companies',array['view','create','edit']::text[]),('reception','patients',array['view','create','edit']::text[]),('reception','catalog',array['view']::text[]),('reception','sites',array['view']::text[]),('reception','studies',array['view']::text[]),
   ('reception','domicilios',array['view','create','edit']::text[]),('reception','reception',array['view','create','edit']::text[]),
   ('reception','reports',array['view','export','print']::text[]),
-  ('technician','dashboard',array['view']::text[]),('technician','domicilios',array['view','edit']::text[]),('technician','reports',array['view']::text[]),
+  ('technician','dashboard',array['view']::text[]),('technician','patients',array['view']::text[]),('technician','domicilios',array['view','edit']::text[]),('technician','reports',array['view']::text[]),
   ('viewer','dashboard',array['view']::text[]),('viewer','reports',array['view','export','print']::text[])
 ) d(role_key,module_key,actions)
 cross join unnest(d.actions) a(action_key)
