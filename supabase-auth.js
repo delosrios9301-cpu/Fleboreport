@@ -192,6 +192,15 @@ function installGlobalControls(){if(!document.getElementById('fleboGlobalAuthSty
 @media(prefers-reduced-motion:reduce){
  .flebo-input-row,.flebo-login-options input,.flebo-login-options input:before,#fleboAuthSignIn{transition:none!important}
 }
+
+/* El indicador de acceso no necesita fondo de alerta */
+.flebo-auth-badge{
+ background:transparent!important;
+ box-shadow:none!important;
+ border:0!important;
+ padding:0!important;
+ border-radius:0!important;
+}
 `;document.head.appendChild(st)}if(!document.getElementById('fleboGlobalSignOut')){const b=document.createElement('button');b.id='fleboGlobalSignOut';b.type='button';b.textContent='Cerrar sesión';b.hidden=true;b.addEventListener('click',signOut);document.body.appendChild(b)}const signoutButton=document.getElementById('fleboGlobalSignOut'),moduleMenu=document.getElementById('sidebar');if(signoutButton&&moduleMenu&&signoutButton.parentElement!==moduleMenu)moduleMenu.appendChild(signoutButton)}
 async function refreshRegistrationMode(){setStatus('Inicia sesión con tu usuario y contraseña para acceder a FleboReport.');}
 async function adminRequest(action,payload={}){if(!client||!currentUser||!currentMembership||currentMembership.role!=='admin')throw new Error('Solo el administrador puede gestionar usuarios.');const {data,error}=await client.auth.getSession();if(error)throw error;const token=data.session?.access_token;if(!token)throw new Error('La sesión expiró. Inicia sesión nuevamente.');const response=await fetch(SUPABASE_URL+'/functions/v1/flebo-username-auth',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY,'Authorization':'Bearer '+token},body:JSON.stringify({action,workspace_id:currentMembership.workspace_id,...payload})});const result=await response.json();if(!response.ok)throw new Error(result.error||'No se pudo completar la operación.');return result}
