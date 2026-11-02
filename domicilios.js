@@ -94,6 +94,7 @@ async function loadCloudVisits(){
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
  const technician=cloud.role==='technician';
+ const staffReassignment=!technician&&!!v.assignmentId&&v.assignmentStatus==='rejected';
  const technicianResponse=technician&&v.assignmentId&&['Aceptado','Rechazado'].includes(v.status)&&v.assignmentStatus!=='accepted'&&v.assignmentStatus!=='rejected';
  const notes=JSON.stringify({flebo_meta:true,patientName:v.patientName,document:v.document||'',assignedTo:v.assignedTo||'',assignedPhone:v.assignedPhone||''});
  let dbStatus=statusToDb[v.status]||'pending_assignment';
@@ -108,10 +109,10 @@ async function persistVisit(v){
   if(!response.data)throw new Error('No se confirmó la respuesta. Esta invitación ya fue respondida o no pertenece a tu cuenta.');
   v.assignmentStatus=response.data.status;
  }
- const saved=technicianResponse?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
+ const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
  if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
- if(!technician||!technicianResponse){
+ if(!technicianResponse&&!staffReassignment){
   const testRows=[];
   for(const t of (v.tests||[])){
    if(!asUuid(t.id))t.id=makeId();
@@ -130,7 +131,7 @@ async function persistVisit(v){
   }
   if(testRows.length){const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}
  }
- const eventRows=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>{
+ const eventRows=(staffReassignment?[]:(v.events||[])).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>{
   const transition=(e.detail||'').match(/([^→]+)→\s*([^·]+)/);
   return{id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:transition?.[1]?.trim()||null,to_status:transition?.[2]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}};
  });
