@@ -172,9 +172,6 @@ as $$
   );
 $$;
 revoke all on function private.has_workspace_permission(uuid,text,text,uuid) from public;
-revoke all on function private.prevent_primary_admin_membership_change() from public,anon,authenticated;
-revoke all on function private.prevent_primary_admin_settings_change() from public,anon,authenticated;
-revoke all on function private.seed_workspace_configuration() from public,anon,authenticated;
 grant execute on function private.has_workspace_permission(uuid,text,text,uuid) to authenticated;
 
 create or replace function private.prevent_primary_admin_membership_change()
@@ -269,6 +266,10 @@ drop trigger if exists initialize_workspace_configuration on public.workspaces;
 create trigger initialize_workspace_configuration
 after insert on public.workspaces
 for each row execute function private.seed_workspace_configuration();
+
+revoke all on function private.prevent_primary_admin_membership_change() from public,anon,authenticated;
+revoke all on function private.prevent_primary_admin_settings_change() from public,anon,authenticated;
+revoke all on function private.seed_workspace_configuration() from public,anon,authenticated;
 
 insert into public.workspace_security_settings(workspace_id,primary_admin_user_id)
 select w.id,w.owner_user_id from public.workspaces w
