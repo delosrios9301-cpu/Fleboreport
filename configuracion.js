@@ -1,6 +1,6 @@
 (()=>{'use strict';
 const MODULES=[
- ['dashboard','Panel principal'],['users','Usuarios'],['permissions','Roles y permisos'],['sites','Sedes'],['studies','Estudios clínicos'],['domicilios','Domicilios'],['reception','Recepción'],['processing','Procesamiento'],['materials','Materiales'],['reports','Reportes'],['documents','Documentos'],['notifications','Notificaciones'],['audit','Auditoría'],['settings','Configuración'],['approvals','Autorizaciones']
+ ['dashboard','Panel principal'],['journeys','Jornadas'],['companies','Empresas'],['patients','Pacientes'],['catalog','Catálogo'],['users','Usuarios'],['permissions','Roles y permisos'],['sites','Sedes'],['studies','Estudios clínicos'],['domicilios','Domicilios'],['reception','Recepción'],['processing','Procesamiento'],['materials','Materiales'],['reports','Reportes'],['documents','Documentos'],['notifications','Notificaciones'],['audit','Auditoría'],['settings','Configuración'],['approvals','Autorizaciones']
 ];
 const ACTIONS=['view','create','edit','delete','approve','assign','export','print','manage','configure','request'];
 const ACTION_LABELS={view:'Consultar',create:'Crear',edit:'Editar',delete:'Eliminar',approve:'Autorizar',assign:'Asignar',export:'Exportar',print:'Imprimir',manage:'Administrar',configure:'Configurar',request:'Solicitar aprobación'};
