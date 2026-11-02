@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
-const allowedRoles=["admin","clinician","technician","reception","viewer"];
+const allowedRoles=["admin","clinician","technician","reception","viewer","role_custom"];
 Deno.serve(async(req:Request)=>{
  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
  if(req.method!=="POST")return json({error:"Método no permitido"},405);
@@ -60,7 +60,7 @@ Deno.serve(async(req:Request)=>{
    if(action==="admin-list-users"){
     const res=await fetch(url+"/rest/v1/workspace_members?select=user_id,role,active,created_at&workspace_id=eq."+encodeURIComponent(workspaceId)+"&order=created_at.asc",{headers:adminHeaders});
     const rows=await res.json();if(!res.ok)throw new Error("No se pudo cargar la lista de usuarios.");
-    const users=await Promise.all(rows.map(async(m:any)=>{const [pr,ur]=await Promise.all([fetch(url+"/rest/v1/profiles?select=display_name,username&user_id=eq."+encodeURIComponent(m.user_id)+"&limit=1",{headers:adminHeaders}),fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders})]);const profiles=pr.ok?await pr.json():[];const u=ur.ok?await ur.json():{};const metadata=u.user_metadata||u.user?.user_metadata||{};return{user_id:m.user_id,role:m.role,active:m.active,display_name:profiles[0]?.display_name||metadata.display_name||"",username:profiles[0]?.username||metadata.username||"",email:u.email||u.user?.email||""}}));
+    const ownerRes=await fetch(url+"/rest/v1/workspaces?select=owner_user_id&id=eq."+encodeURIComponent(workspaceId)+"&limit=1",{headers:adminHeaders});const ownerRows=ownerRes.ok?await ownerRes.json():[];const ownerId=ownerRows[0]?.owner_user_id||"";const users=await Promise.all(rows.map(async(m:any)=>{const [pr,ur]=await Promise.all([fetch(url+"/rest/v1/profiles?select=display_name,username&user_id=eq."+encodeURIComponent(m.user_id)+"&limit=1",{headers:adminHeaders}),fetch(url+"/auth/v1/admin/users/"+m.user_id,{headers:adminHeaders})]);const profiles=pr.ok?await pr.json():[];const u=ur.ok?await ur.json():{};const metadata=u.user_metadata||u.user?.user_metadata||{};return{user_id:m.user_id,role:m.role,active:m.active,is_primary_admin:m.user_id===ownerId,display_name:profiles[0]?.display_name||metadata.display_name||"",username:profiles[0]?.username||metadata.username||"",email:u.email||u.user?.email||""}}));
     return json({users});
    }
    if(action==="admin-create-user"){
@@ -77,7 +77,7 @@ Deno.serve(async(req:Request)=>{
     return json({ok:true,user_id:userId});
    }
    if(action==="admin-update-user"){
-    const target=String(body.target_user_id||"");if(!target||target===actor.id)return json({error:"No puedes modificar tu propia cuenta desde esta pantalla."},400);
+    const target=String(body.target_user_id||"");if(!target||target===actor.id)return json({error:"No puedes modificar tu propia cuenta desde esta pantalla."},400);const ownerCheck=await fetch(url+"/rest/v1/workspaces?select=owner_user_id&id=eq."+encodeURIComponent(workspaceId)+"&limit=1",{headers:adminHeaders});const ownerRows=ownerCheck.ok?await ownerCheck.json():[];if(ownerRows[0]?.owner_user_id===target)return json({error:"La cuenta del administrador principal está protegida y no puede modificarse desde esta pantalla."},403);
     const changes:any={};if(body.role!==undefined){if(!allowedRoles.includes(String(body.role)))return json({error:"Rol no válido."},400);changes.role=String(body.role)}
     if(body.active!==undefined)changes.active=!!body.active;if(!Object.keys(changes).length)return json({error:"No hay cambios que guardar."},400);
     const updated=await fetch(url+"/rest/v1/workspace_members?workspace_id=eq."+encodeURIComponent(workspaceId)+"&user_id=eq."+encodeURIComponent(target),{method:"PATCH",headers:{...adminHeaders,"Prefer":"return=minimal"},body:JSON.stringify(changes)});
