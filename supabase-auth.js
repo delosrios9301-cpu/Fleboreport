@@ -83,6 +83,115 @@ function installGlobalControls(){if(!document.getElementById('fleboGlobalAuthSty
 #fleboUsersSection .fields{margin-top:12px}#fleboUsersList .list-row{align-items:center;flex-wrap:wrap}#fleboUsersList select{min-height:34px;border:1px solid #dce7ed;border-radius:8px;padding:6px}
 @media(max-width:760px){#fleboAuthGate{padding:10px}#fleboAuthPanel{display:flex;justify-content:center;min-height:min(88vh,780px);border-width:5px}.flebo-login-art{display:none}.flebo-login-card{width:min(100%,430px);margin:100px 12px 24px;padding:64px 22px 26px}.flebo-avatar{width:112px;height:112px;top:-72px}.flebo-avatar svg{width:65px;height:65px}.flebo-login-heading h1{font-size:29px}}
 @media(max-height:650px) and (min-width:761px){#fleboAuthPanel{min-height:560px}.flebo-login-art{min-height:540px}.flebo-login-card{margin:90px 4% 30px;padding-top:58px}.flebo-avatar{width:105px;height:105px;top:-65px}}
+
+/* FleboReport · acceso clínico luminoso (solo presentación; autenticación intacta) */
+#fleboAuthGate{
+ background:
+  radial-gradient(ellipse at 12% 18%,rgba(45,164,226,.18),transparent 34%),
+  radial-gradient(ellipse at 88% 78%,rgba(19,151,168,.16),transparent 36%),
+  linear-gradient(135deg,#f8fcff 0%,#e8f5fc 48%,#f7fbff 100%);
+}
+#fleboAuthGate:before{
+ content:"";position:fixed;inset:0;pointer-events:none;opacity:.38;
+ background:
+  radial-gradient(ellipse at 80% 20%,transparent 0 13%,rgba(72,158,205,.16) 13.2% 13.5%,transparent 13.7% 19%,rgba(72,158,205,.12) 19.2% 19.5%,transparent 19.7%),
+  repeating-linear-gradient(118deg,transparent 0 72px,rgba(67,151,194,.055) 73px 74px,transparent 75px 146px);
+}
+#fleboAuthMount{position:relative;z-index:1;width:min(100%,520px)}
+#fleboAuthPanel{
+ display:flex;justify-content:center;align-items:center;min-height:0;overflow:visible;
+ padding:22px 0;border:0;border-radius:32px;
+ background:transparent;box-shadow:none;color:#123c5c;
+}
+.flebo-login-art{display:none!important}
+.flebo-login-card{
+ width:min(100%,470px);margin:70px 12px 20px;padding:76px 34px 30px;
+ border:1px solid rgba(255,255,255,.92);border-radius:30px;
+ background:linear-gradient(145deg,rgba(255,255,255,.88),rgba(226,244,255,.72));
+ box-shadow:0 28px 75px rgba(25,91,130,.17),0 5px 18px rgba(27,102,145,.08),inset 0 1px 0 #fff;
+ -webkit-backdrop-filter:blur(24px) saturate(150%);backdrop-filter:blur(24px) saturate(150%);
+ color:#123c5c;
+}
+.flebo-avatar{
+ top:-62px;width:112px;height:112px;border:4px solid #f8fdff;
+ background:linear-gradient(145deg,#fafdff,#8dbedb 48%,#145a86);
+ box-shadow:0 12px 28px rgba(18,91,137,.25),inset 0 2px 5px #fff;
+}
+.flebo-avatar:after{content:"";position:absolute;inset:7px;border:1px solid rgba(255,255,255,.7);border-radius:50%;pointer-events:none}
+.flebo-avatar svg{width:65px;height:65px;stroke:#fff;stroke-width:2.8;filter:drop-shadow(0 2px 3px #164e7180)}
+.flebo-login-heading{margin:0 0 22px}
+.flebo-login-heading>span{color:#176c9e;font-size:10px;letter-spacing:2.2px}
+.flebo-login-heading h1{
+ margin:8px 0 7px;font-size:clamp(32px,6vw,43px);font-weight:850;letter-spacing:-1.5px;
+ background:linear-gradient(100deg,#103d68,#087fbe 65%,#16a0b1);-webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.flebo-login-heading p{color:#526f85;font-size:13px;line-height:1.5}
+.flebo-auth-badge{min-height:18px;margin:0 0 14px;color:#176b91;font-size:11px}
+.flebo-input-row{
+ position:relative;display:flex;align-items:center;height:58px;margin:0 0 13px;
+ border:1.5px solid #8fc7e9;border-radius:17px;background:rgba(229,245,255,.88);
+ color:#146a9f;box-shadow:inset 0 2px 5px rgba(33,113,159,.06),0 3px 9px rgba(31,113,159,.05);
+ transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.flebo-input-row:focus-within{border-color:#168bd0;background:#f5fbff;box-shadow:0 0 0 4px rgba(36,151,211,.12),inset 0 2px 5px rgba(33,113,159,.04)}
+.flebo-field-icon{width:54px;flex:none;background:transparent;border:0;color:#087dbb;font-size:21px}
+.flebo-input-row input{padding:0 15px 0 2px;color:#174c70!important;font-size:15px!important}
+.flebo-input-row input::placeholder{color:#5485a4;opacity:1}
+.flebo-login-options{justify-content:flex-start;margin:17px 2px 23px;color:#315d79;font-size:12px}
+.flebo-login-options label{gap:10px;cursor:pointer}
+.flebo-login-options input{
+ appearance:none;-webkit-appearance:none;position:relative;width:43px;height:25px;flex:none;margin:0;
+ border:1px solid #a9c3d3;border-radius:99px;background:#d6e3eb;cursor:pointer;
+ transition:background .18s ease,border-color .18s ease;
+}
+.flebo-login-options input:before{
+ content:"";position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;
+ background:#fff;box-shadow:0 2px 5px #16415c35;transition:transform .18s ease;
+}
+.flebo-login-options input:checked{background:#1686c6;border-color:#1686c6}
+.flebo-login-options input:checked:before{transform:translateX(18px)}
+.flebo-login-options input:focus-visible{outline:3px solid #56b9e777;outline-offset:3px}
+#fleboAuthSignIn{
+ width:100%;min-height:58px;border:1px solid #0878a9;border-radius:17px;
+ background:linear-gradient(105deg,#075b91,#087fb7 56%,#087d91);color:#fff;
+ font-size:14px;font-weight:850;letter-spacing:1.25px;
+ box-shadow:0 8px 18px rgba(5,94,143,.23),inset 0 1px rgba(255,255,255,.25);
+ transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;
+}
+#fleboAuthSignIn:hover{filter:brightness(1.07);box-shadow:0 10px 22px rgba(5,94,143,.28),inset 0 1px rgba(255,255,255,.25)}
+#fleboAuthSignIn:active{transform:translateY(1px)}
+#fleboAuthSignIn:focus-visible{outline:3px solid #168bd088;outline-offset:3px}
+.flebo-login-help{margin:21px 0 0;color:#315d79;font-size:11px;line-height:1.5}
+#fleboAuthSession{color:#174766}
+#fleboAuthSession button{min-height:48px;border:0;border-radius:14px;background:linear-gradient(105deg,#075b91,#087fb7);color:#fff;font-weight:800}
+#fleboAuthSession #fleboAuthSignOut{background:#fff;color:#315d79;border:1px solid #c9dce8}
+#fleboAuthGate .flebo-login-brand,#fleboAuthGate .flebo-login-foot{display:none!important}
+@media(max-width:760px){
+ #fleboAuthGate{align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom))}
+ #fleboAuthMount{width:min(100%,440px)}
+ #fleboAuthPanel{min-height:0;padding:18px 0}
+ .flebo-login-card{width:100%;margin:64px 0 10px;padding:68px 22px 25px;border-radius:25px}
+ .flebo-avatar{width:104px;height:104px;top:-57px}
+ .flebo-avatar svg{width:60px;height:60px}
+ .flebo-login-heading h1{font-size:35px}
+ .flebo-input-row{height:56px;border-radius:15px}
+ #fleboAuthSignIn{min-height:56px;border-radius:15px}
+}
+@media(max-height:650px){
+ #fleboAuthGate{align-items:flex-start}
+ #fleboAuthPanel{padding:8px 0}
+ .flebo-login-card{margin-top:58px;padding-top:62px}
+ .flebo-avatar{width:90px;height:90px;top:-49px}
+ .flebo-avatar svg{width:52px;height:52px}
+ .flebo-login-heading{margin-bottom:15px}
+ .flebo-input-row{height:50px;margin-bottom:10px}
+ .flebo-login-options{margin:12px 2px 15px}
+ #fleboAuthSignIn{min-height:50px}
+ .flebo-login-help{margin-top:13px}
+}
+@media(prefers-reduced-motion:reduce){
+ .flebo-input-row,.flebo-login-options input,.flebo-login-options input:before,#fleboAuthSignIn{transition:none!important}
+}
 `;document.head.appendChild(st)}if(!document.getElementById('fleboGlobalSignOut')){const b=document.createElement('button');b.id='fleboGlobalSignOut';b.type='button';b.textContent='Cerrar sesión';b.hidden=true;b.addEventListener('click',signOut);document.body.appendChild(b)}const signoutButton=document.getElementById('fleboGlobalSignOut'),moduleMenu=document.getElementById('sidebar');if(signoutButton&&moduleMenu&&signoutButton.parentElement!==moduleMenu)moduleMenu.appendChild(signoutButton)}
 async function refreshRegistrationMode(){setStatus('Inicia sesión con tu usuario y contraseña para acceder a FleboReport.');}
 async function adminRequest(action,payload={}){if(!client||!currentUser||!currentMembership||currentMembership.role!=='admin')throw new Error('Solo el administrador puede gestionar usuarios.');const {data,error}=await client.auth.getSession();if(error)throw error;const token=data.session?.access_token;if(!token)throw new Error('La sesión expiró. Inicia sesión nuevamente.');const response=await fetch(SUPABASE_URL+'/functions/v1/flebo-username-auth',{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_PUBLISHABLE_KEY,'Authorization':'Bearer '+token},body:JSON.stringify({action,workspace_id:currentMembership.workspace_id,...payload})});const result=await response.json();if(!response.ok)throw new Error(result.error||'No se pudo completar la operación.');return result}
