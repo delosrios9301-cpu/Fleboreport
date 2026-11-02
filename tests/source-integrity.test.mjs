@@ -6,6 +6,9 @@ const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
+const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
+const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154000_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
+const granularMigration = await readFile(new URL('../supabase/migrations/20261102160000_granular_permission_enforcement.sql', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -87,4 +90,32 @@ test('la autenticación global protege la aplicación y controla los módulos po
  assert.match(auth, /function canAccess/);
  assert.match(auth, /fleboGlobalSignOut/);
  assert.match(auth, /admin-create-user/);
+});
+
+test('el módulo de configuración tiene sintaxis válida y controles administrativos', () => {
+  assert.doesNotThrow(() => new Function(configuration), 'configuracion.js debe tener sintaxis válida');
+  for (const feature of ['Seguridad y sedes', 'role_custom', 'Doble autorización', 'Administrador principal protegido', 'Permisos granulares', 'Datos híbridos']) {
+    assert.ok(configuration.includes(feature), `falta funcionalidad de configuración: ${feature}`);
+  }
+  assert.match(auth, /loadCurrentPermissions/);
+  assert.match(auth, /is_primary_admin/);
+  assert.match(auth, /role_custom/);
+});
+
+test('la migración de configuración protege al administrador y habilita sedes híbridas', () => {
+  for (const table of ['sedes', 'user_sedes', 'role_permissions', 'member_permissions', 'workspace_security_settings', 'approval_requests', 'sync_devices']) {
+    assert.match(configurationMigration, new RegExp('create table if not exists public\\.' + table, 'i'));
+  }
+  assert.match(configurationMigration, /prevent_primary_admin_membership_change/);
+  assert.match(configurationMigration, /prevent_primary_admin_settings_change/);
+  assert.match(configurationMigration, /primary_admin_user_id uuid not null references auth\.users/);
+  assert.match(configurationMigration, /role_custom/);
+});
+
+test('las autorizaciones y permisos granulares se validan mediante RLS', () => {
+  assert.match(granularMigration, /role_permissions_member_read/);
+  assert.match(granularMigration, /as restrictive for select/i);
+  assert.match(granularMigration, /home_visits_permission_scope/);
+  assert.match(granularMigration, /home_visit_assignments_permission_scope/);
+  assert.match(granularMigration, /audit_approval_request/);
 });
