@@ -138,6 +138,16 @@ using(private.has_workspace_permission(workspace_id,'domicilios','edit')
   and (private.has_workspace_permission(workspace_id,'domicilios','manage') or assigned_user_id=(select auth.uid())))
 with check(private.has_workspace_permission(workspace_id,'domicilios','edit')
   and (private.has_workspace_permission(workspace_id,'domicilios','manage') or assigned_user_id=(select auth.uid())));
+create policy home_visit_assignments_granular_update on public.home_visit_assignments
+for update to authenticated
+using(private.has_workspace_permission(workspace_id,'domicilios','edit')
+  and (private.has_workspace_permission(workspace_id,'domicilios','manage') or assigned_user_id=(select auth.uid())))
+with check(private.has_workspace_permission(workspace_id,'domicilios','edit')
+  and (private.has_workspace_permission(workspace_id,'domicilios','manage') or assigned_user_id=(select auth.uid())));
+create policy home_visit_assignments_granular_delete on public.home_visit_assignments
+for delete to authenticated using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
+create policy home_visit_assignments_permission_delete_scope on public.home_visit_assignments
+as restrictive for delete to authenticated using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
 
 create policy home_visit_tests_granular_read on public.home_visit_tests
 for select to authenticated
@@ -170,6 +180,16 @@ with check(private.has_workspace_permission(workspace_id,'domicilios','edit')
 create policy home_visit_tests_permission_delete_scope on public.home_visit_tests
 as restrictive for delete to authenticated
 using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
+create policy home_visit_tests_granular_update on public.home_visit_tests
+for update to authenticated
+using(private.has_workspace_permission(workspace_id,'domicilios','edit')
+  and (private.has_workspace_permission(workspace_id,'domicilios','manage')
+    or public.is_current_home_visit_assignee(workspace_id,home_visit_id,(select auth.uid()),array['accepted']::text[])))
+with check(private.has_workspace_permission(workspace_id,'domicilios','edit')
+  and (private.has_workspace_permission(workspace_id,'domicilios','manage')
+    or public.is_current_home_visit_assignee(workspace_id,home_visit_id,(select auth.uid()),array['accepted']::text[])));
+create policy home_visit_tests_granular_delete on public.home_visit_tests
+for delete to authenticated using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
 
 create policy home_visit_events_granular_read on public.home_visit_events
 for select to authenticated
@@ -217,6 +237,8 @@ with check(private.has_workspace_permission(workspace_id,'domicilios','create')
 create policy home_visit_documents_permission_delete_scope on public.home_visit_documents
 as restrictive for delete to authenticated
 using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
+create policy home_visit_documents_granular_delete on public.home_visit_documents
+for delete to authenticated using(private.has_workspace_permission(workspace_id,'domicilios','delete'));
 
 create or replace function private.audit_approval_request()
 returns trigger language plpgsql security definer set search_path=''
