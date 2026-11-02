@@ -9,6 +9,7 @@ const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'ut
 const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
 const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154000_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
 const granularMigration = await readFile(new URL('../supabase/migrations/20261102160000_granular_permission_enforcement.sql', import.meta.url), 'utf8');
+const permissionUpsertMigration = await readFile(new URL('../supabase/migrations/20261102173000_member_permission_upsert.sql', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -118,4 +119,10 @@ test('las autorizaciones y permisos granulares se validan mediante RLS', () => {
   assert.match(granularMigration, /home_visits_permission_scope/);
   assert.match(granularMigration, /home_visit_assignments_permission_scope/);
   assert.match(granularMigration, /audit_approval_request/);
+});
+
+test('el guardado de permisos individuales usa una sola operación upsert', () => {
+  assert.match(permissionUpsertMigration, /unique nulls not distinct/i);
+  assert.match(configuration, /from\('member_permissions'\)\.upsert/);
+  assert.match(configuration, /workspace_id,user_id,module_key,action_key,site_id/);
 });
