@@ -74,12 +74,22 @@ async function loadCloudVisits(){
 }
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
- const notes=JSON.stringify({flebo_meta:true,patientName:v.patientName,document:v.document||'',assignedTo:v.assignedTo||'',assignedPhone:v.assignedPhone||''});
- let dbStatus=statusToDb[v.status]||'pending_assignment';if(cloud.role==='technician'&&['Aceptado','Rechazado'].includes(v.status))dbStatus='pending_acceptance';
  const technicianResponse=cloud.role==='technician'&&v.assignmentId&&['Aceptado','Rechazado'].includes(v.status)&&v.assignmentStatus!=='accepted'&&v.assignmentStatus!=='rejected';
+ /* El técnico responde exclusivamente sobre su asignación. No debe hacer upsert
+    de home_visits: esa tabla conserva escritura restringida al personal de agenda. */
+ if(technicianResponse){
+  const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId).eq('workspace_id',w).eq('assigned_user_id',u).eq('status','invited').select('id,status').maybeSingle();
+  if(response.error)throw response.error;
+  if(!response.data)throw new Error('No se confirmó la respuesta. Verifica que este domicilio siga asignado a tu cuenta y que aún esté pendiente de aceptación.');
+  v.assignmentStatus=response.data.status;
+  const ev=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>({id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Respuesta de asignación',description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}}));
+  if(ev.length){const r=await c.from('home_visit_events').insert(ev);if(r.error)throw r.error;ev.forEach(e=>persistedEventIds.add(e.id))}
+  return;
+ }
+ const notes=JSON.stringify({flebo_meta:true,patientName:v.patientName,document:v.document||'',assignedTo:v.assignedTo||'',assignedPhone:v.assignedPhone||''});
+ const dbStatus=statusToDb[v.status]||'pending_assignment';
  const row={id:v.id,workspace_id:w,patient_id:asUuid(v.patientId),scheduled_at:new Date(v.scheduledDate+'T'+v.scheduledTime+':00-05:00').toISOString(),address:v.address,latitude:v.latitude??null,longitude:v.longitude??null,patient_phone:v.phone||null,status:dbStatus,priority:v.priority||'normal',notes,cancellation_reason:v.reason||null,created_by:v.createdById||u,created_at:v.createdAtDb||v.createdAt||new Date().toISOString(),completed_at:v.completedAt||null};
  const saved=await c.from('home_visits').upsert(row,{onConflict:'id'});if(saved.error)throw saved.error;
- if(technicianResponse){const response=await c.from('home_visit_assignments').update({status:v.status==='Aceptado'?'accepted':'rejected',responded_at:new Date().toISOString(),response_note:v.reason||null}).eq('id',v.assignmentId);if(response.error)throw response.error;v.assignmentStatus=v.status==='Aceptado'?'accepted':'rejected'}
  const testRows=[];for(const t of (v.tests||[])){let serviceId=t.source==='adicional'?null:(t.serviceId||t.testId||null);if(t.source==='adicional'){const match=await c.from('services').select('id').eq('workspace_id',w).eq('name',t.name).eq('active',true).limit(1);if(match.error)throw match.error;serviceId=match.data?.[0]?.id||null;if(!serviceId)throw new Error('La prueba adicional '+t.name+' no está vinculada al catálogo maestro del laboratorio.')}testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:t.addedById||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||{sample:t.sample||'',vessel:t.vessel||'',colorName:t.colorName||'',fasting:t.fasting||'',conditions:t.conditions||'',instructions:t.instructions||'',volume:t.volume||'',method:t.method||'',color:t.color||'',shape:t.shape||'tube'}})}
  if(testRows.length){const r=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(r.error)throw r.error}
  const eventRows=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>({id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}}));
