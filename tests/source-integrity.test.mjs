@@ -108,7 +108,7 @@ test('la migración de configuración protege al administrador y habilita sedes 
   }
   assert.match(configurationMigration, /prevent_primary_admin_membership_change/);
   assert.match(configurationMigration, /prevent_primary_admin_settings_change/);
-  assert.match(configurationMigration, /primary_admin_user_id uuid not null references auth\\.users/);
+  assert.match(configurationMigration, /primary_admin_user_id uuid not null references auth\.users/);
   assert.match(configurationMigration, /role_custom/);
 });
 
