@@ -47,9 +47,30 @@ function dbVisit(row){
  const fmt=opts=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Panama',...opts}).format(dt);
  return{id:row.id,patientId:row.patient_id||null,latitude:row.latitude,longitude:row.longitude,priority:row.priority||'normal',createdById:row.created_by||null,createdAtDb:row.created_at||null,completedAt:row.completed_at||null,patientName:meta.patientName||'Paciente',document:meta.document||'',phone:row.patient_phone||'',address:row.address,scheduledDate:fmt({year:'numeric',month:'2-digit',day:'2-digit'}),scheduledTime:fmt({hour:'2-digit',minute:'2-digit',hour12:false}),assignedTo:meta.assignedTo||professional.name||'',assignedPhone:meta.assignedPhone||'',status:(assignment.status==='accepted'&&row.status==='pending_acceptance'?'Aceptado':assignment.status==='rejected'&&row.status==='pending_acceptance'?'Rechazado':statusFromDb[row.status]||'Pendiente de asignación'),reason:row.cancellation_reason||'',tests,events:(row.home_visit_events||[]).map(e=>({id:e.id,at:e.occurred_at,by:'Equipo',action:e.event_type,detail:e.description||''})).sort((a,b)=>new Date(b.at)-new Date(a.at)),createdAt:row.created_at,createdBy:'Equipo',assignmentId:assignment.id||null,assignmentStatus:assignment.status||null,assignedProfessionalId:assignment.professional_id||professional.id||null};
 }
+async function ensureVisitAssignment(v){
+ if(!v||!v.assignedTo||!['admin','clinician','reception'].includes(cloud.role))return;
+ const c=cloud.client,w=cloud.workspaceId,u=cloud.user?.id;
+ let prof=null;
+ if(v.assignedProfessionalId){const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('id',v.assignedProfessionalId).eq('active',true).maybeSingle();if(r.error)throw r.error;prof=r.data;}
+ if(!prof){const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('name',v.assignedTo).eq('active',true).maybeSingle();if(r.error)throw r.error;prof=r.data;}
+ if(!prof?.user_id){cloudNotice('El domicilio de '+v.assignedTo+' no tiene una cuenta activa vinculada; no se puede enviar el aviso.',true);return;}
+ let assignmentId=v.assignmentId||null;
+ if(!assignmentId){const existing=await c.from('home_visit_assignments').select('id,status').eq('workspace_id',w).eq('home_visit_id',v.id).maybeSingle();if(existing.error)throw existing.error;
+  if(existing.data){assignmentId=existing.data.id;v.assignmentStatus=existing.data.status;}
+  else{assignmentId=makeId();const ins=await c.from('home_visit_assignments').insert({id:assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:prof.id,assigned_user_id:prof.user_id,status:'invited',created_by:u});if(ins.error)throw ins.error;v.assignmentStatus='invited';}
+  v.assignmentId=assignmentId;v.assignedProfessionalId=prof.id;
+ }
+ if(v.assignmentStatus==='invited'){
+  const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignmentId}});
+  if(notice.error)cloudNotice('La asignación quedó guardada, pero falló el envío de notificación: '+(notice.error.message||'error de Supabase'),true);
+  else if(!(Number(notice.data?.push_sent)>0))cloudNotice('La asignación quedó guardada, pero el servidor no confirmó entrega Push. Revisa el registro del dispositivo del flebotomista y los detalles del envío.',true);
+ }
+}
 async function loadCloudVisits(){
  const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true});
- if(error)throw error;persistedEventIds.clear();(data||[]).forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=(data||[]).map(dbVisit);if(!visits.some(v=>v.id===selected))selected='';if($('hvRows'))render();
+ if(error)throw error;persistedEventIds.clear();(data||[]).forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=(data||[]).map(dbVisit);
+ for(const v of visits){if(!v.assignmentId&&v.status==='Pendiente de aceptación'&&v.assignedTo){try{await ensureVisitAssignment(v)}catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}}}
+ if(!visits.some(v=>v.id===selected))selected='';if($('hvRows'))render();
 }
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
@@ -63,7 +84,7 @@ async function persistVisit(v){
  if(testRows.length){const r=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(r.error)throw r.error}
  const eventRows=(v.events||[]).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>({id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}}));
  if(eventRows.length){const r=await c.from('home_visit_events').insert(eventRows);if(r.error)throw r.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
- if(v.assignedProfessionalId&&['admin','clinician','reception'].includes(cloud.role)){const found=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('id',v.assignedProfessionalId).eq('active',true).maybeSingle();if(found.error)throw found.error;if(!found.data?.user_id)throw new Error('El flebotomista seleccionado no tiene una cuenta activa vinculada.');if(!v.assignmentId){v.assignmentId=makeId();const a=await c.from('home_visit_assignments').insert({id:v.assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:found.data.id,assigned_user_id:found.data.user_id,status:'invited',created_by:u});if(a.error)throw a.error;const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:v.assignmentId}});if(notice.error){console.warn('No se pudo enviar aviso de asignación:',notice.error.message);cloudNotice('Domicilio guardado, pero no se pudo enviar la notificación: '+notice.error.message,true)}else if(!(notice.data?.push_sent>0)){cloudNotice('Domicilio guardado. El flebotomista todavía no tiene un dispositivo con notificaciones activadas; la asignación quedó registrada.',true)}}}
+ if(v.assignedTo&&['admin','clinician','reception'].includes(cloud.role)){await ensureVisitAssignment(v);}
 }
 async function save(v){
  if(!cloud.ready||!cloud.client){say('No se guardó: inicia sesión y conecta el laboratorio a Supabase.');return false}
