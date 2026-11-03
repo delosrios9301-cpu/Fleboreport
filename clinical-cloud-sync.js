@@ -55,7 +55,7 @@ async function syncConfiguration(){
  const s=app()||{},studies=s.clinicalStudies||[],visits=s.clinicalVisits||[],types=s.clinicalSampleTypes||[];
  for(const study of studies){
   let sid='';
-  if(['admin','clinician'].includes(role)) sid=await saveStudy(study);
+  if(['admin'].includes(role)) sid=await saveStudy(study);
   else{
    let q=await client.from('clinical_studies').select('id').eq('workspace_id',workspaceId).eq('protocol_code',study.protocol).maybeSingle();
    if(q.error)fail(q.error);if(!q.data)throw new Error('El estudio '+study.protocol+' aún no está publicado en la plantilla maestra de la nube. Solicita al administrador que lo sincronice.');
