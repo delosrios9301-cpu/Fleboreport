@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
+const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
+const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
 const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
 const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154000_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
@@ -127,8 +129,17 @@ test('las autorizaciones y permisos granulares se validan mediante RLS', () => {
   assert.match(granularMigration, /audit_approval_request/);
 });
 
-test('el guardado de permisos individuales usa una sola operación upsert', () => {
+test('el guardado de permisos individuales usa el RPC protegido por la base de datos', () => {
   assert.match(permissionUpsertMigration, /unique nulls not distinct/i);
-  assert.match(configuration, /from\('member_permissions'\)\.upsert/);
-  assert.match(configuration, /workspace_id,user_id,module_key,action_key,site_id/);
+  assert.match(configuration, /rpc\('save_member_permissions'/);
+  assert.match(permissionSaveMigration, /create or replace function public\.save_member_permissions/i);
+});
+
+test('la sincronización de datos está conectada, aislada por usuario y tiene sintaxis válida', () => {
+  assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
+  assert.match(html, /src="\.\/cloud-state-sync\.js"/);
+  assert.match(html, /flebo:local-state-saved/);
+  assert.match(cloudSyncMigration, /primary key \(workspace_id,user_id\)/i);
+  assert.match(cloudSyncMigration, /user_id=auth\.uid\(\)/i);
+  assert.match(cloudSyncMigration, /supabase_realtime/i);
 });
