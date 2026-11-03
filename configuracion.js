@@ -76,7 +76,8 @@ async function executeFullReset(){
   result.innerHTML='<b>Restablecimiento completado y confirmado por Supabase.</b><br>Respaldo privado: '+esc(row.backup_id)+'<br>Tablas operativas limpiadas: '+esc(row.deleted_tables)+'<br>Registros eliminados: '+esc(row.deleted_rows)+'<br>Las cuentas, permisos, sedes y seguridad se conservaron.';
   $('frResetPhrase').value='';
   say('FleboReport se restableció. La copia de seguridad quedó guardada en la nube.');
-  if(window.FleboCloudSync?.connect)await window.FleboCloudSync.connect();
+  if(window.FleboCloudSync?.connect){try{await window.FleboCloudSync.connect()}catch(syncError){console.warn('[FleboReport Reset] La actualización local se completará al sincronizar:',syncError)}}
+  if(window.FleboClinicalCloud?.refreshSamples){try{await window.FleboClinicalCloud.refreshSamples()}catch(syncError){console.warn('[FleboReport Reset] No se pudo refrescar la bandeja clínica inmediatamente:',syncError)}}
   button.textContent='Restablecimiento completado';
  }catch(error){
   button.disabled=false;button.textContent='Crear respaldo y restablecer todo';
