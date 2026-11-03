@@ -8,6 +8,7 @@ const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
+const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103110000_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
@@ -169,4 +170,13 @@ test('el centro de notificaciones puede mostrar avisos del dispositivo y consult
   assert.doesNotThrow(() => new Function(notifications));
   assert.match(notifications, /showDeviceNotification/);
   assert.match(notifications, /setInterval/);
+});
+
+
+test('la búsqueda del expediente muestra su historial completo y la coincidencia normaliza documentos', () => {
+  assert.match(domicilios, /Historial de atenciones médicas/);
+  assert.match(domicilios, /Historial de jornadas/);
+  assert.match(domicilios, /Historial de domicilios/);
+  assert.match(patientDocumentMatchMigration, /regexp_replace\(lower\(btrim\(p\.document_number\)\)/i);
+  assert.match(patientDocumentMatchMigration, /pg_advisory_xact_lock/i);
 });
