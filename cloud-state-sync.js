@@ -53,7 +53,7 @@ async function hashState(s){
  let h=2166136261;for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16);
 }
 async function fetchRemote(){
- const r=await client.from('workspace_app_state').select('state,revision,updated_at').eq('workspace_id',workspaceId).maybeSingle();
+ const r=await client.from('workspace_app_state').select('state,revision,updated_at').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
  if(r.error)throw r.error;return r.data||null;
 }
 async function writeRemote(state,expected){
