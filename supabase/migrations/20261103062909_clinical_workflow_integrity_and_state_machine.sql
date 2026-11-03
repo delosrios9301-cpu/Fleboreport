@@ -301,7 +301,7 @@ begin
       stored_by=case when p_next_status='CONGELADOR_DEFINITIVO' then v_actor else stored_by end,
       stored_at=case when p_next_status='CONGELADOR_DEFINITIVO' then now() else stored_at end,
       updated_at=now(),
-      notes=case when p_notes is not null and length(trim(p_notes))>0 then concat_ws(E'\\n',nullif(notes,''),p_notes) else notes end
+      notes=case when p_notes is not null and length(trim(p_notes))>0 then concat_ws(E'\n',nullif(notes,''),p_notes) else notes end
   where id=p_sample_id;
 
   insert into public.clinical_sample_events
