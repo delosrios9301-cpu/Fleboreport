@@ -103,29 +103,99 @@ async function syncBoxes(studies){
   }
  }
 }
+async function loadRemoteConfiguration(){
+ const stateNow=app()||{},oldStudies=stateNow.clinicalStudies||[],oldVisits=stateNow.clinicalVisits||[],oldTypes=stateNow.clinicalSampleTypes||[];
+ const [sr,vr,tr]=await Promise.all([
+  client.from('clinical_studies').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_visits').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_sample_types').select('*').eq('workspace_id',workspaceId)
+ ]);
+ if(sr.error)fail(sr.error);if(vr.error)fail(vr.error);if(tr.error)fail(tr.error);
+ const studies=(sr.data||[]).map(row=>{
+  const old=oldStudies.find(x=>x.cloudId===row.id||String(x.protocol||'').toLowerCase()===String(row.protocol_code||'').toLowerCase())||{};
+  return Object.assign({},old,{id:old.id||'cloud-st-'+row.id,cloudId:row.id,protocol:row.protocol_code,name:row.name,sponsor:row.sponsor||'',cro:row.cro||'',investigator:row.principal_investigator||'',status:row.status,startDate:row.starts_on||'',endDate:row.ends_on||'',notes:row.notes||'',visitIds:[],sampleTypeIds:[]});
+ });
+ const visits=(vr.data||[]).map(row=>{
+  const study=studies.find(x=>x.cloudId===row.study_id);if(!study)return null;
+  const old=oldVisits.find(x=>x.cloudId===row.id||(x.id===row.code&&study.visitIds.includes(x.id)))||{};
+  const item=Object.assign({},old,{id:old.id||'cloud-v-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,order:row.sort_order||0,dayScheduled:row.scheduled_day,active:row.active});
+  study.visitIds.push(item.id);return item;
+ }).filter(Boolean);
+ const types=(tr.data||[]).map(row=>{
+  const study=studies.find(x=>x.cloudId===row.study_id);if(!study)return null;
+  const old=oldTypes.find(x=>x.cloudId===row.id)||{};
+  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',description:row.description||'',active:row.active});
+  study.sampleTypeIds.push(item.id);return item;
+ }).filter(Boolean);
+ window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:studies,clinicalVisits:visits,clinicalSampleTypes:types}),{silent:true});
+}
+async function loadRemoteBoxes(){
+ const stateNow=app()||{};
+ const [fr,dr,rr,tr,br]=await Promise.all([
+  client.from('clinical_freezers').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_freezer_drawers').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_racks').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_rack_trays').select('*').eq('workspace_id',workspaceId),
+  client.from('clinical_boxes').select('*').eq('workspace_id',workspaceId).eq('active',true)
+ ]);
+ for(const q of [fr,dr,rr,tr,br])if(q.error)fail(q.error);
+ const freezerRows=fr.data||[],drawerRows=dr.data||[],rackRows=rr.data||[],trayRows=tr.data||[],boxRows=br.data||[];
+ const freezers=freezerRows.map(f=>Object.assign({},(stateNow.clinicalFreezers||[]).find(x=>x.cloudId===f.id)||{},{id:f.id,cloudId:f.id,name:f.name,drawers:drawerRows.filter(d=>d.freezer_id===f.id).map(d=>({id:d.id,cloudId:d.id,name:d.name||('Gaveta '+d.drawer_no),drawerNo:d.drawer_no}))}));
+ const racks=rackRows.map(r=>{
+  const d=drawerRows.find(x=>x.id===r.drawer_id),f=d&&freezerRows.find(x=>x.id===d.freezer_id);
+  return{id:r.id,cloudId:r.id,freezerId:f&&f.id,freezer:f&&f.name,drawerId:d&&d.id,drawer:d&&(d.name||('Gaveta '+d.drawer_no)),name:r.name,trays:trayRows.filter(t=>t.rack_id===r.id).map(t=>'Bandeja '+t.tray_no)};
+ });
+ const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x.id]));
+ const locations=boxRows.map(b=>{
+  const tray=trayRows.find(x=>x.id===b.tray_id),rack=tray&&rackRows.find(x=>x.id===tray.rack_id),drawer=rack&&drawerRows.find(x=>x.id===rack.drawer_id),freezer=drawer&&freezerRows.find(x=>x.id===drawer.freezer_id);
+  return{id:b.id,cloudId:b.id,freezerId:freezer&&freezer.id,freezer:freezer&&freezer.name,drawerId:drawer&&drawer.id,drawer:drawer&&(drawer.name||('Gaveta '+drawer.drawer_no)),rackId:rack&&rack.id,rack:rack&&rack.name,tray:'Bandeja '+(tray&&tray.tray_no),trayNo:tray&&tray.tray_no,box:b.box_code,position:'Posición '+b.slot_no,positionNo:b.slot_no,storageStage:b.storage_stage,aliquotCapacity:b.aliquot_capacity,studyId:studyMap.get(b.study_id)||'',studyCloudId:b.study_id};
+ });
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true});
+}
+async function loadRemoteSamples(){
+ const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
+ const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).order('received_at',{ascending:false}).limit(5000);
+ if(r.error)fail(r.error);
+ const [containers,events,profiles]=await Promise.all([
+  client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId),
+  client.from('clinical_sample_events').select('sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).limit(10000),
+  client.from('profiles').select('user_id,display_name')
+ ]);
+ if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);
+ const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
+ const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x]));
+ const visitMap=new Map((stateNow.clinicalVisits||[]).map(x=>[x.cloudId,x]));
+ const typeMap=new Map((stateNow.clinicalSampleTypes||[]).map(x=>[x.cloudId,x]));
+ const patientMap=new Map((stateNow.patients||[]).filter(x=>x.cloudPatientId).map(x=>[x.cloudPatientId,x]));
+ const next=(r.data||[]).map(row=>{
+  const old=oldSamples.find(x=>x.cloudId===row.id||x.id===row.legacy_id)||{};
+  const study=studyMap.get(row.study_id),visit=visitMap.get(row.visit_id),type=typeMap.get(row.sample_type_id),patient=patientMap.get(row.patient_id);
+  const d=new Date(row.collection_at),rd=new Date(row.received_at);
+  const bars=(containers.data||[]).filter(x=>x.sample_id===row.id).map(x=>x.barcode);
+  return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||row.processed_by||'',receivedBy:profileMap.get(row.received_by)||row.received_by||'',notes:row.notes||'',temporaryBoxCloudId:row.temporary_box_id,definitiveBoxCloudId:row.definitive_box_id,reviewedAt:row.reviewed_at,processingStartedAt:row.processing_started_at,storedAt:row.stored_at,createdAt:row.created_at,updatedAt:row.updated_at});
+ });
+ const ids=new Set(next.map(x=>x.id)),merged=next.concat(oldSamples.filter(x=>!x.cloudId&&!ids.has(x.id)));
+ const history=(events.data||[]).map(e=>{
+  const sample=(r.data||[]).find(x=>x.id===e.sample_id);return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
+ });
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:history}),{silent:true});
+}
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
- const s=app()||{},studies=s.clinicalStudies||[],visits=s.clinicalVisits||[],types=s.clinicalSampleTypes||[];
- for(const study of studies){
-  let sid='';
-  if(['admin'].includes(role)) sid=await saveStudy(study);
-  else{
-   let q=await client.from('clinical_studies').select('id').eq('workspace_id',workspaceId).eq('protocol_code',study.protocol).maybeSingle();
-   if(q.error)fail(q.error);if(!q.data)throw new Error('El estudio '+study.protocol+' aún no está publicado en la plantilla maestra de la nube. Solicita al administrador que lo sincronice.');
-   sid=q.data.id;study.cloudId=sid;
+ const stateNow=app()||{},studies=stateNow.clinicalStudies||[],visits=stateNow.clinicalVisits||[],types=stateNow.clinicalSampleTypes||[];
+ if(role==='admin'){
+  for(const study of studies){
+   const sid=await saveStudy(study);
+   const linkedVisits=visits.filter(v=>(study.visitIds||[]).includes(v.id));
+   for(const visit of linkedVisits)await saveVisit(study,sid,visit);
+   const linkedTypes=types.filter(t=>(study.sampleTypeIds||[]).includes(t.id));
+   for(const type of linkedTypes)await saveSampleType(study,sid,type);
   }
-  const linkedVisits=visits.filter(v=>(study.visitIds||[]).includes(v.id));
-  for(const visit of linkedVisits){
-   if(['admin','clinician'].includes(role)) await saveVisit(study,sid,visit);
-   else{const code=String(visit.code||visit.id||visit.name).trim(),q=await client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',sid).eq('code',code).maybeSingle();if(q.error)fail(q.error);if(!q.data)throw new Error('La visita '+visit.name+' no está configurada en la nube.');visit.cloudId=q.data.id}
-  }
-  const linkedTypes=types.filter(t=>(study.sampleTypeIds||[]).includes(t.id));
-  for(const type of linkedTypes){
-   if(['admin','clinician'].includes(role)) await saveSampleType(study,sid,type);
-   else{const code=String(type.code||type.id||type.name).trim(),q=await client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',sid).eq('code',code).maybeSingle();if(q.error)fail(q.error);if(!q.data)throw new Error('El tipo de muestra '+type.name+' no está configurado en la nube.');type.cloudId=q.data.id}
-  }
+  await syncBoxes(studies);
  }
- await syncBoxes(studies);
+ await loadRemoteConfiguration();
+ await loadRemoteBoxes();
+ await loadRemoteSamples();
  if(window.FleboAppState&&window.FleboAppState.save)window.FleboAppState.save();
  return true;
 }
