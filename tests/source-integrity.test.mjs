@@ -214,6 +214,7 @@ test('las bandejas separan la revisión clínica del procesamiento y confirman t
   assert.match(html, /transitionResult\.ok!==true\|\|transitionResult\.status!==next/);
   assert.match(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteBoxes\(\);await loadRemoteSamples\(\);return true\}/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
 });
 
