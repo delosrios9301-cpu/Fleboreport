@@ -1478,7 +1478,7 @@ window.renderClinicalStorageManagement=renderStorageManagement;
   var synced=await syncStorageConfigurationNow();renderStorageManagement();toast(synced?'Rack sincronizado en la nube.':'Rack guardado localmente; la sincronización con la nube quedó pendiente.');
  }
  window.createClinicalRack=createClinicalRack;
- function createClinicalStorageBox(){
+ async function createClinicalStorageBox(){
  var id=selectedValue('storageBoxEditId'),old=state.clinicalLocations.find(b=>b.id===id),fid=selectedValue('storageBoxFreezer'),did=selectedValue('storageBoxDrawer'),rid=selectedValue('storageBoxRack'),tray=selectedValue('storageBoxTray'),sid=selectedValue('storageBoxStudy'),name=(document.getElementById('storageBoxName')||{}).value.trim(),pos=selectedValue('storageBoxPosition'),stage=selectedValue('storageBoxStage'),capacity=Number(selectedValue('storageBoxCapacity'));
  var freezer=state.clinicalFreezers.find(f=>f.id===fid),drawer=freezer&&(freezer.drawers||[]).find(d=>d.id===did),rack=state.clinicalRacks.find(r=>r.id===rid);
  if(!freezer||!state.clinicalStudies.some(s=>s.id===sid)||!name||!['temporal','definitivo'].includes(stage)||!Number.isInteger(capacity)||capacity<1){toast('Completa congelador, estudio, identificador, etapa y capacidad.');return}
