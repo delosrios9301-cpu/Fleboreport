@@ -29,26 +29,36 @@ async function saveStudy(study){
 }
 async function saveVisit(study,studyCloudId,visit){
  const code=String(visit.code||visit.id||visit.name).trim();
- let r=await client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).order('id',{ascending:true}).limit(1);
- if(r.error)fail(r.error);r.data=Array.isArray(r.data)?(r.data[0]||null):r.data;
  const spec=study.visitSpecs&&study.visitSpecs[visit.id]||{};
- const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:visit.name,sort_order:Number(visit.order||visit.sortOrder||0),scheduled_day:spec.dayScheduled!=null?Number(spec.dayScheduled):(visit.dayScheduled!=null?Number(visit.dayScheduled):null),active:visit.active!==false};
- let row=r.data;
- if(row){const id=row.id;const u=await client.from('clinical_visits').update(payload).eq('id',id);if(u.error)fail(u.error);row={id};}
- else{const i=await client.from('clinical_visits').insert(payload).select('id').single();if(i.error)fail(i.error);row=i.data}
- visit.cloudId=row.id;return row.id;
+ const result=await client.rpc('upsert_clinical_visit_config',{
+  p_workspace_id:workspaceId,p_study_id:studyCloudId,p_code:code,p_name:visit.name,
+  p_sort_order:Number(visit.order||visit.sortOrder||0),
+  p_scheduled_day:spec.dayScheduled!=null?Number(spec.dayScheduled):(visit.dayScheduled!=null?Number(visit.dayScheduled):null),
+  p_active:visit.active!==false
+ });
+ if(result.error)fail(result.error);
+ const id=Array.isArray(result.data)?result.data[0]:result.data;
+ if(!id)throw new Error('Supabase no devolvió el identificador de la visita.');
+ visit.cloudId=id;return id;
 }
 async function saveSampleType(study,studyCloudId,type){
  const code=String(type.code||type.id||type.name).trim();
- let r=await client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).order('id',{ascending:true}).limit(1);
- if(r.error)fail(r.error);r.data=Array.isArray(r.data)?(r.data[0]||null):r.data;
  const spec=study.sampleSpecs&&study.sampleSpecs[type.id]||{};
  const merged=Object.assign({},type,spec);
- const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:type.name,tube:merged.tube||null,volume:merged.volume||null,processing_protocol:merged.processingRequired||merged.processing_protocol||null,color:merged.color||null,marking:merged.marking||null,expected_containers:merged.expectedContainers==null?null:Number(merged.expectedContainers),expected_primary_aliquots:merged.expectedPrimaryAliquots==null?null:Number(merged.expectedPrimaryAliquots),expected_backup_aliquots:merged.expectedBackupAliquots==null?null:Number(merged.expectedBackupAliquots),description:merged.description||null,active:type.active!==false};
- let row=r.data;
- if(row){const id=row.id;const u=await client.from('clinical_sample_types').update(payload).eq('id',id);if(u.error)fail(u.error);row={id};}
- else{const i=await client.from('clinical_sample_types').insert(payload).select('id').single();if(i.error)fail(i.error);row=i.data}
- type.cloudId=row.id;return row.id;
+ const result=await client.rpc('upsert_clinical_sample_type_config',{
+  p_workspace_id:workspaceId,p_study_id:studyCloudId,p_code:code,p_name:type.name,
+  p_tube:merged.tube||null,p_volume:merged.volume||null,
+  p_processing_protocol:merged.processingRequired||merged.processing_protocol||null,
+  p_color:merged.color||null,p_marking:merged.marking||null,
+  p_expected_containers:merged.expectedContainers==null?null:Number(merged.expectedContainers),
+  p_expected_primary_aliquots:merged.expectedPrimaryAliquots==null?null:Number(merged.expectedPrimaryAliquots),
+  p_expected_backup_aliquots:merged.expectedBackupAliquots==null?null:Number(merged.expectedBackupAliquots),
+  p_description:merged.description||null,p_active:type.active!==false
+ });
+ if(result.error)fail(result.error);
+ const id=Array.isArray(result.data)?result.data[0]:result.data;
+ if(!id)throw new Error('Supabase no devolvió el identificador del tipo de muestra.');
+ type.cloudId=id;return id;
 }
 async function syncBoxes(studies){
  const s=app()||{},boxes=s.clinicalLocations||[],localStudies=studies||s.clinicalStudies||[];if(role!=='admin')return;
