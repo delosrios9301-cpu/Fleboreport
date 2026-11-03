@@ -218,6 +218,38 @@ body.module-menu-open{overflow:hidden}
 
 .clinical-config-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 18px}.clinical-config-tabs button{border:0;border-radius:999px;padding:9px 13px;background:#f0f5f8;color:#38556a;font-weight:750}.clinical-config-tabs button.active{background:#0c8b83;color:#fff}.clinical-config-section[hidden]{display:none!important}.clinical-config-section{margin-top:12px}.clinical-config-section>.fields{max-width:900px}.clinical-config-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px;background:#f5f9fb;border-radius:11px}.clinical-config-row small{display:block;color:#728596;margin-top:3px}@media(max-width:760px){.clinical-config-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.clinical-config-tabs button{font-size:12px}}
 .clinical-study-sample-specs{display:grid;gap:8px;margin-top:10px}.clinical-study-sample-spec{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr;gap:8px;align-items:end;padding:10px;background:#f5f9fb;border-radius:10px}.clinical-study-sample-spec strong{align-self:center;color:#29475d}@media(max-width:760px){.clinical-study-sample-spec{grid-template-columns:1fr 1fr}.clinical-study-sample-spec strong{grid-column:1/-1}}
+
+/* Corrección responsive de Jornada para iPad y tablets */
+#view-journey{min-width:0;width:100%}
+#view-journey>.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#view-journey>.page-heading>div:first-child{min-width:0;flex:1 1 280px}
+#view-journey>.page-heading>.heading-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:1 1 320px;min-width:0;flex-wrap:wrap}
+#view-journey>.page-heading .shared-operational-kpis{min-width:0;max-width:100%}
+#view-journey>.page-heading .heading-actions .heading-actions{display:flex;gap:8px;flex-wrap:wrap}
+#view-journey>.module-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.72fr);gap:15px;align-items:start;width:100%;min-width:0}
+#view-journey>.module-grid>.panel{min-width:0;width:100%}
+#view-journey .form-panel,#view-journey .fields,#view-journey .field{min-width:0}
+#view-journey input,#view-journey select,#view-journey textarea,#view-journey .test-picker{max-width:100%;min-width:0}
+#view-journey .list-row{min-width:0;flex-wrap:wrap}
+@media(max-width:1180px){
+ #view-journey>.module-grid{grid-template-columns:minmax(0,1fr)}
+ #view-journey>.module-grid>.panel{width:100%}
+}
+@media(max-width:900px){
+ #view-journey>.page-heading{display:block}
+ #view-journey>.page-heading>.heading-actions{justify-content:flex-start;margin-top:14px}
+ #view-journey>.page-heading .shared-operational-kpis{width:100%}
+ #view-journey>.page-heading .heading-actions .heading-actions{width:100%}
+ #view-journey .form-panel{padding:clamp(13px,2.5vw,18px)}
+}
+@media(max-width:600px){
+ #view-journey>.page-heading>.heading-actions{display:grid;grid-template-columns:minmax(0,1fr)}
+ #view-journey>.page-heading .heading-actions .heading-actions{display:flex}
+ #view-journey>.page-heading .heading-actions .heading-actions .btn{flex:1 1 auto}
+ #view-journey .fields{grid-template-columns:minmax(0,1fr)}
+ #view-journey .field.full{grid-column:auto}
+ #view-journey .form-actions .btn{max-width:100%;white-space:normal}
+}
 </style>
 <style>
 .clinical-dash-panel{margin:0 0 15px}.clinical-dash-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.clinical-dash-kpi{padding:11px 10px;border-radius:12px;background:linear-gradient(145deg,#f7fbfc,#edf5f7);min-width:0}.clinical-dash-kpi small{display:block;color:#728796;font-size:9px;line-height:1.35}.clinical-dash-kpi b{display:block;margin-top:5px;color:#163c55;font-size:21px}.clinical-dash-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}.clinical-dash-columns>section{min-width:0}.clinical-dash-columns h3,.clinical-dash-recent h3{margin:0 0 10px;color:#294b60;font-size:11px}.clinical-dash-status-list,.clinical-dash-type-list{display:grid;gap:8px}.clinical-dash-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 9px;align-items:center;font-size:10px}.clinical-dash-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#506b7d}.clinical-dash-row b{color:#183e56}.clinical-dash-row i{grid-column:1/-1;height:6px;border-radius:99px;background:#edf2f4;overflow:hidden}.clinical-dash-row i em{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0c8b83,#51c4a9)}.clinical-dash-empty{color:#80929e;font-size:10px;padding:8px 0}.clinical-dash-storage{display:grid;grid-template-columns:1fr 1fr;gap:7px}.clinical-dash-storage div{padding:9px;border-radius:10px;background:#f4f8fa}.clinical-dash-storage small{display:block;color:#738897;font-size:9px}.clinical-dash-storage b{display:block;margin-top:4px;color:#173e55;font-size:17px}.clinical-dash-capacity{margin-top:8px;padding:9px 10px;border-radius:10px;background:#eef8f5;color:#176d66;font-size:10px;line-height:1.45}.clinical-dash-recent{margin-top:17px}.clinical-dash-recent .op-table td,.clinical-dash-recent .op-table th{font-size:10px}.clinical-dash-state{display:inline-flex;border-radius:99px;padding:4px 7px;background:#eff5f6;color:#426174;font-size:9px;font-weight:750;white-space:nowrap}
@@ -382,8 +414,7 @@ body.module-menu-open{overflow:hidden}
 </section>
 
 <section class="view" id="view-journey">
-<div class="page-heading"><div><div class="eyebrow">OPERACIÓN</div><h1>Jornada actual</h1><p>Registra el horario y suma las pruebas realizadas durante el período.</p></div><div class="heading-actions"><div class="shared-operational-kpis op-kpis" data-shared-kpis></div>
-<div class="module-grid"><button class="btn" onclick="newJourney()">＋ Nueva jornada</button><button class="btn primary" onclick="navigate('reports')">Ver resumen →</button></div></div>
+<div class="page-heading"><div><div class="eyebrow">OPERACIÓN</div><h1>Jornada actual</h1><p>Registra el horario y suma las pruebas realizadas durante el período.</p></div><div class="heading-actions"><div class="shared-operational-kpis op-kpis" data-shared-kpis></div><div class="heading-actions"><button class="btn" onclick="newJourney()">＋ Nueva jornada</button><button class="btn primary" onclick="navigate('reports')">Ver resumen →</button></div></div></div>
 <div class="module-grid">
 <section class="panel form-panel"><h2>Datos de la jornada</h2><div class="fields">
 <div class="field"><label for="journeyCompany">Empresa de la jornada</label><select id="journeyCompany"><option value="">Sin especificar</option></select><div class="field-help">Si no aparece, agrégala aquí para guardarla y seleccionarla.</div><details style="margin-top:8px"><summary style="cursor:pointer;color:#0c8179;font-size:10px;font-weight:800">＋ Registrar empresa nueva</summary><div style="display:flex;gap:7px;margin-top:8px"><input id="journeyNewCompany" placeholder="Nombre de la empresa"><button type="button" class="btn" onclick="saveJourneyCompany()">Guardar</button></div></details></div>
