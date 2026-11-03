@@ -73,10 +73,10 @@ function schedule(delay=900){
  clearTimeout(timer);timer=setTimeout(syncNow,delay);
 }
 function subscribe(){
- if(!client||!workspaceId)return;if(channel)client.removeChannel(channel);
- channel=client.channel('flebo-patient-master-'+workspaceId)
-  .on('postgres_changes',{event:'*',schema:'public',table:TABLE,filter:'workspace_id=eq.'+workspaceId},()=>{if(!busy)syncNow();else dirty=true})
-  .subscribe();
+ // Los expedientes se actualizan mediante syncNow al abrir la app,
+ // al recuperar conexión y por consulta periódica; evitamos otro canal Realtime.
+ if(channel&&client)client.removeChannel(channel);
+ channel=null;
 }
 async function connect(){
  const auth=window.FleboAuth;if(!auth)return;
