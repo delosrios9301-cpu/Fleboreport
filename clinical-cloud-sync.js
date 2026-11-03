@@ -241,8 +241,8 @@ async function transition(sample,next,args){
  return data;
 }
 window.FleboClinicalCloud={connect,syncConfiguration,registerSample,transition,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
-window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect();else ready=false});
+window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
-function boot(){connect()}
+function boot(){connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 })();
