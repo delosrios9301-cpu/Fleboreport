@@ -13,7 +13,8 @@ function status(message,error){
 }
 function app(){return window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null}
 function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch(_){return{}}}
-function saveMeta(hash,rev){localStorage.setItem(META_KEY,JSON.stringify({workspaceId,revision:rev,hash,syncedAt:new Date().toISOString()}));revision=rev;lastHash=hash}
+function saveMeta(hash,rev,resetEpoch){const old=meta();localStorage.setItem(META_KEY,JSON.stringify({workspaceId,revision:rev,hash,syncedAt:new Date().toISOString(),resetEpoch:resetEpoch===undefined?(old.resetEpoch||null):resetEpoch}));revision=rev;lastHash=hash}
+function backupResetLocalState(state,epoch){if(!meaningful(state))return false;const key='fleboReport.resetBackup.'+workspaceId+'.'+epoch;try{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,resetEpoch:epoch,state}));return true}catch(e){throw new Error('No se pudo respaldar el estado local anterior al restablecimiento. Libera espacio del navegador e inténtalo de nuevo.')}}
 function backupUnlinkedLocalState(state,workspace){if(!meaningful(state))return false;const key='fleboReport.unlinkedLocalBackup.'+workspace;try{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId:workspace,state:state}));return true}catch(e){throw new Error('No se pudo respaldar el estado local previo. No se modificaron los datos; libera espacio del navegador e inténtalo de nuevo.')}}
 function meaningful(s){
  if(!s||typeof s!=='object')return false;
@@ -60,7 +61,7 @@ async function hashState(s){
  let h=2166136261;for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16);
 }
 async function fetchRemote(){
- const r=await client.from('workspace_app_state').select('state,revision,updated_at').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
+ const r=await client.from('workspace_app_state').select('state,revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
  if(r.error)throw r.error;return r.data||null;
 }
 async function writeRemote(state,expected){
@@ -86,7 +87,7 @@ async function publishMerged(local,remote,expected){
  for(let attempt=0;attempt<3;attempt++){
   const result=await writeRemote(candidate,expected);
   if(result.saved){
-   const h=await hashState(candidate);saveMeta(h,result.revision);
+   const h=await hashState(candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
    applyCloudState(candidate);
    return true;
   }
@@ -113,16 +114,17 @@ async function connect(){
   }
   const localHash=await hashState(local);
   let remote=await fetchRemote();
+  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
   if(!remote){
    if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
    const result=await writeRemote(local,0);
    if(!result.saved){remote=await fetchRemote();if(!remote)throw new Error('No se pudo inicializar el espacio de datos en la nube.')}
-   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision);ready=true;status('Datos locales migrados a la nube');subscribe();return}
+   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);ready=true;status('Datos locales migrados a la nube');subscribe();return}
   }
   if(remote){
    const sameWorkspace=m.workspaceId===workspaceId;
    if(sameWorkspace&&m.hash===localHash){
-    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision)}
+    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision,remote.reset_epoch||null)}
     else{revision=remote.revision;lastHash=localHash}
    }else if(!sameWorkspace){
     const backedUp=backupUnlinkedLocalState(local,workspaceId);
@@ -152,8 +154,10 @@ async function receiveRemote(){
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
-  const remote=await fetchRemote();if(!remote||remote.revision<=revision)return;
+  const remote=await fetchRemote();if(!remote)return;
   const local=app()||{},localHash=await hashState(local),m=meta();
+  if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+remote.revision);return}
+  if(remote.revision<=revision)return;
   if(m.workspaceId!==workspaceId){
    const backedUp=backupUnlinkedLocalState(local,workspaceId);
    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
@@ -176,6 +180,7 @@ async function syncLocal(){
   const local=app()||{},localHash=await hashState(local),m=meta();
   if(m.workspaceId===workspaceId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return}
   let remote=await fetchRemote();
+  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento aplicado; se descartaron los datos locales antiguos de la sincronización.');return}
   if(!remote){
    const result=await writeRemote(local,0);
    if(!result.saved)throw new Error('No se pudo crear la copia en la nube.');
