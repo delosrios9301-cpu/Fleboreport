@@ -1334,7 +1334,7 @@ async function receiveClinicalSample(){
  collectionDate=document.getElementById('clinicalCollectionDate').value,collectionTime=document.getElementById('clinicalCollectionTime').value,
  studyId=document.getElementById('clinicalProcessStudy').value,subjectCode=document.getElementById('clinicalProcessSubject').value.trim(),
  patientId=document.getElementById('clinicalProcessPatient').value,barcodeRaw=document.getElementById('clinicalTubeBarcodes').value,
- tubeBarcodes=barcodeRaw.split(/[;,\\n]+/).map(function(x){return x.trim()}).filter(Boolean),
+ tubeBarcodes=barcodeRaw.split(/[;,\n]+/).map(function(x){return x.trim()}).filter(Boolean),
  visitId=document.getElementById('clinicalProcessVisit').value,sampleTypeId=document.getElementById('clinicalSampleType').value,
  tubes=Number(document.getElementById('clinicalTubeCount').value),
  study=state.clinicalStudies.find(function(x){return x.id===studyId}),
