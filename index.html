@@ -449,6 +449,58 @@ body.module-menu-open{overflow:hidden}
 }
 @media(prefers-reduced-motion:reduce){.clinical-history-toggle{transition:none}}
 </style>
+<style id="clinical-mobile-heading-spacing-fix-v1">
+/* En teléfonos, acerca las tarjetas operativas al encabezado de cada módulo clínico.
+   El alcance queda limitado a móvil; escritorio y tabletas grandes conservan su diseño. */
+@media(max-width:600px){
+  #view-clinical-studies>.page-heading,
+  #view-clinical-processing>.page-heading{
+    display:block!important;
+    margin:0 0 7px!important;
+    padding:0!important;
+    gap:0!important;
+  }
+  #view-clinical-studies>.page-heading>div,
+  #view-clinical-processing>.page-heading>div{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  #view-clinical-studies>.page-heading .eyebrow,
+  #view-clinical-processing>.page-heading .eyebrow{
+    margin:0 0 3px!important;
+    line-height:1.2!important;
+  }
+  #view-clinical-studies>.page-heading h1,
+  #view-clinical-processing>.page-heading h1{
+    margin:0 0 4px!important;
+    line-height:1.18!important;
+  }
+  #view-clinical-studies>.page-heading p,
+  #view-clinical-processing>.page-heading p{
+    margin:0!important;
+    line-height:1.3!important;
+  }
+  #view-clinical-studies>.clinical-kpis,
+  #view-clinical-processing>.clinical-kpis{
+    margin:0 0 12px!important;
+    padding:0!important;
+    gap:8px!important;
+  }
+  #view-clinical-studies>.clinical-kpis .clinical-kpi,
+  #view-clinical-processing>.clinical-kpis .clinical-kpi{
+    margin:0!important;
+  }
+}
+@media(max-width:380px){
+  #view-clinical-studies>.page-heading,
+  #view-clinical-processing>.page-heading{margin-bottom:5px!important}
+  #view-clinical-studies>.clinical-kpis,
+  #view-clinical-processing>.clinical-kpis{gap:7px!important}
+}
+</style>
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
