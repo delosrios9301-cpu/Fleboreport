@@ -150,7 +150,7 @@ async function loadRemoteBoxes(){
   const tray=trayRows.find(x=>x.id===b.tray_id),rack=tray&&rackRows.find(x=>x.id===tray.rack_id),drawer=rack&&drawerRows.find(x=>x.id===rack.drawer_id),freezer=drawer&&freezerRows.find(x=>x.id===drawer.freezer_id);
   return{id:b.id,cloudId:b.id,freezerId:freezer&&freezer.id,freezer:freezer&&freezer.name,drawerId:drawer&&drawer.id,drawer:drawer&&(drawer.name||('Gaveta '+drawer.drawer_no)),rackId:rack&&rack.id,rack:rack&&rack.name,tray:'Bandeja '+(tray&&tray.tray_no),trayNo:tray&&tray.tray_no,box:b.box_code,position:'Posición '+b.slot_no,positionNo:b.slot_no,storageStage:b.storage_stage,aliquotCapacity:b.aliquot_capacity,studyId:studyMap.get(b.study_id)||'',studyCloudId:b.study_id};
  });
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true});
+ const live=app()||stateNow,oldFreezers=live.clinicalFreezers||[],oldRacks=live.clinicalRacks||[],oldBoxes=live.clinicalLocations||[],mergedFreezers=freezers.concat(oldFreezers.filter(x=>!freezers.some(y=>String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))),mergedRacks=racks.concat(oldRacks.filter(x=>!racks.some(y=>y.name===x.name&&y.drawer===x.drawer&&y.freezer===x.freezer))),mergedBoxes=locations.concat(oldBoxes.filter(x=>!locations.some(y=>y.box===x.box&&y.studyId===x.studyId&&y.storageStage===x.storageStage)));window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:mergedFreezers,clinicalRacks:mergedRacks,clinicalLocations:mergedBoxes}),{silent:true});
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
