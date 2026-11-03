@@ -144,6 +144,7 @@ test('la sincronización de datos está conectada, aislada por usuario y tiene s
   assert.match(html, /flebo:local-state-saved/);
   assert.match(cloudSyncMigration, /primary key \(workspace_id,user_id\)/i);
   assert.match(cloudSyncMigration, /user_id=auth\.uid\(\)/i);
+  assert.match(cloudSync, /\.eq\('user_id',userId\)/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
 });
 
