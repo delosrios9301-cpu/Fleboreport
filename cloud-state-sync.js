@@ -2,7 +2,7 @@
 'use strict';
 const META_KEY='fleboReport.cloudSync.v1';
 const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalSampleHistory','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
-let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,busy=false,timer=null,started=false;
+let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
  const el=statusEl();if(!el)return;el.textContent=message;el.dataset.error=error?'true':'false';
@@ -80,6 +80,7 @@ async function publishMerged(local,remote,expected){
  }
  throw new Error('Hay cambios simultáneos desde otro dispositivo. Se conservaron los datos locales; vuelve a sincronizar en unos segundos.');
 }
+function runPending(){if(dirtyAgain&&ready){dirtyAgain=false;clearTimeout(timer);timer=setTimeout(syncLocal,450)}}
 async function connect(){
  if(busy)return;busy=true;
  try{
@@ -113,7 +114,7 @@ async function connect(){
   }
   ready=true;status('Sincronizado con la nube · versión '+revision);subscribe();
  }catch(e){ready=false;console.error('[FleboReport Sync]',e);status('Error de sincronización: '+(e.message||'No se pudo conectar'),true)}
- finally{busy=false}
+ finally{busy=false;runPending()}
 }
 function subscribe(){
  if(!client||!workspaceId)return;
@@ -136,10 +137,11 @@ async function receiveRemote(){
    status('Cambios de otros dispositivos integrados · versión '+revision);
   }
  }catch(e){console.error('[FleboReport Sync] Realtime:',e);status('No se pudo actualizar desde la nube: '+(e.message||'error'),true)}
- finally{busy=false}
+ finally{busy=false;runPending()}
 }
 async function syncLocal(){
- if(!ready||busy||!client||!workspaceId)return;
+ if(!ready||!client||!workspaceId)return;
+ if(busy){dirtyAgain=true;return}
  busy=true;
  try{
   const local=app()||{},localHash=await hashState(local),m=meta();
@@ -163,7 +165,7 @@ async function syncLocal(){
   }
   status('Sincronizado con la nube · versión '+revision);
  }catch(e){console.error('[FleboReport Sync] Guardado:',e);status('Pendiente de sincronizar: '+(e.message||'error'),true)}
- finally{busy=false}
+ finally{busy=false;runPending()}
 }
 function schedule(){if(!ready)return;status('Guardando cambios en la nube…');clearTimeout(timer);timer=setTimeout(syncLocal,1000)}
 window.addEventListener('flebo:local-state-saved',schedule);
