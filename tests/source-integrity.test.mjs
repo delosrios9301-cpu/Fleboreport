@@ -244,3 +244,12 @@ test('las muestras locales retiradas no reaparecen al sincronizar desde la nube'
   assert.match(clinicalCloudSync, /!locallyDeleted\.has\(String\(x\.id\)\)/);
   assert.match(html, /No se modificó Supabase/);
 });
+
+
+test('las eliminaciones de muestras se conservan en la sincronización general y no se fusionan de vuelta', () => {
+  assert.match(cloudSync, /clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory/);
+  assert.match(cloudSync, /deletedClinicalSampleIds=new Set\(\(out\.clinicalLocalDeletedSampleIds\|\|\[\]\)\.map\(String\)\)/);
+  assert.match(cloudSync, /out\.clinicalSamples=\(out\.clinicalSamples\|\|\[\]\)\.filter\(x=>!deletedClinicalSampleIds\.has\(String\(x\.id\)\)\)/);
+  assert.match(clinicalCloudSync, /visibleNext=next\.filter\(x=>!locallyDeleted\.has\(String\(x\.id\)\)\)/);
+  assert.match(html, /await window\.FleboClinicalCloud\.deleteSample\(sample,reason\);[\s\S]*?clinicalLocalDeletedSampleIds=Array\.from\(new Set/);
+});
