@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const META_KEY='fleboReport.cloudSync.v1';
-const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalSampleHistory','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
+const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -37,7 +37,10 @@ function mergeState(remote,local){
  });
  out.company=Object.assign({},local&&local.company||{},remote&&remote.company||{});
  if(local&&local.company)Object.keys(local.company).forEach(k=>{if((out.company[k]===''||out.company[k]==null)&&local.company[k])out.company[k]=local.company[k]});
- if(!remote||!remote.journey||(!remote.journey.date&&!remote.journey.responsible))out.journey=Object.assign({},local&&local.journey||{},remote&&remote.journey||{});
+ const remoteJourney=remote&&remote.journey||{},localJourney=local&&local.journey||{};
+ const remoteJourneyHas=!!(remoteJourney.start||remoteJourney.end||remoteJourney.responsible||remoteJourney.companyId);
+ const localJourneyHas=!!(localJourney.start||localJourney.end||localJourney.responsible||localJourney.companyId);
+ out.journey=localJourneyHas&&!remoteJourneyHas?Object.assign({},remoteJourney,localJourney):Object.assign({},localJourney,remoteJourney);
  out.selected=Array.isArray(remote&&remote.selected)?remote.selected:(local&&local.selected||[]);
  return out;
 }
