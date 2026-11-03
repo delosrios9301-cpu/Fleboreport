@@ -214,7 +214,7 @@ test('las bandejas separan la revisión clínica del procesamiento y confirman t
   assert.match(html, /transitionResult\.ok!==true\|\|transitionResult\.status!==next/);
   assert.match(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
-  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteBoxes\(\);await loadRemoteSamples\(\);return true\}/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
 });
 
@@ -252,4 +252,40 @@ test('las eliminaciones de muestras se conservan en la sincronización general y
   assert.match(cloudSync, /out\.clinicalSamples=\(out\.clinicalSamples\|\|\[\]\)\.filter\(x=>!deletedClinicalSampleIds\.has\(String\(x\.id\)\)\)/);
   assert.match(clinicalCloudSync, /visibleNext=next\.filter\(x=>!locallyDeleted\.has\(String\(x\.id\)\)\)/);
   assert.match(html, /await window\.FleboClinicalCloud\.deleteSample\(sample,reason\);[\s\S]*?clinicalLocalDeletedSampleIds=Array\.from\(new Set/);
+});
+
+
+const simpleProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
+const simpleProcessingMigration = await readFile(new URL('../supabase/migrations/20261103221950_simplify_clinical_processing_states.sql', import.meta.url), 'utf8');
+
+test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
+  assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
+  assert.ok(html.includes('src="./clinical-processing-simple.js"'));
+  const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
+  assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
+  for (const obsolete of ['clinicalBulkLocation', 'clinicalCryoPanel', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
+    assert.ok(!view.toLowerCase().includes(obsolete.toLowerCase()), 'el flujo ya no debe mostrar: ' + obsolete);
+  }
+  for (const state of ['PENDIENTE_PROCESO', 'PROCESANDO', 'ALMACENAMIENTO_TEMPORAL', 'CONGELADOR_DEFINITIVO']) {
+    assert.ok(simpleProcessing.includes(state), 'falta transición: ' + state);
+  }
+  assert.match(simpleProcessing, /startClinicalProcessing/);
+  assert.match(simpleProcessing, /completeClinicalSampleProcessing/);
+  assert.match(simpleProcessing, /finalizeClinicalSampleStorage/);
+  assert.match(simpleProcessing, /cloud\.transition\(sample,next/);
+});
+
+test('la base de datos permite completar almacenamiento temporal y definitivo sin cajas ni crioviales', () => {
+  assert.match(simpleProcessingMigration, /create or replace function public\.guard_clinical_sample_workflow/i);
+  assert.match(simpleProcessingMigration, /create or replace function public\.transition_clinical_sample/i);
+  assert.match(simpleProcessingMigration, /p_next_status='ALMACENAMIENTO_TEMPORAL' and v_old_status='PROCESANDO'/);
+  assert.match(simpleProcessingMigration, /p_next_status='CONGELADOR_DEFINITIVO' and v_old_status='ALMACENAMIENTO_TEMPORAL'/);
+  assert.doesNotMatch(simpleProcessingMigration, /clinical_cryovials/);
+  assert.doesNotMatch(simpleProcessingMigration, /p_primary_aliquots is null/);
+  assert.match(simpleProcessingMigration, /grant execute on function public\.transition_clinical_sample/i);
+});
+
+test('la sincronización de muestras ya no depende de leer ubicaciones de cajas', () => {
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
+  assert.doesNotMatch(clinicalCloudSync, /async function refreshSamples\(\)\{[^}]*loadRemoteBoxes/);
 });
