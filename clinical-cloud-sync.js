@@ -88,7 +88,11 @@ async function loadRemoteConfiguration(){
   const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
- const mergedStudies=studies.concat(oldStudies.filter(x=>!studies.some(y=>String(y.protocol||'').toLowerCase()===String(x.protocol||'').toLowerCase()))),mergedVisits=visits.concat(oldVisits.filter(x=>!visits.some(y=>y.studyId===x.studyId&&((x.code&&y.code===x.code)||y.name===x.name)))),mergedTypes=types.concat(oldTypes.filter(x=>!types.some(y=>y.studyId===x.studyId&&((x.code&&y.code===x.code)||y.name===x.name))));window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:mergedStudies,clinicalVisits:mergedVisits,clinicalSampleTypes:mergedTypes}),{silent:true});
+ const defaultVisitIds=new Set(['v-scr','v-bl','v-d1','v-d7','v-w4','v-m3','v-eos']),defaultTypeIds=new Set(['s-ser','s-pla','s-whb','s-pk','s-pd','s-adn','s-arn','s-bio','s-hem','s-qc','s-uri','s-sal','s-fec','s-tej','s-pbmc']);
+ const mergedStudies=studies.concat(oldStudies.filter(x=>!studies.some(y=>String(y.protocol||'').toLowerCase()===String(x.protocol||'').toLowerCase())));
+ const mergedVisits=visits.concat(oldVisits.filter(x=>!defaultVisitIds.has(String(x.id||''))&&!visits.some(y=>((x.code&&String(y.code||'').toLowerCase()===String(x.code).toLowerCase())||String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))));
+ const mergedTypes=types.concat(oldTypes.filter(x=>!defaultTypeIds.has(String(x.id||''))&&!types.some(y=>((x.code&&String(y.code||'').toLowerCase()===String(x.code).toLowerCase())||String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))));
+ window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:mergedStudies,clinicalVisits:mergedVisits,clinicalSampleTypes:mergedTypes}),{silent:true});
 }
 async function loadRemoteBoxes(){
  const s=app()||{};const [fr,dr,rr,tr,br]=await Promise.all([client.from('clinical_freezers').select('*').eq('workspace_id',workspaceId),client.from('clinical_freezer_drawers').select('*').eq('workspace_id',workspaceId),client.from('clinical_racks').select('*').eq('workspace_id',workspaceId),client.from('clinical_rack_trays').select('*').eq('workspace_id',workspaceId),client.from('clinical_boxes').select('*').eq('workspace_id',workspaceId).eq('active',true)]);
@@ -141,27 +145,37 @@ async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
  if(syncPromise)return syncPromise;
  syncPromise=(async function(){
-  let stage='sincronización de estudios y visitas';
+  let stage='lectura de configuración clínica en la nube';
   try{
-   const stateNow=app()||{},studies=stateNow.clinicalStudies||[],visits=stateNow.clinicalVisits||[],types=stateNow.clinicalSampleTypes||[];
-   if(role==='admin'){
-    for(const study of studies){
-     const sid=await saveStudy(study);
-     const linkedVisits=visits.filter(v=>(study.visitIds||[]).includes(v.id));
-     for(const visit of linkedVisits)await saveVisit(study,sid,visit);
-     const linkedTypes=types.filter(t=>(study.sampleTypeIds||[]).includes(t.id));
-     for(const type of linkedTypes)await saveSampleType(study,sid,type);
-    }
-    stage='sincronización de congeladores, gavetas, racks y cajas';
-    await syncBoxes(studies);
-   }
-   stage='lectura de configuración clínica en la nube';
    await loadRemoteConfiguration();
    stage='lectura de ubicaciones de almacenamiento';
    await loadRemoteBoxes();
    stage='lectura de muestras y crioviales';
    await loadRemoteSamples();
-   // La lectura de configuración remota no debe disparar una escritura global del estado.
+   return true;
+  }catch(error){
+   console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
+   throw new Error('Falló '+stage+': '+(error&&error.message?error.message:String(error)));
+  }
+ })();
+ try{return await syncPromise}finally{syncPromise=null}
+}
+async function saveConfiguration(){
+ requireReady(['admin']);
+ if(syncPromise){try{await syncPromise}catch(_){}}
+ syncPromise=(async function(){
+  let stage='guardado explícito de estudios, visitas y tipos de muestra';
+  try{
+   const stateNow=app()||{},studies=stateNow.clinicalStudies||[],visits=stateNow.clinicalVisits||[],types=stateNow.clinicalSampleTypes||[];
+   for(const study of studies){
+    const sid=await saveStudy(study);
+    const linkedVisits=visits.filter(v=>(study.visitIds||[]).includes(v.id));
+    for(const visit of linkedVisits)await saveVisit(study,sid,visit);
+    const linkedTypes=types.filter(t=>(study.sampleTypeIds||[]).includes(t.id));
+    for(const type of linkedTypes)await saveSampleType(study,sid,type);
+   }
+   await loadRemoteConfiguration();
+   await loadRemoteBoxes();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -261,14 +275,14 @@ async function moveCryovial(vial,box,position,notes){
 async function syncStorageConfiguration(){
  requireReady(['admin']);
  if(syncPromise){try{await syncPromise}catch(_){}}
+ await loadRemoteConfiguration();
  const s=app()||{},studies=s.clinicalStudies||[];
- for(const study of studies)await saveStudy(study);
  await syncBoxes(studies);
  await loadRemoteBoxes();
  return true;
 }
 async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteSamples();return true}
-window.FleboClinicalCloud={connect,syncConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
 function boot(){connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})})}
