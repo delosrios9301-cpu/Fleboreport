@@ -8,6 +8,7 @@ const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
+const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103110000_patient_document_normalized_search.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
@@ -156,6 +157,9 @@ test('los expedientes se sincronizan en la tabla maestra compartida del espacio'
   assert.match(patientCloudMigration, /sync_workspace_patient/i);
   assert.match(patientCloudMigration, /supabase_realtime/i);
   assert.match(patientCloudSync, /journeyHistory/);
+  assert.match(patientSearchMigration, /search_workspace_patients/i);
+  assert.match(patientSearchMigration, /regexp_replace/i);
+  assert.match(domicilios, /rpc\('search_workspace_patients'/);
 });
 
 test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de guardado local', () => {
