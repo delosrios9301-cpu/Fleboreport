@@ -320,7 +320,11 @@ async function activatePush(){
  const button=$('hvActivatePush'),status=$('hvPushStatus');
  const set=(message,error=false)=>{if(status){status.textContent=message;status.style.color=error?'#a33e47':'#557184'}};
  if(!cloud.ready||!cloud.client){set('Inicia sesión y espera a que la agenda conecte con el laboratorio.',true);return}
- if(!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window)||!window.isSecureContext){set('Este navegador o contexto no admite notificaciones Push. Usa FleboReport desde Chrome en HTTPS.',true);return}
+ const appleMobile=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const installedWebApp=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+ if(appleMobile&&!installedWebApp){set('Para instalar FleboReport en este iPad: abre esta página en Safari, toca Compartir → Añadir a pantalla de inicio, activa «Abrir como app» y pulsa Añadir. Después abre FleboReport desde el nuevo icono y vuelve a tocar Activar notificaciones.',true);return}
+ if(appleMobile&&(!('PushManager'in window)||!('Notification'in window))){set('Las notificaciones web requieren iPadOS 16.4 o posterior. Actualiza el iPad desde Ajustes → General → Actualización de software y vuelve a intentarlo desde FleboReport instalada en la pantalla de inicio.',true);return}
+ if(!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window)||!window.isSecureContext){set('Este navegador o contexto no admite notificaciones Push. En iPad, abre FleboReport instalada desde la pantalla de inicio y utiliza iPadOS 16.4 o posterior.',true);return}
  if(button){button.disabled=true;button.textContent='Activando…'}
  try{
   let permission=Notification.permission;
