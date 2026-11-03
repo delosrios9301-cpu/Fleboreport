@@ -102,7 +102,7 @@ async function loadRemoteBoxes(){
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
- const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).order('received_at',{ascending:false}).limit(5000);
+ const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).limit(5000);
  if(r.error)fail(r.error);
  const [containers,events,profiles,cryoRows,cryoEvents]=await Promise.all([
   client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId),
@@ -213,6 +213,16 @@ async function registerSample(sample){
   throw new Error('Falló '+stage+': '+(error&&error.message?error.message:String(error)));
  }
 }
+async function deleteSample(sample,reason){
+ requireReady(['admin','clinician','reception']);
+ if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada al registro clínico de Supabase.');
+ const result=await client.rpc('delete_clinical_sample',{p_workspace_id:workspaceId,p_sample_id:sample.cloudId,p_reason:String(reason||'').trim()});
+ if(result.error)fail(result.error);
+ const data=Array.isArray(result.data)?result.data[0]:result.data;
+ if(!data||!data.ok)throw new Error('Supabase no confirmó la eliminación de la muestra.');
+ sample.deletedAt=data.deleted_at||new Date().toISOString();
+ return data;
+}
 async function transition(sample,next,args){
  requireReady(['admin','clinician','technician','reception']);
  if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada al registro clínico de Supabase.');
@@ -247,7 +257,7 @@ async function moveCryovial(vial,box,position,notes){
  const r=await client.rpc('move_clinical_cryovial_to_definitive',{p_workspace_id:workspaceId,p_cryovial_id:vial.cloudId,p_box_id:box.cloudId,p_position_no:Number(position),p_notes:notes||null});
  if(r.error)fail(r.error);return Array.isArray(r.data)?r.data[0]:r.data;
 }
-window.FleboClinicalCloud={connect,syncConfiguration,registerSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,syncConfiguration,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
 function boot(){connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})})}
