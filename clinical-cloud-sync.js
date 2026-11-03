@@ -98,11 +98,14 @@ async function loadRemoteConfiguration(){
   const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
- const defaultVisitIds=new Set(['v-scr','v-bl','v-d1','v-d7','v-w4','v-m3','v-eos']),defaultTypeIds=new Set(['s-ser','s-pla','s-whb','s-pk','s-pd','s-adn','s-arn','s-bio','s-hem','s-qc','s-uri','s-sal','s-fec','s-tej','s-pbmc']);
- const mergedStudies=studies.concat(oldStudies.filter(x=>!studies.some(y=>String(y.protocol||'').toLowerCase()===String(x.protocol||'').toLowerCase())));
- const mergedVisits=visits.concat(oldVisits.filter(x=>!defaultVisitIds.has(String(x.id||''))&&!visits.some(y=>((x.code&&String(y.code||'').toLowerCase()===String(x.code).toLowerCase())||String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))));
- const mergedTypes=types.concat(oldTypes.filter(x=>!defaultTypeIds.has(String(x.id||''))&&!types.some(y=>((x.code&&String(y.code||'').toLowerCase()===String(x.code).toLowerCase())||String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))));
- window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:mergedStudies,clinicalVisits:mergedVisits,clinicalSampleTypes:mergedTypes}),{silent:true});
+ // Supabase es la fuente oficial. Nunca reincorporar estudios, visitas o tipos
+ // que existan solamente en el almacenamiento local de este dispositivo.
+ // Las listas se reemplazan completas para impedir que reaparezcan elementos borrados.
+ window.FleboAppState.replace(Object.assign({},stateNow,{
+  clinicalStudies:studies,
+  clinicalVisits:visits,
+  clinicalSampleTypes:types
+ }),{silent:true});
 }
 async function loadRemoteBoxes(){
  const s=app()||{};const [fr,dr,rr,tr,br]=await Promise.all([client.from('clinical_freezers').select('*').eq('workspace_id',workspaceId),client.from('clinical_freezer_drawers').select('*').eq('workspace_id',workspaceId),client.from('clinical_racks').select('*').eq('workspace_id',workspaceId),client.from('clinical_rack_trays').select('*').eq('workspace_id',workspaceId),client.from('clinical_boxes').select('*').eq('workspace_id',workspaceId).eq('active',true)]);
