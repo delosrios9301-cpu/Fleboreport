@@ -9,6 +9,7 @@ const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.u
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103110000_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
+const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103120000_patient_search_rpc.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
@@ -179,6 +180,9 @@ test('la búsqueda del expediente muestra su historial completo y la coincidenci
   assert.match(domicilios, /Historial de domicilios/);
   assert.match(patientDocumentMatchMigration, /regexp_replace\(lower\(btrim\(p\.document_number\)\)/i);
   assert.match(patientDocumentMatchMigration, /pg_advisory_xact_lock/i);
+  assert.ok(domicilios.includes("rpc('search_workspace_patients'"));
+  assert.match(patientSearchMigration, /search_workspace_patients/i);
+  assert.match(patientSearchMigration, /regexp_replace/i);
 });
 
 test('la PWA renueva la caché para instalar la última versión de Domicilios y expedientes', () => {
