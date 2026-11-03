@@ -381,23 +381,7 @@ body.module-menu-open{overflow:hidden}
  #view-journey .form-actions .btn{width:100%}
 }
 </style>
-<style id="module-indicators-full-row-v1">
-/* KPI compartidos: fila propia a todo el ancho, nunca dentro del flex del encabezado. */
-.view .module-indicators{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;align-items:stretch!important;justify-items:stretch!important;gap:12px!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0 0 18px!important;padding:0!important;box-sizing:border-box!important}
-.view .module-indicators>.op-kpi{display:flex!important;width:100%!important;min-width:0!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}
-#view-journey>.page-heading,#view-reports>.page-heading,#view-report-history>.page-heading{display:flex!important;flex-direction:row!important;align-items:flex-end!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:12px 18px!important;width:100%!important;max-width:100%!important;min-width:0!important;margin:0 0 16px!important}
-#view-journey>.page-heading>div:first-child,#view-reports>.page-heading>div:first-child,#view-report-history>.page-heading>div:first-child{flex:1 1 320px!important;min-width:0!important;max-width:100%!important}
-#view-journey>.page-heading>.heading-actions,#view-reports>.page-heading>.heading-actions{display:flex!important;flex:0 1 auto!important;flex-direction:row!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:wrap!important;gap:8px!important;width:auto!important;min-width:0!important;max-width:100%!important;margin:0!important}
-#view-journey>.page-heading>.heading-actions .btn,#view-reports>.page-heading>.heading-actions .btn,#view-report-history>.page-heading>.btn{flex:0 0 auto!important;max-width:100%!important}
-@media(max-width:1180px){.view .module-indicators{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}}
-@media(max-width:760px){
- .view .module-indicators{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
- #view-journey>.page-heading,#view-reports>.page-heading,#view-report-history>.page-heading{flex-direction:column!important;align-items:stretch!important}
- #view-journey>.page-heading>.heading-actions,#view-reports>.page-heading>.heading-actions{justify-content:flex-start!important;width:100%!important}
- #view-report-history>.page-heading>.btn{width:100%!important}
-}
-@media(max-width:420px){.view .module-indicators{grid-template-columns:minmax(0,1fr)!important}}
-</style></head>
+</head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
   <div class="module-menu-head">
@@ -469,7 +453,7 @@ body.module-menu-open{overflow:hidden}
 
 <section class="view" id="view-journey">
 <div class="page-heading"><div><div class="eyebrow">OPERACIÓN</div><h1>Jornada actual</h1><p>Registra el horario y suma las pruebas realizadas durante el período.</p></div><div class="heading-actions"><button class="btn" onclick="newJourney()">＋ Nueva jornada</button><button class="btn primary" onclick="navigate('reports')">Ver resumen →</button></div></div>
-<div class="shared-operational-kpis op-kpis module-indicators" data-shared-kpis></div>
+
 <div class="module-grid">
 <section class="panel form-panel"><h2>Datos de la jornada</h2><div class="fields">
 <div class="field"><label for="journeyCompany">Empresa de la jornada</label><select id="journeyCompany"><option value="">Sin especificar</option></select><div class="field-help">Si no aparece, agrégala aquí para guardarla y seleccionarla.</div><details style="margin-top:8px"><summary style="cursor:pointer;color:#0c8179;font-size:10px;font-weight:800">＋ Registrar empresa nueva</summary><div style="display:flex;gap:7px;margin-top:8px"><input id="journeyNewCompany" placeholder="Nombre de la empresa"><button type="button" class="btn" onclick="saveJourneyCompany()">Guardar</button></div></details></div>
@@ -571,7 +555,7 @@ body.module-menu-open{overflow:hidden}
 
 <section class="view" id="view-reports">
 <div class="page-heading"><div><div class="eyebrow">REPORTE DE JORNADA</div><h1>Resumen de actividad</h1><p class="no-print">Elige si deseas agregar al reporte la lista de pacientes atendidos.</p></div><div class="heading-actions no-print"><button class="btn" onclick="generateReportPDF()">Imprimir / PDF</button><button class="btn primary" onclick="downloadPNG()">Descargar PNG</button></div></div>
-<div class="shared-operational-kpis op-kpis module-indicators no-print" data-shared-kpis></div>
+
 <div class="report-card infographic" id="reportCard"><div class="report-toolbar no-print"><b>Vista previa del reporte</b><label class="report-patient-toggle"><input id="includePatientList" type="checkbox" onchange="toggleJourneyPatientList()"><span>Incluir listado de pacientes</span></label><div class="style-picker"><button class="active" data-style="infographic" onclick="setStyle('infographic')">Infografía</button><button data-style="formal" onclick="setStyle('formal')">Formal</button></div></div>
 <article class="report-paper" id="reportPaper"><div class="report-watermark" id="reportWatermark"></div><div class="report-head"><div class="report-lab"><img id="reportLogo" class="report-logo" alt="" hidden><div><h2 id="reportCompany"></h2><small id="reportContact"></small></div></div><div class="report-meta"><strong>REPORTE DE JORNADA</strong><span id="reportDate">—</span><br><span id="reportHours">Horario: —</span><br><span id="reportResponsible">Responsable: Sin especificar</span></div></div>
 <div class="report-metrics"><div class="report-metric"><small>Pacientes atendidos</small><strong id="reportPatientTotal">0</strong></div><div class="report-metric"><small>Pruebas realizadas</small><strong id="reportTestTotal">0</strong></div><div class="report-metric"><small>Tipos de prueba</small><strong id="reportTypeTotal">0</strong></div><div class="report-metric"><small>Recipientes</small><strong id="reportVesselTotal">0</strong></div></div>
@@ -580,7 +564,7 @@ body.module-menu-open{overflow:hidden}
 
 <section class="view" id="view-report-history">
 <div class="page-heading"><div><div class="eyebrow">ARCHIVO LOCAL</div><h1>Historial de reportes</h1><p>Recupera reportes de jornada guardados en este dispositivo y vuelve a descargarlos o compartirlos.</p></div><button class="btn" onclick="navigate('reports')">Volver al reporte actual</button></div>
-<div class="shared-operational-kpis op-kpis module-indicators" data-shared-kpis></div>
+
 <div class="stats-grid"><article class="stat-card"><span class="stat-icon a">▤</span><div><small>Reportes guardados</small><strong id="reportHistoryCount">0</strong></div></article><article class="stat-card"><span class="stat-icon b">↓</span><div><small>Última copia</small><strong id="reportHistoryLast">—</strong></div></article></div>
 <section class="panel"><div class="panel-head"><h2>Reportes de jornadas exportados</h2><span class="badge">Guardados en este dispositivo</span></div><div class="panel-body"><div id="reportHistoryList" class="list-stack"></div></div></section>
 <section id="reportHistoryPreview" class="panel" hidden style="margin-top:14px"><div class="panel-head"><h2 id="reportHistoryPreviewTitle">Reporte archivado</h2><button class="btn" onclick="closeArchivedReport()">Cerrar</button></div><div class="panel-body"><div id="reportHistoryPreviewBody"></div><div class="form-actions"><button class="btn primary" onclick="downloadArchivedReport('pdf')">Descargar PDF</button><button class="btn" onclick="downloadArchivedReport('png')">Descargar PNG</button><button class="btn" onclick="shareArchivedReport('pdf')">Compartir PDF</button><button class="btn" onclick="shareArchivedReport('png')">Compartir PNG</button></div></div></section>
