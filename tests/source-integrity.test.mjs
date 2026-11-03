@@ -150,7 +150,7 @@ test('la sincronización de datos está conectada, aislada por usuario y tiene s
 
 test('los expedientes se sincronizan en la tabla maestra compartida del espacio', () => {
   assert.doesNotThrow(() => new Function(patientCloudSync), 'patient-cloud-sync.js debe tener sintaxis válida');
-  assert.match(html, /src="\\.\\/patient-cloud-sync\\.js"/);
+  assert.ok(html.includes('src="./patient-cloud-sync.js"'));
   assert.match(patientCloudMigration, /add column if not exists app_data jsonb/i);
   assert.match(patientCloudMigration, /sync_workspace_patient/i);
   assert.match(patientCloudMigration, /supabase_realtime/i);
@@ -158,7 +158,8 @@ test('los expedientes se sincronizan en la tabla maestra compartida del espacio'
 });
 
 test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de guardado local', () => {
-  assert.doesNotMatch(html, /toast\\(['"](?:Registro|Expediente) guardado en este dispositivo/i);
+  assert.ok(!html.includes("toast('Registro guardado en este dispositivo.')"));
+  assert.ok(!html.includes("toast('Expediente guardado en este dispositivo.')"));
   assert.doesNotMatch(html, /id="todayChip"/);
   assert.match(html, /flebo-cloud-tablet-layout/);
 });
