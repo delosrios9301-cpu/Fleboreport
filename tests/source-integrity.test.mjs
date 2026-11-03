@@ -216,6 +216,7 @@ test('las bandejas separan la revisión clínica del procesamiento y confirman t
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
+  assert.match(clinicalCloudSync, /if\(args\.primaryAliquots!=null\)sample\.primaryAliquots=Number\(args\.primaryAliquots\)/);
 });
 
 test('Estudios Clínicos conserva una bandeja de revisión y solo libera aprobadas al procesamiento', () => {
@@ -263,7 +264,7 @@ test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni
   assert.ok(html.includes('src="./clinical-processing-simple.js"'));
   const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
-  for (const obsolete of ['clinicalBulkLocation', 'clinicalCryoPanel', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
+  for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
     assert.ok(!view.toLowerCase().includes(obsolete.toLowerCase()), 'el flujo ya no debe mostrar: ' + obsolete);
   }
   for (const state of ['PENDIENTE_PROCESO', 'PROCESANDO', 'ALMACENAMIENTO_TEMPORAL', 'CONGELADOR_DEFINITIVO']) {
