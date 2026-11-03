@@ -90,7 +90,12 @@ async function connect(){
   if(!user||!membership||membership.active!==true){ready=false;workspaceId=null;status('Inicia sesión para sincronizar los datos.');return}
   if(!['admin','clinician','reception','viewer'].includes(membership.role)){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
   userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);
-  const local=app()||{},localHash=await hashState(local),m=meta();
+  let local=app()||{},m=meta();
+  if(m.workspaceId&&m.workspaceId!==workspaceId&&meaningful(local)){
+   try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){console.warn('[FleboReport Sync] No se pudo guardar el respaldo local anterior:',backupError)}
+   applyCloudState(window.FleboAppState.empty());local=app()||{};
+  }
+  const localHash=await hashState(local);
   let remote=await fetchRemote();
   if(!remote){
    if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
