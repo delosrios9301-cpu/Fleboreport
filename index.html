@@ -1852,4 +1852,27 @@ html,body{max-width:100%;overflow-x:hidden}
  #view-report-history .form-actions .btn{width:100%}
 }
 </style>
+<style id="desktop-module-centering-fix">
+/* Corrección de alineación de escritorio: contenido centrado y con ancho real */
+@media(min-width:1101px){
+ html body .main{width:100%!important;min-width:0!important;margin:0!important}
+ html body .main>.content{display:block!important;width:100%!important;max-width:1500px!important;margin-left:auto!important;margin-right:auto!important;padding-left:clamp(24px,3vw,44px)!important;padding-right:clamp(24px,3vw,44px)!important}
+ html body .main>.content>.view{display:none;width:100%!important;max-width:100%!important;margin:0 auto!important}
+ html body .main>.content>.view.active{display:block!important}
+ #view-journey>.page-heading,#view-reports>.page-heading,#view-report-history>.page-heading{width:100%!important;max-width:100%!important;margin-left:0!important;margin-right:0!important;justify-content:space-between!important;align-items:flex-end!important}
+ #view-journey>.module-grid{width:100%!important;max-width:100%!important;margin:0!important;grid-template-columns:minmax(0,1.5fr) minmax(320px,.8fr)!important;justify-content:stretch!important}
+ #view-journey>.module-grid>.panel{width:100%!important;max-width:none!important}
+ #view-reports>.report-card{width:100%!important;max-width:100%!important;margin:0 auto!important}
+ #view-reports .report-paper{width:100%!important;max-width:100%!important;margin:0 auto!important}
+ #view-report-history>.stats-grid{width:100%!important;max-width:100%!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-report-history>.panel{width:100%!important;max-width:100%!important;margin-left:0!important;margin-right:0!important}
+}
+/* Portátiles compactos y tablets: conservar ancho total sin desplazamiento lateral */
+@media(min-width:761px) and (max-width:1100px){
+ html body .main>.content{width:100%!important;max-width:100%!important;margin:0!important;padding:22px clamp(18px,3vw,32px) 48px!important}
+ #view-journey>.module-grid{grid-template-columns:minmax(0,1fr)!important;width:100%!important}
+ #view-journey>.module-grid>.panel{width:100%!important}
+ #view-reports>.report-card,#view-report-history>.panel,#view-report-history>.stats-grid{width:100%!important;max-width:100%!important}
+}
+</style>
 </body></html>
