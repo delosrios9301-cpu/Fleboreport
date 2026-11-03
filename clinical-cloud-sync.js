@@ -161,8 +161,6 @@ async function syncConfiguration(){
   let stage='lectura de configuración clínica en la nube';
   try{
    await loadRemoteConfiguration();
-   stage='lectura de ubicaciones de almacenamiento';
-   await loadRemoteBoxes();
    stage='lectura de muestras y crioviales';
    await loadRemoteSamples();
    return true;
@@ -188,7 +186,6 @@ async function saveConfiguration(){
     for(const type of linkedTypes)await saveSampleType(study,sid,type);
    }
    await loadRemoteConfiguration();
-   await loadRemoteBoxes();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -294,7 +291,7 @@ async function syncStorageConfiguration(){
  await loadRemoteBoxes();
  return true;
 }
-async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteBoxes();await loadRemoteSamples();return true}
+async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();return true}
 window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
