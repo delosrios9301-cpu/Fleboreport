@@ -6,9 +6,9 @@ const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
 const keyOf=p=>{const d=norm(docOf(p));if(d)return'doc:'+d;const id=String(p?.id||'');return id&&!id.startsWith('cloud-')?'legacy:'+id:(p?.cloudPatientId?'cloud:'+p.cloudPatientId:'legacy:'+id)};
-function contentOf(p){const x={...p};delete x.id;delete x.legacyId;delete x.cloudPatientId;delete x.updatedAt;delete x.updated_at;return JSON.stringify(x)}
+function contentOf(p){const x={...p};delete x.id;delete x.legacyId;delete x.cloudPatientId;delete x.updatedAt;delete x.updated_at;delete x.cloudDataPresent;return JSON.stringify(x)}
 function payloadOf(p){
- const data={...p};delete data.cloudPatientId;
+ const data={...p};delete data.cloudPatientId;delete data.cloudDataPresent;
  data.legacyId=String(p.legacyId||p.id||'');data.updatedAt=p.updatedAt||new Date().toISOString();
  const state=app(),docKey=norm(docOf(p));const journeyHistory=(state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey));if(journeyHistory.length)data.journeyHistory=journeyHistory;else delete data.journeyHistory;
  data.name=p.name||p.fullName||'';data.fullName=p.fullName||p.name||'';data.document=docOf(p);
@@ -16,7 +16,7 @@ function payloadOf(p){
 }
 function fromRow(r){
  const d=r.app_data&&typeof r.app_data==='object'?r.app_data:{};
- return {...d,id:d.legacyId||r.legacy_id||'cloud-'+r.id,cloudPatientId:r.id,
+ return {...d,cloudDataPresent:Object.keys(d).length>0,id:d.legacyId||r.legacy_id||'cloud-'+r.id,cloudPatientId:r.id,
   name:d.name||[r.first_name,r.last_name].filter(Boolean).join(' '),
   fullName:d.fullName||d.name||[r.first_name,r.last_name].filter(Boolean).join(' '),
   document:r.document_number||d.document||d.cedula||'',cedula:r.document_number||d.cedula||d.document||'',
@@ -27,7 +27,8 @@ function merge(local,remote){
  const map=new Map();(local||[]).forEach(p=>map.set(keyOf(p),p));
  (remote||[]).forEach(r=>{const k=keyOf(r),old=map.get(k);if(!old){map.set(k,r);return}
   const localTime=Date.parse(old.updatedAt||old.createdAt||0)||0,remoteTime=Date.parse(r.updatedAt||0)||0;
-  const winner=remoteTime>localTime?r:old,other=winner===r?old:r;
+  const hasLocalClinicalData=['attentions','generalNotes','emergency','photo','company','companyId','journeyId','testIds','testStatuses','notes','module','journeyHistory'].some(k=>old[k]!=null);
+  const winner=!r.cloudDataPresent&&hasLocalClinicalData?old:(remoteTime>localTime?r:old),other=winner===r?old:r;
   map.set(k,{...other,...winner,id:old.id||winner.id,cloudPatientId:r.cloudPatientId||old.cloudPatientId});
  });
  return Array.from(map.values());
