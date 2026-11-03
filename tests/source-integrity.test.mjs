@@ -328,7 +328,10 @@ const resetMigration = await readFile(new URL('../supabase/migrations/2026110323
 
 test('el restablecimiento completo conserva seguridad, crea respaldo y exige al administrador principal', () => {
   assert.doesNotThrow(() => new Function(configuration), 'configuracion.js debe tener sintaxis válida');
-  assert.match(configuration, /data-fr-pane="reset"/);
+  assert.match(configuration, /frResetTab/);
+  assert.match(configuration, /settings-reset/);
+  assert.match(configuration, /id="frRunFullReset"/);
+  assert.match(auth, /fleboGlobalSignOut/);
   assert.match(configuration, /RESTABLECER FLEBOREPORT/);
   assert.match(configuration, /reset_workspace_operational_data/);
   assert.match(resetMigration, /private\.workspace_reset_backups/);
