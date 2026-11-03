@@ -1715,4 +1715,61 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
 <script src="./notifications-center.js"></script>
 <script src="./configuracion.js"></script>
 <script src="./notification-settings.js"></script>
+<style id="fleboreport-universal-responsive-audit">
+/* Reglas globales de composición para todos los módulos de FleboReport.
+   Escritorio conserva sus columnas; tablets reorganizan; móviles apilan. */
+*,*::before,*::after{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+.main,.content,.view,.view.active{min-width:0;max-width:100%}
+.content{width:100%;margin-inline:auto}
+.view{width:100%;overflow-x:clip}
+.view .page-heading{min-width:0;max-width:100%;flex-wrap:wrap}
+.view .page-heading>*,.view .heading-actions,.view .panel,.view .form-panel,.view .report-card{min-width:0;max-width:100%}
+.view .panel,.view .form-panel,.view .report-card{overflow-wrap:anywhere}
+.view .fields,.view .stats-grid,.view .dashboard-grid,.view .clinical-layout,.view .clinical-kpis,.view .op-grid,.view .module-grid{min-width:0}
+.view input,.view select,.view textarea,.view button{max-width:100%}
+.view .table-wrap,.view .audit-table-wrap,.view .clinical-table-wrap,.view .report-table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.view table{max-width:100%}
+.view .list-row,.view .clinical-row,.view .panel-head{min-width:0;flex-wrap:wrap}
+.view .panel-head>*{min-width:0}
+.view .panel-body{min-width:0;max-width:100%}
+.view .chart-list,.view canvas,.view svg{max-width:100%}
+.view .report-paper,.view .archive-print-surface{max-width:100%}
+/* Tablet horizontal y vertical: reorganiza todas las grillas sin afectar escritorio */
+@media(max-width:1100px){
+ .content{padding:20px 18px 48px}
+ .view .module-grid,.view .dashboard-grid,.view .clinical-layout,.view .op-grid,.view .op-grid-wide{grid-template-columns:minmax(0,1fr)!important}
+ .view .module-grid>.panel,.view .dashboard-grid>.panel,.view .clinical-layout>.panel,.view .op-grid>.panel{width:100%;min-width:0}
+ .view .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .view .clinical-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .view .page-heading{align-items:flex-start}
+ .view .page-heading>.heading-actions{justify-content:flex-start}
+ .view .form-panel{padding:16px}
+ .view .table-wrap,.view .audit-table-wrap,.view .clinical-table-wrap{overflow-x:auto}
+}
+/* Móviles: una columna, controles cómodos y sin desbordamientos */
+@media(max-width:760px){
+ .content{padding:12px 10px 78px}
+ .view .page-heading{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+ .view .page-heading>.heading-actions{width:100%;display:flex;justify-content:flex-start;flex-wrap:wrap}
+ .view .stats-grid,.view .clinical-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .view .fields{grid-template-columns:minmax(0,1fr)}
+ .view .field.full,.view .clinical-layout>.wide{grid-column:1/-1}
+ .view .form-actions{display:flex;flex-wrap:wrap}
+ .view .form-actions>.btn,.view .form-actions>button{flex:1 1 145px}
+ .view .panel-head{align-items:flex-start}
+ .view .panel-body{padding:12px}
+ .view .list-row,.view .clinical-row{align-items:flex-start}
+ .view .report-toolbar{display:flex;flex-wrap:wrap}
+ .view .report-paper{width:100%;overflow-wrap:anywhere}
+}
+/* Teléfonos estrechos: tarjetas y métricas de ancho completo */
+@media(max-width:420px){
+ .content{padding-inline:8px}
+ .view .stats-grid,.view .clinical-kpis{grid-template-columns:minmax(0,1fr)}
+ .view .panel,.view .form-panel,.view .report-card{padding:11px}
+ .view .page-heading h1{font-size:20px}
+ .view .form-actions>.btn,.view .form-actions>button{flex-basis:100%}
+}
+</style>
 </body></html>
