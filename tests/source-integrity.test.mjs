@@ -241,6 +241,6 @@ test('la configuración de almacenamiento se sincroniza al crear cajas y permite
 test('las muestras locales retiradas no reaparecen al sincronizar desde la nube', () => {
   assert.match(html, /clinicalLocalDeletedSampleIds:Array\.isArray\(parsed\.clinicalLocalDeletedSampleIds\)/);
   assert.match(html, /if\(!sample\.cloudId\)[\s\S]*?clinicalLocalDeletedSampleIds=Array\.from\(new Set/);
-  assert.match(cloudSync, /!locallyDeleted\.has\(String\(x\.id\)\)/);
+  assert.match(clinicalCloudSync, /!locallyDeleted\.has\(String\(x\.id\)\)/);
   assert.match(html, /No se modificó Supabase/);
 });
