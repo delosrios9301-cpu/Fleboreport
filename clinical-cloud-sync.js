@@ -176,12 +176,8 @@ async function resolveSampleMasterRecords(sample){
  const visit=(s.clinicalVisits||[]).find(x=>x.id===sample.visitId);
  const type=(s.clinicalSampleTypes||[]).find(x=>x.id===sample.sampleTypeId);
  if(!study||!visit||!type)throw new Error('Selecciona un estudio, una visita y un tipo de muestra válidos.');
- const [sr,vr,tr]=await Promise.all([
-  client.from('clinical_studies').select('id').eq('workspace_id',workspaceId).eq('protocol_code',study.protocol).order('id',{ascending:true}).limit(1),
-  client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',study.cloudId||'00000000-0000-0000-0000-000000000000').eq('code',String(visit.code||visit.id||visit.name).trim()).order('id',{ascending:true}).limit(1),
-  client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',study.cloudId||'00000000-0000-0000-0000-000000000000').eq('code',String(type.code||type.id||type.name).trim()).order('id',{ascending:true}).limit(1)
- ]);
- for(const r of [sr,vr,tr])if(r.error)fail(r.error);
+ const sr=await client.from('clinical_studies').select('id').eq('workspace_id',workspaceId).eq('protocol_code',study.protocol).order('id',{ascending:true}).limit(1);
+ if(sr.error)fail(sr.error);
  const studyRow=(sr.data||[])[0];
  if(!studyRow)throw new Error('El estudio no está sincronizado en la nube. Abre Configuración de estudios y guarda el estudio antes de registrar muestras.');
  const [visitRows,typeRows]=await Promise.all([
