@@ -95,7 +95,7 @@ async function connect(){
   userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);
   let local=app()||{},m=meta();
   if(m.workspaceId&&m.workspaceId!==workspaceId&&meaningful(local)){
-   try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){console.warn('[FleboReport Sync] No se pudo guardar el respaldo local anterior:',backupError)}
+   try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){throw new Error('No se pudo respaldar el estado local del espacio anterior. No se modificaron tus datos; libera espacio del navegador e inténtalo de nuevo.')}
    applyCloudState(window.FleboAppState.empty());local=app()||{};
   }
   const localHash=await hashState(local);
