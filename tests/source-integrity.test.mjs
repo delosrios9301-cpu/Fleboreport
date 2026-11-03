@@ -323,3 +323,20 @@ test('la eliminación de visitas y tipos de muestra se confirma en Supabase', as
   assert.match(catalogPersistence, /x\.active!==false/);
   assert.match(catalogPersistence, /restoreClinicalCatalogItem/);
 });
+
+const resetMigration = await readFile(new URL('../supabase/migrations/20261103230700_include_cloud_app_state_in_reset_backup.sql', import.meta.url), 'utf8');
+
+test('el restablecimiento completo conserva seguridad, crea respaldo y exige al administrador principal', () => {
+  assert.doesNotThrow(() => new Function(configuration), 'configuracion.js debe tener sintaxis válida');
+  assert.match(configuration, /data-fr-pane="reset"/);
+  assert.match(configuration, /RESTABLECER FLEBOREPORT/);
+  assert.match(configuration, /reset_workspace_operational_data/);
+  assert.match(resetMigration, /private\.workspace_reset_backups/);
+  assert.match(resetMigration, /v_uid<>v_owner or v_uid<>v_primary/);
+  assert.match(resetMigration, /workspace_app_state/);
+  assert.match(resetMigration, /audit_logs/);
+  assert.match(resetMigration, /reset_epoch=v_epoch/);
+  assert.match(cloudSync, /remote\.reset_epoch/);
+  assert.match(cloudSync, /backupResetLocalState/);
+  assert.match(cloudSync, /applyCloudState\(remote\.state,true\)/);
+});
