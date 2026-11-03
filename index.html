@@ -606,7 +606,7 @@ body.module-menu-open{overflow:hidden}
 <section class="cryo-card"><h3>Registrar criovial escaneado</h3><div class="fields">
 <div class="field"><label for="cryoSample">Muestra procesada</label><select id="cryoSample" onchange="renderClinicalCryoPanel()"></select></div>
 <div class="field"><label for="cryoKind">Tipo de alícuota</label><select id="cryoKind" onchange="renderClinicalCryoPanel()"><option value="principal">Principal</option><option value="backup">Backup</option></select></div>
-<div class="field"><label for="cryoStage">Almacenamiento</label><select id="cryoStage" onchange="renderClinicalCryoPanel()"><option value="temporal">Temporal</option><option value="definitivo">Definitivo</option></select></div>
+<div class="field"><label for="cryoStage">Almacenamiento</label><select id="cryoStage" onchange="renderClinicalCryoPanel()"><option value="temporal">Temporal</option></select></div>
 <div class="field"><label for="cryoBox">Caja disponible</label><select id="cryoBox" onchange="renderClinicalCryoPanel()"></select></div>
 <div class="field"><label for="cryoPosition">Posición libre de criovial</label><select id="cryoPosition"></select></div>
 <div class="field full"><label for="cryoBarcode">Escanear código del criovial</label><input id="cryoBarcode" autocomplete="off" placeholder="Escanea el código y registra el criovial" onkeydown="if(event.key==='Enter'){event.preventDefault();registerClinicalCryovial()}"></div></div>
@@ -1591,7 +1591,7 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
  function renderCryoPanel(){
   var sampleOpts=state.clinicalSamples.filter(function(x){return ['Procesada','Almacenada'].includes(x.status)}),sampleKeep=document.getElementById('cryoSample')?.value;
   options('cryoSample',sampleOpts,function(x){return x.id},sampleName,'Selecciona muestra procesada',sampleKeep);
-  var sample=selectedSample(),stage=document.getElementById('cryoStage')?.value||'temporal',kind=document.getElementById('cryoKind')?.value||'principal',boxKeep=document.getElementById('cryoBox')?.value,boxes=boxesFor(stage);
+  var sample=selectedSample(),stage='temporal',kind=document.getElementById('cryoKind')?.value||'principal',boxKeep=document.getElementById('cryoBox')?.value,boxes=boxesFor(stage).filter(function(b){return sample&&b.studyId===sample.studyId&&(b.cloudId===sample.temporaryBoxId||b.id===sample.temporaryBoxId)});
   options('cryoBox',boxes,function(x){return x.id},function(x){return x.box+' · '+clinicalLocationLabel(x)+' · '+availablePositions(x.id,stage).length+'/'+x.aliquotCapacity+' libres'},'Selecciona caja '+(stage==='temporal'?'temporal':'definitiva'),boxKeep);
   var boxId=document.getElementById('cryoBox')?.value||'',free=availablePositions(boxId,stage);
   options('cryoPosition',free,function(x){return String(x)},positionLabel,'Selecciona posición libre');
@@ -1600,7 +1600,7 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
   var message=document.getElementById('cryoCapacityMessage');if(message){var selectedBox=state.clinicalLocations.find(function(b){return b.id===(document.getElementById('cryoBox')?.value||'')}),boxNote=selectedBox?'Caja '+selectedBox.box+' · Posiciones disponibles: '+(availablePositions(selectedBox.id,stage).map(positionLabel).join(', ')||'ninguna'):boxes.length?'Posiciones libres por caja: '+boxes.map(function(b){return 'Caja '+b.box+' ('+availablePositions(b.id,stage).length+'/'+b.aliquotCapacity+')'}).join(' · '):'';message.textContent=!boxes.length?'No hay cajas con posiciones disponibles para almacenamiento '+(stage==='temporal'?'temporal':'definitivo')+'. Crea o libera espacio en Configuración → Ubicaciones.':(sample?'Crioviales '+(kind==='principal'?'principales':'backup')+': '+registered+' de '+total+' registrados. ':'')+boxNote;}
   var moveKeep=document.getElementById('cryoMoveVial')?.value,movable=state.clinicalCryovials.filter(function(v){return v.status==='Almacenamiento temporal'});
   options('cryoMoveVial',movable,function(v){return v.id},function(v){var sm=state.clinicalSamples.find(function(x){return x.id===v.sampleId});return v.barcode+' · '+(v.kind==='backup'?'Backup':'Principal')+' · '+(sm?sampleName(sm):'Muestra')},'Selecciona criovial temporal',moveKeep);
-  var finalKeep=document.getElementById('cryoFinalBox')?.value,finalBoxes=boxesFor('definitivo');
+  var finalKeep=document.getElementById('cryoFinalBox')?.value,moveVial=state.clinicalCryovials.find(function(v){return v.id===moveKeep}),moveSample=moveVial&&state.clinicalSamples.find(function(x){return x.id===moveVial.sampleId}),finalBoxes=boxesFor('definitivo').filter(function(b){return moveSample&&b.studyId===moveSample.studyId});
   options('cryoFinalBox',finalBoxes,function(x){return x.id},function(x){return x.box+' · '+clinicalLocationLabel(x)+' · '+availablePositions(x.id,'definitivo').length+'/'+x.aliquotCapacity+' libres'},'Selecciona caja definitiva',finalKeep);
   var finalId=document.getElementById('cryoFinalBox')?.value||'';
   options('cryoFinalPosition',availablePositions(finalId,'definitivo'),function(x){return String(x)},positionLabel,'Selecciona posición libre');
@@ -1626,29 +1626,33 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
   var event={id:cryoId(),cryoId:v.id,sampleId:v.sampleId,barcode:v.barcode,action:action,fromBoxId:fromBox||'',fromPosition:fromPosition||'',toBoxId:toBox||'',toPosition:toPosition||'',fromLocation:fromBox?cryoBoxLocation(fromBox,fromPosition):'',toLocation:toBox?cryoBoxLocation(toBox,toPosition):'',timestamp:new Date().toISOString(),operator:clinicalActor()};
   v.events=v.events||[];v.events.unshift(event);state.clinicalCryovialHistory.unshift(event);
  }
- window.registerClinicalCryovial=function(){
-  var sample=selectedSample(),kind=document.getElementById('cryoKind').value,stage=document.getElementById('cryoStage').value,boxId=document.getElementById('cryoBox').value,position=Number(document.getElementById('cryoPosition').value),barcode=document.getElementById('cryoBarcode').value.trim(),box=state.clinicalLocations.find(function(b){return b.id===boxId});
-  if(!sample||!['Procesada','Almacenada'].includes(sample.status)){toast('Selecciona una muestra procesada.');return}
+ window.registerClinicalCryovial=async function(){
+  var sample=selectedSample(),kind=document.getElementById('cryoKind').value,stage='temporal',boxId=document.getElementById('cryoBox').value,position=Number(document.getElementById('cryoPosition').value),barcode=document.getElementById('cryoBarcode').value.trim(),box=state.clinicalLocations.find(function(b){return b.id===boxId});
+  if(!sample||sample.workflowStatus!=='ALMACENAMIENTO_TEMPORAL'){toast('La muestra debe estar en almacenamiento temporal antes de registrar crioviales.');return}
   var expected=expectedCount(sample,kind),already=registeredCount(sample.id,kind);
   if(expected<1){toast('Esta muestra no tiene una cantidad registrada para este tipo de alícuota.');return}
   if(already>=expected){toast('Ya registraste todos los crioviales previstos para esta categoría.');return}
   if(!barcode){toast('Escanea el código único del criovial.');document.getElementById('cryoBarcode').focus();return}
   if(state.clinicalCryovials.some(function(v){return v.barcode.toLocaleLowerCase('es')===barcode.toLocaleLowerCase('es')})){toast('Ese código de criovial ya está registrado.');return}
-  if(!box||box.storageStage!==stage||!Number.isInteger(position)||availablePositions(boxId,stage).indexOf(position)<0){toast('Selecciona una caja y una posición libre de la etapa indicada.');return}
-  var vial={id:cryoId(),barcode:barcode,sampleId:sample.id,studyId:sample.studyId,subjectCode:sample.subjectCode,visit:sample.visit,sampleType:sample.sampleType,kind:kind,temporaryBoxId:'',temporaryPosition:null,definitiveBoxId:'',definitivePosition:null,status:stage==='temporal'?'Almacenamiento temporal':'Almacenamiento definitivo',events:[],createdAt:new Date().toISOString(),createdBy:clinicalActor()};
-  if(stage==='temporal'){vial.temporaryBoxId=boxId;vial.temporaryPosition=position}else{vial.definitiveBoxId=boxId;vial.definitivePosition=position}
-  state.clinicalCryovials.unshift(vial);addCryoEvent(vial,'Registro de criovial en '+(stage==='temporal'?'almacenamiento temporal':'almacenamiento definitivo'),'','',boxId,position);syncSampleStorageStatus(sample);
-  if(!save())return;auditAdd('Estudios Clínicos','Registró criovial '+barcode+' ('+kind+') en '+clinicalLocationLabel(box)+' · '+positionLabel(position));document.getElementById('cryoBarcode').value='';renderClinicalStudies();document.getElementById('cryoBarcode').focus();toast('Criovial registrado y trazable.');
+  if(!box||box.storageStage!==stage||box.studyId!==sample.studyId||!box.cloudId||(box.cloudId!==sample.temporaryBoxId&&box.id!==sample.temporaryBoxId)||!Number.isInteger(position)||availablePositions(boxId,stage).indexOf(position)<0){toast('Selecciona una posición libre de la caja temporal asignada a esta muestra.');return}
+  var vial={id:cryoId(),barcode:barcode,sampleId:sample.id,studyId:sample.studyId,subjectCode:sample.subjectCode,visit:sample.visit,sampleType:sample.sampleType,kind:kind,temporaryBoxId:boxId,temporaryPosition:position,definitiveBoxId:'',definitivePosition:null,status:'Almacenamiento temporal',events:[],createdAt:new Date().toISOString(),createdBy:clinicalActor()};
+  try{await window.FleboClinicalCloud.registerCryovial(sample,vial,box,position)}catch(error){toast(error.message||'No se pudo registrar el criovial en la nube.');return}
+  state.clinicalCryovials.unshift(vial);addCryoEvent(vial,'Registro de criovial en almacenamiento temporal','','',boxId,position);
+  if(!save())return;auditAdd('Estudios Clínicos','Registró criovial '+barcode+' ('+kind+') en '+clinicalLocationLabel(box)+' · '+positionLabel(position));document.getElementById('cryoBarcode').value='';renderClinicalStudies();document.getElementById('cryoBarcode').focus();toast('Criovial registrado en Supabase y trazabilidad actualizada.');
  };
- window.moveClinicalCryovialToDefinitive=function(){
+ window.moveClinicalCryovialToDefinitive=async function(){
   var vial=state.clinicalCryovials.find(function(v){return v.id===document.getElementById('cryoMoveVial').value}),boxId=document.getElementById('cryoFinalBox').value,position=Number(document.getElementById('cryoFinalPosition').value),box=state.clinicalLocations.find(function(b){return b.id===boxId});
   if(!vial||vial.status!=='Almacenamiento temporal'){toast('Selecciona un criovial en almacenamiento temporal.');return}
-  if(!box||box.storageStage!=='definitivo'||!Number.isInteger(position)||availablePositions(boxId,'definitivo').indexOf(position)<0){toast('Selecciona una caja definitiva y una posición libre.');return}
-  var previousBox=vial.temporaryBoxId,previousPosition=vial.temporaryPosition;vial.definitiveBoxId=boxId;vial.definitivePosition=position;vial.status='Almacenamiento definitivo';vial.updatedAt=new Date().toISOString();vial.updatedBy=clinicalActor();
-  addCryoEvent(vial,'Traslado a almacenamiento definitivo',previousBox,previousPosition,boxId,position);var sample=state.clinicalSamples.find(function(x){return x.id===vial.sampleId});syncSampleStorageStatus(sample);
-  if(!save())return;auditAdd('Estudios Clínicos','Trasladó criovial '+vial.barcode+' a '+clinicalLocationLabel(box)+' · '+positionLabel(position));renderClinicalStudies();toast('Traslado definitivo registrado en el historial.');
+  var sample=state.clinicalSamples.find(function(x){return x.id===vial.sampleId});
+  if(!box||box.storageStage!=='definitivo'||box.studyId!==sample?.studyId||!box.cloudId||!Number.isInteger(position)||availablePositions(boxId,'definitivo').indexOf(position)<0){toast('Selecciona una caja definitiva del mismo estudio y una posición libre.');return}
+  var previousBox=vial.temporaryBoxId,previousPosition=vial.temporaryPosition,result;
+  try{result=await window.FleboClinicalCloud.moveCryovial(vial,box,position,'Traslado definitivo')}catch(error){toast(error.message||'No se pudo registrar el traslado definitivo.');return}
+  vial.definitiveBoxId=boxId;vial.definitivePosition=position;vial.status='Almacenamiento definitivo';vial.updatedAt=new Date().toISOString();vial.updatedBy=clinicalActor();
+  addCryoEvent(vial,'Traslado a almacenamiento definitivo',previousBox,previousPosition,boxId,position);
+  if(result&&result.sample_completed&&sample){sample.workflowStatus='CONGELADOR_DEFINITIVO';sample.status='Almacenada';sample.statusId=clinicalSampleStatusId('Almacenada');sample.definitiveBoxId=box.cloudId;sample.finalStorageAt=new Date().toISOString();appendClinicalSampleHistory(sample,'ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO','Todos los crioviales quedaron en la caja definitiva',clinicalActor())}
+  if(!save())return;auditAdd('Estudios Clínicos','Trasladó criovial '+vial.barcode+' a '+clinicalLocationLabel(box)+' · '+positionLabel(position));renderClinicalStudies();toast(result&&result.sample_completed?'Muestra completada y almacenada definitivamente.':'Traslado definitivo registrado; faltan crioviales por trasladar.');
  };
- var oldRenderStudies=renderClinicalStudies;
+var oldRenderStudies=renderClinicalStudies;
  function workflowStatusOf(sample){
   if(sample.workflowStatus)return sample.workflowStatus;
   return ({'Recibida':'REGISTRADO','En revisión':'EN_REVISION','Pendiente de procesamiento':'PENDIENTE_PROCESO','Procesada':'ALMACENAMIENTO_TEMPORAL','Almacenada':'CONGELADOR_DEFINITIVO'})[sample.status]||'REGISTRADO';
