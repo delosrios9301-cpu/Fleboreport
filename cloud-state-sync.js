@@ -2,6 +2,8 @@
 'use strict';
 const META_KEY='fleboReport.cloudSync.v1';
 const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
+// Estos catálogos se administran en clinical_* de Supabase, no en el estado JSON legado.
+const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampleTypes'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -35,6 +37,8 @@ function mergeState(remote,local){
  }
  const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
  out.clinicalSamples=(out.clinicalSamples||[]).filter(x=>!deletedClinicalSampleIds.has(String(x.id)));
+ // La configuración clínica relacional es la fuente oficial. Nunca fusionar copias antiguas del estado general.
+ CLINICAL_DB_CONFIG_KEYS.forEach(k=>{out[k]=Array.isArray(local&&local[k])?local[k]:[]});
  ['reportHistoryLogos','individualTestPrices','attentionTemplates'].forEach(k=>{
   out[k]=Object.assign({},local&&local[k]||{},remote&&remote[k]||{});
  });
@@ -60,16 +64,22 @@ async function fetchRemote(){
  if(r.error)throw r.error;return r.data||null;
 }
 async function writeRemote(state,expected){
- const raw=JSON.stringify(state);
+ const payload=Object.assign({},state||{});
+ // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
+ CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
+ const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
- const r=await client.rpc('save_workspace_app_state',{p_workspace_id:workspaceId,p_state:state,p_expected_revision:expected});
+ const r=await client.rpc('save_workspace_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
  if(r.error)throw r.error;
  const row=Array.isArray(r.data)?r.data[0]:r.data;
  return row||{saved:false,revision:expected};
 }
 function applyCloudState(s){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
- window.FleboAppState.replace(s,{silent:true});
+ const current=app()||{},safe=Object.assign({},s||{});
+ // Mantener la configuración clínica local hasta que clinical-cloud-sync la reemplace con la lectura oficial de Supabase.
+ CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]});
+ window.FleboAppState.replace(safe,{silent:true});
 }
 async function publishMerged(local,remote,expected){
  let candidate=mergeState(remote&&remote.state||{},local||{});
