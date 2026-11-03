@@ -224,6 +224,7 @@ test('Estudios Clínicos conserva una bandeja de revisión y solo libera aprobad
   assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
   assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
   assert.match(html, /reviewSamples=\(state\.clinicalSamples\|\|\[\]\)\.filter/);
+  assert.match(html, /window\.workflowStatusOf=workflowStatusOf/);
 });
 
 
