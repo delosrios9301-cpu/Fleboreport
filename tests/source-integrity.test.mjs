@@ -305,3 +305,21 @@ test('los catálogos de visita y muestra se desactivan en Supabase y no vuelven 
   assert.ok(catalogPersistence.includes("x.active!==false"));
   assert.ok(catalogPersistence.includes("restoreClinicalCatalogItem"));
 });
+
+
+test('los catálogos clínicos oficiales no se restauran desde workspace_app_state', () => {
+  assert.match(cloudSync, /CLINICAL_DB_CONFIG_KEYS=\['clinicalStudies','clinicalVisits','clinicalSampleTypes'\]/);
+  assert.match(cloudSync, /CLINICAL_DB_CONFIG_KEYS\.forEach\(k=>\{out\[k\]=Array\.isArray\(local&&local\[k\]\)\?local\[k\]:\[\]\}\)/);
+  assert.match(cloudSync, /CLINICAL_DB_CONFIG_KEYS\.forEach\(k=>\{safe\[k\]=Array\.isArray\(current\[k\]\)\?current\[k\]:\[\]\}\)/);
+  assert.match(cloudSync, /CLINICAL_DB_CONFIG_KEYS\.forEach\(k=>\{payload\[k\]=\[\]\}\)/);
+});
+
+test('la eliminación de visitas y tipos de muestra se confirma en Supabase', async () => {
+  const catalogPersistence = await readFile(new URL('../clinical-catalog-persistence.js', import.meta.url), 'utf8');
+  assert.doesNotThrow(() => new Function(catalogPersistence));
+  assert.ok(html.includes('src="./clinical-catalog-persistence.js"'));
+  assert.match(catalogPersistence, /item\.active=false/);
+  assert.match(catalogPersistence, /await api\.saveConfiguration\(\)/);
+  assert.match(catalogPersistence, /x\.active!==false/);
+  assert.match(catalogPersistence, /restoreClinicalCatalogItem/);
+});
