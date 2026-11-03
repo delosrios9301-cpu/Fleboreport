@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const META_KEY='fleboReport.cloudSync.v1';
-const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
+const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -33,6 +33,8 @@ function mergeState(remote,local){
   b.forEach(x=>{const k=itemKey(x),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
   out[key]=Array.from(map.values());
  }
+ const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
+ out.clinicalSamples=(out.clinicalSamples||[]).filter(x=>!deletedClinicalSampleIds.has(String(x.id)));
  ['reportHistoryLogos','individualTestPrices','attentionTemplates'].forEach(k=>{
   out[k]=Object.assign({},local&&local[k]||{},remote&&remote[k]||{});
  });
