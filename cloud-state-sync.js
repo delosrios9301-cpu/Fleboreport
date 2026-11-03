@@ -129,11 +129,11 @@ async function connect(){
  finally{busy=false;runPending()}
 }
 function subscribe(){
- if(!client||!workspaceId)return;
- if(channel)client.removeChannel(channel);
- channel=client.channel('flebo-app-state-'+workspaceId)
-  .on('postgres_changes',{event:'*',schema:'public',table:'workspace_app_state',filter:'workspace_id=eq.'+workspaceId},()=>receiveRemote())
-  .subscribe();
+ // La sincronización de estado usa consulta periódica y eventos de visibilidad.
+ // Se evita una suscripción Realtime adicional que estaba contribuyendo a los
+ // timeouts de apply_rls en proyectos con varias sesiones/dispositivos.
+ if(channel&&client)client.removeChannel(channel);
+ channel=null;
 }
 async function receiveRemote(){
  if(!ready)return;
