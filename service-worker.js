@@ -1,4 +1,4 @@
-const CACHE_NAME='fleboreport-shell-v153';
+const CACHE_NAME='fleboreport-shell-v154';
 const APP_SHELL=['./','./index.html','./domicilios.js','./supabase-auth.js','./cloud-state-sync.js','./patient-cloud-sync.js','./clinical-cloud-sync.js','./notifications-center.js','./configuracion.js','./notification-settings.js','./audit-history.js','./manifest.webmanifest','./icons/fleboreport.svg','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))));});
