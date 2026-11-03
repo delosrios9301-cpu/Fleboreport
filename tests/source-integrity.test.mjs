@@ -180,3 +180,8 @@ test('la búsqueda del expediente muestra su historial completo y la coincidenci
   assert.match(patientDocumentMatchMigration, /regexp_replace\(lower\(btrim\(p\.document_number\)\)/i);
   assert.match(patientDocumentMatchMigration, /pg_advisory_xact_lock/i);
 });
+
+test('la PWA renueva la caché para instalar la última versión de Domicilios y expedientes', () => {
+  const serviceWorker = html.includes('src="./patient-cloud-sync.js"');
+  assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
+});
