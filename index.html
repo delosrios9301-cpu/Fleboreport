@@ -1807,6 +1807,8 @@ var oldRenderStudies=renderClinicalStudies;
   if(sample.workflowStatus)return sample.workflowStatus;
   return ({'Recibida':'REGISTRADO','En revisión':'EN_REVISION','Pendiente de procesamiento':'PENDIENTE_PROCESO','Procesada':'ALMACENAMIENTO_TEMPORAL','Almacenada':'CONGELADOR_DEFINITIVO'})[sample.status]||'REGISTRADO';
  }
+ // renderClinicalStudies está declarado en otro script clásico; exponer el normalizador evita ReferenceError al construir las bandejas.
+ window.workflowStatusOf=workflowStatusOf;
  function workflowLabel(status){
   return ({REGISTRADO:'Registrado',EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de proceso',PROCESANDO:'Procesando',ALMACENAMIENTO_TEMPORAL:'Almacenamiento temporal',CONGELADOR_DEFINITIVO:'Congelador definitivo'})[status]||status;
  }
