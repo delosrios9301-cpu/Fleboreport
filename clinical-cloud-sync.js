@@ -29,8 +29,8 @@ async function saveStudy(study){
 }
 async function saveVisit(study,studyCloudId,visit){
  const code=String(visit.code||visit.id||visit.name).trim();
- let r=await client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).maybeSingle();
- if(r.error)fail(r.error);
+ let r=await client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).order('id',{ascending:true}).limit(1);
+ if(r.error)fail(r.error);r.data=Array.isArray(r.data)?(r.data[0]||null):r.data;
  const spec=study.visitSpecs&&study.visitSpecs[visit.id]||{};
  const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:visit.name,sort_order:Number(visit.order||visit.sortOrder||0),scheduled_day:spec.dayScheduled!=null?Number(spec.dayScheduled):(visit.dayScheduled!=null?Number(visit.dayScheduled):null),active:visit.active!==false};
  let row=r.data;
@@ -40,8 +40,8 @@ async function saveVisit(study,studyCloudId,visit){
 }
 async function saveSampleType(study,studyCloudId,type){
  const code=String(type.code||type.id||type.name).trim();
- let r=await client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).maybeSingle();
- if(r.error)fail(r.error);
+ let r=await client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',studyCloudId).eq('code',code).order('id',{ascending:true}).limit(1);
+ if(r.error)fail(r.error);r.data=Array.isArray(r.data)?(r.data[0]||null):r.data;
  const spec=study.sampleSpecs&&study.sampleSpecs[type.id]||{};
  const merged=Object.assign({},type,spec);
  const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:type.name,tube:merged.tube||null,volume:merged.volume||null,processing_protocol:merged.processingRequired||merged.processing_protocol||null,color:merged.color||null,marking:merged.marking||null,expected_containers:merged.expectedContainers==null?null:Number(merged.expectedContainers),expected_primary_aliquots:merged.expectedPrimaryAliquots==null?null:Number(merged.expectedPrimaryAliquots),expected_backup_aliquots:merged.expectedBackupAliquots==null?null:Number(merged.expectedBackupAliquots),description:merged.description||null,active:type.active!==false};
