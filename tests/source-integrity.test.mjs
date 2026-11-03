@@ -224,3 +224,13 @@ test('Estudios Clínicos conserva una bandeja de revisión y solo libera aprobad
   assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
   assert.match(html, /reviewSamples=\(state\.clinicalSamples\|\|\[\]\)\.filter/);
 });
+
+
+test('la configuración de almacenamiento se sincroniza al crear cajas y permite selección temporal por muestra', () => {
+  assert.match(html, /syncStorageConfigurationNow/);
+  assert.match(html, /Caja individual creada y sincronizada en la nube/);
+  assert.match(html, /toggleClinicalSampleCryos/);
+  assert.match(html, /data-move-sample=/);
+  assert.match(clinicalCloudSync, /async function syncStorageConfiguration\\(\\)/);
+  assert.match(clinicalCloudSync, /await syncBoxes\\(studies\\)/);
+});
