@@ -1,5 +1,5 @@
 -- Sincronización del estado de FleboReport por cuenta y espacio de trabajo.
--- Los datos de cada usuario se sincronizan entre sus propios dispositivos.
+-- Cada cuenta sincroniza sus propios datos entre sus dispositivos.
 create table if not exists public.workspace_app_state (
   workspace_id uuid not null references public.workspaces(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -19,13 +19,13 @@ using (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','cli
 drop policy if exists workspace_app_state_insert on public.workspace_app_state;
 create policy workspace_app_state_insert on public.workspace_app_state
 for insert to authenticated
-with check (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception','viewer']::text[]));
+with check (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception']::text[]));
 
 drop policy if exists workspace_app_state_update on public.workspace_app_state;
 create policy workspace_app_state_update on public.workspace_app_state
 for update to authenticated
-using (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception','viewer']::text[]))
-with check (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception','viewer']::text[]));
+using (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception']::text[]))
+with check (user_id=auth.uid() and has_workspace_role(workspace_id,array['admin','clinician','reception']::text[]));
 
 grant select,insert,update on public.workspace_app_state to authenticated;
 
@@ -40,7 +40,7 @@ declare
   v_uid uuid:=auth.uid();
 begin
   if v_uid is null then raise exception 'Se requiere una sesión autenticada'; end if;
-  if not has_workspace_role(p_workspace_id,array['admin','clinician','reception','viewer']::text[]) then
+  if not has_workspace_role(p_workspace_id,array['admin','clinician','reception']::text[]) then
     raise exception 'No tienes permiso para sincronizar este espacio de trabajo';
   end if;
   if p_state is null or jsonb_typeof(p_state)<>'object' then
