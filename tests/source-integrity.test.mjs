@@ -292,3 +292,16 @@ test('la sincronización de muestras ya no depende de leer ubicaciones de cajas'
   const sampleLoader=clinicalCloudSync.slice(clinicalCloudSync.indexOf('async function loadRemoteSamples()'),clinicalCloudSync.indexOf('async function syncConfiguration()'));
   assert.doesNotMatch(sampleLoader, /clinical_cryovials|clinical_cryovial_events/);
 });
+
+
+const catalogPersistence = await readFile(new URL('../clinical-catalog-persistence.js', import.meta.url), 'utf8');
+
+test('los catálogos de visita y muestra se desactivan en Supabase y no vuelven al formulario de registro', () => {
+  assert.doesNotThrow(() => new Function(catalogPersistence), 'clinical-catalog-persistence.js debe tener sintaxis válida');
+  assert.ok(html.includes('src="./clinical-catalog-persistence.js"'));
+  assert.ok(catalogPersistence.includes("item.active=false"));
+  assert.ok(catalogPersistence.includes("await api.saveConfiguration()"));
+  assert.ok(catalogPersistence.includes("item.active=true"));
+  assert.ok(catalogPersistence.includes("x.active!==false"));
+  assert.ok(catalogPersistence.includes("restoreClinicalCatalogItem"));
+});
