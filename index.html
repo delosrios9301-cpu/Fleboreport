@@ -1895,6 +1895,30 @@ var oldDeleteBox=window.deleteClinicalStorageBox;
  if(oldDeleteBox)window.deleteClinicalStorageBox=function(id){if(state.clinicalCryovials.some(function(v){return v.temporaryBoxId===id||v.definitiveBoxId===id})){toast('No se puede eliminar: la caja tiene crioviales registrados.');return}oldDeleteBox(id)};
  var priorCreateBox=window.createClinicalStorageBox;
  if(priorCreateBox)window.createClinicalStorageBox=priorCreateBox;
+ // Evita registros duplicados por doble toque y confirma la bandeja desde Supabase.
+ var originalReceiveClinicalSample=receiveClinicalSample;
+ var clinicalReceiveBusy=false;
+ receiveClinicalSample=async function(){
+  if(clinicalReceiveBusy){toast('El registro ya está en curso. Espera la confirmación.');return}
+  clinicalReceiveBusy=true;
+  var button=document.querySelector('#view-clinical-studies button[onclick="receiveClinicalSample()"]');
+  var originalLabel=button?button.textContent:'';
+  var beforeCount=(state.clinicalSamples||[]).length;
+  if(button){button.disabled=true;button.textContent='Registrando…';button.setAttribute('aria-busy','true')}
+  try{
+   await originalReceiveClinicalSample();
+   if((state.clinicalSamples||[]).length>beforeCount&&window.FleboClinicalCloud&&window.FleboClinicalCloud.ready){
+    await window.FleboClinicalCloud.refreshSamples();
+    renderClinicalStudies();
+   }
+  }catch(error){console.error('[FleboReport] Confirmación de registro clínico:',error);toast(error.message||'No se pudo confirmar el registro.')}
+  finally{
+   clinicalReceiveBusy=false;
+   if(button){button.disabled=false;button.textContent=originalLabel;button.removeAttribute('aria-busy')}
+  }
+ };
+ window.receiveClinicalSample=receiveClinicalSample;
+
  renderClinicalStudies();
 })();
 </script>
