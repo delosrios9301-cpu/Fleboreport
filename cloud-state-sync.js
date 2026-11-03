@@ -79,7 +79,7 @@ function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
  const current=app()||{},safe=Object.assign({},s||{});
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
- CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=clearClinical?[]:(Array.isArray(current[k])?current[k]:[])});
+ if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
  window.FleboAppState.replace(safe,{silent:true});
 }
 async function publishMerged(local,remote,expected){
