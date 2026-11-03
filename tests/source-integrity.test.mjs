@@ -159,7 +159,7 @@ test('los expedientes se sincronizan en la tabla maestra compartida del espacio'
   assert.match(patientCloudSync, /journeyHistory/);
   assert.match(patientSearchMigration, /search_workspace_patients/i);
   assert.match(patientSearchMigration, /regexp_replace/i);
-  assert.match(domicilios, /rpc\\('search_workspace_patients'/);
+  assert.ok(domicilios.includes("rpc('search_workspace_patients'"));
 });
 
 test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de guardado local', () => {
