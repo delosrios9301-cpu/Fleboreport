@@ -4,11 +4,38 @@ const PAGE=50, MAX_EXPORT=10000;
 let client=null, workspaceId=null, rows=[], total=0, page=0, busy=false, sites=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const MODULES=[['','Todos los módulos'],['clinical','Estudios y muestras'],['patients','Pacientes'],['journey','Jornada y reportes'],['domicilios','Domicilios'],['inventory','Inventario'],['configuration','Configuración'],['approvals','Aprobaciones'],['administration','Administración']];
+const MODULES=[['','Todos los módulos'],['clinical','Estudios y muestras'],['patients','Pacientes'],['professionals','Personal'],['journey','Jornada y reportes'],['domicilios','Domicilios'],['inventory','Inventario'],['configuration','Configuración'],['approvals','Aprobaciones'],['administration','Administración']];
 const moduleName=k=>(MODULES.find(x=>x[0]===k)||[])[1]||String(k||'Administración');
 const tableModule=r=>r.details&&r.details.module_key||(/^(clinical_)/.test(r.entity_table)?'clinical':({patients:'patients',professionals:'professionals',journeys:'journey',attentions:'journey',attention_tests:'journey',evidences:'journey',signatures:'journey',reports:'journey',appointments:'domicilios',reminders:'domicilios',home_visits:'domicilios',home_visit_assignments:'domicilios',home_visit_events:'domicilios',inventory_items:'inventory',inventory_movements:'inventory',approval_requests:'approvals'}[r.entity_table]||'configuration'));
 function dateText(v){if(!v)return'—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleString('es-PA',{dateStyle:'medium',timeStyle:'short'})}
 function actionName(a){return({INSERT:'Creación',UPDATE:'Modificación',DELETE:'Eliminación',sample_registered:'Muestra registrada',sample_status_changed:'Cambio de estado'})[a]||String(a||'Actividad').replace(/_/g,' ')}
+
+function ensureMarkup(){
+ if(document.getElementById('view-audit'))return;
+ const settingsNav=document.querySelector('[data-nav="settings"]');
+ if(settingsNav){const b=document.createElement('button');b.type='button';b.dataset.nav='audit';b.innerHTML='<span class="nav-icon">▤</span><span class="nav-copy">Historial General</span>';b.onclick=()=>window.navigate('audit');settingsNav.parentNode.insertBefore(b,settingsNav);}
+ const content=document.querySelector('.main>.content');if(!content)return;
+ const section=document.createElement('section');section.className='view';section.id='view-audit';
+ section.innerHTML=`
+ <div class="page-heading"><div><div class="eyebrow">TRAZABILIDAD Y CONTROL</div><h1>Historial General</h1><p>Registro centralizado de actividades, operaciones y modificaciones de todos los módulos.</p></div><div class="heading-actions"><button class="btn" onclick="FleboAuditHistory.exportCsv()">Exportar CSV</button><button class="btn" onclick="window.print()">Imprimir / PDF</button></div></div>
+ <div class="audit-stats"><div class="audit-stat"><small>Resultados con filtros actuales</small><strong id="auditTotalStat">0</strong></div><div class="audit-stat"><small>Creaciones en la página</small><strong id="auditCreateStat">0</strong></div><div class="audit-stat"><small>Modificaciones en la página</small><strong id="auditUpdateStat">0</strong></div></div>
+ <section class="panel"><div class="panel-head"><div><h2>Buscar en todo el historial</h2><p class="section-description">Combina los filtros para localizar actividades específicas.</p></div><span class="muted" id="auditGeneralUpdated">—</span></div>
+ <div class="audit-filters">
+ <div class="field"><label for="auditQuery">Búsqueda global</label><input id="auditQuery" placeholder="ID, código, acción, campo o detalle" onkeydown="if(event.key==='Enter')FleboAuditHistory.query()"></div>
+ <div class="field"><label for="auditModule">Módulo</label><select id="auditModule"><option value="">Todos los módulos</option><option value="clinical">Estudios y muestras</option><option value="patients">Pacientes</option><option value="professionals">Personal</option><option value="journey">Jornada y reportes</option><option value="domicilios">Domicilios</option><option value="inventory">Inventario</option><option value="configuration">Configuración</option><option value="approvals">Aprobaciones</option><option value="administration">Administración</option></select></div>
+ <div class="field"><label for="auditAction">Tipo de acción</label><select id="auditAction"><option value="">Todas las acciones</option><option value="INSERT">Creación</option><option value="UPDATE">Modificación</option><option value="DELETE">Eliminación</option><option value="sample_registered">Muestra registrada</option><option value="sample_status_changed">Cambio de estado</option></select></div>
+ <div class="field"><label for="auditActor">Usuario</label><input id="auditActor" placeholder="Nombre o ID del usuario"></div>
+ <div class="field"><label for="auditSite">Sede</label><select id="auditSite"><option value="">Todas las sedes</option></select></div>
+ <div class="field"><label for="auditFrom">Desde</label><input id="auditFrom" type="date"></div>
+ <div class="field"><label for="auditTo">Hasta</label><input id="auditTo" type="date"></div>
+ <div class="field" style="display:flex;align-items:end;gap:8px"><button class="btn primary" style="flex:1" onclick="FleboAuditHistory.query()">Aplicar filtros</button><button class="btn" onclick="FleboAuditHistory.reset()">Limpiar</button></div></div>
+ <div class="form-actions" style="padding:0 16px 14px"><span class="section-description">Se muestran <b id="auditLoaded">0</b> registros por página. El historial es de solo lectura.</span></div>
+ <div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Origen</th><th>ID del registro</th></tr></thead><tbody id="auditGeneralRows"></tbody></table></div>
+ <p id="auditGeneralEmpty" class="empty-state" hidden>No hay actividades que coincidan con los filtros seleccionados.</p><p id="auditGeneralError" class="section-description" role="alert" style="color:#b42318;padding:0 16px"></p>
+ <div class="audit-pagination"><span id="auditGeneralPage" class="muted">—</span><div class="form-actions" style="margin:0"><button id="auditPrev" class="btn" onclick="FleboAuditHistory.prev()">Anterior</button><button id="auditNext" class="btn" onclick="FleboAuditHistory.next()">Siguiente</button></div></div></section><div id="auditGeneralModal" class="audit-modal"></div>`;
+ content.appendChild(section);
+}
+
 function injectStyles(){if($('fleboAuditStyles'))return;const s=document.createElement('style');s.id='fleboAuditStyles';s.textContent=`
 #view-audit .audit-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:16px}
 #view-audit .audit-filters .field{min-width:0}
@@ -49,8 +76,9 @@ async function exportCsv(){try{const base=argsFor(0);base.p_limit=200;let all=[]
 function show(id){const r=rows.find(x=>Number(x.id)===Number(id));if(!r)return;const details=r.details||{};const fields=(r.changed_fields||[]).length?(r.changed_fields||[]).map(x=>'<span>'+esc(x)+'</span>').join(''):'<span>Sin detalle de campos (registro histórico anterior)</span>';const modal=$('auditGeneralModal');modal.innerHTML='<div class="audit-modal-card" role="dialog" aria-modal="true" aria-labelledby="auditModalTitle"><div class="audit-modal-head"><div><div class="eyebrow">DETALLE DE AUDITORÍA · #'+esc(r.id)+'</div><h2 id="auditModalTitle" style="margin:5px 0 0;font-size:17px">Detalle de actividad</h2></div><button class="btn" onclick="FleboAuditHistory.close()">Cerrar</button></div><div class="audit-modal-body"><div class="audit-detail-grid">'+[['Fecha y hora',dateText(r.occurred_at)],['Usuario',r.actor_name||'Usuario del sistema'],['Módulo',moduleName(tableModule(r))],['Acción',actionName(r.action)],['Tabla de origen',r.entity_table],['ID del registro',r.entity_id||'No disponible'],['Sede',sites.find(s=>s.id===r.site_id)?.name||r.site_id||'No especificada'],['Usuario ID',r.actor_id||'No disponible']].map(x=>'<div class="audit-detail"><small>'+esc(x[0])+'</small><b>'+esc(x[1])+'</b></div>').join('')+'</div><div><b style="font-size:11px">Campos modificados</b><div class="audit-fields" style="margin-top:8px">'+fields+'</div></div><div><b style="font-size:11px">Metadatos del registro</b><div class="audit-json">'+esc(JSON.stringify(details,null,2))+'</div></div><p class="section-description">El historial registra los campos afectados y los metadatos de la operación. No almacena valores clínicos ni contraseñas para evitar duplicar información sensible.</p></div></div>';modal.classList.add('open')}
 function close(){$('auditGeneralModal')?.classList.remove('open')}
 async function init(){injectStyles();try{if(!window.FleboAuth)throw new Error('No se encontró el servicio de autenticación.');client=await window.FleboAuth.init();const user=window.FleboAuth.user,m=window.FleboAuth.membership;if(!user||!m||m.active!==true)throw new Error('Inicia sesión para consultar el historial.');workspaceId=m.workspace_id;await loadSites();page=0;await query()}catch(e){$('auditGeneralError').textContent=e.message||'No se pudo inicializar el historial.'}}
-function open(){if(!$('view-audit'))return;init()}
+function open(){ensureMarkup();if(!$('view-audit'))return;init()}
 window.addEventListener('flebo:auth-changed',()=>{if(document.querySelector('#view-audit.active'))init()});
 window.FleboAuditHistory={open,query,reset,show,close,exportCsv,prev(){if(page>0){page--;query()}},next(){if((page+1)*PAGE<total){page++;query()}}};
 document.addEventListener('click',e=>{if(e.target===$('auditGeneralModal'))close()});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureMarkup);else ensureMarkup();
 })();
