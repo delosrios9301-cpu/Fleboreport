@@ -127,7 +127,7 @@ async function loadRemoteConfiguration(){
   const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
- window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:studies,clinicalVisits:visits,clinicalSampleTypes:types}),{silent:true});
+ const mergedStudies=studies.concat(oldStudies.filter(x=>!x.cloudId)),mergedVisits=visits.concat(oldVisits.filter(x=>!x.cloudId)),mergedTypes=types.concat(oldTypes.filter(x=>!x.cloudId));window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:mergedStudies,clinicalVisits:mergedVisits,clinicalSampleTypes:mergedTypes}),{silent:true});
 }
 async function loadRemoteBoxes(){
  const stateNow=app()||{};
