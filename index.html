@@ -1458,6 +1458,7 @@ async function deleteClinicalSample(id){
   if(!window.FleboClinicalCloud)throw new Error('No está disponible el conector clínico de Supabase.');
   await window.FleboClinicalCloud.connect();
   await window.FleboClinicalCloud.deleteSample(sample,reason);
+  state.clinicalLocalDeletedSampleIds=Array.from(new Set((state.clinicalLocalDeletedSampleIds||[]).concat([String(sample.id)])));
   state.clinicalSamples=state.clinicalSamples.filter(function(x){return x.id!==id});
   save();
   auditAdd('Estudios Clínicos','Eliminó muestra '+(sample.subjectCode||sample.id)+' · Motivo: '+reason);
