@@ -33,6 +33,8 @@ function ensureMarkup(){
  <div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Fecha y hora</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Origen</th><th>ID del registro</th></tr></thead><tbody id="auditGeneralRows"></tbody></table></div>
  <p id="auditGeneralEmpty" class="empty-state" hidden>No hay actividades que coincidan con los filtros seleccionados.</p><p id="auditGeneralError" class="section-description" role="alert" style="color:#b42318;padding:0 16px"></p>
  <div class="audit-pagination"><span id="auditGeneralPage" class="muted">—</span><div class="form-actions" style="margin:0"><button id="auditPrev" class="btn" onclick="FleboAuditHistory.prev()">Anterior</button><button id="auditNext" class="btn" onclick="FleboAuditHistory.next()">Siguiente</button></div></div></section><div id="auditGeneralModal" class="audit-modal"></div>`;
+ const exportButton=section.querySelector('button[onclick="FleboAuditHistory.exportCsv()"]');if(exportButton)exportButton.hidden=!(window.fleboCan&&window.fleboCan('audit','export'));
+ const printButton=section.querySelector('button[onclick="window.print()"]');if(printButton)printButton.hidden=!(window.fleboCan&&window.fleboCan('audit','print'));
  content.appendChild(section);
 }
 
@@ -78,7 +80,7 @@ function show(id){const r=rows.find(x=>Number(x.id)===Number(id));if(!r)return;c
 function close(){$('auditGeneralModal')?.classList.remove('open')}
 async function init(){injectStyles();try{if(!window.FleboAuth)throw new Error('No se encontró el servicio de autenticación.');client=await window.FleboAuth.init();const user=window.FleboAuth.user,m=window.FleboAuth.membership;if(!user||!m||m.active!==true)throw new Error('Inicia sesión para consultar el historial.');workspaceId=m.workspace_id;await loadSites();page=0;await query()}catch(e){$('auditGeneralError').textContent=e.message||'No se pudo inicializar el historial.'}}
 function open(){ensureMarkup();if(!$('view-audit'))return;init()}
-window.addEventListener('flebo:auth-changed',()=>{const nav=document.querySelector('[data-nav="audit"]');if(nav)nav.hidden=!(window.fleboCan&&window.fleboCan('audit','view'));if(document.querySelector('#view-audit.active'))init()});
+window.addEventListener('flebo:auth-changed',()=>{const nav=document.querySelector('[data-nav="audit"]');if(nav)nav.hidden=!(window.fleboCan&&window.fleboCan('audit','view'));const exp=document.querySelector('#view-audit button[onclick="FleboAuditHistory.exportCsv()"]');if(exp)exp.hidden=!(window.fleboCan&&window.fleboCan('audit','export'));const pr=document.querySelector('#view-audit button[onclick="window.print()"]');if(pr)pr.hidden=!(window.fleboCan&&window.fleboCan('audit','print'));if(document.querySelector('#view-audit.active'))init()});
 window.FleboAuditHistory={open,query,apply,reset,show,close,exportCsv,prev(){if(page>0){page--;query()}},next(){if((page+1)*PAGE<total){page++;query()}}};
 document.addEventListener('click',e=>{if(e.target===$('auditGeneralModal'))close()});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureMarkup);else ensureMarkup();
