@@ -22,7 +22,7 @@ begin
  select array_agg(c.table_name order by c.table_name) into v_tables
  from information_schema.columns c
  where c.table_schema='public' and c.column_name='workspace_id'
- and c.table_name not in ('workspaces','workspace_members','role_permissions','member_permissions','sedes','user_sedes','workspace_security_settings','workspace_app_state');
+ and c.table_name not in ('workspaces','workspace_members','role_permissions','member_permissions','sedes','user_sedes','workspace_security_settings','workspace_app_state','audit_logs');
  if coalesce(array_length(v_tables,1),0)=0 then raise exception 'No se encontraron tablas operativas para respaldar.'; end if;
  foreach v_table in array v_tables loop
    execute format('select coalesce(jsonb_agg(to_jsonb(t)), ''[]''::jsonb) from public.%I t where t.workspace_id=$1',v_table)
@@ -67,7 +67,7 @@ begin
  insert into public.audit_logs(workspace_id,actor_id,actor_name,entity_table,entity_id,action,occurred_at,details)
  values(p_workspace_id,v_uid,v_actor,'workspace',p_workspace_id,'FULL_OPERATIONAL_RESET',now(),
  jsonb_build_object('backup_id',v_backup,'reset_epoch',v_epoch,'deleted_tables',v_deleted_tables,'deleted_rows',v_rows,
- 'preserved',jsonb_build_array('auth.users','workspace_members','role_permissions','member_permissions','sedes','user_sedes','workspace_security_settings')));
+ 'preserved',jsonb_build_array('auth.users','workspace_members','role_permissions','member_permissions','sedes','user_sedes','workspace_security_settings','audit_logs')));
  update private.workspace_reset_backups set deleted_tables=v_deleted_tables,deleted_rows=v_rows where id=v_backup;
  return query select v_backup,v_deleted_tables,v_rows,v_epoch;
 end;
