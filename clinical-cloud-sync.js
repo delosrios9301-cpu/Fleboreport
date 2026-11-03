@@ -121,14 +121,12 @@ async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
  const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).limit(5000);
  if(r.error)fail(r.error);
- const [containers,events,profiles,cryoRows,cryoEvents]=await Promise.all([
+ const [containers,events,profiles]=await Promise.all([
   client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId),
   client.from('clinical_sample_events').select('sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).limit(10000),
-  client.from('profiles').select('user_id,display_name'),
-  client.from('clinical_cryovials').select('id,sample_id,barcode,kind,status,box_id,position_no,created_by,created_at,updated_at').eq('workspace_id',workspaceId),
-  client.from('clinical_cryovial_events').select('id,cryovial_id,action,from_box_id,from_position,to_box_id,to_position,actor_id,notes,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).limit(20000)
+  client.from('profiles').select('user_id,display_name')
  ]);
- if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);if(cryoRows.error)fail(cryoRows.error);if(cryoEvents.error)fail(cryoEvents.error);
+ if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
  const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x]));
  const visitMap=new Map((stateNow.clinicalVisits||[]).map(x=>[x.cloudId,x]));
@@ -145,14 +143,9 @@ async function loadRemoteSamples(){
  const oldSampleHistory=stateNow.clinicalSampleHistory||[];const history=(events.data||[]).map(e=>{
   const sample=(r.data||[]).find(x=>x.id===e.sample_id);return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
  });
- const legacySampleIds=new Set(oldSamples.filter(x=>!x.cloudId).map(x=>x.id));const mergedHistory=history.concat(oldSampleHistory.filter(x=>legacySampleIds.has(x.sampleId)));const oldVials=stateNow.clinicalCryovials||[],vials=(cryoRows.data||[]).map(v=>{
-  const sample=(r.data||[]).find(x=>x.id===v.sample_id),old=oldVials.find(x=>x.cloudId===v.id||x.barcode===v.barcode)||{};
-  const ev=(cryoEvents.data||[]).filter(e=>e.cryovial_id===v.id).map(e=>({id:e.id,cryoId:v.id,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+v.sample_id,barcode:v.barcode,action:e.action,fromBoxId:e.from_box_id||'',fromPosition:e.from_position||'',toBoxId:e.to_box_id||'',toPosition:e.to_position||'',timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''}));
-  return Object.assign({},old,{id:old.id||'cloud-cv-'+v.id,cloudId:v.id,barcode:v.barcode,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):old.sampleId,kind:v.kind,status:v.status,temporaryBoxId:v.status==='Almacenamiento temporal'?v.box_id:'',temporaryPosition:v.status==='Almacenamiento temporal'?v.position_no:null,definitiveBoxId:v.status==='Almacenamiento definitivo'?v.box_id:'',definitivePosition:v.status==='Almacenamiento definitivo'?v.position_no:null,events:ev,createdAt:v.created_at,updatedAt:v.updated_at});
- });
- const vialIds=new Set(vials.map(x=>x.id)),mergedVials=vials.concat(oldVials.filter(x=>!x.cloudId&&!vialIds.has(x.id)));
- const oldCryoHistory=stateNow.clinicalCryovialHistory||[];const legacyVialIds=new Set(oldVials.filter(x=>!x.cloudId).map(x=>x.id));const cryoHistory=(cryoEvents.data||[]).map(e=>({id:e.id,cryoId:e.cryovial_id,action:e.action,fromBoxId:e.from_box_id||'',fromPosition:e.from_position||'',toBoxId:e.to_box_id||'',toPosition:e.to_position||'',timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''}));
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:mergedHistory,clinicalCryovials:mergedVials,clinicalCryovialHistory:cryoHistory.concat(oldCryoHistory.filter(x=>legacyVialIds.has(x.cryoId)))}),{silent:true});
+ const legacySampleIds=new Set(oldSamples.filter(x=>!x.cloudId).map(x=>x.id));
+ const mergedHistory=history.concat(oldSampleHistory.filter(x=>legacySampleIds.has(x.sampleId)));
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:mergedHistory}),{silent:true});
 }
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
