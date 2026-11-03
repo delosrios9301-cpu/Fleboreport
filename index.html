@@ -1772,4 +1772,84 @@ html,body{max-width:100%;overflow-x:hidden}
  .view .form-actions>.btn,.view .form-actions>button{flex-basis:100%}
 }
 </style>
+<style id="journey-reports-clean-layout">
+/* Oculta los rótulos técnicos superiores sin detener el motor de sincronización */
+.topbar-title{display:none!important}
+#fleboSyncStatus{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.topbar{min-height:12px!important;padding-block:3px!important}
+.topbar .top-left{display:none!important}
+.topbar .top-actions{min-height:0!important}
+/* Jornada: formulario principal y resumen con proporciones claras en escritorio */
+#view-journey>.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+#view-journey>.page-heading>div:first-child{flex:1 1 280px;min-width:0}
+#view-journey>.page-heading>.heading-actions{flex:1 1 300px;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:10px}
+#view-journey>.page-heading .shared-operational-kpis{width:100%;min-width:0}
+#view-journey>.page-heading .heading-actions .heading-actions{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+#view-journey>.module-grid{display:grid!important;grid-template-columns:minmax(0,1.55fr) minmax(290px,.75fr)!important;gap:18px!important;align-items:start!important;width:100%;min-width:0}
+#view-journey>.module-grid>.panel{width:100%;min-width:0;margin:0}
+#view-journey .fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+#view-journey .field,#view-journey .field>*{min-width:0;max-width:100%}
+#view-journey .field input,#view-journey .field select,#view-journey .field textarea{width:100%;max-width:100%;min-width:0}
+#view-journey .test-picker,#view-journey .test-choice-list{max-width:100%;min-width:0}
+#view-journey .list-stack{display:grid;gap:10px;min-width:0}
+#view-journey .list-stack>*{min-width:0;max-width:100%}
+#view-journey .form-actions{display:flex;gap:9px;flex-wrap:wrap}
+#view-journey .form-actions .btn{max-width:100%}
+/* Reporte: vista previa centrada, herramientas en una barra y hoja sin desbordamiento */
+#view-reports>.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap}
+#view-reports>.page-heading>div:first-child{flex:1 1 260px;min-width:0}
+#view-reports>.page-heading>.shared-operational-kpis{flex:1 1 240px;min-width:0}
+#view-reports>.page-heading>.heading-actions{display:flex;gap:8px;flex-wrap:wrap}
+#view-reports>.report-card{width:100%;max-width:100%;min-width:0;margin:0 auto;overflow:hidden}
+#view-reports .report-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#view-reports .style-picker{display:flex;gap:6px;flex-wrap:wrap}
+#view-reports .report-paper{width:100%;max-width:100%;min-width:0;margin-inline:auto;overflow-wrap:anywhere}
+#view-reports .report-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+#view-reports .report-lab,#view-reports .report-meta{min-width:0;max-width:100%}
+#view-reports .report-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#view-reports .report-metric{min-width:0}
+#view-reports #reportTests{min-width:0;max-width:100%;overflow-wrap:anywhere}
+#view-reports .report-total{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* Historial: cabecera limpia, indicadores alineados y archivo a ancho completo */
+#view-report-history>.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+#view-report-history>.page-heading>div:first-child{flex:1 1 300px;min-width:0}
+#view-report-history>.page-heading>.shared-operational-kpis{flex:1 1 240px;min-width:0}
+#view-report-history>.page-heading>.btn{flex:0 0 auto}
+#view-report-history>.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;width:100%;margin-bottom:16px}
+#view-report-history>.stats-grid>.stat-card{width:100%;min-width:0}
+#view-report-history>.panel{width:100%;max-width:100%;min-width:0;margin:0 0 16px}
+#view-report-history .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#view-report-history .panel-body,#view-report-history #reportHistoryList{min-width:0;max-width:100%}
+#view-report-history #reportHistoryList>*{min-width:0;max-width:100%}
+#view-report-history #reportHistoryPreviewBody{min-width:0;max-width:100%;overflow-x:auto}
+#view-report-history .form-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:1100px){
+ #view-journey>.module-grid{grid-template-columns:minmax(0,1fr)!important}
+ #view-journey>.module-grid>.panel{width:100%}
+ #view-journey>.page-heading{display:block}
+ #view-journey>.page-heading>.heading-actions{margin-top:12px}
+ #view-journey>.page-heading .heading-actions .heading-actions{justify-content:flex-start}
+ #view-reports .report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+ #view-journey>.page-heading,#view-reports>.page-heading,#view-report-history>.page-heading{display:flex;flex-direction:column;align-items:stretch}
+ #view-journey>.page-heading>.heading-actions{width:100%}
+ #view-journey .fields{grid-template-columns:minmax(0,1fr)}
+ #view-journey .field.full{grid-column:auto}
+ #view-journey .form-panel{padding:14px}
+ #view-journey .form-actions .btn{flex:1 1 100%}
+ #view-reports>.page-heading>.heading-actions{width:100%}
+ #view-reports .report-toolbar{align-items:flex-start}
+ #view-reports .report-paper{padding:clamp(12px,3vw,20px)}
+ #view-reports .report-head{display:grid;grid-template-columns:minmax(0,1fr)}
+ #view-reports .report-meta{text-align:left}
+ #view-report-history>.page-heading>.btn{width:100%}
+ #view-report-history>.stats-grid{grid-template-columns:minmax(0,1fr)}
+ #view-report-history .panel-head{align-items:flex-start}
+}
+@media(max-width:420px){
+ #view-reports .report-metrics{grid-template-columns:minmax(0,1fr)}
+ #view-report-history .form-actions .btn{width:100%}
+}
+</style>
 </body></html>
