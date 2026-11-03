@@ -1649,39 +1649,87 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
   if(!save())return;auditAdd('Estudios Clínicos','Trasladó criovial '+vial.barcode+' a '+clinicalLocationLabel(box)+' · '+positionLabel(position));renderClinicalStudies();toast('Traslado definitivo registrado en el historial.');
  };
  var oldRenderStudies=renderClinicalStudies;
+ function workflowStatusOf(sample){
+  if(sample.workflowStatus)return sample.workflowStatus;
+  return ({'Recibida':'REGISTRADO','En revisión':'EN_REVISION','Pendiente de procesamiento':'PENDIENTE_PROCESO','Procesada':'ALMACENAMIENTO_TEMPORAL','Almacenada':'CONGELADOR_DEFINITIVO'})[sample.status]||'REGISTRADO';
+ }
+ function workflowLabel(status){
+  return ({REGISTRADO:'Registrado',EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de proceso',PROCESANDO:'Procesando',ALMACENAMIENTO_TEMPORAL:'Almacenamiento temporal',CONGELADOR_DEFINITIVO:'Congelador definitivo'})[status]||status;
+ }
+ async function transitionSampleUI(sample,next,note,args){
+  if(!sample)return;
+  try{
+   if(!window.FleboClinicalCloud)throw new Error('No está disponible el servicio clínico de Supabase.');
+   await window.FleboClinicalCloud.transition(sample,next,Object.assign({notes:note||''},args||{}));
+   appendClinicalSampleHistory(sample,sample._previousWorkflowStatus||'',next,note||'',clinicalActor());
+   sample._previousWorkflowStatus=next;
+   if(!save())return;
+   auditAdd('Estudios Clínicos','Transición de muestra '+sample.subjectCode+' → '+next);
+   renderClinicalStudies();
+  }catch(error){console.error('[FleboReport Clinical Workflow]',error);toast(error.message||'No se pudo cambiar el estado de la muestra.')}
+ }
+ setClinicalSampleStatus=async function(id,next,note){
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
+  var target=next==='En revisión'?'EN_REVISION':next==='Pendiente de procesamiento'?'PENDIENTE_PROCESO':'';
+  if(!target){toast('Esta acción no forma parte del flujo clínico autorizado.');return}
+  var current=workflowStatusOf(sample);
+  if((target==='EN_REVISION'&&current!=='REGISTRADO')||(target==='PENDIENTE_PROCESO'&&current!=='EN_REVISION')){toast('La muestra debe avanzar en el orden establecido.');return}
+  sample._previousWorkflowStatus=current;
+  await transitionSampleUI(sample,target,note||'Validación de etapa');
+ };
+ processClinicalSample=async function(id){
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
+  if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
+  sample._previousWorkflowStatus='PENDIENTE_PROCESO';
+  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico');
+ };
+ window.completeClinicalSampleProcessing=async function(id){
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra no está en procesamiento.');return}
+  var p=document.querySelector('[data-primary-aliquot-for="'+id+'"]'),b=document.querySelector('[data-backup-aliquot-for="'+id+'"]'),boxSelect=document.querySelector('[data-temporary-box-for="'+id+'"]');
+  var primary=p&&p.value!==''?Number(p.value):NaN,backup=b&&b.value!==''?Number(b.value):NaN,box=state.clinicalLocations.find(function(x){return x.id===(boxSelect&&boxSelect.value)});
+  if(!Number.isInteger(primary)||primary<0||!Number.isInteger(backup)||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas para principal y backup.');return}
+  if(!box||box.storageStage!=='temporal'||box.studyId!==sample.studyId||!box.cloudId){toast('Selecciona una caja temporal activa vinculada al estudio de esta muestra.');return}
+  sample._previousWorkflowStatus='PROCESANDO';
+  await transitionSampleUI(sample,'ALMACENAMIENTO_TEMPORAL','Alicuotado y asignación de caja temporal',{primaryAliquots:primary,backupAliquots:backup,temporaryBoxId:box.cloudId});
+ };
+ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
  renderClinicalStudies=function(){
   oldRenderStudies();
   if(typeof renderClinicalDashboardIndicators==='function')renderClinicalDashboardIndicators();
   document.querySelectorAll('#clinicalQueueRows tr').forEach(function(row){
-   var check=row.querySelector('[data-clinical-sample]');if(!check)return;var id=check.getAttribute('data-clinical-sample'),sample=state.clinicalSamples.find(function(x){return x.id===id}),ready=sample&&['Recibida','En revisión','Pendiente de procesamiento'].includes(sample.status),cell=row.children[5];if(sample&&cell){var p=sample.primaryAliquots!=null?sample.primaryAliquots:'',b=sample.backupAliquots!=null?sample.backupAliquots:'';cell.innerHTML='<div class="aliquot-inputs"><label>Principal<input type="number" min="0" step="1" placeholder="0" value="'+esc(p)+'" data-primary-aliquot-for="'+esc(id)+'" '+(!ready?'disabled':'')+'></label><label>Backup<input type="number" min="0" step="1" placeholder="0" value="'+esc(b)+'" data-backup-aliquot-for="'+esc(id)+'" '+(!ready?'disabled':'')+'></label></div>'}
-   var actions=row.lastElementChild;if(sample&&actions&&['Procesada','Almacenada'].includes(sample.status)&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','<button class="btn primary" data-open-cryo="'+esc(id)+'" onclick="openClinicalCryoPanel(\''+esc(id)+'\')">Crioviales</button>');
+   var check=row.querySelector('[data-clinical-sample]');if(!check)return;
+   var id=check.getAttribute('data-clinical-sample'),sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
+   var status=workflowStatusOf(sample),statusCell=row.children[6],locationCell=row.children[7],inputCell=row.children[5],actions=row.lastElementChild;
+   if(statusCell)statusCell.innerHTML='<span class="clinical-status">'+esc(workflowLabel(status))+'</span>';
+   if(locationCell)locationCell.textContent=sample.location||((status==='ALMACENAMIENTO_TEMPORAL'&&sample.temporaryBoxId)?'Caja temporal asignada':status==='CONGELADOR_DEFINITIVO'?'Ubicación definitiva confirmada':'—');
+   if(actions){
+    var buttons='';
+    if(status==='REGISTRADO')buttons='<button class="btn" onclick="setClinicalSampleStatus(\''+esc(id)+'\',\'En revisión\')">Iniciar revisión</button>';
+    else if(status==='EN_REVISION')buttons='<button class="btn primary" onclick="setClinicalSampleStatus(\''+esc(id)+'\',\'Pendiente de procesamiento\')">Aprobar y enviar a proceso</button>';
+    else if(status==='PENDIENTE_PROCESO')buttons='<button class="btn primary" onclick="processClinicalSample(\''+esc(id)+'\')">Iniciar proceso</button>';
+    else if(status==='ALMACENAMIENTO_TEMPORAL')buttons='<button class="btn primary" onclick="openClinicalCryoPanel(\''+esc(id)+'\')">Registrar crioviales / traslado</button>';
+    else if(status==='CONGELADOR_DEFINITIVO')buttons='<span class="clinical-status">Ciclo completado</span>';
+    actions.innerHTML=buttons;
+   }
+   if(status==='PROCESANDO'&&inputCell){
+    var p=sample.primaryAliquots!=null?sample.primaryAliquots:'',b=sample.backupAliquots!=null?sample.backupAliquots:'';
+    var boxes=(state.clinicalLocations||[]).filter(function(x){return x.studyId===sample.studyId&&x.storageStage==='temporal'&&x.cloudId});
+    inputCell.innerHTML='<div class="aliquot-inputs"><label>Principal<input type="number" min="0" step="1" placeholder="0" value="'+esc(p)+'" data-primary-aliquot-for="'+esc(id)+'"></label><label>Backup<input type="number" min="0" step="1" placeholder="0" value="'+esc(b)+'" data-backup-aliquot-for="'+esc(id)+'"></label><label>Caja temporal<select data-temporary-box-for="'+esc(id)+'"><option value="">Selecciona caja</option>'+boxes.map(function(x){return'<option value="'+esc(x.id)+'">'+esc(x.box)+' · '+esc(x.aliquotCapacity)+' posiciones</option>'}).join('')+'</select></label></div>';
+    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Guardar alicuotado</button>';
+   }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
+   if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
   if(!document.getElementById('clinicalCryoPanel')?.hidden)renderCryoPanel();
  };
- function readAliquots(id){
-  var p=document.querySelector('[data-primary-aliquot-for="'+id+'"]'),b=document.querySelector('[data-backup-aliquot-for="'+id+'"]');
-  var primary=p&&p.value!==''?Number(p.value):0,backup=b&&b.value!==''?Number(b.value):0;
-  if(!Number.isInteger(primary)||primary<0||!Number.isInteger(backup)||backup<0||primary+backup<1)return null;
-  return{principal:primary,backup:backup,total:primary+backup};
- }
- function finishSampleProcessing(x,counts){
-  if(x.status==='Recibida'){x.status='Pendiente de procesamiento';x.statusId=clinicalSampleStatusId(x.status);appendClinicalSampleHistory(x,'Recibida',x.status,'Enviada a procesamiento',clinicalActor())}
-  var previous=x.status;x.primaryAliquots=counts.principal;x.backupAliquots=counts.backup;x.aliquotsProcessed=counts.total;x.status='Procesada';x.statusId=clinicalSampleStatusId(x.status);x.processedAt=new Date().toISOString();x.processedBy=clinicalActor();appendClinicalSampleHistory(x,previous,x.status,'Procesamiento completado · Principal: '+counts.principal+' · Backup: '+counts.backup+' · Total: '+counts.total,x.processedBy);
- }
- processClinicalSample=function(id){
-  var x=state.clinicalSamples.find(function(s){return s.id===id});if(!x)return;
-  if(!['Recibida','En revisión','Pendiente de procesamiento'].includes(x.status)){toast('Esta muestra no está pendiente de procesamiento.');return}
-  var counts=readAliquots(id);if(!counts){toast('Indica cantidades enteras para principal y backup; el total debe ser al menos 1.');return}
-  finishSampleProcessing(x,counts);if(!save())return;auditAdd('Estudios Clínicos','Procesó muestra del sujeto '+x.subjectCode+' · principal '+counts.principal+' · backup '+counts.backup);renderClinicalStudies();toast('Muestra procesada; registra sus crioviales escaneados.');
+ window.processClinicalSample=processClinicalSample;
+ window.setClinicalSampleStatus=setClinicalSampleStatus;
+ window.processSelectedClinicalSamples=async function(){
+  var ids=clinicalSelection();if(!ids.length){toast('Selecciona al menos una muestra aprobada.');return}
+  var done=0;
+  for(const id of ids){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PENDIENTE_PROCESO')continue;sample._previousWorkflowStatus='PENDIENTE_PROCESO';try{await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:'Inicio de procesamiento por lote'});sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';appendClinicalSampleHistory(sample,'PENDIENTE_PROCESO','PROCESANDO','Inicio de procesamiento por lote',clinicalActor());done++}catch(e){toast(e.message||'No se pudo iniciar una de las muestras.');break}}
+  if(done){save();auditAdd('Estudios Clínicos','Inició procesamiento de '+done+' muestra(s)');renderClinicalStudies();toast(done+' muestra(s) iniciadas en procesamiento.')}
  };
- processSelectedClinicalSamples=function(){
-  var ids=clinicalSelection(),valid=[];if(!ids.length){toast('Selecciona al menos una muestra.');return}
-  for(var i=0;i<ids.length;i++){var x=state.clinicalSamples.find(function(s){return s.id===ids[i]});if(!x||!['Recibida','En revisión','Pendiente de procesamiento'].includes(x.status))continue;var counts=readAliquots(x.id);if(!counts){toast('Indica principal y backup para cada muestra seleccionada.');var inp=document.querySelector('[data-primary-aliquot-for="'+x.id+'"]');if(inp)inp.focus();return}valid.push({sample:x,counts:counts})}
-  if(!valid.length){toast('No hay muestras seleccionadas listas para procesar.');return}
-  valid.forEach(function(r){finishSampleProcessing(r.sample,r.counts)});
-  if(!save())return;auditAdd('Estudios Clínicos','Procesó '+valid.length+' muestra(s) con cantidades principal y backup');renderClinicalStudies();toast(valid.length+' muestra(s) procesadas.');
- };
- var oldDeleteBox=window.deleteClinicalStorageBox;
+var oldDeleteBox=window.deleteClinicalStorageBox;
  if(oldDeleteBox)window.deleteClinicalStorageBox=function(id){if(state.clinicalCryovials.some(function(v){return v.temporaryBoxId===id||v.definitiveBoxId===id})){toast('No se puede eliminar: la caja tiene crioviales registrados.');return}oldDeleteBox(id)};
  var priorCreateBox=window.createClinicalStorageBox;
  if(priorCreateBox)window.createClinicalStorageBox=priorCreateBox;
