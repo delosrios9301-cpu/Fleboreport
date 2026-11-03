@@ -189,3 +189,20 @@ test('la PWA renueva la caché para instalar la última versión de Domicilios y
   const serviceWorker = html.includes('src="./patient-cloud-sync.js"');
   assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
 });
+
+const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
+const clinicalDeleteMigration = await readFile(new URL('../supabase/migrations/20261103190000_clinical_sample_soft_delete_with_audit.sql', import.meta.url), 'utf8');
+
+test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borrar la trazabilidad', () => {
+  assert.doesNotThrow(() => new Function(clinicalCloudSync), 'clinical-cloud-sync.js debe tener sintaxis válida');
+  assert.match(clinicalCloudSync, /async function deleteSample\\(sample,reason\\)/);
+  assert.match(clinicalCloudSync, /\\.is\\('deleted_at',null\\)/);
+  assert.match(clinicalCloudSync, /deleteSample,transition/);
+  assert.match(html, /async function deleteClinicalSample\\(id\\)/);
+  assert.match(html, /Eliminar registro/);
+  assert.match(clinicalDeleteMigration, /create or replace function public\\.delete_clinical_sample/i);
+  assert.match(clinicalDeleteMigration, /sample_deleted/);
+  assert.match(clinicalDeleteMigration, /ELIMINADA/);
+  assert.match(clinicalDeleteMigration, /from public, anon/i);
+  assert.match(clinicalDeleteMigration, /workflow_status not in \\('REGISTRADO','EN_REVISION','PENDIENTE_PROCESO'\\)/);
+});
