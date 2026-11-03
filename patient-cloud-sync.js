@@ -10,7 +10,7 @@ function contentOf(p){const x={...p};delete x.id;delete x.legacyId;delete x.clou
 function payloadOf(p){
  const data={...p};delete data.cloudPatientId;
  data.legacyId=String(p.legacyId||p.id||'');data.updatedAt=p.updatedAt||new Date().toISOString();
- const state=app(),docKey=norm(docOf(p));data.journeyHistory=(state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey));
+ const state=app(),docKey=norm(docOf(p));const journeyHistory=(state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey));if(journeyHistory.length)data.journeyHistory=journeyHistory;else delete data.journeyHistory;
  data.name=p.name||p.fullName||'';data.fullName=p.fullName||p.name||'';data.document=docOf(p);
  return data;
 }
@@ -82,7 +82,7 @@ async function connect(){
  try{
   client=await auth.init();const user=auth.user,m=auth.membership;
   if(!user||!m?.workspace_id||m.active!==true){ready=false;if(channel)client.removeChannel(channel);channel=null;return}
-  if(!['admin','clinician','reception','viewer'].includes(m.role)){ready=false;return}
+  if(!['admin','clinician','reception'].includes(m.role)){ready=false;return}
   const changed=workspaceId!==m.workspace_id||userId!==user.id;userId=user.id;workspaceId=m.workspace_id;ready=true;
   if(changed)subscribe();await syncNow();
  }catch(e){ready=false;console.error('[FleboReport Patient Sync] Conexión:',e)}
