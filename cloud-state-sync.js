@@ -75,11 +75,11 @@ async function writeRemote(state,expected){
  const row=Array.isArray(r.data)?r.data[0]:r.data;
  return row||{saved:false,revision:expected};
 }
-function applyCloudState(s){
+function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
  const current=app()||{},safe=Object.assign({},s||{});
- // Mantener la configuración clínica local hasta que clinical-cloud-sync la reemplace con la lectura oficial de Supabase.
- CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]});
+ // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
+ CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=clearClinical?[]:(Array.isArray(current[k])?current[k]:[])});
  window.FleboAppState.replace(safe,{silent:true});
 }
 async function publishMerged(local,remote,expected){
@@ -114,7 +114,7 @@ async function connect(){
   }
   const localHash=await hashState(local);
   let remote=await fetchRemote();
-  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
+  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
   if(!remote){
    if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
    const result=await writeRemote(local,0);
@@ -184,13 +184,13 @@ async function syncLocal(){
   if(!remote){
    const result=await writeRemote(local,0);
    if(!result.saved)throw new Error('No se pudo crear la copia en la nube.');
-   revision=result.revision;saveMeta(localHash,revision);
+   revision=result.revision;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);
   }else{
    if(remote.revision!==revision){
     const merged=mergeState(remote.state,local);
     const result=await writeRemote(merged,remote.revision);
     if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
-    const h=await hashState(merged);revision=result.revision;saveMeta(h,revision);applyCloudState(merged);
+    const h=await hashState(merged);revision=result.revision;saveMeta(h,revision,remote&&remote.reset_epoch||null);applyCloudState(merged);
    }else{
     const result=await writeRemote(local,revision);
     if(!result.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
