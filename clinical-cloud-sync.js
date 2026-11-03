@@ -161,7 +161,7 @@ async function syncConfiguration(){
    await loadRemoteBoxes();
    stage='lectura de muestras y crioviales';
    await loadRemoteSamples();
-   if(window.FleboAppState&&window.FleboAppState.save)window.FleboAppState.save();
+   // La lectura de configuración remota no debe disparar una escritura global del estado.
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
