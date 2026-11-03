@@ -6,6 +6,9 @@ const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
+const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
+const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
+const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
 const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
@@ -141,5 +144,29 @@ test('la sincronización de datos está conectada, aislada por usuario y tiene s
   assert.match(html, /flebo:local-state-saved/);
   assert.match(cloudSyncMigration, /primary key \(workspace_id,user_id\)/i);
   assert.match(cloudSyncMigration, /user_id=auth\.uid\(\)/i);
+  assert.match(cloudSync, /\.eq\('user_id',userId\)/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
+});
+
+
+test('los expedientes se sincronizan en la tabla maestra compartida del espacio', () => {
+  assert.doesNotThrow(() => new Function(patientCloudSync), 'patient-cloud-sync.js debe tener sintaxis válida');
+  assert.ok(html.includes('src="./patient-cloud-sync.js"'));
+  assert.match(patientCloudMigration, /add column if not exists app_data jsonb/i);
+  assert.match(patientCloudMigration, /sync_workspace_patient/i);
+  assert.match(patientCloudMigration, /supabase_realtime/i);
+  assert.match(patientCloudSync, /journeyHistory/);
+});
+
+test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de guardado local', () => {
+  assert.ok(!html.includes("toast('Registro guardado en este dispositivo.')"));
+  assert.ok(!html.includes("toast('Expediente guardado en este dispositivo.')"));
+  assert.doesNotMatch(html, /id="todayChip"/);
+  assert.match(html, /flebo-cloud-tablet-layout/);
+});
+
+test('el centro de notificaciones puede mostrar avisos del dispositivo y consultar cambios recientes', () => {
+  assert.doesNotThrow(() => new Function(notifications));
+  assert.match(notifications, /showDeviceNotification/);
+  assert.match(notifications, /setInterval/);
 });
