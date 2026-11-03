@@ -177,6 +177,8 @@ test('la búsqueda del expediente muestra su historial completo y la coincidenci
   assert.match(domicilios, /Historial de atenciones médicas/);
   assert.match(domicilios, /Historial de jornadas/);
   assert.match(domicilios, /Historial de domicilios/);
+  assert.ok(domicilios.includes("rpc('search_workspace_patients'"));
+  assert.match(patientDocumentMatchMigration, /search_workspace_patients/i);
   assert.match(patientDocumentMatchMigration, /regexp_replace\(lower\(btrim\(p\.document_number\)\)/i);
   assert.match(patientDocumentMatchMigration, /pg_advisory_xact_lock/i);
 });
