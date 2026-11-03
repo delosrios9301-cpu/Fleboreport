@@ -289,4 +289,6 @@ test('la base de datos permite completar almacenamiento temporal y definitivo si
 test('la sincronización de muestras ya no depende de leer ubicaciones de cajas', () => {
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
   assert.doesNotMatch(clinicalCloudSync, /async function refreshSamples\(\)\{[^}]*loadRemoteBoxes/);
+  const sampleLoader=clinicalCloudSync.slice(clinicalCloudSync.indexOf('async function loadRemoteSamples()'),clinicalCloudSync.indexOf('async function syncConfiguration()'));
+  assert.doesNotMatch(sampleLoader, /clinical_cryovials|clinical_cryovial_events/);
 });
