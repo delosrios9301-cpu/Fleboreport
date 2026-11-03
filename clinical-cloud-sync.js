@@ -245,8 +245,10 @@ async function transition(sample,next,args){
  const legacy={EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de procesamiento',PROCESANDO:'Pendiente de procesamiento',ALMACENAMIENTO_TEMPORAL:'Procesada',CONGELADOR_DEFINITIVO:'Almacenada'};
  sample.status=legacy[next]||sample.status;
  sample.updatedAt=new Date().toISOString();
- if(next==='ALMACENAMIENTO_TEMPORAL'){sample.primaryAliquots=Number(args.primaryAliquots);sample.backupAliquots=Number(args.backupAliquots);sample.temporaryBoxId=args.temporaryBoxId}
- if(next==='CONGELADOR_DEFINITIVO')sample.definitiveBoxId=args.definitiveBoxId;
+ if(next==='EN_REVISION'){sample.reviewedAt=sample.updatedAt}
+ if(next==='PROCESANDO'){sample.processingStartedAt=sample.updatedAt}
+ if(next==='ALMACENAMIENTO_TEMPORAL'){sample.primaryAliquots=Number(args.primaryAliquots);sample.backupAliquots=Number(args.backupAliquots);sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt}
+ if(next==='CONGELADOR_DEFINITIVO'){sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt}
  return data;
 }
 async function registerCryovial(sample,vial,box,position){
