@@ -266,8 +266,8 @@ async function transition(sample,next,args){
  sample.updatedAt=new Date().toISOString();
  if(next==='EN_REVISION'){sample.reviewedAt=sample.updatedAt}
  if(next==='PROCESANDO'){sample.processingStartedAt=sample.updatedAt}
- if(next==='ALMACENAMIENTO_TEMPORAL'){sample.primaryAliquots=Number(args.primaryAliquots);sample.backupAliquots=Number(args.backupAliquots);sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt}
- if(next==='CONGELADOR_DEFINITIVO'){sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt}
+ if(next==='ALMACENAMIENTO_TEMPORAL'){if(args.primaryAliquots!=null)sample.primaryAliquots=Number(args.primaryAliquots);if(args.backupAliquots!=null)sample.backupAliquots=Number(args.backupAliquots);if(args.temporaryBoxId)sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt}
+ if(next==='CONGELADOR_DEFINITIVO'){if(args.definitiveBoxId)sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt}
  return data;
 }
 async function registerCryovial(sample,vial,box,position){
