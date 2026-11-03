@@ -44,7 +44,7 @@ async function saveSampleType(study,studyCloudId,type){
  if(r.error)fail(r.error);
  const spec=study.sampleSpecs&&study.sampleSpecs[type.id]||{};
  const merged=Object.assign({},type,spec);
- const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:type.name,tube:merged.tube||null,volume:merged.volume||null,processing_protocol:merged.processingRequired||merged.processing_protocol||null,color:merged.color||null,description:merged.description||null,active:type.active!==false};
+ const payload={workspace_id:workspaceId,study_id:studyCloudId,code,name:type.name,tube:merged.tube||null,volume:merged.volume||null,processing_protocol:merged.processingRequired||merged.processing_protocol||null,color:merged.color||null,marking:merged.marking||null,expected_containers:merged.expectedContainers==null?null:Number(merged.expectedContainers),expected_primary_aliquots:merged.expectedPrimaryAliquots==null?null:Number(merged.expectedPrimaryAliquots),expected_backup_aliquots:merged.expectedBackupAliquots==null?null:Number(merged.expectedBackupAliquots),description:merged.description||null,active:type.active!==false};
  let row=r.data;
  if(row){const u=await client.from('clinical_sample_types').update(payload).eq('id',row.id).select('id').single();if(u.error)fail(u.error);row=u.data}
  else{const i=await client.from('clinical_sample_types').insert(payload).select('id').single();if(i.error)fail(i.error);row=i.data}
@@ -124,7 +124,7 @@ async function loadRemoteConfiguration(){
  const types=(tr.data||[]).map(row=>{
   const study=studies.find(x=>x.cloudId===row.study_id);if(!study)return null;
   const old=oldTypes.find(x=>x.cloudId===row.id)||{};
-  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',description:row.description||'',active:row.active});
+  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
  const mergedStudies=studies.concat(oldStudies.filter(x=>!studies.some(y=>String(y.protocol||'').toLowerCase()===String(x.protocol||'').toLowerCase()))),mergedVisits=visits.concat(oldVisits.filter(x=>!visits.some(y=>y.studyId===x.studyId&&((x.code&&y.code===x.code)||y.name===x.name)))),mergedTypes=types.concat(oldTypes.filter(x=>!types.some(y=>y.studyId===x.studyId&&((x.code&&y.code===x.code)||y.name===x.name))));window.FleboAppState.replace(Object.assign({},stateNow,{clinicalStudies:mergedStudies,clinicalVisits:mergedVisits,clinicalSampleTypes:mergedTypes}),{silent:true});
