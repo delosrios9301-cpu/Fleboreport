@@ -118,7 +118,7 @@ test('el módulo de configuración tiene sintaxis válida y controles administra
 
 test('la migración de configuración protege al administrador y habilita sedes híbridas', () => {
   for (const table of ['sedes', 'user_sedes', 'role_permissions', 'member_permissions', 'workspace_security_settings', 'approval_requests', 'sync_devices']) {
-    assert.match(configurationMigration, new RegExp('create table if not exists public\\.' + table, 'i'));
+    assert.match(configurationMigration, new RegExp('create table if not exists public\.' + table, 'i'));
   }
   assert.match(configurationMigration, /prevent_primary_admin_membership_change/);
   assert.match(configurationMigration, /prevent_primary_admin_settings_change/);
@@ -195,14 +195,14 @@ const clinicalDeleteMigration = await readFile(new URL('../supabase/migrations/2
 
 test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borrar la trazabilidad', () => {
   assert.doesNotThrow(() => new Function(clinicalCloudSync), 'clinical-cloud-sync.js debe tener sintaxis válida');
-  assert.match(clinicalCloudSync, /async function deleteSample\\(sample,reason\\)/);
-  assert.match(clinicalCloudSync, /\\.is\\('deleted_at',null\\)/);
+  assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)/);
+  assert.match(clinicalCloudSync, /\.is\('deleted_at',null\)/);
   assert.match(clinicalCloudSync, /deleteSample,transition/);
-  assert.match(html, /async function deleteClinicalSample\\(id\\)/);
+  assert.match(html, /async function deleteClinicalSample\(id\)/);
   assert.match(html, /Eliminar registro/);
-  assert.match(clinicalDeleteMigration, /create or replace function public\\.delete_clinical_sample/i);
+  assert.match(clinicalDeleteMigration, /create or replace function public\.delete_clinical_sample/i);
   assert.match(clinicalDeleteMigration, /sample_deleted/);
   assert.match(clinicalDeleteMigration, /ELIMINADA/);
   assert.match(clinicalDeleteMigration, /from public, anon/i);
-  assert.match(clinicalDeleteMigration, /workflow_status not in \\('REGISTRADO','EN_REVISION','PENDIENTE_PROCESO'\\)/);
+  assert.match(clinicalDeleteMigration, /workflow_status not in \('REGISTRADO','EN_REVISION','PENDIENTE_PROCESO'\)/);
 });
