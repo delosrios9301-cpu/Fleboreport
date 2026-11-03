@@ -232,5 +232,5 @@ test('la configuración de almacenamiento se sincroniza al crear cajas y permite
   assert.match(html, /toggleClinicalSampleCryos/);
   assert.match(html, /data-move-sample=/);
   assert.ok(clinicalCloudSync.includes('async function syncStorageConfiguration()'));
-  assert.match(clinicalCloudSync, /await syncBoxes\\(studies\\)/);
+  assert.ok(clinicalCloudSync.includes('await syncBoxes(studies)'));
 });
