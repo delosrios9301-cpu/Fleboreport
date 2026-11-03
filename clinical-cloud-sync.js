@@ -159,22 +159,19 @@ async function syncConfiguration(){
 async function registerSample(sample){
  requireReady(['admin','clinician','reception']);
  if(!sample)throw new Error('No se recibió la muestra.');
- if(window.FleboPatientCloud&&window.FleboPatientCloud.syncNow)await window.FleboPatientCloud.syncNow();
  await syncConfiguration();
- const s=app()||{},study=(s.clinicalStudies||[]).find(x=>x.id===sample.studyId),visit=(s.clinicalVisits||[]).find(x=>x.id===sample.visitId),type=(s.clinicalSampleTypes||[]).find(x=>x.id===sample.sampleTypeId),patient=(s.patients||[]).find(x=>x.id===sample.patientId);
+ const s=app()||{},study=(s.clinicalStudies||[]).find(x=>x.id===sample.studyId),visit=(s.clinicalVisits||[]).find(x=>x.id===sample.visitId),type=(s.clinicalSampleTypes||[]).find(x=>x.id===sample.sampleTypeId);
  if(!study||!study.cloudId||!visit||!visit.cloudId||!type||!type.cloudId)throw new Error('El estudio, la visita o el tipo de muestra no se pudo vincular a su registro maestro en la nube.');
- if(!patient||!patient.cloudPatientId)throw new Error('El paciente aún no tiene registro confirmado en el maestro de pacientes de la nube. Sincroniza el paciente y vuelve a intentarlo.');
- const barcodes=Array.isArray(sample.tubeBarcodes)?sample.tubeBarcodes.map(x=>String(x||'').trim()).filter(Boolean):[];
- if(barcodes.length!==Number(sample.tubes))throw new Error('Debes indicar un código de barras único por cada tubo o recipiente.');
+ const barcodes=[];
  const result=await client.rpc('register_clinical_sample',{
   p_workspace_id:workspaceId,p_legacy_id:String(sample.id),p_study_id:study.cloudId,
-  p_patient_id:patient.cloudPatientId,p_subject_code:sample.subjectCode,p_visit_id:visit.cloudId,
+  p_patient_id:null,p_subject_code:sample.subjectCode,p_visit_id:visit.cloudId,
   p_sample_type_id:type.cloudId,p_collection_at:sample.collectedAt,p_received_at:sample.receivedAt,
   p_container_count:Number(sample.tubes),p_tube_barcodes:barcodes,p_notes:sample.notes||null
  });
  if(result.error)fail(result.error);
  const data=Array.isArray(result.data)?result.data[0]:result.data;
- sample.cloudId=data.sample_id;sample.patientCloudId=patient.cloudPatientId;sample.workflowStatus=data.workflow_status||'REGISTRADO';
+ sample.cloudId=data.sample_id;sample.workflowStatus=data.workflow_status||'REGISTRADO';
  return data;
 }
 async function transition(sample,next,args){
