@@ -216,3 +216,11 @@ test('las bandejas separan la revisión clínica del procesamiento y confirman t
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
 });
+
+test('Estudios Clínicos conserva una bandeja de revisión y solo libera aprobadas al procesamiento', () => {
+  assert.match(html, /id="clinicalReviewRows"/);
+  assert.match(html, /Aprobar y enviar a proceso/);
+  assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
+  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
+  assert.match(html, /reviewSamples=\(state\.clinicalSamples\|\|\[\]\)\.filter/);
+});
