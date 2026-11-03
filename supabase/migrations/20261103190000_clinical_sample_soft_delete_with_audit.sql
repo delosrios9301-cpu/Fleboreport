@@ -55,6 +55,6 @@ begin
   return jsonb_build_object('ok',true,'sample_id',p_sample_id,'deleted_at',now());
 end;
 $$;
-revoke all on function public.delete_clinical_sample(uuid,uuid,text) from public;
+revoke all on function public.delete_clinical_sample(uuid,uuid,text) from public, anon;
 grant execute on function public.delete_clinical_sample(uuid,uuid,text) to authenticated;
 commit;
