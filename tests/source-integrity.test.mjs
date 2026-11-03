@@ -206,3 +206,13 @@ test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borr
   assert.match(clinicalDeleteMigration, /from public, anon/i);
   assert.match(clinicalDeleteMigration, /workflow_status not in \('REGISTRADO','EN_REVISION','PENDIENTE_PROCESO'\)/);
 });
+
+test('las bandejas separan la revisión clínica del procesamiento y confirman transiciones en la nube', () => {
+  assert.match(html, /var processingModule=document\.getElementById\('view-clinical-processing'\)/);
+  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
+  assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
+  assert.match(html, /transitionResult\.ok!==true\|\|transitionResult\.status!==next/);
+  assert.match(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
+  assert.match(clinicalCloudSync, /data\.status!==next/);
+});
