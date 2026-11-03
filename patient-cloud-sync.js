@@ -6,10 +6,11 @@ const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
 const keyOf=p=>{const d=norm(docOf(p));if(d)return'doc:'+d;const id=String(p?.id||'');return id&&!id.startsWith('cloud-')?'legacy:'+id:(p?.cloudPatientId?'cloud:'+p.cloudPatientId:'legacy:'+id)};
-function contentOf(p){const x={...p};delete x.cloudPatientId;delete x.updatedAt;delete x.updated_at;return JSON.stringify(x)}
+function contentOf(p){const x={...p};delete x.id;delete x.legacyId;delete x.cloudPatientId;delete x.updatedAt;delete x.updated_at;return JSON.stringify(x)}
 function payloadOf(p){
  const data={...p};delete data.cloudPatientId;
- data.legacyId=String(p.id||p.legacyId||'');data.updatedAt=p.updatedAt||new Date().toISOString();
+ data.legacyId=String(p.legacyId||p.id||'');data.updatedAt=p.updatedAt||new Date().toISOString();
+ const state=app(),docKey=norm(docOf(p));data.journeyHistory=(state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey));
  data.name=p.name||p.fullName||'';data.fullName=p.fullName||p.name||'';data.document=docOf(p);
  return data;
 }
@@ -41,9 +42,10 @@ async function pushOne(p){
  if(row){p.cloudPatientId=row.patient_id;p.updatedAt=row.updated_at||data.updatedAt}
 }
 function saveList(list){
- const s=app();if(!s)return;
+ const s=app();if(!s)return false;
  const before=JSON.stringify(s.patients||[]),after=JSON.stringify(list);
- if(before===after)return;s.patients=list;window.FleboAppState.save();
+ if(before===after)return false;
+ window.FleboAppState.replace({...s,patients:list},{silent:true});return true;
 }
 async function syncNow(){
  if(!ready||busy||!client||!workspaceId)return;
@@ -57,8 +59,9 @@ async function syncNow(){
     p.updatedAt=new Date().toISOString();await pushOne(p);
    }
   }
-  const latest=await fetchAll();merged=merge(merged,latest);saveList(merged);
+  const latest=await fetchAll();merged=merge(merged,latest);const changed=saveList(merged);
   lastContent=new Map(merged.map(p=>[keyOf(p),contentOf(p)]));
+  if(changed)window.dispatchEvent(new Event('flebo:local-state-saved'));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
 }
