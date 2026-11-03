@@ -159,20 +159,28 @@ async function syncConfiguration(){
 async function registerSample(sample){
  requireReady(['admin','clinician','reception']);
  if(!sample)throw new Error('No se recibió la muestra.');
- await syncConfiguration();
- const s=app()||{},study=(s.clinicalStudies||[]).find(x=>x.id===sample.studyId),visit=(s.clinicalVisits||[]).find(x=>x.id===sample.visitId),type=(s.clinicalSampleTypes||[]).find(x=>x.id===sample.sampleTypeId);
- if(!study||!study.cloudId||!visit||!visit.cloudId||!type||!type.cloudId)throw new Error('El estudio, la visita o el tipo de muestra no se pudo vincular a su registro maestro en la nube.');
- const barcodes=[];
- const result=await client.rpc('register_clinical_sample',{
-  p_workspace_id:workspaceId,p_legacy_id:String(sample.id),p_study_id:study.cloudId,
-  p_patient_id:null,p_subject_code:sample.subjectCode,p_visit_id:visit.cloudId,
-  p_sample_type_id:type.cloudId,p_collection_at:sample.collectedAt,p_received_at:sample.receivedAt,
-  p_container_count:Number(sample.tubes),p_tube_barcodes:barcodes,p_notes:sample.notes||null
- });
- if(result.error)fail(result.error);
- const data=Array.isArray(result.data)?result.data[0]:result.data;
- sample.cloudId=data.sample_id;sample.workflowStatus=data.workflow_status||'REGISTRADO';
- return data;
+ let stage='sincronización de estudios, visitas, tipos y ubicaciones';
+ try{
+  await syncConfiguration();
+  stage='vinculación de estudio, visita y tipo de muestra';
+  const s=app()||{},study=(s.clinicalStudies||[]).find(x=>x.id===sample.studyId),visit=(s.clinicalVisits||[]).find(x=>x.id===sample.visitId),type=(s.clinicalSampleTypes||[]).find(x=>x.id===sample.sampleTypeId);
+  if(!study||!study.cloudId||!visit||!visit.cloudId||!type||!type.cloudId)throw new Error('El estudio, la visita o el tipo de muestra no se pudo vincular a su registro maestro en la nube.');
+  stage='ejecución del registro de muestra en Supabase';
+  const result=await client.rpc('register_clinical_sample',{
+   p_workspace_id:workspaceId,p_legacy_id:String(sample.id),p_study_id:study.cloudId,
+   p_patient_id:null,p_subject_code:sample.subjectCode,p_visit_id:visit.cloudId,
+   p_sample_type_id:type.cloudId,p_collection_at:sample.collectedAt,p_received_at:sample.receivedAt,
+   p_container_count:Number(sample.tubes),p_tube_barcodes:[],p_notes:sample.notes||null
+  });
+  if(result.error)fail(result.error);
+  const data=Array.isArray(result.data)?result.data[0]:result.data;
+  if(!data||!data.sample_id)throw new Error('Supabase no devolvió el identificador de la muestra.');
+  sample.cloudId=data.sample_id;sample.workflowStatus=data.workflow_status||'REGISTRADO';
+  return data;
+ }catch(error){
+  console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
+  throw new Error('Falló '+stage+': '+(error&&error.message?error.message:String(error)));
+ }
 }
 async function transition(sample,next,args){
  requireReady(['admin','clinician','technician','reception']);
