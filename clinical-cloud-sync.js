@@ -62,7 +62,7 @@ async function syncBoxes(studies){
    f.cloudId=row.id;freezerMap.set(f.id,row.id);
    let drawers=await client.from('clinical_freezer_drawers').select('id,drawer_no').eq('workspace_id',workspaceId).eq('freezer_id',row.id);if(drawers.error)fail(drawers.error);
    for(const d of (f.drawers||[])){
-    const dn=Number((String(d.name||'').match(/\\d+/)||[])[0])||Number(d.drawerNo)||0;
+    const dn=Number((String(d.name||'').match(/\d+/)||[])[0])||Number(d.drawerNo)||0;
     if(dn<1||dn>4)continue;
     let dr=(drawers.data||[]).find(x=>Number(x.drawer_no)===dn);
     if(!dr){const ins=await client.from('clinical_freezer_drawers').insert({workspace_id:workspaceId,freezer_id:row.id,drawer_no:dn,name:d.name}).select('id,drawer_no').single();if(ins.error)fail(ins.error);dr=ins.data}
@@ -83,8 +83,8 @@ async function syncBoxes(studies){
   }
   for(const box of boxes){
    const study=localStudies.find(x=>x.id===box.studyId),rack=(stateNow.clinicalRacks||[]).find(x=>x.id===box.rackId);
-   const trayNo=Number((String(box.tray||'').match(/\\d+/)||[])[0])||Number(box.trayNo)||0;
-   const slotNo=Number((String(box.position||'').match(/\\d+/)||[])[0])||Number(box.positionNo)||0;
+   const trayNo=Number((String(box.tray||'').match(/\d+/)||[])[0])||Number(box.trayNo)||0;
+   const slotNo=Number((String(box.position||'').match(/\d+/)||[])[0])||Number(box.positionNo)||0;
    const trayId=rack&&trayMap.get(rack.id+'|'+trayNo);
    if(!study?.cloudId||!trayId||slotNo<1||slotNo>4||!box.box)continue;
    const payload={workspace_id:workspaceId,tray_id:trayId,slot_no:slotNo,box_code:box.box,storage_stage:box.storageStage,aliquot_capacity:Number(box.aliquotCapacity)||1,active:true,study_id:study.cloudId,box_type:box.storageStage==='temporal'?'caja_temporal':'caja_definitiva',created_by:userId,updated_at:new Date().toISOString()};
