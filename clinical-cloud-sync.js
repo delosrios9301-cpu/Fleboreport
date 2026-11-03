@@ -51,14 +51,26 @@ async function saveSampleType(study,studyCloudId,type){
  type.cloudId=row.id;return row.id;
 }
 async function syncConfiguration(){
- requireReady(['admin','clinician']);
+ requireReady(['admin','clinician','technician','reception']);
  const s=app()||{},studies=s.clinicalStudies||[],visits=s.clinicalVisits||[],types=s.clinicalSampleTypes||[];
  for(const study of studies){
-  const sid=await saveStudy(study);
+  let sid='';
+  if(['admin','clinician'].includes(role)) sid=await saveStudy(study);
+  else{
+   let q=await client.from('clinical_studies').select('id').eq('workspace_id',workspaceId).eq('protocol_code',study.protocol).maybeSingle();
+   if(q.error)fail(q.error);if(!q.data)throw new Error('El estudio '+study.protocol+' aún no está publicado en la plantilla maestra de la nube. Solicita al administrador que lo sincronice.');
+   sid=q.data.id;study.cloudId=sid;
+  }
   const linkedVisits=visits.filter(v=>(study.visitIds||[]).includes(v.id));
-  for(const visit of linkedVisits)await saveVisit(study,sid,visit);
+  for(const visit of linkedVisits){
+   if(['admin','clinician'].includes(role)) await saveVisit(study,sid,visit);
+   else{const code=String(visit.code||visit.id||visit.name).trim(),q=await client.from('clinical_visits').select('id').eq('workspace_id',workspaceId).eq('study_id',sid).eq('code',code).maybeSingle();if(q.error)fail(q.error);if(!q.data)throw new Error('La visita '+visit.name+' no está configurada en la nube.');visit.cloudId=q.data.id}
+  }
   const linkedTypes=types.filter(t=>(study.sampleTypeIds||[]).includes(t.id));
-  for(const type of linkedTypes)await saveSampleType(study,sid,type);
+  for(const type of linkedTypes){
+   if(['admin','clinician'].includes(role)) await saveSampleType(study,sid,type);
+   else{const code=String(type.code||type.id||type.name).trim(),q=await client.from('clinical_sample_types').select('id').eq('workspace_id',workspaceId).eq('study_id',sid).eq('code',code).maybeSingle();if(q.error)fail(q.error);if(!q.data)throw new Error('El tipo de muestra '+type.name+' no está configurado en la nube.');type.cloudId=q.data.id}
+  }
  }
  if(window.FleboAppState&&window.FleboAppState.save)window.FleboAppState.save();
  return true;
