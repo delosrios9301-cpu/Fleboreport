@@ -1454,21 +1454,28 @@ function locationLabel(box){var f=state.clinicalFreezers.find(x=>x.id===box.free
  list.innerHTML='<h3>Congeladores</h3>'+(fr||'<p class="muted">Sin congeladores.</p>')+'<div class="divider"></div><h3>Racks opcionales</h3>'+(rr||'<p class="muted">Sin racks.</p>')+'<div class="divider"></div><h3>Cajas individuales</h3>'+(br||'<p class="muted">Sin cajas.</p>');
 }
 window.renderClinicalStorageManagement=renderStorageManagement;
- function createClinicalFreezer(){
+ async function syncStorageConfigurationNow(){
+  var cloud=window.FleboClinicalCloud;
+  if(!cloud||!cloud.ready||cloud.role!=='admin')return false;
+  try{await cloud.syncStorageConfiguration();return true}catch(error){console.error('[FleboReport Storage Sync]',error);return false}
+ }
+ async function createClinicalFreezer(){
   var input=document.getElementById('storageFreezerName'),name=input&&input.value.trim();if(!name){toast('Escribe un nombre para el congelador.');return}
   if(state.clinicalFreezers.some(function(f){return sameText(f.name,name)})){toast('Ese congelador ya está registrado.');return}
   var freezer={id:storageId('freezer'),name:name,drawers:createDrawers(),createdAt:new Date().toISOString()};state.clinicalFreezers.unshift(freezer);
-  if(!save())return;auditAdd('Configuración · Almacenamiento','Creó el congelador '+name);renderStorageManagement();var rf=document.getElementById('storageRackFreezer'),bf=document.getElementById('storageBoxFreezer');if(rf)rf.value=freezer.id;if(bf)bf.value=freezer.id;renderStorageManagement();toast('Congelador creado con sus 4 gavetas.');
+  if(!save())return;auditAdd('Configuración · Almacenamiento','Creó el congelador '+name);renderStorageManagement();var rf=document.getElementById('storageRackFreezer'),bf=document.getElementById('storageBoxFreezer');if(rf)rf.value=freezer.id;if(bf)bf.value=freezer.id;renderStorageManagement();
+  var synced=await syncStorageConfigurationNow();renderStorageManagement();toast(synced?'Congelador creado y sincronizado en la nube.':'Congelador guardado localmente; la sincronización con la nube quedó pendiente.');
  }
  window.createClinicalFreezer=createClinicalFreezer;
- function createClinicalRack(){
+ async function createClinicalRack(){
   var freezerId=selectedValue('storageRackFreezer'),drawer=selectedValue('storageRackDrawer'),input=document.getElementById('storageRackName'),name=input&&input.value.trim(),freezer=state.clinicalFreezers.find(function(x){return x.id===freezerId}),drawerRecord=freezer&&freezer.drawers.find(function(d){return d.id===drawer});
   if(!freezer||!drawerRecord||!name){toast('Selecciona el congelador y una de sus gavetas, y escribe el nombre del rack.');return}
   var assigned=state.clinicalRacks.filter(function(r){return r.freezerId===freezerId&&(r.drawerId===drawer||(!r.drawerId&&r.drawer===drawerRecord.name))});
   if(assigned.length>=4){toast(drawerRecord.name+' ya tiene sus 4 racks.');return}
   if(assigned.some(function(r){return sameText(r.name,name)})){toast('Ese rack ya está asignado a esta gaveta.');return}
   state.clinicalRacks.unshift({id:storageId('rack'),freezerId:freezerId,drawerId:drawerRecord.id,drawer:drawerRecord.name,name:name,trays:trays.slice(),createdAt:new Date().toISOString()});
-  if(!save())return;auditAdd('Configuración · Almacenamiento','Asignó rack '+name+' a '+freezer.name+' · '+drawerRecord.name);renderStorageManagement();toast('Rack asignado; tiene 5 bandejas disponibles.');
+  if(!save())return;auditAdd('Configuración · Almacenamiento','Asignó rack '+name+' a '+freezer.name+' · '+drawerRecord.name);
+  var synced=await syncStorageConfigurationNow();renderStorageManagement();toast(synced?'Rack sincronizado en la nube.':'Rack guardado localmente; la sincronización con la nube quedó pendiente.');
  }
  window.createClinicalRack=createClinicalRack;
  function createClinicalStorageBox(){
@@ -1484,7 +1491,7 @@ window.renderClinicalStorageManagement=renderStorageManagement;
  var item={id:id||storageId('box'),freezerId:fid,freezer:freezer.name,drawerId:drawer&&drawer.id||'',drawer:drawer&&drawer.name||'',rackId:rid||'',rack:rack&&rack.name||'',tray:rid?tray:'',trayNo:rid?Number((tray.match(/\d+/)||[])[0]):null,position:rid?pos:'',positionNo:rid?Number((pos.match(/\d+/)||[])[0]):null,box:name,studyId:sid,storageStage:stage,aliquotCapacity:capacity,createdAt:old?old.createdAt:new Date().toISOString()};
  if(old)Object.assign(old,item);else state.clinicalLocations.unshift(item);if(!save())return;
  auditAdd('Configuración · Almacenamiento',(old?'Actualizó':'Creó')+' caja '+name+' en '+locationLabel(item));
- renderStorageManagement();renderClinicalStudies();toast(old?'Caja actualizada.':'Caja individual creada y vinculada al congelador.');
+ var synced=await syncStorageConfigurationNow();renderStorageManagement();renderClinicalStudies();toast(synced?(old?'Caja actualizada y sincronizada en la nube.':'Caja individual creada y sincronizada en la nube.'):(old?'Caja actualizada localmente; sincronización pendiente.':'Caja creada localmente; sincronización pendiente.'));
 }
 window.createClinicalStorageBox=createClinicalStorageBox;
 window.createClinicalStorageBox=createClinicalStorageBox;
@@ -1589,8 +1596,9 @@ function deleteClinicalFreezer(id){
   var sampleFilter=document.getElementById('cryoSample')?.value||'',items=state.clinicalCryovials.filter(function(v){return !sampleFilter||v.sampleId===sampleFilter}).slice().sort(function(a,b){return b.createdAt.localeCompare(a.createdAt)});
   var rows=document.getElementById('clinicalCryoRows');if(rows)rows.innerHTML=items.map(function(v){var sm=state.clinicalSamples.find(function(x){return x.id===v.sampleId}),box=state.clinicalLocations.find(function(x){return x.id===cryoCurrentBox(v)}),where=box?clinicalLocationLabel(box)+' · '+positionLabel(cryoCurrentPosition(v)):'Sin ubicación';var hist=(v.events||[]).map(function(e){return e.action+(e.fromLocation?' · De: '+e.fromLocation:'')+(e.toLocation?' · A: '+e.toLocation:'')+' · '+new Date(e.timestamp).toLocaleString('es')+' · '+(e.operator||'')}).join(' → ');return '<tr><td><strong>'+esc(v.barcode)+'</strong></td><td>'+esc(sm?sampleName(sm):v.subjectCode)+'</td><td>'+esc(v.kind==='backup'?'Backup':'Principal')+'</td><td>'+esc(v.status)+'</td><td>'+esc(where)+'</td><td>'+esc(hist||'—')+'</td></tr>'}).join('');
   var empty=document.getElementById('clinicalCryoEmpty');if(empty)empty.hidden=items.length>0;
-  var pendingRows=document.getElementById('clinicalCryoPendingRows'),pending=state.clinicalCryovials.filter(function(v){return v.status==='Almacenamiento temporal'});
-  if(pendingRows)pendingRows.innerHTML=pending.map(function(v){var sm=state.clinicalSamples.find(function(x){return x.id===v.sampleId}),choices=boxesFor('definitivo').filter(function(b){return sm&&b.studyId===sm.studyId&&b.cloudId});return '<tr><td><input type="checkbox" data-move-cryo="'+esc(v.id)+'"></td><td><strong>'+esc(v.barcode)+'</strong><small>'+esc(sm?sampleName(sm):'Muestra')+'</small></td><td><select data-final-box-for="'+esc(v.id)+'"><option value="">Selecciona caja</option>'+choices.map(function(b){return '<option value=\"'+esc(b.id)+'\">'+esc(b.box+' · '+clinicalLocationLabel(b))+'</option>'}).join('')+'</select></td><td><input type="number" min="1" step="1" data-final-position-for="'+esc(v.id)+'" placeholder="Posición" style="max-width:110px"></td></tr>'}).join('');
+  var pendingRows=document.getElementById('clinicalCryoPendingRows'),pending=state.clinicalCryovials.filter(function(v){return v.status==='Almacenamiento temporal'}),groups=new Map();
+  pending.forEach(function(v){if(!groups.has(v.sampleId))groups.set(v.sampleId,[]);groups.get(v.sampleId).push(v)});
+  if(pendingRows)pendingRows.innerHTML=Array.from(groups.entries()).map(function(entry){var sampleId=entry[0],groupVials=entry[1],sm=state.clinicalSamples.find(function(x){return x.id===sampleId}),groupLabel=sm?sampleName(sm):'Muestra';return '<tr class="cryo-sample-group"><td><input type="checkbox" aria-label="Seleccionar todos los crioviales de esta muestra" onchange="toggleClinicalSampleCryos(\\''+esc(sampleId)+'\\',this.checked)"></td><td colspan="3"><strong>'+esc(groupLabel)+'</strong><small>'+groupVials.length+' criovial(es) en almacenamiento temporal</small></td></tr>'+groupVials.map(function(v){var choices=boxesFor('definitivo').filter(function(b){return sm&&b.studyId===sm.studyId&&b.cloudId});return '<tr><td><input type="checkbox" data-move-cryo="'+esc(v.id)+'" data-move-sample="'+esc(sampleId)+'"></td><td><strong>'+esc(v.barcode)+'</strong><small>'+esc(v.kind==='backup'?'Backup':'Principal')+'</small></td><td><select data-final-box-for="'+esc(v.id)+'"><option value="">Selecciona caja</option>'+choices.map(function(b){return '<option value=\\\"'+esc(b.id)+'\\\">'+esc(b.box+' · '+clinicalLocationLabel(b))+'</option>'}).join('')+'</select></td><td><input type="number" min="1" step="1" data-final-position-for="'+esc(v.id)+'" placeholder="Posición" style="max-width:110px"></td></tr>'}).join('')}).join('');
 
  }
  window.renderClinicalCryoPanel=renderCryoPanel;
@@ -1626,6 +1634,7 @@ function deleteClinicalFreezer(id){
   if(!save())return;auditAdd('Estudios Clínicos','Registró criovial '+barcode+' ('+kind+') en '+clinicalLocationLabel(box)+' · '+positionLabel(position));document.getElementById('cryoBarcode').value='';renderClinicalStudies();document.getElementById('cryoBarcode').focus();toast('Criovial registrado en Supabase y trazabilidad actualizada.');
  };
  window.toggleAllClinicalCryos=function(checked){document.querySelectorAll('input[data-move-cryo]').forEach(function(x){x.checked=!!checked})};
+ window.toggleClinicalSampleCryos=function(sampleId,checked){Array.from(document.querySelectorAll('input[data-move-cryo]')).filter(function(x){return x.getAttribute('data-move-sample')===sampleId}).forEach(function(x){x.checked=!!checked})};
 window.moveSelectedClinicalCryovialsToDefinitive=async function(){
  var selected=Array.from(document.querySelectorAll('input[data-move-cryo]:checked'));if(!selected.length){toast('Selecciona al menos un criovial temporal.');return}var moved=0;
  for(const ck of selected){var vial=state.clinicalCryovials.find(v=>v.id===ck.getAttribute('data-move-cryo'));if(!vial)continue;var boxId=document.querySelector('[data-final-box-for="'+vial.id+'"]')?.value,pos=Number(document.querySelector('[data-final-position-for="'+vial.id+'"]')?.value),box=state.clinicalLocations.find(b=>b.id===boxId),sample=state.clinicalSamples.find(s=>s.id===vial.sampleId);
