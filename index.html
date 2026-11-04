@@ -1933,11 +1933,11 @@ var oldRenderStudies=renderClinicalStudies;
  }
  window.openClinicalProcessingModal=function(id){
   var processingView=document.getElementById('view-clinical-processing');
-  if(!processingView||!processingView.classList.contains('active')){
-   toast('Esta ficha solo se abre desde el módulo Procesamiento de muestras.');
+  if(!processingView){
+   toast('No se encontró el módulo Procesamiento de muestras. Recarga la aplicación.');
    return;
   }
-  var sample=state.clinicalSamples.find(function(x){return x.id===id});
+  var sample=(state&&Array.isArray(state.clinicalSamples)?state.clinicalSamples:[]).find(function(x){return String(x.id)===String(id)});
   if(!sample||!['PENDIENTE_PROCESO','PROCESANDO'].includes(workflowStatusOf(sample))){toast('La muestra no está lista para iniciar o completar el procesamiento.');return}
   closeClinicalProcessingModal();
   var overlay=document.createElement('div');
