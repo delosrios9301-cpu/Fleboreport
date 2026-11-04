@@ -114,8 +114,9 @@ async function loadRemoteBoxes(){
  const racks=rs.map(r=>{const d=ds.find(x=>x.id===r.drawer_id),f=d&&fs.find(x=>x.id===d.freezer_id);return{id:r.id,cloudId:r.id,freezerId:f&&f.id,freezer:f&&f.name,drawerId:d&&d.id,drawer:d&&(d.name||('Gaveta '+d.drawer_no)),name:r.name,trays:ts.filter(t=>t.rack_id===r.id).map(t=>'Bandeja '+t.tray_no)}});
  const studyMap=new Map((s.clinicalStudies||[]).map(x=>[x.cloudId,x.id]));
  const locations=bs.map(b=>{const t=ts.find(x=>x.id===b.tray_id),r=t&&rs.find(x=>x.id===t.rack_id),d=ds.find(x=>x.id===(b.drawer_id||(r&&r.drawer_id))),f=fs.find(x=>x.id===(b.freezer_id||(d&&d.freezer_id)));return{id:b.id,cloudId:b.id,freezerId:f&&f.id,freezer:f&&f.name,drawerId:d&&d.id,drawer:d&&(d.name||('Gaveta '+d.drawer_no)),rackId:r&&r.id,rack:r&&r.name,tray:t?'Bandeja '+t.tray_no:'',trayNo:t&&t.tray_no,box:b.box_code,position:b.slot_no?'Posición '+b.slot_no:'',positionNo:b.slot_no||null,storageStage:b.storage_stage,aliquotCapacity:b.aliquot_capacity,studyId:studyMap.get(b.study_id)||'',studyCloudId:b.study_id}});
- const live=app()||s,oldF=live.clinicalFreezers||[],oldR=live.clinicalRacks||[],oldB=live.clinicalLocations||[];
- window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers.concat(oldF.filter(x=>!freezers.some(y=>String(y.name||'').toLowerCase()===String(x.name||'').toLowerCase()))),clinicalRacks:racks.concat(oldR.filter(x=>!racks.some(y=>y.name===x.name&&y.drawer===x.drawer&&y.freezer===x.freezer))),clinicalLocations:locations.concat(oldB.filter(x=>!locations.some(y=>y.box===x.box&&y.studyId===x.studyId&&y.storageStage===x.storageStage))) }),{silent:true});
+ const live=app()||s;
+ // La nube es la fuente oficial: no concatenar cajas, racks ni congeladores locales antiguos.
+ window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true});
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
@@ -144,7 +145,7 @@ async function loadRemoteSamples(){
   const sample=(r.data||[]).find(x=>x.id===e.sample_id);return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
  });
  // No reincorporar registros ni historial del almacenamiento local: Supabase es la única fuente.
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:mergedHistory}),{silent:true});
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:history}),{silent:true});
 }
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
