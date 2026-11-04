@@ -12,6 +12,7 @@ const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrat
 const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103120000_patient_search_rpc.sql', import.meta.url), 'utf8');
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104111000_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
 const testCatalogMigration = await readFile(new URL('../supabase/migrations/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
+const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104130000_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
 const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104110000_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
@@ -261,6 +262,19 @@ test('las eliminaciones de muestras se conservan en la sincronización general y
 
 const simpleProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
 const simpleProcessingMigration = await readFile(new URL('../supabase/migrations/20261103221950_simplify_clinical_processing_states.sql', import.meta.url), 'utf8');
+test('el técnico registra y guarda las cantidades de alícuotas al iniciar el procesamiento', () => {
+  assert.match(clinicalProcessing, /Cantidad de alícuotas PRINCIPALES/);
+  assert.match(clinicalProcessing, /Cantidad de alícuotas de RESPALDO/);
+  assert.match(clinicalProcessing, /primaryAliquots:primary,backupAliquots:backup/);
+  assert.match(clinicalProcessing, /Alícuotas: /);
+  assert.match(clinicalCloudSync, /if\(next==='PROCESANDO'\).*args\.primaryAliquots/);
+  assert.match(aliquotStartMigration, /p_next_status='PROCESANDO'/);
+  assert.match(aliquotStartMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
+  assert.match(aliquotStartMigration, /expected_primary_aliquots/);
+  assert.match(aliquotStartMigration, /expected_backup_aliquots/);
+  assert.match(aliquotStartMigration, /Registre la cantidad de alícuotas al iniciar/);
+});
+
 
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
