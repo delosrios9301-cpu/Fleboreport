@@ -275,6 +275,16 @@ async function transition(sample,next,args){
  if(next==='CONGELADOR_DEFINITIVO'){if(args.definitiveBoxId)sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt;sample.storedBy=actorName()}
  return data;
 }
+async function saveAliquots(sample,primary,backup){
+ requireReady(['admin','technician']);
+ if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada a Supabase.');
+ const result=await client.rpc('set_clinical_sample_aliquots',{p_sample_id:sample.cloudId,p_primary_aliquots:Number(primary),p_backup_aliquots:Number(backup)});
+ if(result.error)fail(result.error);
+ const data=Array.isArray(result.data)?result.data[0]:result.data;
+ if(!data||data.ok!==true)throw new Error('Supabase no confirmó las cantidades de alícuotas.');
+ sample.primaryAliquots=Number(primary);sample.backupAliquots=Number(backup);sample.updatedAt=new Date().toISOString();
+ return data;
+}
 async function registerCryovial(sample,vial,box,position){
  requireReady(['admin','technician']);
  if(!sample?.cloudId||!box?.cloudId)throw new Error('La muestra o caja no está vinculada a Supabase.');
@@ -297,7 +307,7 @@ async function syncStorageConfiguration(){
  return true;
 }
 async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();return true}
-window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,saveAliquots,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
 function boot(){connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})})}
