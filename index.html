@@ -1551,43 +1551,62 @@ function clinicalStudyVisitSpecsFromForm(){var out={};document.querySelectorAll(
 </script>
 <script>
 async function receiveClinicalSample(){
- ensureClinicalWorkflowCatalogs();
- var date=document.getElementById('clinicalProcessDate').value,time=document.getElementById('clinicalProcessTime').value,
- collectionDate=document.getElementById('clinicalCollectionDate').value,collectionTime=document.getElementById('clinicalCollectionTime').value,
- studyId=document.getElementById('clinicalProcessStudy').value,subjectCode=document.getElementById('clinicalProcessSubject').value.trim(),
-  visitId=document.getElementById('clinicalProcessVisit').value,sampleTypeId=document.getElementById('clinicalSampleType').value,
- tubes=Number(document.getElementById('clinicalTubeCount').value),
- study=state.clinicalStudies.find(function(x){return x.id===studyId}),
- visit=state.clinicalVisits.find(function(x){return x.id===visitId}),
- typeBase=state.clinicalSampleTypes.find(function(x){return x.id===sampleTypeId}),
- type=Object.assign({},typeBase,study&&study.sampleSpecs&&study.sampleSpecs[sampleTypeId]||{});
- if(!date||!collectionDate||!collectionTime||!study||!subjectCode||!visit||!typeBase||!Number.isInteger(tubes)||tubes<1){
-  toast('Completa estudio, sujeto, visita, tipo de muestra, fechas y cantidad de recipientes.');return;
- }
- var duplicate=state.clinicalSamples.find(function(x){return x.studyId===studyId&&String(x.subjectCode||'').trim().toLocaleLowerCase('es')===subjectCode.toLocaleLowerCase('es')&&x.visitId===visitId&&x.sampleTypeId===sampleTypeId&&x.collectionDate===collectionDate&&x.collectionTime===collectionTime});
- if(duplicate&&!confirm('Ya existe una muestra con el mismo estudio, sujeto, visita, tipo y hora de toma. ¿Registrar otra muestra de todas formas?'))return;
- if(duplicate)auditAdd('Estudios Clínicos','Confirmó posible muestra duplicada para sujeto '+subjectCode);
- var collectedAt=new Date(collectionDate+'T'+collectionTime+':00').toISOString(),
- receivedAt=new Date(date+'T'+(time||'12:00')+':00').toISOString(),
- record={id:'sm-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),studyId:studyId,subjectId:'',subjectCode:subjectCode,
- visitId:visit.id,visit:visit.name,visitDay:(study&&study.visitSpecs&&study.visitSpecs[visit.id]&&study.visitSpecs[visit.id].dayScheduled!=null?study.visitSpecs[visit.id].dayScheduled:visit.dayScheduled),
- sampleTypeId:type.id,sampleType:type.name,tube:type.tube||'',volume:type.volume||'',processingRequired:type.processingRequired||'',
- collectionDate:collectionDate,collectionTime:collectionTime,collectedAt:collectedAt,date:date,time:time||'',receivedAt:receivedAt,
- receivedBy:clinicalActor(),collectedBy:clinicalActor(),
- tubes:tubes,tubeBarcodes:[],aliquotsProcessed:0,status:'Recibida',workflowStatus:'REGISTRADO',
- statusId:clinicalSampleStatusId('Recibida'),processedAt:'',processedBy:'',location:'',locationId:'',
- notes:document.getElementById('clinicalProcessNotes').value.trim(),createdAt:new Date().toISOString()};
  try{
-  if(!window.FleboClinicalCloud)throw new Error('No está disponible el conector clínico de Supabase.');
+  ensureClinicalWorkflowCatalogs();
+  var date=document.getElementById('clinicalProcessDate').value,
+   time=document.getElementById('clinicalProcessTime').value,
+   collectionDate=document.getElementById('clinicalCollectionDate').value,
+   collectionTime=document.getElementById('clinicalCollectionTime').value,
+   studyId=document.getElementById('clinicalProcessStudy').value,
+   subjectCode=document.getElementById('clinicalProcessSubject').value.trim(),
+   visitId=document.getElementById('clinicalProcessVisit').value,
+   sampleTypeId=document.getElementById('clinicalSampleType').value,
+   tubes=Number(document.getElementById('clinicalTubeCount').value),
+   study=state.clinicalStudies.find(function(x){return x.id===studyId}),
+   visit=state.clinicalVisits.find(function(x){return x.id===visitId}),
+   typeBase=state.clinicalSampleTypes.find(function(x){return x.id===sampleTypeId}),
+   type=Object.assign({},typeBase,study&&study.sampleSpecs&&study.sampleSpecs[sampleTypeId]||{});
+  if(!date||!collectionDate||!collectionTime||!study||!subjectCode||!visit||!typeBase||!Number.isInteger(tubes)||tubes<1){
+   toast('Completa estudio, sujeto, visita, tipo de muestra, fechas y cantidad de recipientes.');return;
+  }
+  var collectionStamp=Date.parse(collectionDate+'T'+collectionTime+':00'),
+   receivedStamp=Date.parse(date+'T'+(time||'12:00')+':00');
+  if(!Number.isFinite(collectionStamp)||!Number.isFinite(receivedStamp)){
+   toast('No se pudieron interpretar las fechas u horas. Verifica la fecha y hora de toma y recepción.');return;
+  }
+  if(receivedStamp<collectionStamp){
+   toast('La fecha y hora de recepción no puede ser anterior a la fecha y hora de toma.');return;
+  }
+  var duplicate=state.clinicalSamples.find(function(x){return x.studyId===studyId&&String(x.subjectCode||'').trim().toLocaleLowerCase('es')===subjectCode.toLocaleLowerCase('es')&&x.visitId===visitId&&x.sampleTypeId===sampleTypeId&&x.collectionDate===collectionDate&&x.collectionTime===collectionTime});
+  if(duplicate&&!confirm('Ya existe una muestra con el mismo estudio, sujeto, visita, tipo y hora de toma. ¿Registrar otra muestra de todas formas?'))return;
+  if(duplicate)auditAdd('Estudios Clínicos','Confirmó posible muestra duplicada para sujeto '+subjectCode);
+  var collectedAt=new Date(collectionStamp).toISOString(),
+   receivedAt=new Date(receivedStamp).toISOString(),
+   record={id:'sm-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),studyId:studyId,subjectId:'',subjectCode:subjectCode,
+    visitId:visit.id,visit:visit.name,visitDay:(study&&study.visitSpecs&&study.visitSpecs[visit.id]&&study.visitSpecs[visit.id].dayScheduled!=null?study.visitSpecs[visit.id].dayScheduled:visit.dayScheduled),
+    sampleTypeId:type.id,sampleType:type.name,tube:type.tube||'',volume:type.volume||'',processingRequired:type.processingRequired||'',
+    collectionDate:collectionDate,collectionTime:collectionTime,collectedAt:collectedAt,date:date,time:time||'',receivedAt:receivedAt,
+    receivedBy:clinicalActor(),collectedBy:clinicalActor(),tubes:tubes,tubeBarcodes:[],aliquotsProcessed:0,status:'Recibida',workflowStatus:'REGISTRADO',
+    statusId:clinicalSampleStatusId('Recibida'),processedAt:'',processedBy:'',location:'',locationId:'',
+    notes:document.getElementById('clinicalProcessNotes').value.trim(),createdAt:new Date().toISOString()};
+  if(!window.FleboClinicalCloud)throw new Error('No está disponible el conector clínico de Supabase. Recarga la aplicación e inicia sesión nuevamente.');
   await window.FleboClinicalCloud.connect();
-  await window.FleboClinicalCloud.registerSample(record);
- }catch(error){console.error('[FleboReport Clinical]',error);toast(error.message||'No se pudo registrar la muestra en la nube.');return}
- state.clinicalSamples.unshift(record);
- appendClinicalSampleHistory(record,'','REGISTRADO','Registro inicial en la nube',record.receivedBy,record.receivedAt);
- if(!save())return;
- auditAdd('Estudios Clínicos','Registró muestra en la nube para sujeto '+subjectCode+' · '+type.name+' · '+tubes+' recipiente(s)');
- resetClinicalReceptionForm(true);renderClinicalStudies();toast('Muestra registrada correctamente en la nube.');
-}function updateClinicalProtocolOptions(){var studyId=document.getElementById('clinicalProcessStudy')?.value||'',study=state.clinicalStudies.find(function(x){return x.id===studyId}),visits=study?state.clinicalVisits.filter(function(x){return(study.visitIds||[]).indexOf(x.id)>=0}):[],samples=study?state.clinicalSampleTypes.filter(function(x){return(study.sampleTypeIds||[]).indexOf(x.id)>=0}):[],visitSpecs=study&&study.visitSpecs||{},v=document.getElementById('clinicalProcessVisit')?.value||'',s=document.getElementById('clinicalSampleType')?.value||'';visits=visits.map(function(x){var spec=visitSpecs[x.id];return spec&&spec.dayScheduled!=null?Object.assign({},x,{dayScheduled:spec.dayScheduled}):x});clinicalSetSelect('clinicalProcessVisit',visits,study?'No hay visitas configuradas':'Selecciona un estudio…',function(x){return x.id},function(x){return(x.code?x.code+' · ':'')+x.name+(x.dayScheduled!=null?' · Día '+x.dayScheduled:'')},v);clinicalSetSelect('clinicalSampleType',samples,study?'No hay muestras permitidas':'Selecciona un estudio…',function(x){return x.id},function(x){return(x.code?x.code+' · ':'')+x.name},s);updateClinicalSubjectOptions('clinicalProcessStudy','clinicalProcessSubject');clinicalSetSelect('clinicalBulkOperator',state.clinicalStaff.filter(function(x){return x.status!=='Inactivo'}),'Operador actual…',function(x){return x.id},function(x){return x.name+' · '+(x.role||'')});clinicalSetSelect('clinicalBulkLocation',state.clinicalLocations,'Selecciona ubicación…',function(x){return x.id},clinicalLocationLabel);clinicalSetSelect('clinicalQueueVisit',state.clinicalVisits,'Todas las visitas',function(x){return x.id},function(x){return x.name});clinicalSetSelect('clinicalQueueType',state.clinicalSampleTypes,'Todos los tipos',function(x){return x.id},function(x){return x.name});clinicalSetSelect('clinicalQueueStatus',state.clinicalStatuses,'Todos los estados',function(x){return x.name},function(x){return x.name});clinicalSetSelect('clinicalQueueStudy',state.clinicalStudies,'Todos los estudios',function(x){return x.id},function(x){return x.protocol+' · '+x.name});renderClinicalSampleDetails()}
+  var cloudResult=await window.FleboClinicalCloud.registerSample(record);
+  if(!cloudResult||!cloudResult.sample_id)throw new Error('La nube no confirmó el registro de la muestra.');
+  state.clinicalSamples.unshift(record);
+  appendClinicalSampleHistory(record,'','REGISTRADO','Registro inicial en la nube',record.receivedBy,record.receivedAt);
+  if(!save()){
+   toast('La muestra quedó registrada en la nube, pero no se pudo actualizar la copia local. Recarga el módulo para sincronizarla.');
+   return;
+  }
+  auditAdd('Estudios Clínicos','Registró muestra en la nube para sujeto '+subjectCode+' · '+type.name+' · '+tubes+' recipiente(s)');
+  resetClinicalReceptionForm(true);renderClinicalStudies();toast('Muestra registrada correctamente en la nube.');
+ }catch(error){
+  console.error('[FleboReport Clinical] Error completo al registrar muestra:',error);
+  toast('No se pudo registrar la muestra: '+(error&&error.message?error.message:String(error)));
+ }
+}
+function updateClinicalProtocolOptions(){var studyId=document.getElementById('clinicalProcessStudy')?.value||'',study=state.clinicalStudies.find(function(x){return x.id===studyId}),visits=study?state.clinicalVisits.filter(function(x){return(study.visitIds||[]).indexOf(x.id)>=0}):[],samples=study?state.clinicalSampleTypes.filter(function(x){return(study.sampleTypeIds||[]).indexOf(x.id)>=0}):[],visitSpecs=study&&study.visitSpecs||{},v=document.getElementById('clinicalProcessVisit')?.value||'',s=document.getElementById('clinicalSampleType')?.value||'';visits=visits.map(function(x){var spec=visitSpecs[x.id];return spec&&spec.dayScheduled!=null?Object.assign({},x,{dayScheduled:spec.dayScheduled}):x});clinicalSetSelect('clinicalProcessVisit',visits,study?'No hay visitas configuradas':'Selecciona un estudio…',function(x){return x.id},function(x){return(x.code?x.code+' · ':'')+x.name+(x.dayScheduled!=null?' · Día '+x.dayScheduled:'')},v);clinicalSetSelect('clinicalSampleType',samples,study?'No hay muestras permitidas':'Selecciona un estudio…',function(x){return x.id},function(x){return(x.code?x.code+' · ':'')+x.name},s);updateClinicalSubjectOptions('clinicalProcessStudy','clinicalProcessSubject');clinicalSetSelect('clinicalBulkOperator',state.clinicalStaff.filter(function(x){return x.status!=='Inactivo'}),'Operador actual…',function(x){return x.id},function(x){return x.name+' · '+(x.role||'')});clinicalSetSelect('clinicalBulkLocation',state.clinicalLocations,'Selecciona ubicación…',function(x){return x.id},clinicalLocationLabel);clinicalSetSelect('clinicalQueueVisit',state.clinicalVisits,'Todas las visitas',function(x){return x.id},function(x){return x.name});clinicalSetSelect('clinicalQueueType',state.clinicalSampleTypes,'Todos los tipos',function(x){return x.id},function(x){return x.name});clinicalSetSelect('clinicalQueueStatus',state.clinicalStatuses,'Todos los estados',function(x){return x.name},function(x){return x.name});clinicalSetSelect('clinicalQueueStudy',state.clinicalStudies,'Todos los estudios',function(x){return x.id},function(x){return x.protocol+' · '+x.name});renderClinicalSampleDetails()}
 function renderClinicalSampleDetails(){var study=state.clinicalStudies.find(function(x){return x.id===document.getElementById('clinicalProcessStudy').value}),sample=state.clinicalSampleTypes.find(function(x){return x.id===document.getElementById('clinicalSampleType').value}),override=study&&sample&&study.sampleSpecs&&study.sampleSpecs[sample.id]||{},host=document.getElementById('clinicalSampleDetails');if(!host)return;if(!sample){host.textContent='Elige estudio y tipo de muestra para ver la configuración.';return}host.innerHTML='<strong>'+esc(sample.name)+'</strong><span>Tubo: '+esc(override.tube||sample.tube||'Sin configurar')+' · Volumen: '+esc(override.volume||sample.volume||'Sin configurar')+' · Procesamiento requerido: '+esc(override.processingRequired||sample.processingRequired||'Sin configurar')+'</span><small>'+esc(sample.description||'')+'</small>'}
 function saveClinicalStudy(){var id=document.getElementById('clinicalStudyEditId').value,protocol=document.getElementById('clinicalProtocol').value.trim(),name=document.getElementById('clinicalStudyName').value.trim();if(!protocol||!name){toast('Completa código y nombre del protocolo.');return}if(state.clinicalStudies.some(function(x){return x.protocol.toLowerCase()===protocol.toLowerCase()&&x.id!==id})){toast('Ya existe un protocolo con ese código.');return}var s=state.clinicalStudies.find(function(x){return x.id===id});if(!s){s={id:'st-'+Date.now(),createdAt:new Date().toISOString()};state.clinicalStudies.unshift(s)}Object.assign(s,{protocol:protocol,name:name,client:document.getElementById('clinicalStudyClient').value.trim(),sponsor:document.getElementById('clinicalSponsor').value,cro:document.getElementById('clinicalCRO').value,investigator:document.getElementById('clinicalPI').value.trim(),status:document.getElementById('clinicalStudyStatus').value,startDate:document.getElementById('clinicalStudyStart').value,endDate:document.getElementById('clinicalStudyEnd').value,color:document.getElementById('clinicalStudyColor').value||'#0c8b83',visitIds:Array.from(document.getElementById('clinicalStudyVisits').selectedOptions).map(function(o){return o.value}),sampleTypeIds:Array.from(document.getElementById('clinicalStudySamples').selectedOptions).map(function(o){return o.value}),visitSpecs:clinicalStudyVisitSpecsFromForm(),sampleSpecs:clinicalStudySampleSpecsFromForm(),notes:document.getElementById('clinicalStudyNotes').value.trim()});if(!save())return;auditAdd('Configuración · Estudios clínicos',(id?'Actualizó ':'Configuró ')+'protocolo '+protocol);resetClinicalStudyForm();renderClinicalStudies();toast('Protocolo actualizado.')}
 var clinicalBaseStudyReset=resetClinicalStudyForm;resetClinicalStudyForm=function(){clinicalBaseStudyReset();document.getElementById('clinicalStudyVisitSpecs').innerHTML='';document.getElementById('clinicalStudySampleSpecs').innerHTML=''}
