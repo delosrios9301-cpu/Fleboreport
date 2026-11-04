@@ -174,7 +174,9 @@ test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de 
 test('el centro de notificaciones puede mostrar avisos del dispositivo y consultar cambios recientes', () => {
   assert.doesNotThrow(() => new Function(notifications));
   assert.match(notifications, /showDeviceNotification/);
-  assert.match(notifications, /setInterval/);
+  assert.match(notifications, /postgres_changes/);
+  assert.match(notifications, /visibilitychange/);
+  assert.doesNotMatch(notifications, /setInterval\(/);
 });
 
 
