@@ -2011,17 +2011,20 @@ var oldRenderStudies=renderClinicalStudies;
    saveButton.disabled=true;cancel.disabled=true;saveButton.textContent='Guardando…';error.style.display='none';
    try{
     var previous=workflowStatusOf(sample);
-    if(previous==='PENDIENTE_PROCESO'){
-     var transitionResult=await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:String(note.value||'').trim()});
-     if(!transitionResult||transitionResult.ok!==true||transitionResult.status!=='PROCESANDO')throw new Error('Supabase no confirmó el inicio del procesamiento.');
-     sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';sample.processingStartedAt=new Date().toISOString();sample.processingStartedBy=clinicalActor();
-     appendClinicalSampleHistory(sample,transitionResult.previous_status||previous,'PROCESANDO',String(note.value||'').trim()||'Inicio de procesamiento técnico',clinicalActor());
-     auditAdd('Procesamiento de muestras','Inició procesamiento de '+(sample.subjectCode||sample.sampleType));
-    }
-    await window.FleboClinicalCloud.saveAliquots(sample,p,b);
-    appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+p+'; respaldo: '+b,clinicalActor());
-    save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));
-    closeClinicalProcessingModal();toast('Procesamiento iniciado y alícuotas guardadas.');renderClinicalStudies();
+    if(previous!=='PENDIENTE_PROCESO')throw new Error('Esta ficha ya fue iniciada. Actualiza la bandeja antes de modificar su estado.');
+    var observation=String(note.value||'').trim();
+    var transitionResult=await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{
+     notes:observation||'Inicio de procesamiento técnico',
+     primaryAliquots:p,
+     backupAliquots:b
+    });
+    if(!transitionResult||transitionResult.ok!==true||transitionResult.status!=='PROCESANDO')throw new Error('Supabase no confirmó el inicio del procesamiento.');
+    sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';
+    sample.processingStartedAt=new Date().toISOString();sample.processingStartedBy=clinicalActor();
+    sample.primaryAliquots=p;sample.backupAliquots=b;
+    appendClinicalSampleHistory(sample,transitionResult.previous_status||previous,'PROCESANDO',observation||'Inicio de procesamiento técnico',clinicalActor());
+    save();auditAdd('Procesamiento de muestras','Inició procesamiento y guardó alícuotas para '+(sample.subjectCode||sample.sampleType));
+    closeClinicalProcessingModal();toast('Procesamiento iniciado. Alícuotas y observación guardadas.');renderClinicalStudies();
    }catch(e){
     error.textContent=(e&&e.message)||'No se pudo guardar la información. Puedes intentarlo nuevamente.';
     error.style.display='block';saveButton.disabled=false;cancel.disabled=false;saveButton.textContent='Reintentar guardado';
