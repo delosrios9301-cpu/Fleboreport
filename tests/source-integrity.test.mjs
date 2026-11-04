@@ -199,7 +199,6 @@ test('la PWA renueva la caché para instalar la última versión de Domicilios y
   assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
 });
 
-const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
 const clinicalDeleteMigration = await readFile(new URL('../supabase/migrations/20261103190000_clinical_sample_soft_delete_with_audit.sql', import.meta.url), 'utf8');
 
 test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borrar la trazabilidad', () => {
