@@ -81,6 +81,12 @@ async function syncNow(options){
    pendingKeys.clear();
   }
   const latest=await fetchAll();
+  const currentPatients=(app()?.patients||[]).slice();
+  if(currentPatients.length&&!latest.length){
+   try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:currentPatients}))}catch(_){ }
+   lastContent=new Map(currentPatients.map(p=>[keyOf(p),contentOf(p)]));
+   return;
+  }
   if(saveList(latest)&&window.FleboAppState.refresh)window.FleboAppState.refresh();
   lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
