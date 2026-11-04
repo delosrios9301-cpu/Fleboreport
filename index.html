@@ -1599,21 +1599,21 @@ function deleteClinicalSubject(id){var s=state.clinicalSubjects.find(function(x)
  var drawers=['Gaveta 1','Gaveta 2','Gaveta 3','Gaveta 4'],trays=['Bandeja 1','Bandeja 2','Bandeja 3','Bandeja 4','Bandeja 5'],positions=['Posición 1','Posición 2','Posición 3','Posición 4'];
  function storageId(prefix){return prefix+'-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)}
  function sameText(a,b){return String(a||'').trim().toLocaleLowerCase('es')===String(b||'').trim().toLocaleLowerCase('es')}
- function createDrawers(){return drawers.map(function(name){return{id:storageId('drawer'),name:name,createdAt:new Date().toISOString()}})}
- function normalizeFreezerDrawers(freezer){if(!Array.isArray(freezer.drawers)||!freezer.drawers.length||typeof freezer.drawers[0]!=='object'){freezer.drawers=createDrawers();return true}var changed=false;drawers.forEach(function(name){if(!freezer.drawers.some(function(d){return d.name===name})){freezer.drawers.push({id:storageId('drawer'),name:name,createdAt:new Date().toISOString()});changed=true}});return changed}
+ function createDrawers(name){return[{id:storageId('drawer'),name:name||'Gaveta 1',createdAt:new Date().toISOString()}]}
+ function normalizeFreezerDrawers(freezer){if(!Array.isArray(freezer.drawers)){freezer.drawers=[];return true}return false}
  function freezerDrawers(id){var f=state.clinicalFreezers.find(function(x){return x.id===id});return f?(f.drawers||[]):[]}
  function ensureStorageStructure(){
   var changed=false;
   state.clinicalLocations.forEach(function(box){
    if(!box||!box.freezer||!box.rack||!box.tray||!box.box)return;
    var freezer=state.clinicalFreezers.find(function(f){return f.id===box.freezerId||sameText(f.name,box.freezer)});
-   if(!freezer){freezer={id:box.freezerId||storageId('freezer'),name:String(box.freezer),drawers:createDrawers(),createdAt:box.createdAt||new Date().toISOString()};state.clinicalFreezers.push(freezer);changed=true}
+   if(!freezer){freezer={id:box.freezerId||storageId('freezer'),name:String(box.freezer),drawers:createDrawers(box.drawer||'Gaveta 1'),createdAt:box.createdAt||new Date().toISOString()};state.clinicalFreezers.push(freezer);changed=true}
    if(normalizeFreezerDrawers(freezer))changed=true;
    if(box.freezerId!==freezer.id){box.freezerId=freezer.id;changed=true}
    var drawer=box.drawer||'Gaveta 1';if(box.drawer!==drawer){box.drawer=drawer;changed=true}
-   var drawerRecord=freezer.drawers.find(function(d){return d.name===drawer})||freezer.drawers[0];if(box.drawerId!==drawerRecord.id){box.drawerId=drawerRecord.id;changed=true}
+   var drawerRecord=freezer.drawers.find(function(d){return d.name===drawer});if(!drawerRecord){drawerRecord={id:storageId('drawer'),name:drawer,createdAt:new Date().toISOString()};freezer.drawers.push(drawerRecord);changed=true}if(box.drawerId!==drawerRecord.id){box.drawerId=drawerRecord.id;changed=true}
    var rack=state.clinicalRacks.find(function(r){return r.id===box.rackId||(r.freezerId===freezer.id&&(r.drawerId===drawerRecord.id||r.drawer===drawer)&&sameText(r.name,box.rack))});
-   if(!rack){rack={id:box.rackId||storageId('rack'),freezerId:freezer.id,drawerId:drawerRecord.id,drawer:drawer,name:String(box.rack),trays:trays.slice(),createdAt:box.createdAt||new Date().toISOString()};state.clinicalRacks.push(rack);changed=true}
+   if(!rack){rack={id:box.rackId||storageId('rack'),freezerId:freezer.id,drawerId:drawerRecord.id,drawer:drawer,name:String(box.rack),trays:[String(box.tray)],createdAt:box.createdAt||new Date().toISOString()};state.clinicalRacks.push(rack);changed=true}
    if(rack.drawerId!==drawerRecord.id){rack.drawerId=drawerRecord.id;changed=true}
    if(box.rackId!==rack.id){box.rackId=rack.id;changed=true}
    var oldTray=box.tray,oldPosition=box.position;box.tray=String(box.tray);box.position=box.position||'Posición 1';box.positionNo=Number(String(box.position).match(/\d+/)?.[0]||1);
