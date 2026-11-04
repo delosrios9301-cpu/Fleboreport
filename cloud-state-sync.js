@@ -4,6 +4,8 @@ const META_KEY='fleboReport.cloudSync.v1';
 const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
 // Estos catálogos se administran en clinical_* de Supabase, no en el estado JSON legado.
 const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampleTypes'];
+// Las muestras y su historial viven exclusivamente en clinical_samples/clinical_sample_events.
+const CLINICAL_DB_RECORD_KEYS=['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -38,6 +40,8 @@ function mergeState(remote,local){
  }
  const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
  out.clinicalSamples=(out.clinicalSamples||[]).filter(x=>!deletedClinicalSampleIds.has(String(x.id)));
+ // Evitar que snapshots locales o antiguos repueblen la bandeja clínica.
+ CLINICAL_DB_RECORD_KEYS.forEach(k=>{out[k]=[]});
  // La configuración clínica relacional es la fuente oficial. Nunca fusionar copias antiguas del estado general.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{out[k]=Array.isArray(local&&local[k])?local[k]:[]});
  ['reportHistoryLogos','individualTestPrices','attentionTemplates'].forEach(k=>{
@@ -68,6 +72,7 @@ async function writeRemote(state,expected){
  const payload=Object.assign({},state||{});
  // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
+ CLINICAL_DB_RECORD_KEYS.forEach(k=>{payload[k]=[]});
  const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
  const r=await client.rpc('save_workspace_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
