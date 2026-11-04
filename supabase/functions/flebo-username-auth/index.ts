@@ -45,12 +45,15 @@ Deno.serve(async(req:Request)=>{
    if(!who.ok)return json({error:"La sesión no es válida o expiró."},401);
    const actor=await who.json();
    if(action==="get-membership"){
-    const mr=await fetch(url+"/rest/v1/workspace_members?select=workspace_id,role,active&user_id=eq."+encodeURIComponent(actor.id)+"&limit=1",{headers:adminHeaders});
+    const mr=await fetch(url+"/rest/v1/workspace_members?select=workspace_id,role,active&user_id=eq."+encodeURIComponent(actor.id),{headers:adminHeaders});
     const rows=await mr.json();if(!mr.ok)throw new Error("No se pudo verificar la membresía.");
     if(!rows.length)return json({membership:null});
-    const wr=await fetch(url+"/rest/v1/workspaces?select=name&id=eq."+encodeURIComponent(rows[0].workspace_id)+"&limit=1",{headers:adminHeaders});
-    const workspaces=wr.ok?await wr.json():[];
-    return json({membership:{...rows[0],workspaces:workspaces[0]||{name:"FleboReport"}}});
+    const membership=rows.find((row:any)=>row.active===true)||rows[0];
+    const wr=await fetch(url+"/rest/v1/workspaces?select=name&id=eq."+encodeURIComponent(membership.workspace_id)+"&limit=1",{headers:adminHeaders});
+    if(!wr.ok)throw new Error("No se pudo recuperar el espacio de trabajo vinculado.");
+    const workspaces=await wr.json();
+    if(!workspaces.length)throw new Error("La vinculación existe, pero el espacio de trabajo no está disponible.");
+    return json({membership:{...membership,workspaces:workspaces[0]}});
    }
    const workspaceId=String(body.workspace_id||"");
    if(!workspaceId)return json({error:"Falta el espacio de trabajo."},400);
