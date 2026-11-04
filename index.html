@@ -1895,21 +1895,41 @@ var oldRenderStudies=renderClinicalStudies;
   sample._previousWorkflowStatus=current;
   await transitionSampleUI(sample,target,note||'Validación de etapa');
  };
+
  async function captureClinicalAliquots(sample){
-  var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{},type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{},spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
+  // El formulario se presenta directamente en la fila de la muestra; no usa ventanas emergentes.
+  renderClinicalStudies();
+ }
+ window.saveClinicalAliquotsFromInputs=async function(id){
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});
+  if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra debe estar en procesamiento para registrar alícuotas.');return}
+  var primaryInput=document.querySelector('[data-aliquot-primary="'+id+'"]');
+  var backupInput=document.querySelector('[data-aliquot-backup="'+id+'"]');
+  var primaryText=primaryInput?String(primaryInput.value).trim():'';
+  var backupText=backupInput?String(backupInput.value).trim():'';
+  var primary=Number(primaryText),backup=Number(backupText);
+  if(!/^\\d+$/.test(primaryText)||!/^\\d+$/.test(backupText)||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){
+   toast('Indica cantidades enteras válidas. Puedes colocar 0 en respaldo si no aplica.');
+   if(primaryInput&&!primaryText)primaryInput.focus();else if(backupInput)backupInput.focus();
+   return;
+  }
+  var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{};
+  var type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{};
+  var spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
   var expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots));
   var expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots));
-  var primaryText=window.prompt('Procesamiento iniciado. Cantidad de alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType||'esta muestra')+':',String(expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary));
-  if(primaryText===null){toast('El procesamiento quedó iniciado. Puedes registrar las alícuotas desde la bandeja de procesamiento.');renderClinicalStudies();return}
-  var backupText=window.prompt('Cantidad de alícuotas de RESPALDO (backup):',String(expectedBackup==null?(Number(sample.backupAliquots)||0):expectedBackup));
-  if(backupText===null){toast('El procesamiento quedó iniciado. Falta guardar las alícuotas; puedes completarlas después.');renderClinicalStudies();return}
-  var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
-  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas; el total debe ser mayor que cero.');renderClinicalStudies();return}
-  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');renderClinicalStudies();return}
-  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');renderClinicalStudies();return}
-  try{await window.FleboClinicalCloud.saveAliquots(sample,primary,backup);appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+primary+'; respaldo: '+backup,clinicalActor());save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));toast('Alícuotas guardadas correctamente.');renderClinicalStudies()}
-  catch(e){toast(e.message||'No se pudieron guardar las alícuotas.');renderClinicalStudies()}
- }
+  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');if(primaryInput)primaryInput.focus();return}
+  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');if(backupInput)backupInput.focus();return}
+  var saveButton=document.querySelector('[data-save-aliquots="'+id+'"]');
+  if(saveButton){saveButton.disabled=true;saveButton.textContent='Guardando…'}
+  try{
+   await window.FleboClinicalCloud.saveAliquots(sample,primary,backup);
+   appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+primary+'; respaldo: '+backup,clinicalActor());
+   save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));
+   toast('Alícuotas guardadas correctamente.');renderClinicalStudies();
+  }catch(e){toast(e.message||'No se pudieron guardar las alícuotas.');if(saveButton){saveButton.disabled=false;saveButton.textContent='Guardar alícuotas'}}
+ };
+
  processClinicalSample=async function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
   if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
@@ -1955,8 +1975,12 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
    }
    if(status==='PROCESANDO'&&inputCell){
     var hasAliquots=Number(sample.primaryAliquots||0)+Number(sample.backupAliquots||0)>0;
-    inputCell.innerHTML=hasAliquots?'<small>Principal: '+esc(sample.primaryAliquots)+' · Backup: '+esc(sample.backupAliquots)+'</small>':'<small class="muted">Pendiente de registrar alícuotas</small>';
-    if(actions)actions.innerHTML=hasAliquots?'<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>':'<button class="btn primary" onclick="captureClinicalAliquotsById(\''+esc(id)+'\')">Registrar alícuotas</button>';
+    inputCell.innerHTML=hasAliquots
+     ?'<div class="aliquot-inputs"><small><b>Principal:</b> '+esc(sample.primaryAliquots)+'</small><small><b>Respaldo:</b> '+esc(sample.backupAliquots)+'</small></div>'
+     :'<div class="aliquot-inputs"><label>Alícuotas principales <input type="number" min="0" step="1" inputmode="numeric" placeholder="Ej. 2" data-aliquot-primary="'+esc(id)+'" aria-label="Cantidad de alícuotas principales"></label><label>Alícuotas de respaldo <input type="number" min="0" step="1" inputmode="numeric" placeholder="Ej. 1" data-aliquot-backup="'+esc(id)+'" aria-label="Cantidad de alícuotas de respaldo"></label><small class="muted">Coloca 0 si no aplica.</small></div>';
+    if(actions)actions.innerHTML=hasAliquots
+     ?'<button class="btn primary" onclick="completeClinicalSampleProcessing(\\''+esc(id)+'\\')">Pasar a almacenamiento temporal</button>'
+     :'<button class="btn primary" data-save-aliquots="'+esc(id)+'" onclick="saveClinicalAliquotsFromInputs(\\''+esc(id)+'\\')">Guardar alícuotas</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
