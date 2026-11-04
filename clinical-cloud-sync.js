@@ -106,7 +106,7 @@ async function loadRemoteConfiguration(){
   clinicalStudies:studies,
   clinicalVisits:visits,
   clinicalSampleTypes:types
- }),{silent:true});
+ }),{silent:true,deferRender:true});
 }
 async function loadRemoteBoxes(){
  const s=app()||{};const [fr,dr,rr,tr,br]=await Promise.all([client.from('clinical_freezers').select('*').eq('workspace_id',workspaceId),client.from('clinical_freezer_drawers').select('*').eq('workspace_id',workspaceId),client.from('clinical_racks').select('*').eq('workspace_id',workspaceId),client.from('clinical_rack_trays').select('*').eq('workspace_id',workspaceId),client.from('clinical_boxes').select('*').eq('workspace_id',workspaceId).eq('active',true)]);
@@ -117,7 +117,7 @@ async function loadRemoteBoxes(){
  const locations=bs.map(b=>{const t=ts.find(x=>x.id===b.tray_id),r=t&&rs.find(x=>x.id===t.rack_id),d=ds.find(x=>x.id===(b.drawer_id||(r&&r.drawer_id))),f=fs.find(x=>x.id===(b.freezer_id||(d&&d.freezer_id)));return{id:b.id,cloudId:b.id,freezerId:f&&f.id,freezer:f&&f.name,drawerId:d&&d.id,drawer:d&&(d.name||('Gaveta '+d.drawer_no)),rackId:r&&r.id,rack:r&&r.name,tray:t?'Bandeja '+t.tray_no:'',trayNo:t&&t.tray_no,box:b.box_code,position:b.slot_no?'Posición '+b.slot_no:'',positionNo:b.slot_no||null,storageStage:b.storage_stage,aliquotCapacity:b.aliquot_capacity,studyId:studyMap.get(b.study_id)||'',studyCloudId:b.study_id}});
  const live=app()||s;
  // La nube es la fuente oficial: no concatenar cajas, racks ni congeladores locales antiguos.
- window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true});
+ window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true,deferRender:true});
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
@@ -154,7 +154,7 @@ async function loadRemoteSamples(){
   const sample=cloudSampleById.get(String(e.sample_id));return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
  });
  // No reincorporar registros ni historial del almacenamiento local: Supabase es la única fuente.
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history}),{silent:true});
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history}),{silent:true,deferRender:true});
 }
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
@@ -166,6 +166,7 @@ async function syncConfiguration(){
    if(role==='admin'||role==='technician')await loadRemoteBoxes();
    stage='lectura de muestras y crioviales';
    await loadRemoteSamples();
+   if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -189,6 +190,7 @@ async function saveConfiguration(){
     for(const type of linkedTypes)await saveSampleType(study,sid,type);
    }
    await loadRemoteConfiguration();
+   if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -294,7 +296,7 @@ async function syncStorageConfiguration(){
  await loadRemoteBoxes();
  return true;
 }
-async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();return true}
+async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();return true}
 window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
