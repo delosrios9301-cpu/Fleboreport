@@ -4,6 +4,7 @@ let client=null,workspaceId=null,userId=null,role=null,ready=false,busy=false,sy
 const app=()=>window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null;
 const uid=()=>window.crypto&&crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 const fail=e=>{throw new Error(e&&e.message?e.message:String(e||'Error de sincronización clínica'))};
+const actorName=()=>{const u=window.FleboAuth&&window.FleboAuth.user,m=u&&u.user_metadata||{};return String(m.display_name||m.name||(u&&u.email?u.email.split('@')[0]:'')||'Usuario autenticado').trim()};
 async function connect(){
  try{
   if(!window.FleboAuth)return;
@@ -264,10 +265,10 @@ async function transition(sample,next,args){
  const legacy={EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de procesamiento',PROCESANDO:'Pendiente de procesamiento',ALMACENAMIENTO_TEMPORAL:'Procesada',CONGELADOR_DEFINITIVO:'Almacenada'};
  sample.status=legacy[next]||sample.status;
  sample.updatedAt=new Date().toISOString();
- if(next==='EN_REVISION'){sample.reviewedAt=sample.updatedAt}
- if(next==='PROCESANDO'){sample.processingStartedAt=sample.updatedAt;if(args.primaryAliquots!=null)sample.primaryAliquots=Number(args.primaryAliquots);if(args.backupAliquots!=null)sample.backupAliquots=Number(args.backupAliquots)}
- if(next==='ALMACENAMIENTO_TEMPORAL'){if(args.temporaryBoxId)sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt}
- if(next==='CONGELADOR_DEFINITIVO'){if(args.definitiveBoxId)sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt}
+ if(next==='EN_REVISION'){sample.reviewedAt=sample.updatedAt;sample.reviewedBy=actorName()}
+ if(next==='PROCESANDO'){sample.processingStartedAt=sample.updatedAt;sample.processingStartedBy=actorName();if(args.primaryAliquots!=null)sample.primaryAliquots=Number(args.primaryAliquots);if(args.backupAliquots!=null)sample.backupAliquots=Number(args.backupAliquots)}
+ if(next==='ALMACENAMIENTO_TEMPORAL'){if(args.temporaryBoxId)sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt;sample.processedBy=actorName()}
+ if(next==='CONGELADOR_DEFINITIVO'){if(args.definitiveBoxId)sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt;sample.storedBy=actorName()}
  return data;
 }
 async function registerCryovial(sample,vial,box,position){
