@@ -263,10 +263,10 @@ test('las eliminaciones de muestras se conservan en la sincronización general y
 const simpleProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
 const simpleProcessingMigration = await readFile(new URL('../supabase/migrations/20261103221950_simplify_clinical_processing_states.sql', import.meta.url), 'utf8');
 test('el técnico registra y guarda las cantidades de alícuotas al iniciar el procesamiento', () => {
-  assert.match(clinicalProcessing, /Cantidad de alícuotas PRINCIPALES/);
-  assert.match(clinicalProcessing, /Cantidad de alícuotas de RESPALDO/);
-  assert.match(clinicalProcessing, /primaryAliquots:primary,backupAliquots:backup/);
-  assert.match(clinicalProcessing, /Alícuotas: /);
+  assert.match(simpleProcessing, /Cantidad de alícuotas PRINCIPALES/);
+  assert.match(simpleProcessing, /Cantidad de alícuotas de RESPALDO/);
+  assert.match(simpleProcessing, /primaryAliquots:primary,backupAliquots:backup/);
+  assert.match(simpleProcessing, /Alícuotas: /);
   assert.match(clinicalCloudSync, /if\(next==='PROCESANDO'\).*args\.primaryAliquots/);
   assert.match(aliquotStartMigration, /p_next_status='PROCESANDO'/);
   assert.match(aliquotStartMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
