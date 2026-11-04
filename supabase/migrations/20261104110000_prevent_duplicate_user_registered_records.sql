@@ -1,16 +1,26 @@
 begin;
--- Consolidar únicamente los tres registros duplicados confirmados del catálogo de pruebas.
--- Las filas posteriores no tenían referencias; se conservan las filas originales.
-delete from public.services
-where id in (
- '052f5f5e-999c-4818-8997-4c37f226b8b4',
- '8279ee65-6ced-473d-9b52-6916da4a0d02',
- 'a4068a8f-d0a6-4f9d-b200-26df89480d24'
+-- Consolidar duplicados del catálogo de servicios conservando la fila más antigua.
+-- La identidad es el código cuando existe; sin código, se usa el nombre normalizado.
+with ranked as (
+ select id,
+        row_number() over (
+          partition by workspace_id,
+          case when nullif(btrim(code),'') is not null
+               then 'code:'||regexp_replace(lower(btrim(code)),'[^a-z0-9]','','g')
+               else 'name:'||regexp_replace(lower(btrim(name)),'[^a-z0-9]','','g')
+          end
+          order by created_at,id
+        ) as duplicate_rank
+ from public.services
+ where nullif(btrim(name),'') is not null
 )
-and not exists(select 1 from public.appointments a where a.service_id=services.id)
-and not exists(select 1 from public.attention_tests a where a.service_id=services.id)
-and not exists(select 1 from public.home_visit_tests h where h.service_id=services.id)
-and not exists(select 1 from public.service_package_items p where p.service_id=services.id);
+delete from public.services s
+using ranked r
+where s.id=r.id and r.duplicate_rank>1
+  and not exists(select 1 from public.appointments a where a.service_id=s.id)
+  and not exists(select 1 from public.attention_tests a where a.service_id=s.id)
+  and not exists(select 1 from public.home_visit_tests h where h.service_id=s.id)
+  and not exists(select 1 from public.service_package_items p where p.service_id=s.id);
 
 -- Si existe código, la identidad es el código; si no, la identidad es el nombre.
 -- El mismo nombre con códigos diferentes se permite.
