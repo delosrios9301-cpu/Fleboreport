@@ -2096,7 +2096,7 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
      ?'<button class="btn" onclick="openClinicalProcessingModal(\''+esc(id)+'\')">Ver datos</button><button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>'
      :'<button class="btn primary" onclick="openClinicalProcessingModal(\''+esc(id)+'\')">Completar procesamiento</button>';
     var canDeleteProcessingSample=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin')||!!(window.fleboCan&&window.fleboCan('processing','delete'));
-    if(actions&&canDeleteProcessingSample)actions.insertAdjacentHTML('beforeend','<button class="btn danger" onclick="deleteClinicalSample(\\''+esc(id)+'\\')">Eliminar muestra</button>');
+    if(actions&&canDeleteProcessingSample)actions.insertAdjacentHTML('beforeend','<button class="btn danger" onclick="deleteClinicalSample(\''+esc(id)+'\')">Eliminar muestra</button>');
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
