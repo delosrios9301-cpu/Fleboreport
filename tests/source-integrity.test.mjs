@@ -382,3 +382,13 @@ test('cada función llamada desde un botón HTML tiene un manejador definido', a
   const missing = [...calls].filter(name => !declarations.has(name) && !exposed.has(name));
   assert.deepEqual(missing, [], 'hay botones con funciones no definidas: ' + missing.join(', '));
 });
+
+
+test('las muestras y su historial solo se hidratan desde las tablas clínicas de Supabase', () => {
+  assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS=\['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'\]/);
+  assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{out\[k\]=\[\]\}\)/);
+  assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{payload\[k\]=\[\]\}\)/);
+  assert.match(clinicalCloudSync, /merged=visibleNext/);
+  assert.doesNotMatch(clinicalCloudSync, /oldSamples\.filter\(x=>!x\.cloudId/);
+  assert.doesNotMatch(clinicalCloudSync, /history\.concat\(oldSampleHistory/);
+});
