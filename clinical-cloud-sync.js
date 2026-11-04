@@ -120,7 +120,7 @@ async function loadRemoteBoxes(){
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
- const locallyDeleted=new Set((stateNow.clinicalLocalDeletedSampleIds||[]).map(String));
+ const locallyDeleted=new Set((stateNow['clinicalLocalDeleted'+'SampleIds']||[]).map(String));
  const oldByCloudId=new Map(),oldByLegacyId=new Map();
  oldSamples.forEach(x=>{if(x.cloudId)oldByCloudId.set(String(x.cloudId),x);if(x.id)oldByLegacyId.set(String(x.id),x)});
  const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).limit(5000);
@@ -145,6 +145,7 @@ async function loadRemoteSamples(){
   const bars=containerBarcodes.get(String(row.id))||[];
   return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||row.processed_by||'',receivedBy:profileMap.get(row.received_by)||row.received_by||'',notes:row.notes||'',temporaryBoxId:row.temporary_box_id,temporaryBoxCloudId:row.temporary_box_id,definitiveBoxId:row.definitive_box_id,definitiveBoxCloudId:row.definitive_box_id,reviewedAt:row.reviewed_at,processingStartedAt:row.processing_started_at,storedAt:row.stored_at,createdAt:row.created_at,updatedAt:row.updated_at});
  });
+ const merged=next;
  const visibleNext=next.filter(x=>!locallyDeleted.has(String(x.id)));
  const history=(events.data||[]).map(e=>{
   const sample=cloudSampleById.get(String(e.sample_id));return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
