@@ -1898,14 +1898,24 @@ var oldRenderStudies=renderClinicalStudies;
  processClinicalSample=async function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
   if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
+  var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{},type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{},spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
+  var expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots));
+  var expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots));
+  var primaryText=window.prompt('Cantidad de alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType||'esta muestra')+':',String(expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary));
+  if(primaryText===null)return;
+  var backupText=window.prompt('Cantidad de alícuotas de RESPALDO (backup):',String(expectedBackup==null?(Number(sample.backupAliquots)||0):expectedBackup));
+  if(backupText===null)return;
+  var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
+  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas; el total de alícuotas debe ser mayor que cero.');return}
+  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');return}
+  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');return}
   sample._previousWorkflowStatus='PENDIENTE_PROCESO';
-  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico');
+  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico · Alícuotas principales: '+primary+'; respaldo: '+backup,{primaryAliquots:primary,backupAliquots:backup});
  };
  window.completeClinicalSampleProcessing=async function(id){
- var sample=state.clinicalSamples.find(x=>x.id===id);if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra no está en procesamiento.');return}
- var p=document.querySelector('[data-primary-aliquot-for="'+id+'"]'),b=document.querySelector('[data-backup-aliquot-for="'+id+'"]'),primary=p&&p.value!==''?Number(p.value):NaN,backup=b&&b.value!==''?Number(b.value):NaN;
- if(!Number.isInteger(primary)||primary<0||!Number.isInteger(backup)||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas para principal y backup.');return}
- sample._previousWorkflowStatus='PROCESANDO';await transitionSampleUI(sample,'ALMACENAMIENTO_TEMPORAL','Alicuotado; cada criovial se asignará individualmente a una caja temporal',{primaryAliquots:primary,backupAliquots:backup});
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra no está en procesamiento.');return}
+  sample._previousWorkflowStatus='PROCESANDO';
+  await transitionSampleUI(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; almacenamiento temporal confirmado');
  };
 window.openClinicalCryoPanel=window.openClinicalCryoPanel;
  renderClinicalStudies=function(){
@@ -1938,9 +1948,8 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
     actions.innerHTML=buttons;
    }
    if(status==='PROCESANDO'&&inputCell){
-    var p=sample.primaryAliquots!=null?sample.primaryAliquots:'',b=sample.backupAliquots!=null?sample.backupAliquots:'';
-    inputCell.innerHTML='<div class="aliquot-inputs"><label>Principal<input type="number" min="0" step="1" placeholder="0" value="'+esc(p)+'" data-primary-aliquot-for="'+esc(id)+'"></label><label>Backup<input type="number" min="0" step="1" placeholder="0" value="'+esc(b)+'" data-backup-aliquot-for="'+esc(id)+'"></label><small>Ubica cada criovial en su propia caja temporal al escanearlo.</small></div>'
-    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Guardar alicuotado</button>';
+    inputCell.innerHTML='<small>Principal: '+esc(sample.primaryAliquots==null?'—':sample.primaryAliquots)+' · Backup: '+esc(sample.backupAliquots==null?'—':sample.backupAliquots)+'</small>';
+    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\\''+esc(id)+'\\')">Pasar a almacenamiento temporal</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
