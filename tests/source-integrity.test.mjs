@@ -388,7 +388,7 @@ test('las muestras y su historial solo se hidratan desde las tablas clínicas de
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS=\['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'\]/);
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{out\[k\]=\[\]\}\)/);
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{payload\[k\]=\[\]\}\)/);
-  assert.match(clinicalCloudSync, /merged=visibleNext/);
+  assert.match(clinicalCloudSync, /const merged=next/);
   assert.doesNotMatch(clinicalCloudSync, /oldSamples\.filter\(x=>!x\.cloudId/);
   assert.doesNotMatch(clinicalCloudSync, /history\.concat\(oldSampleHistory/);
 });
@@ -407,6 +407,7 @@ test('la sincronización deduplica por código y no repuebla ubicaciones clínic
   assert.match(cloudSync, /itemKey\(x,key\)/);
   assert.match(clinicalCloudSync, /clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations/);
   assert.match(clinicalCloudSync, /clinicalSampleHistory:history/);
+  assert.doesNotMatch(clinicalCloudSync, /clinicalLocalDeletedSampleIds/);
   assert.doesNotMatch(clinicalCloudSync, /clinicalLocations:locations\.concat\(oldB/);
 });
 
