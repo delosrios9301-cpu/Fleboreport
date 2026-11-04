@@ -501,6 +501,31 @@ body.module-menu-open{overflow:hidden}
   #view-clinical-processing>.clinical-kpis{gap:7px!important}
 }
 </style>
+<style id="journey-mobile-compact-controls-v1">
+/* Jornada móvil: controles compactos, alineados y sin botones estirados innecesariamente. */
+@media(max-width:760px){
+ #view-journey>.page-heading{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;margin-bottom:12px!important}
+ #view-journey>.page-heading>.heading-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;width:100%!important;margin:0!important}
+ #view-journey>.page-heading>.heading-actions>.btn{width:100%!important;min-width:0!important;min-height:40px!important;margin:0!important;padding:8px 9px!important;white-space:normal!important;line-height:1.2!important}
+ #view-journey>.module-grid{gap:10px!important}
+ #view-journey .form-panel{padding:12px!important}
+ #view-journey .form-actions{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;flex-wrap:wrap!important;margin-top:10px!important}
+ #view-journey .form-actions>.btn,#view-journey .form-actions>button{flex:0 1 auto!important;width:auto!important;min-width:0!important;max-width:100%!important;min-height:40px!important;padding:9px 12px!important;white-space:normal!important}
+ #view-journey .panel-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important}
+ #view-journey .panel-head>.btn{flex:0 0 auto!important;width:auto!important;min-height:36px!important;padding:7px 10px!important}
+ #view-journey .list-row{gap:8px!important;padding:9px!important}
+ #view-journey .list-actions{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;flex-wrap:wrap!important;width:100%!important}
+ #view-journey .list-actions>.btn{flex:0 1 auto!important;width:auto!important;min-height:36px!important;padding:7px 9px!important}
+ #view-journey .journey-patient-card{padding:9px!important;margin-bottom:7px!important}
+ #view-journey .journey-patient-head{gap:7px!important;margin-bottom:7px!important}
+}
+@media(max-width:420px){
+ #view-journey>.page-heading>.heading-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-journey .form-actions>.btn,#view-journey .form-actions>button{flex:0 1 auto!important;width:auto!important}
+ #view-journey .panel-head h2{font-size:12px!important}
+ #view-journey .list-row{padding:8px!important}
+}
+</style>
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
