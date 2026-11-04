@@ -494,3 +494,14 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
   assert.match(authenticatedReceptionMigration, /insert into public\.clinical_sample_events[\s\S]*?'REGISTRADO'[\s\S]*?v_actor/);
   assert.match(authenticatedReceptionMigration, /p_received_at,v_actor,p_container_count/);
 });
+
+
+test('la sincronización no borra ni vuelve a dibujar toda la pantalla durante la carga', () => {
+  assert.match(html, /refresh:function\(\)[\s\S]*?replace:function\(next,options\)[\s\S]*?if\(!options\.deferRender\)this\.refresh\(\)/);
+  assert.match(clinicalCloudSync, /\{silent:true,deferRender:true\}/);
+  assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?window\.FleboAppState\.refresh\(\)/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?window\.FleboAppState\.refresh\(\)/);
+  assert.match(patientCloudSync, /replace\(\{\.\.\.s,patients:list\},\{silent:true,deferRender:true\}\)/);
+  assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?saveList\(remote\)/);
+  assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
+});
