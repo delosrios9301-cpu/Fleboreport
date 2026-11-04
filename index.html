@@ -531,6 +531,31 @@ body.module-menu-open{overflow:hidden}
  #view-journey .list-row{padding:8px!important}
 }
 </style>
+
+<style id="journey-heading-actions-one-row-v1">
+/* Jornada: botones de cabecera en una sola fila, compactos y sin hueco inferior. */
+#view-journey>.page-heading{align-items:flex-start!important;gap:0!important}
+#view-journey>.page-heading>.heading-actions{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;
+ align-self:flex-start!important;gap:8px!important;
+ width:auto!important;max-width:100%!important;min-width:0!important;
+ flex:0 0 auto!important;margin:8px 0 0!important;padding:0!important;
+}
+#view-journey>.page-heading>.heading-actions>.btn{
+ display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;
+ justify-content:center!important;width:auto!important;min-width:0!important;
+ min-height:34px!important;height:34px!important;margin:0!important;
+ padding:7px 11px!important;white-space:nowrap!important;
+ font-size:11px!important;line-height:1!important;border-radius:8px!important;
+}
+@media(max-width:420px){
+ #view-journey>.page-heading{gap:0!important;margin-bottom:8px!important}
+ #view-journey>.page-heading>.heading-actions{gap:6px!important;margin-top:7px!important}
+ #view-journey>.page-heading>.heading-actions>.btn{min-height:32px!important;height:32px!important;padding:6px 9px!important;font-size:10px!important}
+}
+</style>
+
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
