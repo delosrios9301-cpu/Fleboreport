@@ -345,3 +345,17 @@ test('el restablecimiento completo conserva seguridad, crea respaldo y exige al 
   assert.match(cloudSync, /backupResetLocalState/);
   assert.match(cloudSync, /applyCloudState\(remote\.state,true\)/);
 });
+
+test('la sesión móvil no ofrece crear espacios duplicados y permite reintentar la vinculación', () => {
+  assert.match(auth, /fleboAuthRetryMembership/);
+  assert.match(auth, /function retryMembership\(/);
+  assert.match(auth, /No crees otro espacio/);
+  assert.match(auth, /if\(signout\)signout\.hidden=!currentUser/);
+  assert.match(auth, /position:fixed;top:16px;right:22px/);
+  assert.doesNotMatch(auth, /appendChild\(signoutButton\)/);
+  assert.match(auth, /renderState\(\);setStatus\('No se pudo verificar tu espacio de trabajo/);
+});
+test('la consulta de membresía prefiere un espacio activo y no oculta fallos de lectura', () => {
+  assert.match(await readFile(new URL('../supabase/functions/flebo-username-auth/index.ts', import.meta.url), 'utf8'), /rows\.find\(\(row:any\)=>row\.active===true\)\|\|rows\[0\]/);
+  assert.match(await readFile(new URL('../supabase/functions/flebo-username-auth/index.ts', import.meta.url), 'utf8'), /if\(!wr\.ok\)throw new Error\("No se pudo recuperar el espacio de trabajo vinculado\."\)/);
+});
