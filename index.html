@@ -1949,7 +1949,7 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
    }
    if(status==='PROCESANDO'&&inputCell){
     inputCell.innerHTML='<small>Principal: '+esc(sample.primaryAliquots==null?'—':sample.primaryAliquots)+' · Backup: '+esc(sample.backupAliquots==null?'—':sample.backupAliquots)+'</small>';
-    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\\''+esc(id)+'\\')">Pasar a almacenamiento temporal</button>';
+    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
@@ -1960,7 +1960,20 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
  window.processSelectedClinicalSamples=async function(){
   var ids=clinicalSelection();if(!ids.length){toast('Selecciona al menos una muestra aprobada.');return}
   var done=0;
-  for(const id of ids){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PENDIENTE_PROCESO')continue;sample._previousWorkflowStatus='PENDIENTE_PROCESO';try{await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:'Inicio de procesamiento por lote'});sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';appendClinicalSampleHistory(sample,'PENDIENTE_PROCESO','PROCESANDO','Inicio de procesamiento por lote',clinicalActor());done++}catch(e){toast(e.message||'No se pudo iniciar una de las muestras.');break}}
+  for(const id of ids){
+   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PENDIENTE_PROCESO')continue;
+   var type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{},primaryText=window.prompt('Alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType)+':',String(type.expectedPrimaryAliquots==null?(Number(sample.primaryAliquots)||0):type.expectedPrimaryAliquots));
+   if(primaryText===null)break;
+   var backupText=window.prompt('Alícuotas de RESPALDO para '+(sample.subjectCode||sample.sampleType)+':',String(type.expectedBackupAliquots==null?(Number(sample.backupAliquots)||0):type.expectedBackupAliquots));
+   if(backupText===null)break;
+   var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
+   if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Cantidades de alícuotas inválidas para '+(sample.subjectCode||sample.sampleType)+'.');break}
+   if(type.expectedPrimaryAliquots!=null&&primary!==Number(type.expectedPrimaryAliquots)){toast('El protocolo exige '+type.expectedPrimaryAliquots+' alícuotas principales.');break}
+   if(type.expectedBackupAliquots!=null&&backup!==Number(type.expectedBackupAliquots)){toast('El protocolo exige '+type.expectedBackupAliquots+' alícuotas de respaldo.');break}
+   sample._previousWorkflowStatus='PENDIENTE_PROCESO';
+   try{await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:'Inicio de procesamiento por lote',primaryAliquots:primary,backupAliquots:backup});sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';appendClinicalSampleHistory(sample,'PENDIENTE_PROCESO','PROCESANDO','Inicio de procesamiento por lote · Principal: '+primary+'; backup: '+backup,clinicalActor());done++}
+   catch(e){toast(e.message||'No se pudo iniciar una de las muestras.');break}
+  }
   if(done){save();auditAdd('Estudios Clínicos','Inició procesamiento de '+done+' muestra(s)');renderClinicalStudies();toast(done+' muestra(s) iniciadas en procesamiento.')}
  };
 var oldDeleteBox=window.deleteClinicalStorageBox;
