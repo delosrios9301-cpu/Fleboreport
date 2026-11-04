@@ -118,7 +118,7 @@ window.addEventListener('flebo:local-state-saved',()=>{if(ready)schedule()});
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth?.user)connect();else{ready=false;if(channel&&client)client.removeChannel(channel);channel=null}});
 window.addEventListener('online',()=>{if(ready)syncNow();else connect()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)syncNow();else connect()}});
-setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)syncNow();else connect()}},20000);
+setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)syncNow();else connect()}},40000);
 function boot(){if(window.FleboAuth&&window.FleboAuth.user)connect();else window.addEventListener('flebo:auth-changed',connect,{once:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 window.FleboPatientCloud={syncNow,connect,get ready(){return ready},get workspaceId(){return workspaceId}};
