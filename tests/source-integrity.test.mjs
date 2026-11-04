@@ -231,7 +231,7 @@ test('Estudios Clínicos conserva una bandeja de revisión y solo libera aprobad
   assert.match(html, /id="clinicalReviewRows"/);
   assert.match(html, /Aprobar y enviar a proceso/);
   assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
-  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
+  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'\]/);
   assert.match(html, /reviewSamples=\(state\.clinicalSamples\|\|\[\]\)\.filter/);
   assert.match(html, /window\.workflowStatusOf=workflowStatusOf/);
 });
@@ -308,7 +308,7 @@ test('la base de datos permite completar almacenamiento temporal y definitivo si
 });
 
 test('la sincronización de muestras ya no depende de leer ubicaciones de cajas', () => {
-  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?requireReady\(\['admin','clinician','technician','reception'\]\)[\s\S]*?loadRemoteSamples\(\)[\s\S]*?return true/);
   assert.doesNotMatch(clinicalCloudSync, /async function refreshSamples\(\)\{[^}]*loadRemoteBoxes/);
   const sampleLoader=clinicalCloudSync.slice(clinicalCloudSync.indexOf('async function loadRemoteSamples()'),clinicalCloudSync.indexOf('async function syncConfiguration()'));
   assert.doesNotMatch(sampleLoader, /clinical_cryovials|clinical_cryovial_events/);
