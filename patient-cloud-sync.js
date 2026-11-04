@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const TABLE='patients';
-let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map();
+let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false;
 const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
@@ -48,29 +48,45 @@ function saveList(list){
  if(before===after)return false;
  window.FleboAppState.replace({...s,patients:list},{silent:true});return true;
 }
-async function syncNow(){
+async function syncNow(options){
+ options=options||{};
  if(!ready||busy||!client||!workspaceId)return;
  busy=true;dirty=false;
  try{
-  const local=(app()?.patients||[]).slice(),remote=await fetchAll();
-  let merged=merge(local,remote),remoteByKey=new Map(remote.map(p=>[keyOf(p),p]));
-  for(const p of merged){
-   const old=remoteByKey.get(keyOf(p)),changed=!old||contentOf(p)!==contentOf(old);
-   if(changed&&(!old||(Date.parse(p.updatedAt||p.createdAt||0)||0)>=(Date.parse(old.updatedAt||0)||0))){
-    p.updatedAt=new Date().toISOString();await pushOne(p);
+  const local=(app()?.patients||[]).slice();
+  // En el primer arranque, la nube es la autoridad. Los datos locales antiguos se respaldan,
+  // pero nunca se vuelven a subir por el simple hecho de abrir la aplicación.
+  if(!initialized){
+   const remote=await fetchAll();
+   if(local.length&&!remote.length){
+    try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:local}))}catch(_){ }
    }
+   saveList(remote);
+   lastContent=new Map(remote.map(p=>[keyOf(p),contentOf(p)]));
+   pendingKeys.clear();initialized=true;
+   return;
   }
-  const latest=await fetchAll();merged=merge(merged,latest);const changed=saveList(merged);
-  lastContent=new Map(merged.map(p=>[keyOf(p),contentOf(p)]));
-  if(changed)window.dispatchEvent(new Event('flebo:local-state-saved'));
+  // Solo se envían expedientes que cambiaron después de cargar la fuente oficial
+  // y que por tanto corresponden a una acción reciente del usuario.
+  if(options.allowLocalPush||pendingKeys.size){
+   const localByKey=new Map(local.map(p=>[keyOf(p),p]));
+   for(const key of Array.from(pendingKeys)){
+    const patient=localByKey.get(key);
+    if(patient)await pushOne(patient);
+   }
+   pendingKeys.clear();
+  }
+  const latest=await fetchAll();
+  saveList(latest);
+  lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
 }
 function schedule(delay=900){
  if(!ready)return;dirty=true;
  const list=app()?.patients||[];
- list.forEach(p=>{const k=keyOf(p),old=lastContent.get(k);if(old!==undefined&&old!==contentOf(p))p.updatedAt=new Date().toISOString()});
- clearTimeout(timer);timer=setTimeout(syncNow,delay);
+ list.forEach(p=>{const k=keyOf(p);if(lastContent.get(k)!==contentOf(p))pendingKeys.add(k)});
+ clearTimeout(timer);timer=setTimeout(()=>syncNow({allowLocalPush:true}),delay);
 }
 function subscribe(){
  // Los expedientes se actualizan mediante syncNow al abrir la app,
@@ -85,7 +101,7 @@ async function connect(){
   if(!user||!m?.workspace_id||m.active!==true){ready=false;if(channel)client.removeChannel(channel);channel=null;return}
   if(!['admin','clinician','reception'].includes(m.role)){ready=false;return}
   const changed=workspaceId!==m.workspace_id||userId!==user.id;userId=user.id;workspaceId=m.workspace_id;ready=true;
-  if(changed)subscribe();await syncNow();
+  if(changed){initialized=false;pendingKeys.clear();lastContent.clear();subscribe()}await syncNow();
  }catch(e){ready=false;console.error('[FleboReport Patient Sync] Conexión:',e)}
 }
 window.addEventListener('flebo:local-state-saved',()=>{if(ready)schedule()});
