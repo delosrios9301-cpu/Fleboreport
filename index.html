@@ -1895,23 +1895,29 @@ var oldRenderStudies=renderClinicalStudies;
   sample._previousWorkflowStatus=current;
   await transitionSampleUI(sample,target,note||'Validación de etapa');
  };
- processClinicalSample=async function(id){
-  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
-  if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
+ async function captureClinicalAliquots(sample){
   var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{},type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{},spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
   var expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots));
   var expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots));
-  var primaryText=window.prompt('Cantidad de alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType||'esta muestra')+':',String(expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary));
-  if(primaryText===null)return;
+  var primaryText=window.prompt('Procesamiento iniciado. Cantidad de alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType||'esta muestra')+':',String(expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary));
+  if(primaryText===null){toast('El procesamiento quedó iniciado. Puedes registrar las alícuotas desde la bandeja de procesamiento.');renderClinicalStudies();return}
   var backupText=window.prompt('Cantidad de alícuotas de RESPALDO (backup):',String(expectedBackup==null?(Number(sample.backupAliquots)||0):expectedBackup));
-  if(backupText===null)return;
+  if(backupText===null){toast('El procesamiento quedó iniciado. Falta guardar las alícuotas; puedes completarlas después.');renderClinicalStudies();return}
   var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
-  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas; el total de alícuotas debe ser mayor que cero.');return}
-  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');return}
-  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');return}
+  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Indica cantidades enteras válidas; el total debe ser mayor que cero.');renderClinicalStudies();return}
+  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');renderClinicalStudies();return}
+  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');renderClinicalStudies();return}
+  try{await window.FleboClinicalCloud.saveAliquots(sample,primary,backup);appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+primary+'; respaldo: '+backup,clinicalActor());save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));toast('Alícuotas guardadas correctamente.');renderClinicalStudies()}
+  catch(e){toast(e.message||'No se pudieron guardar las alícuotas.');renderClinicalStudies()}
+ }
+ processClinicalSample=async function(id){
+  var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
+  if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
   sample._previousWorkflowStatus='PENDIENTE_PROCESO';
-  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico · Alícuotas principales: '+primary+'; respaldo: '+backup,{primaryAliquots:primary,backupAliquots:backup});
+  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico');
+  if(workflowStatusOf(sample)==='PROCESANDO')await captureClinicalAliquots(sample);
  };
+ window.captureClinicalAliquotsById=async function(id){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(sample&&workflowStatusOf(sample)==='PROCESANDO')await captureClinicalAliquots(sample)};
  window.completeClinicalSampleProcessing=async function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra no está en procesamiento.');return}
   sample._previousWorkflowStatus='PROCESANDO';
@@ -1948,8 +1954,9 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
     actions.innerHTML=buttons;
    }
    if(status==='PROCESANDO'&&inputCell){
-    inputCell.innerHTML='<small>Principal: '+esc(sample.primaryAliquots==null?'—':sample.primaryAliquots)+' · Backup: '+esc(sample.backupAliquots==null?'—':sample.backupAliquots)+'</small>';
-    if(actions)actions.innerHTML='<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>';
+    var hasAliquots=Number(sample.primaryAliquots||0)+Number(sample.backupAliquots||0)>0;
+    inputCell.innerHTML=hasAliquots?'<small>Principal: '+esc(sample.primaryAliquots)+' · Backup: '+esc(sample.backupAliquots)+'</small>':'<small class="muted">Pendiente de registrar alícuotas</small>';
+    if(actions)actions.innerHTML=hasAliquots?'<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>':'<button class="btn primary" onclick="captureClinicalAliquotsById(\''+esc(id)+'\')">Registrar alícuotas</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
@@ -1959,22 +1966,7 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
  window.setClinicalSampleStatus=setClinicalSampleStatus;
  window.processSelectedClinicalSamples=async function(){
   var ids=clinicalSelection();if(!ids.length){toast('Selecciona al menos una muestra aprobada.');return}
-  var done=0;
-  for(const id of ids){
-   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PENDIENTE_PROCESO')continue;
-   var type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{},study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{},spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{},expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots)),expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots)),primaryText=window.prompt('Alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType)+':',String(expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary));
-   if(primaryText===null)break;
-   var backupText=window.prompt('Alícuotas de RESPALDO para '+(sample.subjectCode||sample.sampleType)+':',String(expectedBackup==null?(Number(sample.backupAliquots)||0):expectedBackup));
-   if(backupText===null)break;
-   var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
-   if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){toast('Cantidades de alícuotas inválidas para '+(sample.subjectCode||sample.sampleType)+'.');break}
-   if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');break}
-   if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');break}
-   sample._previousWorkflowStatus='PENDIENTE_PROCESO';
-   try{await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:'Inicio de procesamiento por lote',primaryAliquots:primary,backupAliquots:backup});sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';appendClinicalSampleHistory(sample,'PENDIENTE_PROCESO','PROCESANDO','Inicio de procesamiento por lote · Principal: '+primary+'; backup: '+backup,clinicalActor());done++}
-   catch(e){toast(e.message||'No se pudo iniciar una de las muestras.');break}
-  }
-  if(done){save();auditAdd('Estudios Clínicos','Inició procesamiento de '+done+' muestra(s)');renderClinicalStudies();toast(done+' muestra(s) iniciadas en procesamiento.')}
+  for(const id of ids){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(sample&&workflowStatusOf(sample)==='PENDIENTE_PROCESO')await processClinicalSample(id)}
  };
 var oldDeleteBox=window.deleteClinicalStorageBox;
  if(oldDeleteBox)window.deleteClinicalStorageBox=function(id){if(state.clinicalCryovials.some(function(v){return v.temporaryBoxId===id||v.definitiveBoxId===id})){toast('No se puede eliminar: la caja tiene crioviales registrados.');return}oldDeleteBox(id)};
