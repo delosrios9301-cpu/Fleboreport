@@ -76,7 +76,6 @@
   window.clinicalSetSelect('clinicalProcessVisit',visits,'Selecciona visita…',x=>x.id,x=>(x.code?x.code+' · ':'')+x.name+(x.dayScheduled!=null?' · Día '+x.dayScheduled:''),selectedVisit);
   window.clinicalSetSelect('clinicalSampleType',types,'Selecciona muestra…',x=>x.id,x=>(x.code?x.code+' · ':'')+x.name,selectedType);
   if(typeof window.updateClinicalSubjectOptions==='function')window.updateClinicalSubjectOptions('clinicalProcessStudy','clinicalProcessSubject');
-  window.clinicalSetSelect('clinicalReceivedBy',(state.clinicalStaff||[]).filter(x=>x.status!=='Inactivo'),'Selecciona personal…',x=>x.id,x=>x.name+' · '+(x.role||''));
   window.clinicalSetSelect('clinicalQueueVisit',(state.clinicalVisits||[]).filter(x=>x.active!==false),'Todas las visitas',x=>x.id,x=>x.name);
   window.clinicalSetSelect('clinicalQueueType',(state.clinicalSampleTypes||[]).filter(x=>x.active!==false),'Todos los tipos',x=>x.id,x=>x.name);
   window.clinicalSetSelect('clinicalQueueStudy',state.clinicalStudies||[],'Todos los estudios',x=>x.id,x=>x.protocol+' · '+x.name);
