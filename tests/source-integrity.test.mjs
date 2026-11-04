@@ -472,6 +472,15 @@ test('el catálogo de pruebas elimina duplicados por nombre normalizado y conser
 });
 
 
+test('el inicio de procesamiento abre la ficha completa y guarda alícuotas en la transición', () => {
+  assert.match(clinicalProcessing, /window\.openClinicalProcessingModal\(id\)/);
+  assert.doesNotMatch(clinicalProcessing, /window\.prompt\('Cantidad de alícuotas/);
+  assert.match(html, /primaryAliquots:p/);
+  assert.match(html, /backupAliquots:b/);
+  assert.match(html, /notes:observation/);
+  assert.match(clinicalProcessing, /alícuotas principales y de backup/);
+});
+ 
 test('la recepción y cada etapa clínica quedan atribuidas al usuario autenticado', () => {
   assert.doesNotMatch(html, /id="clinicalReceivedBy"/);
   assert.match(html, /function clinicalActor\(\)[\s\S]*?window\.FleboAuth[\s\S]*?user_metadata/);
