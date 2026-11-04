@@ -28,7 +28,7 @@ function meaningful(s){
 }
 function itemKey(x,collection){
  if(!x||typeof x!=='object')return'json:'+JSON.stringify(x);
- const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/\\s+/g,' ');
+ const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/\s+/g,' ');
  const scope=[x.studyId||x.study_id,x.companyId||x.company_id,x.siteId||x.site_id].filter(Boolean).map(norm).join('|');
  const code=norm(x.code||x.protocol||x.protocolCode||x.protocol_code||x.document||x.document_number||x.barcode||x.box_code||x.legacyId||x.legacy_id);
  if(code)return'code:'+collection+':'+scope+':'+code;
