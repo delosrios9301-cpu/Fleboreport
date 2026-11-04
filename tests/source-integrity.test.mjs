@@ -515,8 +515,9 @@ test('la sincronización no borra ni vuelve a dibujar toda la pantalla durante l
   assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
 });
 
-// Two-step processing regression coverage
-assert.match(clinicalCloudSync, /set_clinical_sample_aliquots/);
-assert.match(clinicalCloudSync, /async function saveAliquots/);
-assert.match(html, /await transitionSampleUI\(sample,'PROCESANDO','Inicio de procesamiento técnico'\);[\s\S]*?await captureClinicalAliquots\(sample\)/);
-assert.match(html, /Pendiente de registrar alícuotas/);
+// Processing aliquots are captured in the processing-start modal and saved
+// atomically with the authenticated status transition.
+assert.match(simpleProcessing, /window\.openClinicalProcessingModal=function\(id\)/);
+assert.match(simpleProcessing, /cloud\.transition\(sample,'PROCESANDO',\{primaryAliquots:p,backupAliquots:b/);
+assert.match(simpleProcessing, /if\(p\+b<1\)/);
+assert.match(simpleProcessing, /Registra al menos una alícuota principal o backup/);
