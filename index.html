@@ -2119,6 +2119,12 @@ var oldDeleteBox=window.deleteClinicalStorageBox;
    if((state.clinicalSamples||[]).length>beforeCount&&window.FleboClinicalCloud&&window.FleboClinicalCloud.ready){
     await window.FleboClinicalCloud.refreshSamples();
     renderClinicalStudies();
+    var reviewPanel=document.getElementById('clinicalReviewPanel');
+    if(reviewPanel){
+     reviewPanel.scrollIntoView({behavior:'smooth',block:'start'});
+     reviewPanel.classList.add('clinical-review-highlight');
+     setTimeout(function(){reviewPanel.classList.remove('clinical-review-highlight')},2200);
+    }
    }
   }catch(error){console.error('[FleboReport] Confirmación de registro clínico:',error);toast(error.message||'No se pudo confirmar el registro.')}
   finally{
