@@ -1979,8 +1979,8 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
      ?'<div class="aliquot-inputs"><small><b>Principal:</b> '+esc(sample.primaryAliquots)+'</small><small><b>Respaldo:</b> '+esc(sample.backupAliquots)+'</small></div>'
      :'<div class="aliquot-inputs"><label>Alícuotas principales <input type="number" min="0" step="1" inputmode="numeric" placeholder="Ej. 2" data-aliquot-primary="'+esc(id)+'" aria-label="Cantidad de alícuotas principales"></label><label>Alícuotas de respaldo <input type="number" min="0" step="1" inputmode="numeric" placeholder="Ej. 1" data-aliquot-backup="'+esc(id)+'" aria-label="Cantidad de alícuotas de respaldo"></label><small class="muted">Coloca 0 si no aplica.</small></div>';
     if(actions)actions.innerHTML=hasAliquots
-     ?'<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\\')">Pasar a almacenamiento temporal</button>'
-     :'<button class="btn primary" data-save-aliquots="'+esc(id)+'" onclick="saveClinicalAliquotsFromInputs(\''+esc(id)+'\\')">Guardar alícuotas</button>';
+     ?'<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>'
+     :'<button class="btn primary" data-save-aliquots="'+esc(id)+'" onclick="saveClinicalAliquotsFromInputs(\''+esc(id)+'\')">Guardar alícuotas</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
