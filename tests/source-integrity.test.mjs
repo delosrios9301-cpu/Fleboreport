@@ -106,6 +106,8 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
 });
 
 test('la autenticación global protege la aplicación y controla los módulos por rol', () => {
+ assert.match(auth, /currentMembership=null;currentPermissions=\[\];permissionsLoaded=false;renderState\(\);currentMembership=await loadMembership\(user\)/);
+ assert.match(auth, /Por seguridad, el acceso permanece bloqueado/);
  assert.match(auth, /fleboAuthGate/);
  assert.match(auth, /function roleModules/);
  assert.match(auth, /function canAccess/);
