@@ -484,5 +484,12 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
   assert.match(clinicalCloudSync, /storedBy:profileMap\.get\(row\.stored_by\)/);
   assert.match(clinicalProcessing, /x\.processingStartedBy/);
   assert.match(clinicalProcessing, /x\.reviewedBy/);
+  assert.match(clinicalCloudSync, /sample\.processingStartedBy=actorName\(\)/);
+  assert.match(clinicalCloudSync, /sample\.reviewedBy=actorName\(\)/);
+  assert.match(clinicalCloudSync, /sample\.processedBy=actorName\(\)/);
+  assert.match(clinicalCloudSync, /sample\.storedBy=actorName\(\)/);
+  assert.match(html, /processClinicalSample=async function\(id\)[\s\S]*?window\.prompt\('Cantidad de alícuotas PRINCIPALES[\s\S]*?primaryAliquots:primary,backupAliquots:backup/);
+  assert.match(html, /historyStatusLabel=function\(s\)[\s\S]*?REGISTRADO:'Recibido'[\s\S]*?PENDIENTE_PROCESO:'Verificado y aprobado'/);
   assert.match(authenticatedReceptionMigration, /insert into public\.clinical_sample_events[\s\S]*?'REGISTRADO'[\s\S]*?v_actor/);
+  assert.match(authenticatedReceptionMigration, /p_received_at,v_actor,p_container_count/);
 });
