@@ -400,3 +400,19 @@ test('los botones de Jornada actual permanecen alineados en una sola fila en mó
   assert.match(html, /margin:8px 0 0!important;padding:0!important/);
   assert.match(html, /height:34px!important/);
 });
+
+
+test('la sincronización deduplica por código y no repuebla ubicaciones clínicas locales', () => {
+  assert.match(cloudSync, /function itemKey\\(x,collection\\)/);
+  assert.match(cloudSync, /itemKey\\(x,key\\)/);
+  assert.match(clinicalCloudSync, /clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations/);
+  assert.match(clinicalCloudSync, /clinicalSampleHistory:history/);
+  assert.doesNotMatch(clinicalCloudSync, /clinicalLocations:locations\\.concat\\(oldB/);
+});
+
+test('la sincronización de pacientes no vuelve a subir expedientes locales antiguos al iniciar', () => {
+  assert.match(patientCloudSync, /if\\(!initialized\\)/);
+  assert.match(patientCloudSync, /patient-local-backup/);
+  assert.match(patientCloudSync, /pendingKeys/);
+  assert.match(patientCloudSync, /syncNow\\(\\{allowLocalPush:true\\}\\)/);
+});
