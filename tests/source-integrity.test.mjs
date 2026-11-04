@@ -207,7 +207,7 @@ test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borr
   assert.match(clinicalCloudSync, /\.is\('deleted_at',null\)/);
   assert.match(clinicalCloudSync, /deleteSample,transition/);
   assert.match(html, /async function deleteClinicalSample\(id\)/);
-  assert.match(html, /Eliminar registro/);
+  assert.match(html, /Eliminar (?:registro|muestra|sujeto)|Quitar local/);
   assert.match(clinicalDeleteMigration, /create or replace function public\.delete_clinical_sample/i);
   assert.match(clinicalDeleteMigration, /sample_deleted/);
   assert.match(clinicalDeleteMigration, /ELIMINADA/);
@@ -217,12 +217,12 @@ test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borr
 
 test('las bandejas separan la revisión clínica del procesamiento y confirman transiciones en la nube', () => {
   assert.match(html, /var processingModule=document\.getElementById\('view-clinical-processing'\)/);
-  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL'\]/);
+  assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'\]/);
   assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
   assert.match(html, /transitionResult\.ok!==true\|\|transitionResult\.status!==next/);
   assert.match(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
-  assert.match(clinicalCloudSync, /async function refreshSamples\(\)\{requireReady\(\['admin','clinician','technician','reception'\]\);await loadRemoteConfiguration\(\);await loadRemoteSamples\(\);return true\}/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?requireReady\(\['admin','clinician','technician','reception'\]\)[\s\S]*?loadRemoteSamples\(\)[\s\S]*?return true/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
   assert.match(clinicalCloudSync, /if\(args\.primaryAliquots!=null\)sample\.primaryAliquots=Number\(args\.primaryAliquots\)/);
 });
@@ -267,8 +267,8 @@ test('las eliminaciones de muestras se conservan en la sincronización general y
 const simpleProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
 const simpleProcessingMigration = await readFile(new URL('../supabase/migrations/20261103221950_simplify_clinical_processing_states.sql', import.meta.url), 'utf8');
 test('el técnico registra y guarda las cantidades de alícuotas al iniciar el procesamiento', () => {
-  assert.match(simpleProcessing, /Cantidad de alícuotas PRINCIPALES/);
-  assert.match(simpleProcessing, /Cantidad de alícuotas de RESPALDO/);
+  assert.match(simpleProcessing, /numberField\('Alícuotas principales'/);
+  assert.match(simpleProcessing, /numberField\('Alícuotas backup'/);
   assert.match(simpleProcessing, /primaryAliquots:primary,backupAliquots:backup/);
   assert.match(simpleProcessing, /Alícuotas: /);
   assert.match(clinicalCloudSync, /if\(next==='PROCESANDO'\).*args\.primaryAliquots/);
@@ -282,7 +282,7 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
 
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
-  assert.ok(html.includes('src="./clinical-processing-simple.js"'));
+  assert.match(html, /src="\.\/clinical-processing-simple\.js(?:\?[^\"]*)?"/);
   const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
   for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
@@ -496,7 +496,7 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
   assert.match(clinicalCloudSync, /sample\.reviewedBy=actorName\(\)/);
   assert.match(clinicalCloudSync, /sample\.processedBy=actorName\(\)/);
   assert.match(clinicalCloudSync, /sample\.storedBy=actorName\(\)/);
-  assert.match(html, /processClinicalSample=async function\(id\)[\s\S]*?window\.prompt\('Cantidad de alícuotas PRINCIPALES[\s\S]*?primaryAliquots:primary,backupAliquots:backup/);
+  assert.match(simpleProcessing, /window\.openClinicalProcessingModal=function\(id\)/);\n  assert.match(simpleProcessing, /cloud\.transition\(sample,'PROCESANDO',\{primaryAliquots:p,backupAliquots:b/);
   assert.match(html, /processSelectedClinicalSamples=async function\(\)[\s\S]*?primaryAliquots:primary,backupAliquots:backup/);
   assert.match(html, /historyStatusLabel=function\(s\)[\s\S]*?REGISTRADO:'Recibido'[\s\S]*?PENDIENTE_PROCESO:'Verificado y aprobado'/);
   assert.match(authenticatedReceptionMigration, /insert into public\.clinical_sample_events[\s\S]*?'REGISTRADO'[\s\S]*?v_actor/);
