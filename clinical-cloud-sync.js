@@ -243,7 +243,9 @@ async function registerSample(sample){
  }
 }
 async function deleteSample(sample,reason){
- requireReady(['admin','clinician','reception']);
+ requireReady(['admin','clinician','technician','reception']);
+ const allowed=role==='admin'||(window.fleboCan&&window.fleboCan('processing','delete'));
+ if(!allowed)throw new Error('No tienes permiso para eliminar muestras del procesamiento. Solicita acceso al administrador.');
  if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada al registro clínico de Supabase.');
  const result=await client.rpc('delete_clinical_sample',{p_workspace_id:workspaceId,p_sample_id:sample.cloudId,p_reason:String(reason||'').trim()});
  if(result.error)fail(result.error);
