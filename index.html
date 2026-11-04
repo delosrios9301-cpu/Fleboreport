@@ -2003,6 +2003,11 @@ var oldRenderStudies=renderClinicalStudies;
   document.body.appendChild(overlay);primary.focus();
  };
  processClinicalSample=async function(id){
+  var processingView=document.getElementById('view-clinical-processing');
+  if(!processingView||!processingView.classList.contains('active')){
+   toast('El inicio de procesamiento y su ficha están disponibles únicamente en el módulo Procesamiento de muestras.');
+   return;
+  }
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
   if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
   openClinicalProcessingModal(id);
