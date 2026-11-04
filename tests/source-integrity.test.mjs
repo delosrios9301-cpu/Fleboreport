@@ -505,3 +505,9 @@ test('la sincronización no borra ni vuelve a dibujar toda la pantalla durante l
   assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?saveList\(remote\)/);
   assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
 });
+
+// Two-step processing regression coverage
+assert.match(clinicalCloudSync, /set_clinical_sample_aliquots/);
+assert.match(clinicalCloudSync, /async function saveAliquots/);
+assert.match(html, /await transitionSampleUI\(sample,'PROCESANDO','Inicio de procesamiento técnico'\);[\s\S]*?await captureClinicalAliquots\(sample\)/);
+assert.match(html, /Pendiente de registrar alícuotas/);
