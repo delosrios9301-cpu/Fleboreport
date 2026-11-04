@@ -8,6 +8,7 @@ with expanded as (
            and btrim(trim(both '"' from kv.value::text)) <> '') as richness
  from public.workspace_app_state w
  cross join lateral jsonb_array_elements(coalesce(w.state->'catalog','[]'::jsonb)) with ordinality as e(item,ord)
+ where jsonb_typeof(w.state->'catalog')='array'
 ), ranked as (
  select *,row_number() over(partition by workspace_id,user_id,identity order by richness desc,ord asc) rn
  from expanded
