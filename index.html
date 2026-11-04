@@ -2087,8 +2087,8 @@ window.openClinicalCryoPanel=window.openClinicalCryoPanel;
      ?'<div class="aliquot-inputs"><small><b>Principal:</b> '+esc(sample.primaryAliquots)+'</small><small><b>Respaldo:</b> '+esc(sample.backupAliquots)+'</small></div>'
      :'<span class="muted">Pendiente de registrar alícuotas</span>';
     if(actions)actions.innerHTML=hasAliquots
-     ?'<button class="btn" onclick="openClinicalProcessingModal(\\''+esc(id)+'\\')">Ver datos</button><button class="btn primary" onclick="completeClinicalSampleProcessing(\\''+esc(id)+'\\')">Pasar a almacenamiento temporal</button>'
-     :'<button class="btn primary" onclick="openClinicalProcessingModal(\\''+esc(id)+'\\')">Completar procesamiento</button>';
+     ?'<button class="btn" onclick="openClinicalProcessingModal(\''+esc(id)+'\')">Ver datos</button><button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(id)+'\')">Pasar a almacenamiento temporal</button>'
+     :'<button class="btn primary" onclick="openClinicalProcessingModal(\''+esc(id)+'\')">Completar procesamiento</button>';
    }else if(inputCell){inputCell.innerHTML='<span class="muted">—</span>'}
    if(status==='ALMACENAMIENTO_TEMPORAL'&&actions&&!actions.querySelector('[data-open-cryo]'))actions.insertAdjacentHTML('beforeend','');
   });
