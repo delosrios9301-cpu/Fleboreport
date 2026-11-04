@@ -11,6 +11,7 @@ const patientCloudMigration = await readFile(new URL('../supabase/migrations/202
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103110000_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
 const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103120000_patient_search_rpc.sql', import.meta.url), 'utf8');
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104111000_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
+const testCatalogMigration = await readFile(new URL('../supabase/migrations/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
 const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104110000_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
@@ -439,4 +440,15 @@ test('la base de datos bloquea duplicados por código y permite códigos distint
   assert.match(duplicateProtectionMigration, /clinical_studies_workspace_protocol_normalized_uidx/);
   assert.match(duplicateProtectionMigration, /patients_workspace_document_normalized_uidx/);
   assert.match(duplicateProtectionMigration, /row_number\(\) over/);
+});
+
+
+test('el catálogo de pruebas elimina duplicados por nombre normalizado y conserva datos', () => {
+  assert.match(cloudSync, /function catalogIdentity/);
+  assert.match(cloudSync, /function dedupeCatalog/);
+  assert.match(cloudSync, /collection==='catalog'/);
+  assert.match(cloudSync, /payload\.catalog=dedupeCatalog/);
+  assert.match(cloudSync, /safe\.catalog=dedupeCatalog/);
+  assert.match(testCatalogMigration, /row_number\(\) over/);
+  assert.match(testCatalogMigration, /jsonb_agg\(item order by ord\) filter\(where rn=1\)/);
 });
