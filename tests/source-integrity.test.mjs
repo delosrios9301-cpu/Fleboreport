@@ -346,3 +346,39 @@ test('el restablecimiento completo conserva seguridad, crea respaldo y exige al 
   assert.match(cloudSync, /applyCloudState\(remote\.state,true\)/);
 });
 
+
+const triggerFunctionSecurityMigration = await readFile(new URL('../supabase/migrations/20261104090000_lock_down_trigger_function_execution.sql', import.meta.url), 'utf8');
+
+test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RPC públicas', () => {
+  for (const name of [
+    'audit_workspace_app_state_change',
+    'guard_home_visit_assignment_update',
+    'guard_home_visit_technician_update',
+    'log_clinical_sample_created'
+  ]) {
+    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\\\\.' + name + '\\\\(\\\\) from public, anon, authenticated', 'i'));
+  }
+  assert.match(triggerFunctionSecurityMigration, /revoke execute on function public\\.cancel_home_visit\\(uuid, text\\) from public, anon/i);
+  assert.match(triggerFunctionSecurityMigration, /grant execute on function public\\.cancel_home_visit\\(uuid, text\\) to authenticated/i);
+});
+
+test('cada función llamada desde un botón HTML tiene un manejador definido', async () => {
+  const scriptPaths = [
+    'supabase-auth.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
+    'clinical-cloud-sync.js', 'domicilios.js', 'notifications-center.js',
+    'configuracion.js', 'audit-history.js', 'notification-settings.js',
+    'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
+  ];
+  const scripts = await Promise.all(scriptPaths.map(path => readFile(new URL('../' + path, import.meta.url), 'utf8')));
+  const source = html + '\\n' + scripts.join('\\n');
+  const declarations = new Set([...source.matchAll(/\\bfunction\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(match => match[1]));
+  const exposed = new Set([...source.matchAll(/\\bwindow\\.([A-Za-z_$][\\w$]*)\\s*=/g)].map(match => match[1]));
+  const calls = new Set();
+  for (const [, handler] of html.matchAll(/\\bonclick\\s*=\\s*["']([^"']+)["']/gi)) {
+    for (const [, name] of handler.matchAll(/\\b([A-Za-z_$][\\w$]*)\\s*\\(/g)) {
+      if (!['getElementById', 'print'].includes(name)) calls.add(name);
+    }
+  }
+  const missing = [...calls].filter(name => !declarations.has(name) && !exposed.has(name));
+  assert.deepEqual(missing, [], 'hay botones con funciones no definidas: ' + missing.join(', '));
+});
