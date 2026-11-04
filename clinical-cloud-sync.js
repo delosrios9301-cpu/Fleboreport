@@ -133,6 +133,8 @@ async function loadRemoteSamples(){
  ]);
  if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
+ const currentUser=window.FleboAuth&&window.FleboAuth.user,currentMeta=currentUser&&currentUser.user_metadata||{},currentName=currentMeta.display_name||currentMeta.name||(currentUser&&currentUser.email?currentUser.email.split('@')[0]:'');
+ if(currentUser&&currentName)profileMap.set(currentUser.id,String(currentName).trim());
  const containerBarcodes=new Map();(containers.data||[]).forEach(x=>{const key=String(x.sample_id);if(!containerBarcodes.has(key))containerBarcodes.set(key,[]);containerBarcodes.get(key).push(x.barcode)});
  const cloudSampleById=new Map((r.data||[]).map(x=>[String(x.id),x]));
  const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x]));
