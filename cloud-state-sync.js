@@ -26,7 +26,31 @@ function meaningful(s){
  || !!(s.individualTestPrices&&Object.keys(s.individualTestPrices).length)
  || !!(s.attentionTemplates&&Object.keys(s.attentionTemplates).length);
 }
+function catalogIdentity(x){
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const code=norm(x&&x.code);if(code)return'code:'+code;
+ return'name:'+norm(x&&x.name);
+}
+function catalogRichness(x){
+ return Object.entries(x||{}).reduce((n,[k,v])=>n+(v!=null&&String(v).trim()!==''?1:0),0);
+}
+function dedupeCatalog(items){
+ const map=new Map();
+ (Array.isArray(items)?items:[]).forEach(item=>{
+  if(!item||typeof item!=='object')return;
+  const key=catalogIdentity(item),old=map.get(key);
+  if(!old){map.set(key,Object.assign({},item));return}
+  const preferred=catalogRichness(item)>catalogRichness(old)?item:old;
+  const secondary=preferred===item?old:item;
+  const merged=Object.assign({},secondary);
+  Object.entries(preferred).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')merged[k]=v});
+  merged.id=old.id||item.id;merged.name=old.name||item.name;
+  map.set(key,merged);
+ });
+ return Array.from(map.values());
+}
 function itemKey(x,collection){
+ if(collection==='catalog')return'catalog:'+catalogIdentity(x);
  if(!x||typeof x!=='object')return'json:'+JSON.stringify(x);
  const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/\s+/g,' ');
  const scope=[x.studyId||x.study_id,x.companyId||x.company_id,x.siteId||x.site_id].filter(Boolean).map(norm).join('|');
@@ -46,7 +70,7 @@ function mergeState(remote,local){
   const map=new Map();
   a.forEach(x=>map.set(itemKey(x,key),x));
   b.forEach(x=>{const k=itemKey(x,key),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
-  out[key]=Array.from(map.values());
+  out[key]=key==='catalog'?dedupeCatalog(Array.from(map.values())):Array.from(map.values());
  }
  const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
  out.clinicalSamples=(out.clinicalSamples||[]).filter(x=>!deletedClinicalSampleIds.has(String(x.id)));
@@ -80,6 +104,7 @@ async function fetchRemote(){
 }
 async function writeRemote(state,expected){
  const payload=Object.assign({},state||{});
+ if(Array.isArray(payload.catalog))payload.catalog=dedupeCatalog(payload.catalog);
  // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
  CLINICAL_DB_RECORD_KEYS.forEach(k=>{payload[k]=[]});
@@ -93,6 +118,7 @@ async function writeRemote(state,expected){
 function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
  const current=app()||{},safe=Object.assign({},s||{});
+ if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
  window.FleboAppState.replace(safe,{silent:true});
@@ -123,6 +149,7 @@ async function connect(){
   if(!['admin','clinician','reception','viewer'].includes(membership.role)){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
   userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);
   let local=app()||{},m=meta();
+  if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   if(m.workspaceId&&m.workspaceId!==workspaceId&&meaningful(local)){
    try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){throw new Error('No se pudo respaldar el estado local del espacio anterior. No se modificaron tus datos; libera espacio del navegador e inténtalo de nuevo.')}
    applyCloudState(window.FleboAppState.empty());local=app()||{};
@@ -170,7 +197,8 @@ async function receiveRemote(){
  busy=true;
  try{
   const remote=await fetchRemote();if(!remote)return;
-  const local=app()||{},localHash=await hashState(local),m=meta();
+  let local=app()||{};if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
+  const localHash=await hashState(local),m=meta();
   if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+remote.revision);return}
   if(remote.revision<=revision)return;
   if(m.workspaceId!==workspaceId){
@@ -192,7 +220,8 @@ async function syncLocal(){
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
-  const local=app()||{},localHash=await hashState(local),m=meta();
+  let local=app()||{};if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
+  const localHash=await hashState(local),m=meta();
   if(m.workspaceId===workspaceId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return}
   let remote=await fetchRemote();
   if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento aplicado; se descartaron los datos locales antiguos de la sincronización.');return}
