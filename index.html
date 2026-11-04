@@ -1897,51 +1897,97 @@ var oldRenderStudies=renderClinicalStudies;
  };
 
  async function captureClinicalAliquots(sample){
-  // El formulario se presenta directamente en la fila de la muestra; no usa ventanas emergentes.
-  renderClinicalStudies();
+  if(!sample)return;
+  openClinicalProcessingModal(sample.id);
  }
- window.saveClinicalAliquotsFromInputs=async function(id){
+ function closeClinicalProcessingModal(){
+  var overlay=document.getElementById('clinicalProcessingModal');
+  if(overlay)overlay.remove();
+ }
+ window.openClinicalProcessingModal=function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});
-  if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra debe estar en procesamiento para registrar alícuotas.');return}
-  var primaryInput=document.querySelector('[data-aliquot-primary="'+id+'"]');
-  var backupInput=document.querySelector('[data-aliquot-backup="'+id+'"]');
-  var primaryText=primaryInput?String(primaryInput.value).trim():'';
-  var backupText=backupInput?String(backupInput.value).trim():'';
-  var primary=Number(primaryText),backup=Number(backupText);
-  if(!/^\d+$/.test(primaryText)||!/^\d+$/.test(backupText)||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){
-   toast('Indica cantidades enteras válidas. Puedes colocar 0 en respaldo si no aplica.');
-   if(primaryInput&&!primaryText)primaryInput.focus();else if(backupInput)backupInput.focus();
-   return;
+  if(!sample||!['PENDIENTE_PROCESO','PROCESANDO'].includes(workflowStatusOf(sample))){toast('La muestra no está lista para iniciar o completar el procesamiento.');return}
+  closeClinicalProcessingModal();
+  var overlay=document.createElement('div');
+  overlay.id='clinicalProcessingModal';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-labelledby','clinicalProcessingModalTitle');
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(7,28,44,.58);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px;';
+  var card=document.createElement('div');
+  card.style.cssText='width:min(520px,100%);max-height:90dvh;overflow:auto;background:#fff;border:1px solid #dce8ee;border-radius:20px;box-shadow:0 24px 80px rgba(7,28,44,.28);padding:22px;';
+  var title=document.createElement('h2');title.id='clinicalProcessingModalTitle';title.textContent='Iniciar procesamiento';
+  title.style.cssText='margin:0 0 6px;color:#173d55;font-size:20px;';
+  var subtitle=document.createElement('p');subtitle.textContent=(sample.sampleType||'Muestra')+' · Sujeto '+(sample.subjectCode||'—');
+  subtitle.style.cssText='margin:0 0 18px;color:#718596;font-size:12px;';
+  var intro=document.createElement('p');intro.textContent='Registra las cantidades de alícuotas y cualquier observación antes de guardar el inicio del procesamiento.';
+  intro.style.cssText='margin:0 0 16px;color:#526d7e;font-size:12px;line-height:1.5;';
+  var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px;';
+  function field(labelText,value,placeholder){
+   var wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:6px;color:#456276;font-size:11px;font-weight:750;';
+   var label=document.createElement('span');label.textContent=labelText;
+   var input=document.createElement('input');input.type='number';input.min='0';input.step='1';input.inputMode='numeric';input.placeholder=placeholder;input.value=value==null?'':String(value);
+   input.style.cssText='width:100%;min-height:44px;border:1px solid #d6e3e9;border-radius:10px;padding:10px 12px;color:#173d55;background:#fff;font-size:14px;';
+   wrap.append(label,input);grid.appendChild(wrap);return input;
   }
-  var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{};
-  var type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{};
-  var spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
-  var expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots));
-  var expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots));
-  if(expectedPrimary!==null&&primary!==expectedPrimary){toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');if(primaryInput)primaryInput.focus();return}
-  if(expectedBackup!==null&&backup!==expectedBackup){toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');if(backupInput)backupInput.focus();return}
-  var saveButton=document.querySelector('[data-save-aliquots="'+id+'"]');
-  if(saveButton){saveButton.disabled=true;saveButton.textContent='Guardando…'}
-  try{
-   await window.FleboClinicalCloud.saveAliquots(sample,primary,backup);
-   appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+primary+'; respaldo: '+backup,clinicalActor());
-   save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));
-   toast('Alícuotas guardadas correctamente.');renderClinicalStudies();
-  }catch(e){toast(e.message||'No se pudieron guardar las alícuotas.');if(saveButton){saveButton.disabled=false;saveButton.textContent='Guardar alícuotas'}}
+  var primary=field('Alícuotas principales',sample.primaryAliquots,'Ej. 2');
+  var backup=field('Alícuotas de respaldo',sample.backupAliquots,'Ej. 1');
+  var hint=document.createElement('small');hint.textContent='Coloca 0 en respaldo si no aplica.';hint.style.cssText='display:block;margin:8px 0 16px;color:#7b8f9c;font-size:10px;';
+  var noteWrap=document.createElement('label');noteWrap.style.cssText='display:grid;gap:6px;color:#456276;font-size:11px;font-weight:750;';
+  var noteLabel=document.createElement('span');noteLabel.textContent='Comentario u observación (opcional)';
+  var note=document.createElement('textarea');note.rows=3;note.placeholder='Describe alguna observación del procesamiento…';note.style.cssText='width:100%;min-height:86px;resize:vertical;border:1px solid #d6e3e9;border-radius:10px;padding:10px 12px;color:#173d55;background:#fff;font-size:12px;';
+  noteWrap.append(noteLabel,note);
+  var error=document.createElement('p');error.style.cssText='display:none;margin:12px 0 0;color:#b84b52;font-size:11px;line-height:1.45;';
+  var actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px;';
+  var cancel=document.createElement('button');cancel.type='button';cancel.className='btn';cancel.textContent='Cancelar';cancel.onclick=closeClinicalProcessingModal;
+  var saveButton=document.createElement('button');saveButton.type='button';saveButton.className='btn primary';saveButton.textContent=workflowStatusOf(sample)==='PROCESANDO'?'Guardar alícuotas y comentario':'Guardar e iniciar procesamiento';
+  saveButton.onclick=async function(){
+   var pText=String(primary.value||'').trim(),bText=String(backup.value||'').trim(),p=Number(pText),b=Number(bText);
+   if(!/^\\d+$/.test(pText)||!/^\\d+$/.test(bText)||!Number.isSafeInteger(p)||!Number.isSafeInteger(b)||p<0||b<0||p+b<1){error.textContent='Indica cantidades enteras válidas. Puedes colocar 0 en respaldo si no aplica.';error.style.display='block';return}
+   var study=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{};
+   var type=(state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||{};
+   var spec=study.sampleSpecs&&study.sampleSpecs[sample.sampleTypeId]||{};
+   var expectedPrimary=spec.expectedPrimaryAliquots!=null?Number(spec.expectedPrimaryAliquots):(type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots));
+   var expectedBackup=spec.expectedBackupAliquots!=null?Number(spec.expectedBackupAliquots):(type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots));
+   if(expectedPrimary!==null&&p!==expectedPrimary){error.textContent='El protocolo exige '+expectedPrimary+' alícuotas principales.';error.style.display='block';primary.focus();return}
+   if(expectedBackup!==null&&b!==expectedBackup){error.textContent='El protocolo exige '+expectedBackup+' alícuotas de respaldo.';error.style.display='block';backup.focus();return}
+   saveButton.disabled=true;cancel.disabled=true;saveButton.textContent='Guardando…';error.style.display='none';
+   try{
+    var previous=workflowStatusOf(sample);
+    if(previous==='PENDIENTE_PROCESO'){
+     var transitionResult=await window.FleboClinicalCloud.transition(sample,'PROCESANDO',{notes:String(note.value||'').trim()});
+     if(!transitionResult||transitionResult.ok!==true||transitionResult.status!=='PROCESANDO')throw new Error('Supabase no confirmó el inicio del procesamiento.');
+     sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';sample.processingStartedAt=new Date().toISOString();sample.processingStartedBy=clinicalActor();
+     appendClinicalSampleHistory(sample,transitionResult.previous_status||previous,'PROCESANDO',String(note.value||'').trim()||'Inicio de procesamiento técnico',clinicalActor());
+     auditAdd('Procesamiento de muestras','Inició procesamiento de '+(sample.subjectCode||sample.sampleType));
+    }
+    await window.FleboClinicalCloud.saveAliquots(sample,p,b);
+    appendClinicalSampleHistory(sample,'PROCESANDO','PROCESANDO','Alícuotas registradas · Principal: '+p+'; respaldo: '+b,clinicalActor());
+    save();auditAdd('Procesamiento de muestras','Registró alícuotas para '+(sample.subjectCode||sample.sampleType));
+    closeClinicalProcessingModal();toast('Procesamiento iniciado y alícuotas guardadas.');renderClinicalStudies();
+   }catch(e){
+    error.textContent=(e&&e.message)||'No se pudo guardar la información. Puedes intentarlo nuevamente.';
+    error.style.display='block';saveButton.disabled=false;cancel.disabled=false;saveButton.textContent='Reintentar guardado';
+    console.error('[FleboReport Clinical Processing]',e);
+   }
+  };
+  actions.append(cancel,saveButton);
+  card.append(title,subtitle,intro,grid,hint,noteWrap,error,actions);overlay.appendChild(card);
+  overlay.addEventListener('click',function(event){if(event.target===overlay)closeClinicalProcessingModal()});
+  document.addEventListener('keydown',function escHandler(event){if(event.key==='Escape'){closeClinicalProcessingModal();document.removeEventListener('keydown',escHandler)}});
+  document.body.appendChild(overlay);primary.focus();
  };
-
  processClinicalSample=async function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
   if(workflowStatusOf(sample)!=='PENDIENTE_PROCESO'){toast('Solo se pueden iniciar muestras aprobadas para procesamiento.');return}
-  sample._previousWorkflowStatus='PENDIENTE_PROCESO';
-  await transitionSampleUI(sample,'PROCESANDO','Inicio de procesamiento técnico');
-  if(workflowStatusOf(sample)==='PROCESANDO')await captureClinicalAliquots(sample);
+  openClinicalProcessingModal(id);
  };
- window.captureClinicalAliquotsById=async function(id){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(sample&&workflowStatusOf(sample)==='PROCESANDO')await captureClinicalAliquots(sample)};
+ window.captureClinicalAliquotsById=async function(id){var sample=state.clinicalSamples.find(function(x){return x.id===id});if(sample&&['PENDIENTE_PROCESO','PROCESANDO'].includes(workflowStatusOf(sample)))openClinicalProcessingModal(id)};
  window.completeClinicalSampleProcessing=async function(id){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample||workflowStatusOf(sample)!=='PROCESANDO'){toast('La muestra no está en procesamiento.');return}
+  if(Number(sample.primaryAliquots||0)+Number(sample.backupAliquots||0)<1){toast('Primero registra y guarda las alícuotas en el cuadro de procesamiento.');openClinicalProcessingModal(id);return}
   sample._previousWorkflowStatus='PROCESANDO';
-  await transitionSampleUI(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; almacenamiento temporal confirmado');
+  await transitionSampleUI(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; listo para asignar almacenamiento temporal');
  };
 window.openClinicalCryoPanel=window.openClinicalCryoPanel;
  renderClinicalStudies=function(){
