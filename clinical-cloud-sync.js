@@ -120,6 +120,9 @@ async function loadRemoteBoxes(){
 }
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
+ const locallyDeleted=new Set((stateNow.clinicalLocalDeletedSampleIds||[]).map(String));
+ const oldByCloudId=new Map(),oldByLegacyId=new Map();
+ oldSamples.forEach(x=>{if(x.cloudId)oldByCloudId.set(String(x.cloudId),x);if(x.id)oldByLegacyId.set(String(x.id),x)});
  const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).limit(5000);
  if(r.error)fail(r.error);
  const [containers,events,profiles]=await Promise.all([
@@ -129,23 +132,25 @@ async function loadRemoteSamples(){
  ]);
  if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
+ const containerBarcodes=new Map();(containers.data||[]).forEach(x=>{const key=String(x.sample_id);if(!containerBarcodes.has(key))containerBarcodes.set(key,[]);containerBarcodes.get(key).push(x.barcode)});
+ const cloudSampleById=new Map((r.data||[]).map(x=>[String(x.id),x]));
  const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x]));
  const visitMap=new Map((stateNow.clinicalVisits||[]).map(x=>[x.cloudId,x]));
  const typeMap=new Map((stateNow.clinicalSampleTypes||[]).map(x=>[x.cloudId,x]));
  const patientMap=new Map((stateNow.patients||[]).filter(x=>x.cloudPatientId).map(x=>[x.cloudPatientId,x]));
  const next=(r.data||[]).map(row=>{
-  const old=oldSamples.find(x=>x.cloudId===row.id||x.id===row.legacy_id)||{};
+  const old=oldByCloudId.get(String(row.id))||oldByLegacyId.get(String(row.legacy_id))||{};
   const study=studyMap.get(row.study_id),visit=visitMap.get(row.visit_id),type=typeMap.get(row.sample_type_id),patient=patientMap.get(row.patient_id);
   const d=new Date(row.collection_at),rd=new Date(row.received_at);
-  const bars=(containers.data||[]).filter(x=>x.sample_id===row.id).map(x=>x.barcode);
+  const bars=containerBarcodes.get(String(row.id))||[];
   return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||row.processed_by||'',receivedBy:profileMap.get(row.received_by)||row.received_by||'',notes:row.notes||'',temporaryBoxId:row.temporary_box_id,temporaryBoxCloudId:row.temporary_box_id,definitiveBoxId:row.definitive_box_id,definitiveBoxCloudId:row.definitive_box_id,reviewedAt:row.reviewed_at,processingStartedAt:row.processing_started_at,storedAt:row.stored_at,createdAt:row.created_at,updatedAt:row.updated_at});
  });
- const merged=next;
+ const visibleNext=next.filter(x=>!locallyDeleted.has(String(x.id)));
  const history=(events.data||[]).map(e=>{
-  const sample=(r.data||[]).find(x=>x.id===e.sample_id);return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
+  const sample=cloudSampleById.get(String(e.sample_id));return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
  });
  // No reincorporar registros ni historial del almacenamiento local: Supabase es la única fuente.
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:merged,clinicalSampleHistory:history}),{silent:true});
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history}),{silent:true});
 }
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
@@ -285,7 +290,7 @@ async function syncStorageConfiguration(){
  await loadRemoteBoxes();
  return true;
 }
-async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();if(role==='admin'||role==='technician')await loadRemoteBoxes();await loadRemoteSamples();return true}
+async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();return true}
 window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
