@@ -121,7 +121,7 @@ function applyCloudState(s,clearClinical){
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
- window.FleboAppState.replace(safe,{silent:true});
+ window.FleboAppState.replace(safe,{silent:true,deferRender:true});
 }
 async function publishMerged(local,remote,expected){
  let candidate=mergeState(remote&&remote.state||{},local||{});
