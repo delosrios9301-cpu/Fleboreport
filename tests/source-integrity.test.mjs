@@ -149,7 +149,7 @@ test('el guardado de permisos individuales usa el RPC protegido por la base de d
 
 test('la sincronización de datos está conectada, aislada por usuario y tiene sintaxis válida', () => {
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/cloud-state-sync\.js"/);
+  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
   assert.match(html, /flebo:local-state-saved/);
   assert.match(cloudSyncMigration, /primary key \(workspace_id,user_id\)/i);
   assert.match(cloudSyncMigration, /user_id=auth\.uid\(\)/i);
