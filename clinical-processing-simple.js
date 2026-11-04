@@ -103,7 +103,7 @@
   var backupText=window.prompt('Cantidad de alícuotas de RESPALDO (backup):',String(defaultBackup));
   if(backupText===null)return;
   var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
-  if(!/^\\d+$/.test(primaryText.trim())||!/^\\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){if(typeof toast==='function')toast('Indica cantidades enteras válidas; el total de alícuotas debe ser mayor que cero.');return}
+  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){if(typeof toast==='function')toast('Indica cantidades enteras válidas; el total de alícuotas debe ser mayor que cero.');return}
   if(expectedPrimary!==null&&primary!==expectedPrimary){if(typeof toast==='function')toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');return}
   if(expectedBackup!==null&&backup!==expectedBackup){if(typeof toast==='function')toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');return}
   return move(sample,'PROCESANDO','Inicio de procesamiento técnico. Alícuotas principales: '+primary+'; respaldo: '+backup,{primaryAliquots:primary,backupAliquots:backup});
