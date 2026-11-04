@@ -356,10 +356,10 @@ test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RP
     'guard_home_visit_technician_update',
     'log_clinical_sample_created'
   ]) {
-    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\\\\.' + name + '\\\\(\\\\) from public, anon, authenticated', 'i'));
+    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\\.' + name + '\\(\\) from public, anon, authenticated', 'i'));
   }
-  assert.match(triggerFunctionSecurityMigration, /revoke execute on function public\\.cancel_home_visit\\(uuid, text\\) from public, anon/i);
-  assert.match(triggerFunctionSecurityMigration, /grant execute on function public\\.cancel_home_visit\\(uuid, text\\) to authenticated/i);
+  assert.match(triggerFunctionSecurityMigration, /revoke execute on function public\.cancel_home_visit\(uuid, text\) from public, anon/i);
+  assert.match(triggerFunctionSecurityMigration, /grant execute on function public\.cancel_home_visit\(uuid, text\) to authenticated/i);
 });
 
 test('cada función llamada desde un botón HTML tiene un manejador definido', async () => {
@@ -370,12 +370,12 @@ test('cada función llamada desde un botón HTML tiene un manejador definido', a
     'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
   ];
   const scripts = await Promise.all(scriptPaths.map(path => readFile(new URL('../' + path, import.meta.url), 'utf8')));
-  const source = html + '\\n' + scripts.join('\\n');
-  const declarations = new Set([...source.matchAll(/\\bfunction\\s+([A-Za-z_$][\\w$]*)\\s*\\(/g)].map(match => match[1]));
-  const exposed = new Set([...source.matchAll(/\\bwindow\\.([A-Za-z_$][\\w$]*)\\s*=/g)].map(match => match[1]));
+  const source = html + '\n' + scripts.join('\n');
+  const declarations = new Set([...source.matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map(match => match[1]));
+  const exposed = new Set([...source.matchAll(/\bwindow\.([A-Za-z_$][\w$]*)\s*=/g)].map(match => match[1]));
   const calls = new Set();
-  for (const [, handler] of html.matchAll(/\\bonclick\\s*=\\s*["']([^"']+)["']/gi)) {
-    for (const [, name] of handler.matchAll(/\\b([A-Za-z_$][\\w$]*)\\s*\\(/g)) {
+  for (const [, handler] of html.matchAll(/\bonclick\s*=\s*["']([^"']+)["']/gi)) {
+    for (const [, name] of handler.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)) {
       if (!['getElementById', 'print'].includes(name)) calls.add(name);
     }
   }
