@@ -26,7 +26,17 @@ function meaningful(s){
  || !!(s.individualTestPrices&&Object.keys(s.individualTestPrices).length)
  || !!(s.attentionTemplates&&Object.keys(s.attentionTemplates).length);
 }
-function itemKey(x){if(x&&typeof x==='object'){if(x.id!=null)return'id:'+x.id;if(x.code!=null)return'code:'+x.code;if(x.document!=null)return'doc:'+x.document+'|'+(x.name||'')}return'json:'+JSON.stringify(x)}
+function itemKey(x,collection){
+ if(!x||typeof x!=='object')return'json:'+JSON.stringify(x);
+ const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/\\s+/g,' ');
+ const scope=[x.studyId||x.study_id,x.companyId||x.company_id,x.siteId||x.site_id].filter(Boolean).map(norm).join('|');
+ const code=norm(x.code||x.protocol||x.protocolCode||x.protocol_code||x.document||x.document_number||x.barcode||x.box_code||x.legacyId||x.legacy_id);
+ if(code)return'code:'+collection+':'+scope+':'+code;
+ const name=norm(x.name||x.fullName||x.full_name);
+ if(name)return'name:'+collection+':'+scope+':'+name;
+ if(x.id!=null)return'id:'+x.id;
+ return'json:'+JSON.stringify(x);
+}
 function stamp(x){const v=x&&(x.updatedAt||x.updated_at||x.modifiedAt||x.createdAt||x.created_at);const n=v?Date.parse(v):0;return Number.isFinite(n)?n:0}
 function mergeState(remote,local){
  const out=Object.assign({},local||{},remote||{});
@@ -34,8 +44,8 @@ function mergeState(remote,local){
   const a=Array.isArray(remote&&remote[key])?remote[key]:[];
   const b=Array.isArray(local&&local[key])?local[key]:[];
   const map=new Map();
-  a.forEach(x=>map.set(itemKey(x),x));
-  b.forEach(x=>{const k=itemKey(x),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
+  a.forEach(x=>map.set(itemKey(x,key),x));
+  b.forEach(x=>{const k=itemKey(x,key),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
   out[key]=Array.from(map.values());
  }
  const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
