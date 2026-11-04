@@ -1919,7 +1919,32 @@ var oldRenderStudies=renderClinicalStudies;
   var title=document.createElement('h2');title.id='clinicalProcessingModalTitle';title.textContent='Iniciar procesamiento';
   title.style.cssText='margin:0 0 6px;color:#173d55;font-size:20px;';
   var subtitle=document.createElement('p');subtitle.textContent=(sample.sampleType||'Muestra')+' · Sujeto '+(sample.subjectCode||'—');
-  subtitle.style.cssText='margin:0 0 18px;color:#718596;font-size:12px;';
+  subtitle.style.cssText='margin:0 0 14px;color:#718596;font-size:12px;';
+  var identity=document.createElement('section');
+  identity.style.cssText='background:#f3f8fa;border:1px solid #dfebef;border-radius:14px;padding:14px;margin:0 0 16px;';
+  var identityTitle=document.createElement('h3');identityTitle.textContent='Identificación y datos de la muestra';identityTitle.style.cssText='margin:0 0 12px;color:#214d65;font-size:13px;font-weight:800;';
+  var details=document.createElement('div');details.style.cssText='display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;';
+  function detail(label,value){
+   var item=document.createElement('div');item.style.cssText='min-width:0;display:grid;gap:4px;';
+   var caption=document.createElement('span');caption.textContent=label;caption.style.cssText='color:#718896;font-size:10px;font-weight:700;';
+   var content=document.createElement('strong');content.textContent=value==null||String(value).trim()===''?'—':String(value);content.style.cssText='color:#173d55;font-size:12px;font-weight:750;overflow-wrap:anywhere;';
+   item.append(caption,content);details.appendChild(item);
+  }
+  function dateTimeLabel(value,fallbackDate,fallbackTime){
+   var raw=value||(fallbackDate?fallbackDate+(fallbackTime?'T'+fallbackTime: ''):null);
+   if(!raw)return '—';
+   var parsed=new Date(raw);
+   return Number.isNaN(parsed.getTime())?String(raw):parsed.toLocaleString('es-PA',{dateStyle:'short',timeStyle:'short'});
+  }
+  var studyRecord=state.clinicalStudies.find(function(x){return x.id===sample.studyId})||{};
+  detail('Número de sujeto',sample.subjectCode||sample.subjectId||'—');
+  detail('Estudio clínico',studyRecord.protocol?(studyRecord.protocol+' · '+(studyRecord.name||'')):(studyRecord.name||'—'));
+  detail('Fecha y hora de registro',dateTimeLabel(sample.createdAt));
+  detail('Fecha y hora de toma',dateTimeLabel(sample.collectedAt,sample.collectionDate,sample.collectionTime));
+  detail('Fecha y hora de recepción',dateTimeLabel(sample.receivedAt,sample.date,sample.time));
+  detail('Visita',sample.visit||((state.clinicalVisits||[]).find(function(x){return x.id===sample.visitId})||{}).name||'—');
+  detail('Tipo de muestra',sample.sampleType||((state.clinicalSampleTypes||[]).find(function(x){return x.id===sample.sampleTypeId})||{}).name||'—');
+  identity.append(identityTitle,details);
   var intro=document.createElement('p');intro.textContent='Registra las cantidades de alícuotas y cualquier observación antes de guardar el inicio del procesamiento.';
   intro.style.cssText='margin:0 0 16px;color:#526d7e;font-size:12px;line-height:1.5;';
   var grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px;';
@@ -1972,7 +1997,7 @@ var oldRenderStudies=renderClinicalStudies;
    }
   };
   actions.append(cancel,saveButton);
-  card.append(title,subtitle,intro,grid,hint,noteWrap,error,actions);overlay.appendChild(card);
+  card.append(title,subtitle,identity,intro,grid,hint,noteWrap,error,actions);overlay.appendChild(card);
   overlay.addEventListener('click',function(event){if(event.target===overlay)closeClinicalProcessingModal()});
   document.addEventListener('keydown',function escHandler(event){if(event.key==='Escape'){closeClinicalProcessingModal();document.removeEventListener('keydown',escHandler)}});
   document.body.appendChild(overlay);primary.focus();
