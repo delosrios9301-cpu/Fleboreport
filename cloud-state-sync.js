@@ -250,7 +250,7 @@ window.addEventListener('flebo:local-state-saved',schedule);
 window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user;if(!user){ready=false;if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}connect()});
 window.addEventListener('online',()=>{if(ready)syncLocal()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}});
-setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},15000);
+setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},30000);
 window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}}};
 function boot(){if(started)return;started=true;status('Conectando con la nube…');if(window.FleboAuth&&window.FleboAuth.user)connect()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
