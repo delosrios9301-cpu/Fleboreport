@@ -435,5 +435,5 @@ test('la base de datos bloquea duplicados por código y permite códigos distint
   assert.match(duplicateProtectionMigration, /services_workspace_code_or_name_uidx/);
   assert.match(duplicateProtectionMigration, /clinical_studies_workspace_protocol_normalized_uidx/);
   assert.match(duplicateProtectionMigration, /patients_workspace_document_normalized_uidx/);
-  assert.match(duplicateProtectionMigration, /row_number\\(\\) over/);
+  assert.match(duplicateProtectionMigration, /row_number\(\) over/);
 });
