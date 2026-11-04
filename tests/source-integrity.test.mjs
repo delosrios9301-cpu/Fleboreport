@@ -11,6 +11,7 @@ const patientCloudMigration = await readFile(new URL('../supabase/migrations/202
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103110000_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
 const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103120000_patient_search_rpc.sql', import.meta.url), 'utf8');
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104111000_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
+const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104110000_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
@@ -427,4 +428,12 @@ test('no se crean gavetas ni bandejas clínicas automáticamente', () => {
   assert.doesNotMatch(clinicalCloudSync, /for\(let n=1;n<=5;n\+\+\)/);
   assert.match(html, /function createDrawers\(name\)/);
   assert.match(html, /trays:\[String\(box\.tray\)\]/);
+});
+
+
+test('la base de datos bloquea duplicados por código y permite códigos distintos', () => {
+  assert.match(duplicateProtectionMigration, /services_workspace_code_or_name_uidx/);
+  assert.match(duplicateProtectionMigration, /clinical_studies_workspace_protocol_normalized_uidx/);
+  assert.match(duplicateProtectionMigration, /patients_workspace_document_normalized_uidx/);
+  assert.match(duplicateProtectionMigration, /row_number\\(\\) over/);
 });
