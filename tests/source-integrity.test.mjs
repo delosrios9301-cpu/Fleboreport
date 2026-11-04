@@ -426,6 +426,9 @@ test('no se crean gavetas ni bandejas clínicas automáticamente', () => {
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_rack_seed_trays/i);
   assert.match(noAutoClinicalStructureMigration, /where not exists\(select 1 from public\.clinical_boxes/);
   assert.doesNotMatch(clinicalCloudSync, /for\(let n=1;n<=5;n\+\+\)/);
+  assert.match(clinicalCloudSync, /configuredTrays=boxes\.filter/);
+  assert.match(clinicalCloudSync, /usedDrawerKeys=new Set/);
+  assert.match(clinicalCloudSync, /await loadRemoteBoxes\(\)/);
   assert.match(html, /function createDrawers\(name\)/);
   assert.match(html, /trays:\[String\(box\.tray\)\]/);
 });
