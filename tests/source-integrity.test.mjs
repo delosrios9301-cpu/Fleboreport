@@ -392,3 +392,11 @@ test('las muestras y su historial solo se hidratan desde las tablas clínicas de
   assert.doesNotMatch(clinicalCloudSync, /oldSamples\.filter\(x=>!x\.cloudId/);
   assert.doesNotMatch(clinicalCloudSync, /history\.concat\(oldSampleHistory/);
 });
+
+
+test('los botones de Jornada actual permanecen alineados en una sola fila en móvil', () => {
+  assert.match(html, /id="journey-heading-actions-one-row-v1"/);
+  assert.match(html, /flex-direction:row!important;flex-wrap:nowrap!important/);
+  assert.match(html, /margin:8px 0 0!important;padding:0!important/);
+  assert.match(html, /height:34px!important/);
+});
