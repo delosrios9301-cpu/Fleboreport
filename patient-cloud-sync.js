@@ -46,7 +46,7 @@ function saveList(list){
  const s=app();if(!s)return false;
  const before=JSON.stringify(s.patients||[]),after=JSON.stringify(list);
  if(before===after)return false;
- window.FleboAppState.replace({...s,patients:list},{silent:true});return true;
+ window.FleboAppState.replace({...s,patients:list},{silent:true,deferRender:true});return true;
 }
 async function syncNow(options){
  options=options||{};
@@ -60,8 +60,12 @@ async function syncNow(options){
    const remote=await fetchAll();
    if(local.length&&!remote.length){
     try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:local}))}catch(_){ }
+    // Una respuesta vacía inicial nunca debe vaciar la lista visible: se conserva el estado actual.
+    lastContent=new Map(local.map(p=>[keyOf(p),contentOf(p)]));
+    pendingKeys.clear();initialized=true;
+    return;
    }
-   saveList(remote);
+   if(saveList(remote)&&window.FleboAppState.refresh)window.FleboAppState.refresh();
    lastContent=new Map(remote.map(p=>[keyOf(p),contentOf(p)]));
    pendingKeys.clear();initialized=true;
    return;
@@ -77,7 +81,7 @@ async function syncNow(options){
    pendingKeys.clear();
   }
   const latest=await fetchAll();
-  saveList(latest);
+  if(saveList(latest)&&window.FleboAppState.refresh)window.FleboAppState.refresh();
   lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
