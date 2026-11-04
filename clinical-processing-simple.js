@@ -97,24 +97,19 @@
  window.startClinicalProcessing=function(id){
   var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
   if(!sample||statusOf(sample)!=='PENDIENTE_PROCESO'){if(typeof toast==='function')toast('La muestra no está aprobada para iniciar procesamiento.');return}
-  var types=Array.isArray(state.clinicalSampleTypes)?state.clinicalSampleTypes:[],type=types.find(function(x){return x.id===sample.sampleTypeId||x.cloudId===sample.sampleTypeCloudId})||types.find(function(x){return String(x.name||'').toLowerCase()===String(sample.sampleType||'').toLowerCase()})||{};
-  var expectedPrimary=type.expectedPrimaryAliquots==null?null:Number(type.expectedPrimaryAliquots),expectedBackup=type.expectedBackupAliquots==null?null:Number(type.expectedBackupAliquots);
-  var defaultPrimary=expectedPrimary==null?(Number(sample.primaryAliquots)||0):expectedPrimary,defaultBackup=expectedBackup==null?(Number(sample.backupAliquots)||0):expectedBackup;
-  var primaryText=window.prompt('Cantidad de alícuotas PRINCIPALES para '+(sample.subjectCode||sample.sampleType||'esta muestra')+':',String(defaultPrimary));
-  if(primaryText===null)return;
-  var backupText=window.prompt('Cantidad de alícuotas de RESPALDO (backup):',String(defaultBackup));
-  if(backupText===null)return;
-  var primary=Number(primaryText.trim()),backup=Number(backupText.trim());
-  if(!/^\d+$/.test(primaryText.trim())||!/^\d+$/.test(backupText.trim())||!Number.isSafeInteger(primary)||!Number.isSafeInteger(backup)||primary<0||backup<0||primary+backup<1){if(typeof toast==='function')toast('Indica cantidades enteras válidas; el total de alícuotas debe ser mayor que cero.');return}
-  if(expectedPrimary!==null&&primary!==expectedPrimary){if(typeof toast==='function')toast('El protocolo exige '+expectedPrimary+' alícuotas principales.');return}
-  if(expectedBackup!==null&&backup!==expectedBackup){if(typeof toast==='function')toast('El protocolo exige '+expectedBackup+' alícuotas de respaldo.');return}
-  return move(sample,'PROCESANDO','Inicio de procesamiento técnico. Alícuotas principales: '+primary+'; respaldo: '+backup,{primaryAliquots:primary,backupAliquots:backup});
+  if(typeof window.openClinicalProcessingModal!=='function'){if(typeof toast==='function')toast('No se pudo abrir la ficha de procesamiento. Recarga el módulo.');return}
+  window.openClinicalProcessingModal(id);
  };
  window.processClinicalSample=window.startClinicalProcessing;
- window.completeClinicalSampleProcessing=function(id){
+ window.completeClinicalSampleProcessing=async function(id){
   var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
   if(!sample||statusOf(sample)!=='PROCESANDO'){if(typeof toast==='function')toast('La muestra no está en procesamiento.');return}
-  return move(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; almacenamiento temporal confirmado');
+  if((Number(sample.primaryAliquots)||0)+(Number(sample.backupAliquots)||0)<1){
+   if(typeof toast==='function')toast('Primero registra y guarda las alícuotas principales y de backup.');
+   if(typeof window.openClinicalProcessingModal==='function')window.openClinicalProcessingModal(id);
+   return;
+  }
+  return move(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; alícuotas verificadas y almacenamiento temporal autorizado');
  };
  window.finalizeClinicalSampleStorage=function(id){
   var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
