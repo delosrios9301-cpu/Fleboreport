@@ -265,7 +265,7 @@ async function transition(sample,next,args){
  const legacy={EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de procesamiento',PROCESANDO:'Pendiente de procesamiento',ALMACENAMIENTO_TEMPORAL:'Procesada',CONGELADOR_DEFINITIVO:'Almacenada'};
  sample.status=legacy[next]||sample.status;
  sample.updatedAt=new Date().toISOString();
- if(next==='EN_REVISION'){sample.reviewedAt=sample.updatedAt;sample.reviewedBy=actorName()}
+ if(next==='PENDIENTE_PROCESO'){sample.reviewedAt=sample.updatedAt;sample.reviewedBy=actorName()}
  if(next==='PROCESANDO'){sample.processingStartedAt=sample.updatedAt;sample.processingStartedBy=actorName();if(args.primaryAliquots!=null)sample.primaryAliquots=Number(args.primaryAliquots);if(args.backupAliquots!=null)sample.backupAliquots=Number(args.backupAliquots)}
  if(next==='ALMACENAMIENTO_TEMPORAL'){if(args.temporaryBoxId)sample.temporaryBoxId=args.temporaryBoxId;sample.processedAt=sample.updatedAt;sample.processedBy=actorName()}
  if(next==='CONGELADOR_DEFINITIVO'){if(args.definitiveBoxId)sample.definitiveBoxId=args.definitiveBoxId;sample.storedAt=sample.updatedAt;sample.storedBy=actorName()}
