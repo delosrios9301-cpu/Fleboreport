@@ -13,6 +13,9 @@ const patientSearchMigration = await readFile(new URL('../supabase/migrations/20
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104111000_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
 const testCatalogMigration = await readFile(new URL('../supabase/migrations/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
 const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104152352_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
+const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
+const clinicalProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
+const authenticatedReceptionMigration = await readFile(new URL('../supabase/migrations/20261104170000_track_authenticated_clinical_sample_reception.sql', import.meta.url), 'utf8');
 const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104110000_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
@@ -467,4 +470,19 @@ test('el catálogo de pruebas elimina duplicados por nombre normalizado y conser
   assert.match(cloudSync, /safe\.catalog=dedupeCatalog/);
   assert.match(testCatalogMigration, /row_number\(\) over/);
   assert.match(testCatalogMigration, /jsonb_agg\(item order by ord\) filter\(where rn=1\)/);
+});
+
+
+test('la recepción y cada etapa clínica quedan atribuidas al usuario autenticado', () => {
+  assert.doesNotMatch(html, /id="clinicalReceivedBy"/);
+  assert.match(html, /function clinicalActor\(\)[\s\S]*?window\.FleboAuth[\s\S]*?user_metadata/);
+  assert.match(html, /receivedBy:clinicalActor\(\)/);
+  assert.match(clinicalCloudSync, /receivedBy:profileMap\.get\(row\.received_by\)/);
+  assert.match(clinicalCloudSync, /reviewedBy:profileMap\.get\(row\.reviewed_by\)/);
+  assert.match(clinicalCloudSync, /processingStartedBy:profileMap\.get\(row\.processing_started_by\)/);
+  assert.match(clinicalCloudSync, /processedBy:profileMap\.get\(row\.processed_by\)/);
+  assert.match(clinicalCloudSync, /storedBy:profileMap\.get\(row\.stored_by\)/);
+  assert.match(clinicalProcessing, /x\.processingStartedBy/);
+  assert.match(clinicalProcessing, /x\.reviewedBy/);
+  assert.match(authenticatedReceptionMigration, /insert into public\.clinical_sample_events[\s\S]*?'REGISTRADO'[\s\S]*?v_actor/);
 });
