@@ -161,10 +161,13 @@
   document.body.appendChild(overlay);setTimeout(function(){primary.focus()},0);
  };
  window.startClinicalProcessing=function(id){
-  var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
-  if(!sample||statusOf(sample)!=='PENDIENTE_PROCESO'){if(typeof toast==='function')toast('La muestra no está aprobada para iniciar procesamiento.');return}
-  if(typeof window.openClinicalProcessingModal!=='function'){if(typeof toast==='function')toast('No se pudo abrir la ficha de procesamiento. Recarga el módulo.');return}
-  window.openClinicalProcessingModal(id);
+  var currentState=window.FleboAppState&&typeof window.FleboAppState.get==='function'?window.FleboAppState.get():null;
+  var samples=currentState&&Array.isArray(currentState.clinicalSamples)?currentState.clinicalSamples:[];
+  var sample=samples.find(function(x){return String(x.id)===String(id)||String(x.cloudId)===String(id)});
+  if(!sample){if(typeof toast==='function')toast('No se encontró la muestra seleccionada en la bandeja. Actualiza la vista e inténtalo nuevamente.');return}
+  if(statusOf(sample)!=='PENDIENTE_PROCESO'){if(typeof toast==='function')toast('La muestra no está aprobada para iniciar procesamiento. Estado actual: '+(labels[statusOf(sample)]||statusOf(sample)));return}
+  if(typeof window.openClinicalProcessingModal!=='function'){if(typeof toast==='function')toast('No está disponible la ficha de procesamiento. Recarga la aplicación.');return}
+  window.openClinicalProcessingModal(sample.id);
  };
  window.processClinicalSample=window.startClinicalProcessing;
  window.completeClinicalSampleProcessing=async function(id){
