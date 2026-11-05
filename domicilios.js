@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
-let visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
+let activeTab='agenda',visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
 let pushRegistrationPromise=null;
