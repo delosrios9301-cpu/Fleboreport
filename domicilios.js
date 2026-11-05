@@ -45,6 +45,7 @@ async function syncPushActivationUI(){
   button.disabled=false;button.textContent='Verificar activación';status.textContent='No se pudo comprobar el registro de este dispositivo.';
  }
 }
+window.hvRefreshPushStatus=syncPushActivationUI;
 async function registerPushIfPermitted(){
  if(pushRegistrationPromise)return pushRegistrationPromise;
  pushRegistrationPromise=(async()=>{
