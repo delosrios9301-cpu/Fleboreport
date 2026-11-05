@@ -169,6 +169,19 @@ async function persistVisit(v){
   if(response.error)throw response.error;
   if(!response.data)throw new Error('No se confirmó la respuesta. Esta invitación ya fue respondida o no pertenece a tu cuenta.');
   v.assignmentStatus=response.data.status;
+  if(technicianResponse){
+   if(response.data.status==='accepted')v.status='Aceptado';
+   const acceptanceEvent=(v.events||[])[0];
+   if(acceptanceEvent){
+    const eventId=asUuid(acceptanceEvent.id)||crypto.randomUUID();
+    try{
+     const eventResult=await c.from('home_visit_events').insert({id:eventId,workspace_id:w,home_visit_id:v.id,event_type:'Domicilio aceptado',from_status:'pending_acceptance',to_status:'accepted',description:'El flebotomista confirmó que realizará el domicilio.',actor_user_id:u,metadata:{by:actor()}});
+     if(eventResult.error)console.warn('[Domicilios] La aceptación se guardó, pero no se pudo registrar el evento:',eventResult.error.message||eventResult.error);
+    }catch(eventError){console.warn('[Domicilios] La aceptación se guardó; falló el registro secundario del evento:',eventError?.message||eventError)}
+   }
+   try{await loadCloudVisits()}catch(refreshError){console.warn('[Domicilios] La aceptación quedó guardada; no se pudo refrescar la agenda:',refreshError?.message||refreshError)}
+   return;
+  }
  }
  const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
