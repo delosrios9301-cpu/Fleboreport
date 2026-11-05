@@ -161,6 +161,7 @@ test('el perfil administrador muestra todos los permisos activos y no permite de
   assert.match(configuration, /adminRoleLocked\|\|map\.get/);
   assert.match(configuration, /adminRoleLocked\?' disabled':''/);
   assert.match(configuration, /Permisos del administrador · acceso integral/);
+  assert.match(configuration, /Acceso integral protegido/);
   assert.match(adminRolePermissionsMigration, /cross join \(values/i);
   assert.match(adminRolePermissionsMigration, /select w\.id,'admin'/i);
   assert.match(adminRolePermissionsMigration, /do update set allowed=true/i);
