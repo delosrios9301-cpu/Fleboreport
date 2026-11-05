@@ -800,3 +800,26 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
   assert.match(serviceWorker, /fleboreport-shell-v224/);
 });
+
+
+const rlsPerformanceMigration = await readFile(new URL('../supabase/migrations/20261105230600_optimize_auth_rls_initplans.sql', import.meta.url), 'utf8');
+
+test('las políticas RLS de sincronización y domicilios evalúan auth.uid una sola vez por sentencia', () => {
+  for (const policy of [
+    'home_visit_documents_insert_scoped',
+    'home_visit_documents_read_scoped',
+    'home_visit_notifications_read_own',
+    'home_visit_notifications_update_own',
+    'home_visit_push_subscriptions_delete_self',
+    'home_visit_push_subscriptions_insert_self',
+    'home_visit_push_subscriptions_select_self',
+    'home_visit_push_subscriptions_update_self',
+    'workspace_app_state_insert',
+    'workspace_app_state_read',
+    'workspace_app_state_update'
+  ]) {
+    assert.match(rlsPerformanceMigration, new RegExp('create policy ' + policy, 'i'));
+  }
+  assert.match(rlsPerformanceMigration, /\(select auth\.uid\(\)\)/i);
+  assert.doesNotMatch(rlsPerformanceMigration, /(?:=|,)\s*auth\.uid\(\)/i);
+});
