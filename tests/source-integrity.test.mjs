@@ -107,6 +107,10 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   assert.match(domicilios, /id="hvTestPush"/);
   assert.match(domicilios, /invokeDomicileNotifications\(\{action:'test-push'\}\)/);
   assert.match(domicilios, /testPushInBackground/);
+  assert.match(domicilios, /action:'cancelled'/);
+  assert.match(domiciliosNotificationsFunction, /action === \"cancelled\"/);
+  assert.match(domiciliosNotificationsFunction, /home_visit_cancelled/);
+  assert.match(domiciliosNotificationsFunction, /No te desplaces ni prepares la toma/);
   assert.match(domicilios, /let pushRegistrationPromise=null/);
   assert.match(domicilios, /if\(pushRegistrationPromise\)return pushRegistrationPromise/);
 
