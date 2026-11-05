@@ -533,7 +533,7 @@ let style=document.createElement('style');style.textContent='.hv-field-screen{di
 document.head.appendChild(style);document.addEventListener('click',e=>{if(e.target&&e.target.id==='hvActivatePush')activatePush()});
 window.addEventListener('flebo:auth-changed',()=>{connectCloud()});
 function mountSafe(){
- try{mount()}
+ try{mount();const params=new URLSearchParams(location.search);if(params.get('view')==='domicilios'&&window.navigate)window.navigate('domicilios')}
  catch(error){
   console.error('[Domicilios] Error al iniciar el módulo:',error);
   let view=document.getElementById('view-domicilios');
