@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
+const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
@@ -559,4 +560,26 @@ test('la agenda de domicilios tiene vistas diferenciadas y diseño adaptable', (
   assert.match(domicilios, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
   assert.match(domicilios, /@media\(max-width:900px\)/);
   assert.match(domicilios, /@media\(max-width:650px\)/);
+});
+
+
+test('las asignaciones de domicilios normalizan el VAPID subject y notifican como aprobación pendiente', () => {
+  assert.match(domiciliosNotificationsFunction, /configuredVapidSubject/);
+  assert.match(domiciliosNotificationsFunction, /"mailto:" \+ configuredVapidSubject/);
+  assert.match(domiciliosNotificationsFunction, /Domicilio pendiente de aprobación/);
+  assert.match(domiciliosNotificationsFunction, /push_sent: pushSent/);
+});
+
+test('el alta de domicilios solo usa pruebas UUID del catálogo central', () => {
+  assert.match(domicilios, /const catalog\(\)=>remoteCatalog/);
+  assert.match(domicilios, /const selectedTests=ids\.map\(id=>remoteCatalog\.find\(x=>x\.id===id\)\)/);
+  assert.match(domicilios, /!item\|\|!asUuid\(ids\[i\]\)/);
+  assert.match(domicilios, /createBusy=true/);
+  assert.match(domicilios, /catch\(e\)[\s\S]*?No se pudo guardar el domicilio/);
+});
+
+test('el catálogo local no intenta reinsertar pruebas que ya existen por código o identidad', () => {
+  assert.match(domicilios, /existsBySource\|\|existsByCode\|\|existsByName/);
+  assert.match(domicilios, /saved\.error\.code==='23505'/);
+  assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
 });
