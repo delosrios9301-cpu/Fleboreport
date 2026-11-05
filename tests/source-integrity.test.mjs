@@ -635,10 +635,13 @@ test('el alta de domicilios solo usa pruebas UUID del catálogo central', () => 
   assert.match(domicilios, /catch\(e\)[\s\S]*?No se pudo guardar el domicilio/);
 });
 
-test('el catálogo local no intenta reinsertar pruebas que ya existen por código o identidad', () => {
-  assert.match(domicilios, /existsBySource\|\|existsByCode\|\|existsByName/);
+test('el catálogo maestro evita duplicados por origen, código o nombre y reconcilia las pruebas activas', () => {
+  assert.match(domicilios, /const matchesMaster=/);
+  assert.match(domicilios, /row\.catalog_source_id===sourceId/);
   assert.match(domicilios, /saved\.error\.code==='23505'/);
   assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
+  assert.match(domicilios, /const obsolete=existingRows\.filter/);
+  assert.match(domicilios, /\.update\(\{active:false\}\)/);
 });
 
 
