@@ -288,7 +288,7 @@ async function syncLocal(){
   // La consulta ligera evita descargar el estado completo antes de cada guardado.
   const remoteMeta=await fetchRemoteMeta();
   if(remoteMeta&&remoteMeta.reset_epoch&&(remoteMeta.reset_epoch!==(m.resetEpoch||null))){
-   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar el restablecimiento desde la nube.');
+   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar el restablecimiento desde la nube.');await persistLegacyAuditEvents(remote.state&&remote.state.auditLog||[]);
    backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento aplicado; se descartaron los datos locales antiguos de la sincronización.');return;
   }
   if(!remoteMeta){
