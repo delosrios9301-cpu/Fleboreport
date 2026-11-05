@@ -619,3 +619,10 @@ test('el servicio Push reintenta invitaciones fallidas y no repite las ya entreg
   assert.match(domiciliosNotificationsFunction, /!pushAlreadySent && pushStatus === "sent"/);
   assert.match(domicilios, /if\(assignment\.status==='invited'\)[\s\S]*?dispatchNotice\(assignment\.id\)/);
 });
+
+
+test('el aviso Push y el aviso del centro usan la misma etiqueta para evitar duplicados', () => {
+  assert.match(domiciliosNotificationsFunction, /const notificationTag = inAppNotificationId \? "fleboreport-notif-" \+ inAppNotificationId/);
+  assert.match(domiciliosNotificationsFunction, /tag: notificationTag/);
+  assert.match(notifications, /tag:'fleboreport-notif-'\+n\.id/);
+});
