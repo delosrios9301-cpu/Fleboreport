@@ -107,6 +107,8 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   assert.match(domicilios, /id="hvTestPush"/);
   assert.match(domicilios, /invokeDomicileNotifications\(\{action:'test-push'\}\)/);
   assert.match(domicilios, /testPushInBackground/);
+  assert.match(domicilios, /let pushRegistrationPromise=null/);
+  assert.match(domicilios, /if\(pushRegistrationPromise\)return pushRegistrationPromise/);
 
 });
 
@@ -542,7 +544,9 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v219'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v221'/);
+  assert.match(serviceWorker, /self\.skipWaiting\(\)/);
+  assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
 });
 
