@@ -27,6 +27,7 @@ const configurationMigration = await readFile(new URL('../supabase/migrations/20
 const granularMigration = await readFile(new URL('../supabase/migrations/20261102160000_granular_permission_enforcement.sql', import.meta.url), 'utf8');
 const permissionUpsertMigration = await readFile(new URL('../supabase/migrations/20261102173000_member_permission_upsert.sql', import.meta.url), 'utf8');
 const permissionSaveMigration = await readFile(new URL('../supabase/migrations/20261102180000_fix_member_permission_save.sql', import.meta.url), 'utf8');
+const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrations/20261105200000_complete_admin_role_permissions.sql', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -153,6 +154,16 @@ test('las autorizaciones y permisos granulares se validan mediante RLS', () => {
   assert.match(granularMigration, /home_visits_permission_scope/);
   assert.match(granularMigration, /home_visit_assignments_permission_scope/);
   assert.match(granularMigration, /audit_approval_request/);
+});
+
+test('el perfil administrador muestra todos los permisos activos y no permite desactivarlos', () => {
+  assert.match(configuration, /adminRoleLocked=mode==='role'/);
+  assert.match(configuration, /adminRoleLocked\|\|map\.get/);
+  assert.match(configuration, /adminRoleLocked\?' disabled':''/);
+  assert.match(configuration, /Permisos del administrador · acceso integral/);
+  assert.match(adminRolePermissionsMigration, /cross join \(values/i);
+  assert.match(adminRolePermissionsMigration, /role_key='admin'/i);
+  assert.match(adminRolePermissionsMigration, /do update set allowed=true/i);
 });
 
 test('el guardado de permisos individuales usa el RPC protegido por la base de datos', () => {
