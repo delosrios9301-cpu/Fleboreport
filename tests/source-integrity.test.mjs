@@ -540,3 +540,22 @@ test('el flebotomista asignado puede aceptar o rechazar su invitación sin permi
   assert.ok(homeVisitAssigneeResponseMigration.includes("status in ('accepted', 'rejected')"));
   assert.ok(domicilios.includes(".eq('assigned_user_id',u).eq('status','invited')"));
 });
+
+
+test('domicilios separa agenda activa e historial plegable por defecto', () => {
+  assert.match(domicilios, /const historyStatuses=\['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'\]/);
+  assert.match(domicilios, /id="hvHistoryDetails"/);
+  assert.match(domicilios, /<details class="hv-history-details" id="hvHistoryDetails">/);
+  assert.match(domicilios, /id="hvHistoryRows"/);
+  assert.match(domicilios, /\.sort\(sortVisits\)/);
+});
+
+test('la agenda de domicilios tiene vistas diferenciadas y diseño adaptable', () => {
+  assert.match(domicilios, /createPanel\.hidden=technician\|\|!manager/);
+  assert.match(domicilios, /kpis\.hidden=technician/);
+  assert.match(domicilios, /detailPanel\.hidden=technician/);
+  assert.match(domicilios, /hv-responsive-agenda-v1/);
+  assert.match(domicilios, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
+  assert.match(domicilios, /@media\(max-width:900px\)/);
+  assert.match(domicilios, /@media\(max-width:650px\)/);
+});
