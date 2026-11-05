@@ -110,7 +110,7 @@ async function ensureVisitAssignment(v){
    const notice=await invokeDomicileNotifications({action:'dispatch',assignment_id:assignmentId});
    if(!notice){
     v.notificationStatus='Domicilio guardado y asignado. El aviso quedó pendiente de emitirse; el sistema no canceló la visita.';
-    console.warn('[Domicilios] No se pudo emitir la notificación:',notice.error.message||notice.error);
+    console.warn('[Domicilios] El servidor no devolvió confirmación para emitir la notificación.');
     return;
    }
    if(notice.in_app_saved&&notice.push_status==='sent'){
