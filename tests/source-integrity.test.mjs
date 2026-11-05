@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
+const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
