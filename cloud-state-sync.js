@@ -98,6 +98,10 @@ async function hashState(s){
  }
  let h=2166136261;for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16);
 }
+async function fetchRemoteMeta(){
+ const r=await client.from('workspace_app_state').select('revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
+ if(r.error)throw r.error;return r.data||null;
+}
 async function fetchRemote(){
  const r=await client.from('workspace_app_state').select('state,revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
  if(r.error)throw r.error;return r.data||null;
@@ -196,10 +200,23 @@ async function receiveRemote(){
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
+  // Primero consultar solo la revisión. No descargar el JSON completo (puede superar 1 MB)
+  // cada 30 segundos si ningún otro dispositivo ha guardado cambios.
+  const remoteMeta=await fetchRemoteMeta();if(!remoteMeta)return;
+  const m=meta();
+  if(remoteMeta.reset_epoch&&(remoteMeta.reset_epoch!==(m.resetEpoch||null))){
+   const resetRemote=await fetchRemote();if(!resetRemote)return;
+   const local=app()||{};backupResetLocalState(local,resetRemote.reset_epoch);
+   applyCloudState(resetRemote.state);const h=await hashState(app()||{});
+   saveMeta(h,resetRemote.revision,resetRemote.reset_epoch);
+   status('Restablecimiento recibido desde la nube · versión '+revision);return;
+  }
+  if(remoteMeta.revision<=revision)return;
   const remote=await fetchRemote();if(!remote)return;
-  let local=app()||{};if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
-  const localHash=await hashState(local),m=meta();
-  if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+remote.revision);return}
+  let local=app()||{};
+  if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
+  const localHash=await hashState(local);
+  if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+revision);return}
   if(remote.revision<=revision)return;
   if(m.workspaceId!==workspaceId){
    const backedUp=backupUnlinkedLocalState(local,workspaceId);
@@ -223,23 +240,33 @@ async function syncLocal(){
   let local=app()||{};if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local),m=meta();
   if(m.workspaceId===workspaceId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return}
-  let remote=await fetchRemote();
-  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento aplicado; se descartaron los datos locales antiguos de la sincronización.');return}
-  if(!remote){
+  // La consulta ligera evita descargar el estado completo antes de cada guardado.
+  const remoteMeta=await fetchRemoteMeta();
+  if(remoteMeta&&remoteMeta.reset_epoch&&(remoteMeta.reset_epoch!==(m.resetEpoch||null))){
+   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar el restablecimiento desde la nube.');
+   backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento aplicado; se descartaron los datos locales antiguos de la sincronización.');return;
+  }
+  if(!remoteMeta){
    const result=await writeRemote(local,0);
    if(!result.saved)throw new Error('No se pudo crear la copia en la nube.');
-   revision=result.revision;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);
+   revision=result.revision;saveMeta(localHash,revision,null);
+  }else if(remoteMeta.revision!==revision){
+   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar la versión más reciente de la nube.');
+   if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);return;}
+   const merged=mergeState(remote.state,local);
+   const result=await writeRemote(merged,remote.revision);
+   if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
+   const h=await hashState(merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);applyCloudState(merged);
   }else{
-   if(remote.revision!==revision){
-    const merged=mergeState(remote.state,local);
-    const result=await writeRemote(merged,remote.revision);
-    if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
-    const h=await hashState(merged);revision=result.revision;saveMeta(h,revision,remote&&remote.reset_epoch||null);applyCloudState(merged);
-   }else{
-    const result=await writeRemote(local,revision);
-    if(!result.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
-    revision=result.revision;saveMeta(localHash,revision);
-   }
+   const result=await writeRemote(local,revision);
+   if(!result.saved){
+    // Solo ante un conflicto se descarga el estado completo para fusionar cambios de otro dispositivo.
+    const latest=await fetchRemote();if(!latest)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
+    if(latest.reset_epoch&&(latest.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,latest.reset_epoch);applyCloudState(latest.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,latest.revision,latest.reset_epoch);return;}
+    const merged=mergeState(latest.state,local),retry=await writeRemote(merged,latest.revision);
+    if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
+    const h=await hashState(merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);applyCloudState(merged);
+   }else{revision=result.revision;saveMeta(localHash,revision,remoteMeta.reset_epoch||null)}
   }
   status('Sincronizado con la nube · versión '+revision);
  }catch(e){console.error('[FleboReport Sync] Guardado:',e);status('Pendiente de sincronizar: '+(e.message||'error'),true)}
