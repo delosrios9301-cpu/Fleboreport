@@ -214,6 +214,12 @@ async function persistVisit(v){
  if(!technician&&v.status==='Cancelado'){
   const cancelled=await c.rpc('cancel_home_visit',{p_home_visit_id:v.id,p_reason:v.reason||''});
   if(cancelled.error)throw cancelled.error;
+  try{
+   const notice=await invokeDomicileNotifications({action:'cancelled',visit_id:v.id,reason:v.reason||''});
+   if(!notice?.ok)cloudNotice('El domicilio se canceló, pero no se confirmó el aviso a los responsables. Revisa el centro de notificaciones.',true);
+   else if(notice.notified===0)cloudNotice('El domicilio se canceló. No había otros responsables vinculados para notificar.',false);
+   else cloudNotice('Domicilio cancelado. Aviso registrado para '+notice.notified+' responsable(s); Push enviado a '+(notice.push_sent||0)+' dispositivo(s).',false);
+  }catch(noticeError){console.error('[Domicilios] La cancelación se guardó, pero falló el aviso:',noticeError);cloudNotice('El domicilio se canceló, pero falló el aviso a los responsables. Revisa el centro de notificaciones.',true)}
   await loadCloudVisits();
   return;
  }
