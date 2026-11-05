@@ -296,7 +296,7 @@ async function syncLocal(){
    if(!result.saved)throw new Error('No se pudo crear la copia en la nube.');
    revision=result.revision;saveMeta(localHash,revision,null);
   }else if(remoteMeta.revision!==revision){
-   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar la versión más reciente de la nube.');
+   const remote=await fetchRemote();if(!remote)throw new Error('No se pudo recuperar la versión más reciente de la nube.');await persistLegacyAuditEvents(remote.state&&remote.state.auditLog||[]);
    if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);return;}
    const merged=mergeState(remote.state,local);
    const result=await writeRemote(merged,remote.revision);
