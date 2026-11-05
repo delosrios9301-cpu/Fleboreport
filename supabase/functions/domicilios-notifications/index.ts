@@ -148,8 +148,17 @@ Deno.serve(async (req: Request) => {
         inAppSaved = true;
       } else inAppSaved = true;
 
-      let pushSent = 0, pushAttempted = 0, pushStatus = "not_configured", pushError: string | null = null;
-      if (publicVapid && privateVapid) {
+      const { data: previousPushRows, error: previousPushError } = await admin.from("home_visit_notifications")
+        .select("id,status,metadata").eq("workspace_id", membership.workspace_id)
+        .eq("home_visit_id", assignment.home_visit_id).eq("recipient_user_id", assignment.assigned_user_id)
+        .eq("channel", "push").contains("metadata", { assignment_id: assignment.id }).limit(1);
+      if (previousPushError) throw previousPushError;
+      const pushAlreadySent = (previousPushRows || []).some(row =>
+        row.status === "sent" || row.metadata?.push_status === "sent"
+      );
+
+      let pushSent = 0, pushAttempted = 0, pushStatus = pushAlreadySent ? "sent" : "not_configured", pushError: string | null = null;
+      if (!pushAlreadySent && publicVapid && privateVapid) {
         try {
           webpush.setVapidDetails(subject, publicVapid, privateVapid);
           const { data: subs, error } = await admin.from("home_visit_push_subscriptions")
@@ -196,7 +205,7 @@ Deno.serve(async (req: Request) => {
       if (!(existingPush || []).length) {
         const { error } = await admin.from("home_visit_notifications").insert(pushRow);
         if (error) throw error;
-      } else if (pushStatus === "sent") {
+      } else if (!pushAlreadySent && pushStatus === "sent") {
         const { error } = await admin.from("home_visit_notifications").update(pushRow)
           .eq("workspace_id", membership.workspace_id).eq("home_visit_id", assignment.home_visit_id)
           .eq("recipient_user_id", assignment.assigned_user_id).eq("channel", "push")
