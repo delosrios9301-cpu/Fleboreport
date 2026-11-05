@@ -22,24 +22,34 @@ async function signOut(){try{if(client)await client.auth.signOut();currentUser=n
 function roleModules(role){const all=['home','journey','companies','patients','domicilios','catalog','reports','report-history','clinical-studies','clinical-processing','audit','settings'];const map={admin:all,clinician:['home','journey','companies','patients','domicilios','catalog','reports','report-history','clinical-studies','clinical-processing'],reception:['home','journey','companies','patients','domicilios','catalog','reports','report-history'],technician:['home','domicilios'],viewer:['home','reports','report-history']};return map[role]||[]}
 const VIEW_MODULE_MAP={home:'dashboard',journey:'journeys',companies:'companies',patients:'patients',domicilios:'domicilios',catalog:'catalog',reports:'reports','report-history':'reports','clinical-studies':'studies','clinical-processing':'processing',settings:'settings',audit:'audit'};function canAction(module,action,siteId){if(!currentUser||!currentMembership)return false;if(currentMembership.role==='admin')return true;if(permissionsLoaded){const overrides=currentPermissions.filter(p=>p.source==='member'&&p.module_key===module&&p.action_key===action&&(p.site_id===null||p.site_id===undefined||p.site_id===siteId));const specific=siteId?overrides.find(p=>p.site_id===siteId):null;const global=overrides.find(p=>p.site_id===null||p.site_id===undefined);if(specific)return !!specific.allowed;if(global)return !!global.allowed;const base=currentPermissions.find(p=>p.source==='role'&&p.module_key===module&&p.action_key===action);return !!base?.allowed}return false}function canAccess(view){if(!currentUser||!currentMembership||currentMembership.active!==true)return false;if(view==='settings'&&currentMembership.role!=='admin')return false;if(permissionsLoaded)return canAction(VIEW_MODULE_MAP[view]||view,'view');return currentMembership.role==='admin'&&roleModules(currentMembership.role).includes(view)}window.fleboCan=(module,action,siteId)=>canAction(module,action,siteId);
 function applyActionVisibility(root=document){
- const controls=root.querySelectorAll('button,a.btn,input[type="button"],input[type="submit"],[role="button"],[data-permission-action]');
- const createWords=/\\b(crear|nuevo|nueva|registrar|registro|agregar|añadir|adicionar)\\b/i;
- const editWords=/\\b(editar|edicion|modificar|actualizar|cambiar|guardar cambios)\\b/i;
- const deleteWords=/\\b(eliminar|borrar|suprimir)\\b/i;
- const saveWords=/\\b(guardar|save)\\b/i;
+ const selector='button,a.btn,input[type="button"],input[type="submit"],[role="button"],[data-permission-action]';
+ const controls=[];
+ if(root.matches?.(selector))controls.push(root);
+ controls.push(...root.querySelectorAll(selector));
+ const patterns={
+  delete:/\\b(eliminar|borrar|suprimir|quitar)\\b/i,
+  configure:/\\b(configurar|configuracion|ajustes|parametrizar)\\b/i,
+  manage:/\\b(administrar|gestionar|asignar|activar|desactivar)\\b/i,
+  edit:/\\b(editar|edicion|modificar|actualizar|cambiar|corregir)\\b/i,
+  create:/\\b(crear|nuevo|nueva|registrar|registro|agregar|añadir|adicionar)\\b/i,
+  save:/\\b(guardar|save)\\b/i
+ };
  controls.forEach(el=>{
   if(el.closest('#fleboAuthGate')||el.id==='fleboGlobalSignOut'||el.hasAttribute('data-nav')||el.hasAttribute('data-mobile'))return;
   const view=el.closest('.view[id^="view-"]');
-  if(!view)return;
-  const viewKey=view.id.replace(/^view-/,'');
-  const module=el.dataset.permissionModule||VIEW_MODULE_MAP[viewKey]||viewKey;
-  const label=[el.innerText,el.getAttribute('aria-label'),el.getAttribute('title'),el.value,el.dataset.action].filter(Boolean).join(' ');
-  let action=el.dataset.permissionAction||el.dataset.action||'';
+  const explicitModule=el.dataset.permissionModule||el.closest('[data-permission-module]')?.dataset.permissionModule;
+  if(!view&&!explicitModule)return;
+  const viewKey=view?.id.replace(/^view-/,'')||'';
+  const module=explicitModule||VIEW_MODULE_MAP[viewKey]||viewKey;
+  const label=[el.innerText,el.getAttribute('aria-label'),el.getAttribute('title'),el.value,el.dataset.action,el.getAttribute('onclick')].filter(Boolean).join(' ');
+  let action=(el.dataset.permissionAction||el.dataset.action||'').toLowerCase();
   if(!action){
-   if(deleteWords.test(label))action='delete';
-   else if(editWords.test(label))action='edit';
-   else if(createWords.test(label))action='create';
-   else if(saveWords.test(label))action='save';
+   if(patterns.delete.test(label))action='delete';
+   else if(patterns.configure.test(label))action='configure';
+   else if(patterns.manage.test(label))action='manage';
+   else if(patterns.edit.test(label))action='edit';
+   else if(patterns.create.test(label))action='create';
+   else if(patterns.save.test(label))action='save';
   }
   if(!action)return;
   let allowed=true;
