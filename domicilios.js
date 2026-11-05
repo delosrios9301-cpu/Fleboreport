@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
-let visits=[],selected='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
+let visits=[],selected='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
@@ -14,7 +14,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const say=m=>window.toast?window.toast(m):alert(m),today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Panama',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());calendarSelectedDate=today();
 const appState=()=>{try{return typeof state!=='undefined'?state:(window.state||{})}catch(e){return window.state||{}}};
 const localCatalog=()=>Array.isArray(appState().catalog)?appState().catalog:[];
-const catalog=()=>remoteCatalog.length?remoteCatalog:localCatalog();
+const catalog=()=>remoteCatalog;
 const people=()=>Array.isArray(appState().patients)?appState().patients:[];
 const actor=()=>window.state&&state.auditOperator||'Usuario local';
 function cloudNotice(message,error){const n=$('hvConnectionNotice');if(!n)return;n.textContent=message;n.style.display='block';n.style.background=error?'#fff1f0':'#eef6ff';n.style.borderColor=error?'#f2c6c2':'#cfe0f2';n.style.color=error?'#9b2c22':'#24547a'}
@@ -51,7 +51,6 @@ function dbVisit(row){
 async function ensureVisitAssignment(v){
  if(!v||!v.assignedTo||!['admin','clinician','reception'].includes(cloud.role))return;
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user?.id;
- /* Resolver siempre la cuenta real del profesional seleccionado. Nunca usar al creador como destinatario alternativo. */
  let prof=null;
  if(v.assignedProfessionalId){
   const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('id',v.assignedProfessionalId).eq('active',true).maybeSingle();
@@ -61,33 +60,85 @@ async function ensureVisitAssignment(v){
   const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('name',v.assignedTo).eq('active',true).maybeSingle();
   if(r.error)throw r.error;prof=r.data;
  }
- if(!prof||!prof.user_id){cloudNotice('No se puede asignar el domicilio: '+v.assignedTo+' no tiene un profesional activo con una cuenta de usuario vinculada.',true);return;}
+ if(!prof||!prof.user_id){v.notificationStatus='El domicilio quedó guardado, pero el flebotomista no tiene una cuenta activa vinculada para recibir la asignación.';cloudNotice(v.notificationStatus,true);return;}
+ const dispatchNotice=async assignmentId=>{
+  try{
+   const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignmentId}});
+   if(notice.error){
+    v.notificationStatus='Domicilio guardado y asignado. El aviso quedó pendiente de emitirse; el sistema no canceló la visita.';
+    console.warn('[Domicilios] No se pudo emitir la notificación:',notice.error.message||notice.error);
+    return;
+   }
+   if(notice.data?.in_app_saved&&notice.data?.push_status==='sent'){
+    v.notificationStatus='Domicilio guardado y asignado. Se envió el aviso al dispositivo del flebotomista.';
+   }else if(notice.data?.in_app_saved){
+    v.notificationStatus='Domicilio guardado y asignado. El aviso está en el centro de notificaciones; el flebotomista debe activar Push en su dispositivo para recibirlo en la pantalla de bloqueo.';
+   }else{
+    v.notificationStatus='Domicilio guardado y asignado. La notificación está pendiente de confirmación del servidor.';
+   }
+  }catch(e){
+   v.notificationStatus='Domicilio guardado y asignado. La notificación está pendiente de conexión; no se perdió la visita.';
+   console.warn('[Domicilios] Error no bloqueante al notificar:',e?.message||e);
+  }
+ };
  const latest=await c.from('home_visit_assignments').select('id,status,professional_id,assigned_user_id').eq('workspace_id',w).eq('home_visit_id',v.id).order('assigned_at',{ascending:false}).limit(1).maybeSingle();
  if(latest.error)throw latest.error;
- let assignment=latest.data||null;
- /* Misma persona: conservar invitación/aceptación/rechazo. No duplicar ni reabrir una invitación rechazada. */
+ const assignment=latest.data||null;
  if(assignment&&assignment.assigned_user_id===prof.user_id&&assignment.professional_id===prof.id){
   v.assignmentId=assignment.id;v.assignmentStatus=assignment.status;v.assignedProfessionalId=prof.id;
-  if(assignment.status==='invited'){
-   const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignment.id}});
-   if(notice.error)cloudNotice('La asignación está guardada, pero no se pudo registrar el aviso: '+(notice.error.message||'error de Supabase'),true);
-   else if(notice.data?.in_app_saved)cloudNotice(notice.data?.push_status==='sent'?'Asignación guardada y notificación enviada al dispositivo.':'Asignación guardada. El aviso quedó registrado en el centro de notificaciones; el Push está pendiente de configuración o de registro del dispositivo.',false);
-  }else if(assignment.status==='rejected'){
-   cloudNotice('Esta persona ya rechazó el domicilio. Para continuar, selecciona otro flebotomista y guarda la reasignación.',true);
-  }
+  if(assignment.status==='invited')await dispatchNotice(assignment.id);
+  else if(assignment.status==='rejected')v.notificationStatus='El flebotomista rechazó esta asignación. Selecciona otra persona para continuar.';
   return;
  }
- /* Persona distinta o primera asignación: insertar una nueva fila. La anterior queda intacta como historial. */
  const assignmentId=makeId();
  const ins=await c.from('home_visit_assignments').insert({id:assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:prof.id,assigned_user_id:prof.user_id,status:'invited',created_by:u});
  if(ins.error)throw ins.error;
  v.assignmentId=assignmentId;v.assignmentStatus='invited';v.assignedProfessionalId=prof.id;v.assignedTo=prof.name||v.assignedTo;
- const notice=await c.functions.invoke('domicilios-notifications',{body:{action:'dispatch',assignment_id:assignmentId}});
- if(notice.error)cloudNotice('La nueva asignación quedó guardada, pero no se pudo registrar el aviso: '+(notice.error.message||'error de Supabase'),true);
- else if(notice.data?.in_app_saved)cloudNotice(notice.data?.push_status==='sent'?'Asignación guardada y notificación enviada al dispositivo.':'Asignación guardada. El aviso quedó registrado en el centro de notificaciones; el Push está pendiente de configuración o de registro del dispositivo.',false);
+ await dispatchNotice(assignmentId);
 }
 function serviceFields(item){const f=item.fields&&typeof item.fields==='object'?item.fields:{};return{sample:item.sample||f.sample||'',vessel:item.vessel||f.vessel||'',colorName:item.colorName||f.colorName||'',fasting:item.fasting||f.fasting||'',conditions:item.conditions||f.conditions||'',instructions:item.instructions||f.instructions||'',volume:item.volume||f.volume||'',method:item.method||f.method||'',color:item.color||f.color||'',shape:item.shape||f.shape||'tube'}}
-async function loadServiceCatalog(){if(!cloud.client||!cloud.workspaceId||catalogLoading)return;catalogLoading=true;try{if(cloud.role==='admin'){for(const item of localCatalog().filter(x=>x&&x.id&&x.name)){const sourceId=String(item.id),fields=serviceFields(item),existing=await cloud.client.from('services').select('id').eq('workspace_id',cloud.workspaceId).eq('catalog_source_id',sourceId).maybeSingle();if(existing.error)throw existing.error;const row={id:existing.data?.id||crypto.randomUUID(),workspace_id:cloud.workspaceId,catalog_source_id:sourceId,code:item.code||item.codigo||null,name:String(item.name),category:item.category||null,price:Number(item.price)||0,description:item.description||item.desc||null,fields,active:item.active!==false};const saved=await cloud.client.from('services').upsert(row,{onConflict:'id'});if(saved.error)throw saved.error}}const result=await cloud.client.from('services').select('id,catalog_source_id,code,name,category,description,fields,active').eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);if(result.error)throw result.error;remoteCatalog=(result.data||[]).map(x=>{const f=x.fields&&typeof x.fields==='object'?x.fields:{};return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'tube',category:x.category||'',description:x.description||''}});if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'');if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'')}catch(e){console.error('[Domicilios] Catálogo compartido:',e);cloudNotice('No se pudo cargar el catálogo de pruebas: '+(e.message||'Error desconocido'),true)}finally{catalogLoading=false}}
+async function loadServiceCatalog(){
+ if(!cloud.client||!cloud.workspaceId||catalogLoading)return;
+ catalogLoading=true;
+ try{
+  let existingRows=[];
+  const selectColumns='id,catalog_source_id,code,name,category,description,fields,active';
+  const readExisting=async()=>{
+   const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).order('name').limit(2000);
+   if(result.error)throw result.error;
+   return result.data||[];
+  };
+  existingRows=await readExisting();
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
+  if(cloud.role==='admin'){
+   for(const item of localCatalog().filter(x=>x&&x.id&&x.name)){
+    const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
+    const existsBySource=existingRows.some(x=>x.catalog_source_id===sourceId);
+    const existsByCode=!!code&&existingRows.some(x=>normalize(x.code)===code);
+    const existsByName=!code&&existingRows.some(x=>!normalize(x.code)&&normalize(x.name)===name);
+    if(existsBySource||existsByCode||existsByName)continue;
+    const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,catalog_source_id:sourceId,code:item.code||item.codigo||null,name:String(item.name),category:item.category||null,price:Number(item.price)||0,description:item.description||item.desc||null,fields:serviceFields(item),active:item.active!==false};
+    const saved=await cloud.client.from('services').insert(row).select(selectColumns).maybeSingle();
+    if(saved.error){
+     if(saved.error.code==='23505'){existingRows=await readExisting();continue}
+     throw saved.error;
+    }
+    if(saved.data)existingRows.push(saved.data);
+   }
+  }
+  const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);
+  if(result.error)throw result.error;
+  remoteCatalog=(result.data||[]).filter(x=>asUuid(x.id)).map(x=>{
+   const f=x.fields&&typeof x.fields==='object'?x.fields:{};
+   return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'tube',category:x.category||'',description:x.description||''};
+  });
+  if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'');
+  if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'');
+ }catch(e){
+  console.error('[Domicilios] Catálogo compartido:',e);
+  cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
+ }finally{catalogLoading=false}
+}
 async function refreshCentralCatalogForSearch(prefix,filter){const seq=++serviceSearchSeq;if(!cloud.client||!cloud.workspaceId)return;try{const result=await cloud.client.from('services').select('id,catalog_source_id,code,name,category,description,fields,active').eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);if(result.error)throw result.error;if(seq!==serviceSearchSeq)return;remoteCatalog=(result.data||[]).map(x=>{const f=x.fields&&typeof x.fields==='object'?x.fields:{};return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name||'',sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'tube',category:x.category||'',description:x.description||''}}).filter(x=>x.name);drawTestPicker(prefix,filter,true);if(!remoteCatalog.length)cloudNotice('El catálogo central no tiene pruebas activas para este laboratorio.',true)}catch(e){console.error('[Domicilios] No se pudo consultar el catálogo central:',e);cloudNotice('No se pudo consultar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true)}}
 async function loadCloudVisits(){
  const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).limit(5000);
@@ -184,7 +235,60 @@ function drawTestPicker(prefix,filter,show){let ids=prefix==='hvTests'?newTestSe
 function toggleTest(prefix,id){let ids=prefix==='hvTests'?newTestSelection:moreTestSelection,at=ids.indexOf(id);if(at>=0)ids.splice(at,1);else ids.push(id);let input=$(prefix+'Search');if(input)input.value='';drawTestPicker(prefix,'',false)}
 
 function reset(){['hvName','hvDoc','hvPhone','hvEmail','hvAddress','hvAssignee','hvAssigneePhone','hvPatientLookup'].forEach(id=>{if($(id))$(id).value=''});['hvPatientId','hvBirthDate'].forEach(id=>{if($(id))$(id).value=''});if($('hvSex'))$('hvSex').value='';if($('hvPatientLookupStatus'))$('hvPatientLookupStatus').textContent='Busca el expediente antes de registrar un paciente nuevo.';selectedProfessional=null;if($('hvProfessionalResults'))$('hvProfessionalResults').innerHTML='';$('hvDate').value=today();$('hvTime').value='08:00';newTestSelection=[];if($('hvTestsSearch'))$('hvTestsSearch').value='';drawTestPicker('hvTests','')}
-async function create(){if(!cloud.ready){say('Inicia sesión y espera a que Supabase conecte la agenda antes de crear domicilios.');return}if(!['admin','clinician','reception'].includes(cloud.role)){say('Tu perfil no tiene permiso para crear domicilios principales.');return}let name=$('hvName').value.trim(),documentNumber=$('hvDoc').value.trim(),date=$('hvDate').value,time=$('hvTime').value,address=$('hvAddress').value.trim(),ids=newTestSelection.slice(),assignee=$('hvAssignee').value.trim();if(!name||!date||!time||!address||!ids.length){say('Completa paciente, fecha, hora, dirección y pruebas.');return}if(assignee&&(!selectedProfessional||selectedProfessional.name.toLocaleLowerCase('es')!==assignee.toLocaleLowerCase('es'))){say('Selecciona un flebotomista de la lista de usuarios registrados.');return}if(selectedProfessional&&!selectedProfessional.user_id){say('Este flebotomista no tiene una cuenta de usuario vinculada y no podrá recibir la notificación.');return}let patientId=asUuid($('hvPatientId').value);if(!patientId){const parts=name.trim().split(/\s+/),firstName=parts.shift()||name,lastName=parts.join(' ')||' ';if(documentNumber){const existing=await cloud.client.from('patients').select('id').eq('workspace_id',cloud.workspaceId).eq('document_number',documentNumber).maybeSingle();if(existing.error)throw existing.error;if(existing.data){say('Ya existe un paciente con esa cédula. Búscalo y selecciónalo antes de continuar.');return}}const created=await cloud.client.from('patients').insert({workspace_id:cloud.workspaceId,document_number:documentNumber||null,first_name:firstName,last_name:lastName,birth_date:$('hvBirthDate').value||null,sex:$('hvSex').value||null,phone:$('hvPhone').value.trim()||null,email:$('hvEmail').value.trim()||null,address,created_by:cloud.user.id}).select('id').single();if(created.error)throw created.error;patientId=created.data.id;$('hvPatientId').value=patientId}let v={id:makeId(),patientId,patientName:name,document:documentNumber,phone:$('hvPhone').value.trim(),address,scheduledDate:date,scheduledTime:time,assignedTo:selectedProfessional?.name||'',assignedProfessionalId:selectedProfessional?.id||null,assignedPhone:$('hvAssigneePhone').value.trim(),status:selectedProfessional?'Pendiente de aceptación':'Pendiente de asignación',tests:ids.map(id=>{let t=catalog().find(x=>x.id===id);return{id:crypto.randomUUID(),testId:id,serviceId:id,name:t?t.name:'Prueba',sample:t&&t.sample||'',vessel:t&&t.vessel||'',colorName:t&&t.colorName||'',fasting:t&&t.fasting||'',conditions:t&&t.conditions||'',instructions:t&&t.instructions||'',volume:t&&t.volume||'',method:t&&t.method||'',color:t&&t.color||'',shape:t&&t.shape||'tube',catalogSnapshot:serviceFields(t||{}),status:'Pendiente',source:'original',addedBy:actor()}}),events:[],createdAt:new Date().toISOString(),createdBy:actor()};log(v,'Domicilio creado',date+' '+time);visits.unshift(v);if(!await save(v)){visits.shift();return}selected=v.id;reset();render();say('Domicilio creado y expediente vinculado correctamente.')}
+async function create(){
+ const button=document.querySelector('#hvCreatePanel .form-actions button[onclick="hvCreate()"]');
+ if(createBusy)return;
+ createBusy=true;
+ const originalLabel=button?.textContent||'Guardar domicilio';
+ if(button){button.disabled=true;button.textContent='Guardando domicilio…'}
+ try{
+  if(!cloud.ready||!cloud.client){say('No se pudo crear el domicilio: la conexión con el laboratorio todavía no está lista.');return}
+  if(!['admin','clinician','reception'].includes(cloud.role)){say('Tu perfil no tiene permiso para crear domicilios principales.');return}
+  const name=$('hvName').value.trim(),documentNumber=$('hvDoc').value.trim(),date=$('hvDate').value,time=$('hvTime').value,address=$('hvAddress').value.trim(),ids=newTestSelection.slice(),assignee=$('hvAssignee').value.trim();
+  if(!name||!date||!time||!address||!ids.length){say('Completa paciente, fecha, hora, dirección y pruebas.');return}
+  if(assignee&&(!selectedProfessional||selectedProfessional.name.toLocaleLowerCase('es')!==assignee.toLocaleLowerCase('es'))){say('Selecciona un flebotomista de la lista de usuarios registrados.');return}
+  if(selectedProfessional&&!selectedProfessional.user_id){say('Este flebotomista no tiene una cuenta de usuario vinculada y no podrá recibir la asignación.');return}
+  const selectedTests=ids.map(id=>remoteCatalog.find(x=>x.id===id));
+  const invalidTest=selectedTests.findIndex((item,i)=>!item||!asUuid(ids[i]));
+  if(invalidTest>=0){say('Una de las pruebas seleccionadas ya no pertenece al catálogo central o no tiene un identificador válido. Vuelve a buscarla y selecciónala nuevamente.');return}
+  let patientId=asUuid($('hvPatientId').value);
+  if(!patientId){
+   const parts=name.split(/\s+/),firstName=parts.shift()||name,lastName=parts.join(' ')||' ';
+   if(documentNumber){
+    const existing=await cloud.client.from('patients').select('id').eq('workspace_id',cloud.workspaceId).eq('document_number',documentNumber).maybeSingle();
+    if(existing.error)throw existing.error;
+    if(existing.data){say('Ya existe un paciente con esa cédula. Búscalo y selecciónalo antes de continuar.');return}
+   }
+   const created=await cloud.client.from('patients').insert({workspace_id:cloud.workspaceId,document_number:documentNumber||null,first_name:firstName,last_name:lastName,birth_date:$('hvBirthDate').value||null,sex:$('hvSex').value||null,phone:$('hvPhone').value.trim()||null,email:$('hvEmail').value.trim()||null,address,created_by:cloud.user.id}).select('id').single();
+   if(created.error)throw created.error;
+   patientId=created.data.id;$('hvPatientId').value=patientId;
+  }
+  const v={
+   id:makeId(),patientId,patientName:name,document:documentNumber,phone:$('hvPhone').value.trim(),address,
+   scheduledDate:date,scheduledTime:time,assignedTo:selectedProfessional?.name||'',
+   assignedProfessionalId:selectedProfessional?.id||null,assignedPhone:$('hvAssigneePhone').value.trim(),
+   status:selectedProfessional?'Pendiente de aceptación':'Pendiente de asignación',
+   tests:ids.map((id,i)=>{
+    const t=selectedTests[i];
+    return{id:crypto.randomUUID(),testId:id,serviceId:t.id,name:t.name,sample:t.sample||'',vessel:t.vessel||'',colorName:t.colorName||'',fasting:t.fasting||'',conditions:t.conditions||'',instructions:t.instructions||'',volume:t.volume||'',method:t.method||'',color:t.color||'',shape:t.shape||'tube',catalogSnapshot:serviceFields(t),status:'Pendiente',source:'original',addedBy:actor()};
+   }),
+   events:[],createdAt:new Date().toISOString(),createdBy:actor()
+  };
+  log(v,'Domicilio creado',date+' '+time);visits.unshift(v);
+  if(!await save(v)){visits=visits.filter(x=>x.id!==v.id);return}
+  selected=v.id;reset();render();
+  cloudNotice(v.notificationStatus||'Domicilio creado y guardado correctamente.',false);
+  say('Domicilio creado y guardado correctamente.');
+ }catch(e){
+  const message=e?.message||'Error desconocido al guardar';
+  console.error('[Domicilios] No se pudo crear el domicilio:',e);
+  cloudNotice('No se pudo completar el domicilio. '+message,true);
+  say('No se pudo guardar el domicilio: '+message);
+ }finally{
+  createBusy=false;
+  if(button){button.disabled=false;button.textContent=originalLabel}
+ }
+}
 async function openSamplesReview(id){
  const v=visits.find(x=>x.id===id);if(!v)return;
  if(!Array.isArray(v.tests)||!v.tests.length){say('Este domicilio no tiene pruebas registradas.');return}
