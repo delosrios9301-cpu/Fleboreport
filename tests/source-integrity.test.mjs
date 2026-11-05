@@ -690,3 +690,14 @@ test('la aceptación del flebotomista se confirma sin depender del guardado secu
   assert.match(domicilios, /La aceptación se guardó, pero no se pudo registrar el evento/);
   assert.match(domicilios, /await loadCloudVisits\(\)/);
 });
+
+
+test('la revisión de muestras permite corregir pruebas desde el catálogo central antes de confirmar', () => {
+  assert.match(domicilios, /id="hvCorrectionSearch"/);
+  assert.match(domicilios, /data-correction-add/);
+  assert.match(domicilios, /source:'adicional'/);
+  assert.match(domicilios, /\[CORRECCION: RETIRADA\]/);
+  assert.match(domicilios, /data-save-corrections/);
+  assert.match(domicilios, /await save\(v\)/);
+  assert.match(domicilios, /const technician=cloud\.role==='technician'/);
+});
