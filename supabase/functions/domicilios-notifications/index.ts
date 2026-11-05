@@ -84,7 +84,7 @@ Deno.serve(async (req: Request) => {
       if (!["admin", "clinician", "reception"].includes(membership.role)) return reply({ error: "Solo Agenda puede notificar la cancelación." }, 403);
       const visitId = String(body.visit_id || "");
       if (!visitId) return reply({ error: "Falta visit_id" }, 400);
-      const { data: visit, error: visitError } = await admin.from("home_visits").select("id,scheduled_at,status,cancellation_reason,created_by,workspace_id").eq("id", visitId).eq("workspace_id", membership.workspace_id).maybeSingle();
+      const { data: visit, error: visitError } = await admin.from("home_visits").select("id,scheduled_at,status,priority,cancellation_reason,created_by,workspace_id").eq("id", visitId).eq("workspace_id", membership.workspace_id).maybeSingle();
       if (visitError) throw visitError;
       if (!visit || visit.status !== "cancelled") return reply({ error: "La cancelación no está confirmada en la agenda." }, 409);
       const { data: assignments, error: assignmentError } = await admin.from("home_visit_assignments").select("assigned_user_id,status,assigned_at").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).not("assigned_user_id", "is", null).order("assigned_at", { ascending: false }).limit(1);
@@ -93,8 +93,9 @@ Deno.serve(async (req: Request) => {
       if (!recipients.length) return reply({ ok: true, notified: 0, push_sent: 0 });
       const when = visit.scheduled_at ? new Date(visit.scheduled_at).toLocaleString("es-PA", { timeZone: "America/Panama" }) : "Horario por confirmar";
       const reason = String(visit.cancellation_reason || body.reason || "No se indicó motivo adicional").trim().slice(0, 500);
-      const title = "Domicilio cancelado";
-      const message = "La visita programada para " + when + " fue cancelada. Motivo: " + reason + ". No te desplaces ni prepares la toma. Consulta la agenda de FleboReport para verificar la actualización.";
+      const priority = visit.priority === "urgent" ? "Urgente" : visit.priority === "high" ? "Prioritario" : "Normal";
+      const title = "Domicilio cancelado · " + priority;
+      const message = "Prioridad: " + priority + ". La visita programada para " + when + " fue cancelada. Motivo: " + reason + ". No te desplaces ni prepares la toma. Consulta la agenda de FleboReport para verificar la actualización.";
       const metadata = { event: "home_visit_cancelled", visit_id: visitId };
       let inAppSaved = 0, pushSent = 0, pushAttempted = 0, pushFailed = 0;
       for (const recipientId of recipients) {
@@ -181,19 +182,20 @@ Deno.serve(async (req: Request) => {
       if (!assignmentId) return reply({ error: "Falta assignment_id" }, 400);
 
       const { data: assignment, error: assignmentError } = await admin.from("home_visit_assignments")
-        .select("id,workspace_id,home_visit_id,assigned_user_id,status,home_visits(id,scheduled_at,notes)")
+        .select("id,workspace_id,home_visit_id,assigned_user_id,status,home_visits(id,scheduled_at,notes,priority)")
         .eq("id", assignmentId).eq("workspace_id", membership.workspace_id).single();
       if (assignmentError || !assignment || !assignment.assigned_user_id)
         return reply({ error: "No se encontró la asignación con usuario asignado" }, 404);
 
-      const visit = assignment.home_visits as { scheduled_at?: string; notes?: string } | null;
+      const visit = assignment.home_visits as { scheduled_at?: string; notes?: string; priority?: string } | null;
       const when = visit?.scheduled_at
         ? new Date(visit.scheduled_at).toLocaleString("es-PA", { timeZone: "America/Panama" })
         : "Horario por confirmar";
-      const title = "Domicilio pendiente de aprobación";
-      const message = "Tienes un nuevo domicilio asignado.\nFecha y hora: " + when +
-        "\nAbre FleboReport para aceptar o rechazar la asignación. Los datos del paciente, dirección y pruebas se mostrarán después de aceptar.";
-      const metadata = { assignment_id: assignment.id, event: "home_visit_assigned" };
+      const priority = visit?.priority === "urgent" ? "Urgente" : visit?.priority === "high" ? "Prioritario" : "Normal";
+      const title = (priority === "Urgente" ? "URGENTE · " : priority === "Prioritario" ? "PRIORITARIO · " : "") + "Domicilio pendiente de aprobación";
+      const message = "Prioridad: " + priority + ".\\nTienes un nuevo domicilio asignado.\\nFecha y hora: " + when +
+        "\\nAbre FleboReport para aceptar o rechazar la asignación. Los datos del paciente, dirección y pruebas se mostrarán después de aceptar.";
+      const metadata = { assignment_id: assignment.id, event: "home_visit_assigned", priority: visit?.priority || "normal" };
 
       // Guardar primero el aviso dentro de FleboReport, aunque Push no esté configurado.
       const { data: existingInApp, error: inAppLookupError } = await admin.from("home_visit_notifications")
