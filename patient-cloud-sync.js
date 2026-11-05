@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const TABLE='patients';
-let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false;
+let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false,patientRefreshPending=false;
 const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
@@ -48,6 +48,24 @@ function saveList(list){
  if(before===after)return false;
  window.FleboAppState.replace({...s,patients:list},{silent:true,deferRender:true});return true;
 }
+function refreshPatientViews(){
+ const view=document.querySelector('.view.active');
+ if(!view)return;
+ const active=document.activeElement,focused=!!(active&&view.contains(active)&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName));
+ if(focused){patientRefreshPending=true;return}
+ if(view.id==='view-patients'){
+  const home=document.getElementById('patientsHome');
+  if(!home||home.hidden){patientRefreshPending=false;return}
+  if(typeof window.renderPatients==='function'){window.renderPatients();patientRefreshPending=false}
+ }else if(view.id==='view-journey'){
+  if(typeof window.renderJourneyPatients==='function'){window.renderJourneyPatients();patientRefreshPending=false}
+ }else if(view.id==='view-home'){
+  if(typeof window.refreshDashboard==='function'){window.refreshDashboard();patientRefreshPending=false}
+ }
+}
+function flushPatientRefresh(){if(patientRefreshPending)refreshPatientViews()}
+document.addEventListener('focusout',()=>setTimeout(flushPatientRefresh,0));
+window.addEventListener('flebo:local-state-saved',()=>setTimeout(flushPatientRefresh,0));
 async function syncNow(options){
  options=options||{};
  if(!ready||busy||!client||!workspaceId)return;
@@ -65,7 +83,7 @@ async function syncNow(options){
     pendingKeys.clear();initialized=true;
     return;
    }
-   if(saveList(remote)&&window.FleboAppState.refresh)window.FleboAppState.refresh();
+   if(saveList(remote))refreshPatientViews();
    lastContent=new Map(remote.map(p=>[keyOf(p),contentOf(p)]));
    pendingKeys.clear();initialized=true;
    return;
@@ -87,7 +105,7 @@ async function syncNow(options){
    lastContent=new Map(currentPatients.map(p=>[keyOf(p),contentOf(p)]));
    return;
   }
-  if(saveList(latest)&&window.FleboAppState.refresh)window.FleboAppState.refresh();
+  if(saveList(latest))refreshPatientViews();
   lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
