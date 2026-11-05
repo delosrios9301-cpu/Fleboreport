@@ -2393,4 +2393,56 @@ html,body{max-width:100%;overflow-x:hidden}
 #clinicalConfigList .clinical-config-row>.clinical-actions button{white-space:nowrap;flex:0 0 auto}
 @media(max-width:560px){#clinicalConfigList .clinical-config-row{align-items:stretch;flex-wrap:wrap}#clinicalConfigList .clinical-config-row>span:first-child{flex:1 1 100%;width:100%}#clinicalConfigList .clinical-config-row>.clinical-actions{width:auto!important;max-width:100%;margin-left:auto}}
 </style>
+
+<!-- FleboReport: escritorio ancho completo para registro y procesamiento clínico -->
+<style id="clinical-desktop-full-width-v1">
+@media (min-width:1101px){
+  html body .main>.content{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    padding-left:clamp(28px,2.4vw,48px)!important;
+    padding-right:clamp(28px,2.4vw,48px)!important;
+  }
+  html body .main>.content>#view-clinical-studies,
+  html body .main>.content>#view-clinical-processing{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+  }
+  #view-clinical-studies .clinical-layout,
+  #view-clinical-processing .clinical-layout,
+  #view-clinical-studies>.panel,
+  #view-clinical-processing>.panel,
+  #view-clinical-studies .clinical-history-disclosure,
+  #view-clinical-processing .clinical-history-disclosure{
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+  }
+  #view-clinical-studies .clinical-table-wrap,
+  #view-clinical-processing .clinical-table-wrap{
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  #view-clinical-studies .clinical-table,
+  #view-clinical-processing .clinical-table{
+    width:100%!important;
+    min-width:100%!important;
+    max-width:none!important;
+    table-layout:auto!important;
+  }
+  #view-clinical-studies .clinical-table th,
+  #view-clinical-processing .clinical-table th,
+  #view-clinical-studies .clinical-table td,
+  #view-clinical-processing .clinical-table td{
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+}
+</style>
+
 </body></html>
