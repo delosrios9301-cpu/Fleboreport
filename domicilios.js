@@ -269,13 +269,12 @@ function render(){
   const manager=['admin','clinician','reception'].includes(cloud.role);
   if(createPanel)createPanel.hidden=technician||!manager;
   if(kpis)kpis.hidden=technician;
-  if(detailPanel)detailPanel.hidden=technician;
   if(agendaPanel){const heading=agendaPanel.querySelector('h2');if(heading)heading.textContent=technician?'Mis domicilios':'Agenda y seguimiento';}
   if(calendarPanel){const heading=calendarPanel.querySelector('h2');if(heading)heading.textContent=technician?'Mi calendario':'Calendario de domicilios';}
   const q=($('hvSearch').value||'').toLowerCase(),date=$('hvFilterDate').value||'',st=$('hvFilterStatus').value||'';
   const matches=v=>(!q||(v.patientName+' '+v.id+' '+v.address+' '+v.assignedTo).toLowerCase().includes(q))&&(!date||v.scheduledDate===date)&&(!st||v.status===st);
   const historyStatuses=['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'];
-  const sortVisits=(a,b)=>a.scheduledDate.localeCompare(b.scheduledDate)||a.scheduledTime.localeCompare(b.scheduledTime)||String(b.createdAtDb||b.createdAt||'').localeCompare(String(a.createdAtDb||a.createdAt||''));
+  const sortVisits=(a,b)=>String(b.createdAtDb||b.createdAt||'').localeCompare(String(a.createdAtDb||a.createdAt||''))||a.scheduledDate.localeCompare(b.scheduledDate)||a.scheduledTime.localeCompare(b.scheduledTime);
   const activeList=visits.filter(v=>!historyStatuses.includes(v.status)&&matches(v)).sort(sortVisits);
   const historyList=visits.filter(v=>historyStatuses.includes(v.status)&&matches(v)).sort((a,b)=>b.scheduledDate.localeCompare(a.scheduledDate)||b.scheduledTime.localeCompare(a.scheduledTime));
   const todayList=visits.filter(v=>v.scheduledDate===today());
