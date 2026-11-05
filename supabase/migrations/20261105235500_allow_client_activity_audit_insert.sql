@@ -17,6 +17,3 @@ create policy audit_logs_client_activity_insert
         and m.active = true
     )
   );
-
-grant insert on public.audit_logs to authenticated;
-grant usage, select on sequence public.audit_logs_id_seq to authenticated;
