@@ -2382,4 +2382,14 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 <script src="./clinical-processing-simple.js?v=20261104-3"></script><script src="./clinical-catalog-persistence.js"></script>
+<style id="clinical-catalog-layout-stability-v1">
+/* Evita que las acciones compriman el nombre de la prueba hasta una letra por línea. */
+#clinicalConfigList .clinical-config-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0}
+#clinicalConfigList .clinical-config-row>span:first-child{display:block;flex:1 1 0%;min-width:0;width:auto;white-space:normal;word-break:normal;overflow-wrap:break-word}
+#clinicalConfigList .clinical-config-row>span:first-child strong{display:block;max-width:100%;white-space:normal;word-break:normal;overflow-wrap:break-word;line-height:1.35}
+#clinicalConfigList .clinical-config-row>span:first-child small{display:block;max-width:100%;white-space:normal;word-break:normal;overflow-wrap:anywhere;line-height:1.45}
+#clinicalConfigList .clinical-config-row>.clinical-actions{display:flex;flex:0 0 auto!important;width:auto!important;max-width:100%;min-width:0;align-items:center;justify-content:flex-end;gap:6px}
+#clinicalConfigList .clinical-config-row>.clinical-actions button{white-space:nowrap;flex:0 0 auto}
+@media(max-width:560px){#clinicalConfigList .clinical-config-row{align-items:stretch;flex-wrap:wrap}#clinicalConfigList .clinical-config-row>span:first-child{flex:1 1 100%;width:100%}#clinicalConfigList .clinical-config-row>.clinical-actions{width:auto!important;max-width:100%;margin-left:auto}}
+</style>
 </body></html>
