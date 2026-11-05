@@ -626,3 +626,11 @@ test('el aviso Push y el aviso del centro usan la misma etiqueta para evitar dup
   assert.match(domiciliosNotificationsFunction, /tag: notificationTag/);
   assert.match(notifications, /tag:'fleboreport-notif-'\+n\.id/);
 });
+
+
+test('los domicilios incompletos permiten restaurar las pruebas originales desde el catálogo', () => {
+  assert.match(domicilios, /const restoringOriginal=\(v\.tests\|\|\[\]\)\.length===0/);
+  assert.match(domicilios, /source:restoringOriginal\?'original':'adicional'/);
+  assert.match(domicilios, /Pruebas solicitadas restauradas desde el catálogo/);
+  assert.match(domicilios, /selected\.some\(\(t,i\)=>!t\|\|!asUuid\(ids\[i\]\)\)/);
+});
