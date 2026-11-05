@@ -4,6 +4,7 @@ const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
 let visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
+let pushRegistrationPromise=null;
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
 const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b,a]));
 const testToDb={'Pendiente':'pending','Tomada':'collected','No tomada':'not_collected'};
@@ -41,7 +42,28 @@ async function syncPushActivationUI(){
   button.disabled=false;button.textContent='Verificar activación';status.textContent='No se pudo comprobar el registro de este dispositivo.';
  }
 }
-async function registerPushIfPermitted(){window.hvPushLastError="";try{if(!cloud.ready||!cloud.client)throw new Error("La sesión con Supabase no está lista.");if(!("serviceWorker"in navigator)||!("PushManager"in window)||!window.isSecureContext||!("Notification"in window))throw new Error("El navegador no admite Push en este contexto.");if(Notification.permission!=="granted")throw new Error("El permiso de notificaciones no está concedido.");const reg=await navigator.serviceWorker.ready;const data=await invokeDomicileNotifications({action:"vapid-public"});if(!data?.configured||!data.publicKey){const d=data?.diagnostic||{};const details=(d.missing||[]).join(" ");throw new Error("Configuración VAPID incompleta. Pública: "+(d.publicKeyPresent?"detectada ("+d.publicKeyLength+" caracteres)":"no detectada")+". Privada: "+(d.privateKeyPresent?"detectada ("+d.privateKeyLength+" caracteres)":"no detectada")+". "+details+" Revisa los nombres y valores de los secretos en Supabase.");}let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64urlToBytes(data.publicKey)});const saved=await invokeDomicileNotifications({action:"subscribe",subscription:sub.toJSON(),user_agent:navigator.userAgent});if(!saved.ok)throw new Error(saved.error||"El servidor no confirmó la suscripción.");await syncPushActivationUI();return true}catch(e){window.hvPushLastError=e?.message||String(e);console.warn("Registro de Push:",window.hvPushLastError);return false;}}
+async function registerPushIfPermitted(){
+ if(pushRegistrationPromise)return pushRegistrationPromise;
+ pushRegistrationPromise=(async()=>{
+  window.hvPushLastError="";
+  try{
+   if(!cloud.ready||!cloud.client)throw new Error("La sesión con Supabase no está lista.");
+   if(!("serviceWorker"in navigator)||!("PushManager"in window)||!window.isSecureContext||!("Notification"in window))throw new Error("El navegador no admite Push en este contexto.");
+   if(Notification.permission!=="granted")throw new Error("El permiso de notificaciones no está concedido.");
+   const reg=await navigator.serviceWorker.ready;
+   const data=await invokeDomicileNotifications({action:"vapid-public"});
+   if(!data?.configured||!data.publicKey){const d=data?.diagnostic||{};const details=(d.missing||[]).join(" ");throw new Error("Configuración VAPID incompleta. Pública: "+(d.publicKeyPresent?"detectada ("+d.publicKeyLength+" caracteres)":"no detectada")+". Privada: "+(d.privateKeyPresent?"detectada ("+d.privateKeyLength+" caracteres)":"no detectada")+". "+details+" Revisa los nombres y valores de los secretos en Supabase.");}
+   let sub=await reg.pushManager.getSubscription();
+   if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64urlToBytes(data.publicKey)});
+   const saved=await invokeDomicileNotifications({action:"subscribe",subscription:sub.toJSON(),user_agent:navigator.userAgent});
+   if(!saved.ok)throw new Error(saved.error||"El servidor no confirmó la suscripción.");
+   await syncPushActivationUI();
+   return true;
+  }catch(e){window.hvPushLastError=e?.message||String(e);console.warn("Registro de Push:",window.hvPushLastError);return false;}
+ })();
+ try{return await pushRegistrationPromise}
+ finally{pushRegistrationPromise=null}
+}
 async function invokeDomicileNotifications(body){
  if(!cloud.client)throw new Error('La conexión con Supabase no está disponible.');
  const current=await cloud.client.auth.getSession();
