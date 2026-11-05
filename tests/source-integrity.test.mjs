@@ -767,6 +767,14 @@ test('la aceptación del flebotomista se confirma sin depender del guardado secu
 });
 
 
+test('el catálogo de domicilios se sincroniza con el catálogo maestro del administrador y desactiva pruebas obsoletas sin borrarlas', () => {
+  assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name&&x\.active!==false\)/);
+  assert.match(domicilios, /const obsolete=existingRows\.filter\(row=>row\.active!==false&&!masterCatalog\.some\(item=>matchesMaster\(row,item\)\)\)/);
+  assert.match(domicilios, /\.update\(\{active:false\}\)/);
+  assert.match(domicilios, /\.eq\('active',true\)/);
+  assert.match(domicilios, /const matchesMaster=/);
+});
+
 test('la revisión de muestras permite corregir pruebas desde el catálogo central antes de confirmar', () => {
   assert.match(domicilios, /id="hvCorrectionSearch"/);
   assert.match(domicilios, /data-correction-add/);
