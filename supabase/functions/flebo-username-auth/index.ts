@@ -49,11 +49,11 @@ Deno.serve(async(req:Request)=>{
     const rows=await mr.json();if(!mr.ok)throw new Error("No se pudo verificar la membresía.");
     if(!rows.length)return json({membership:null});
     const membership=rows.find((row:any)=>row.active===true)||rows[0];
-    const wr=await fetch(url+"/rest/v1/workspaces?select=name&id=eq."+encodeURIComponent(membership.workspace_id)+"&limit=1",{headers:adminHeaders});
+    const wr=await fetch(url+"/rest/v1/workspaces?select=name,owner_user_id&id=eq."+encodeURIComponent(membership.workspace_id)+"&limit=1",{headers:adminHeaders});
     if(!wr.ok)throw new Error("No se pudo recuperar el espacio de trabajo vinculado.");
     const workspaces=await wr.json();
     if(!workspaces.length)throw new Error("La vinculación existe, pero el espacio de trabajo no está disponible.");
-    return json({membership:{...membership,workspaces:workspaces[0]}});
+    return json({membership:{...membership,is_primary_admin:workspaces[0].owner_user_id===actor.id,workspaces:{name:workspaces[0].name}}});
    }
    const workspaceId=String(body.workspace_id||"");
    if(!workspaceId)return json({error:"Falta el espacio de trabajo."},400);
