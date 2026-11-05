@@ -86,7 +86,7 @@ async function ensureVisitAssignment(v){
  const assignment=latest.data||null;
  if(assignment&&assignment.assigned_user_id===prof.user_id&&assignment.professional_id===prof.id){
   v.assignmentId=assignment.id;v.assignmentStatus=assignment.status;v.assignedProfessionalId=prof.id;
-  if(assignment.status==='invited')v.notificationStatus='La invitación ya está registrada en el centro de notificaciones.';
+  if(assignment.status==='invited'){v.notificationStatus='La invitación está registrada. Verificando entrega al dispositivo…';await dispatchNotice(assignment.id);}
   else if(assignment.status==='rejected')v.notificationStatus='El flebotomista rechazó esta asignación. Selecciona otra persona para continuar.';
   return;
  }
