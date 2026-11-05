@@ -548,7 +548,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v223'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v224'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -772,17 +772,29 @@ test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vi
 
 
 test('la sincronización consulta primero la revisión y solo descarga el estado completo si hay cambios o conflicto', () => {
-  assert.match(cloudSync, /async function fetchRemoteMeta\(\)[\\s\\S]*?select\('revision,updated_at,reset_epoch'\)/);
-  assert.match(cloudSync, /const remoteMeta=await fetchRemoteMeta\(\);if\(!remoteMeta\)return;[\\s\\S]*?if\(remoteMeta\.revision<=revision\)return;[\\s\\S]*?const remote=await fetchRemote\(\)/);
-  assert.match(cloudSync, /Solo ante un conflicto se descarga el estado completo/);
-  assert.match(cloudSync, /async function syncLocal\(\)[\\s\\S]*?const remoteMeta=await fetchRemoteMeta\(\)/);
+  assert.ok(cloudSync.includes("async function fetchRemoteMeta(){"));
+  assert.ok(cloudSync.includes("select('revision,updated_at,reset_epoch')"));
+  const receiveStart=cloudSync.indexOf('async function receiveRemote(){');
+  const receiveEnd=cloudSync.indexOf('async function syncLocal(){',receiveStart);
+  const receive=cloudSync.slice(receiveStart,receiveEnd);
+  assert.ok(receive.indexOf('if(remoteMeta.revision<=revision)return;') < receive.indexOf('const remote=await fetchRemote()'));
+  assert.ok(cloudSync.includes('Solo ante un conflicto se descarga el estado completo'));
+  const syncStart=cloudSync.indexOf('async function syncLocal(){');
+  const syncEnd=cloudSync.indexOf('function schedule(){',syncStart);
+  assert.ok(cloudSync.slice(syncStart,syncEnd).includes('const remoteMeta=await fetchRemoteMeta()'));
 });
 
 test('rechazar una invitación no intenta registrar un evento de domicilio aceptado', () => {
-  const responseBranch=domicilios.slice(domicilios.indexOf('if(technicianResponse){'),domicilios.indexOf('const saved=',domicilios.indexOf('if(technicianResponse){')));
-  assert.match(responseBranch, /if\(response\.data\.status==='accepted'\)\{[\\s\\S]*?home_visit_events'\)\.insert/);
-  assert.doesNotMatch(responseBranch, /if\(technicianResponse\)[\\s\\S]*?home_visit_events'\)\.insert/);
-  assert.match(responseBranch, /Una invitación rechazada queda registrada en home_visit_assignments/);
+  const branchStart=domicilios.indexOf('if(technicianResponse){');
+  const branchEnd=domicilios.indexOf('const saved=',branchStart);
+  const responseBranch=domicilios.slice(branchStart,branchEnd);
+  const acceptedStart=responseBranch.indexOf("if(response.data.status==='accepted'){");
+  const rejectComment=responseBranch.indexOf('// Una invitación rechazada queda registrada');
+  const acceptedOnly=responseBranch.slice(acceptedStart,rejectComment);
+  assert.ok(acceptedStart>=0 && rejectComment>acceptedStart);
+  assert.ok(acceptedOnly.includes("home_visit_events').insert"));
+  assert.ok(!responseBranch.slice(rejectComment).includes("home_visit_events').insert"));
+  assert.ok(responseBranch.includes('Una invitación rechazada queda registrada en home_visit_assignments'));
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
