@@ -144,7 +144,7 @@ async function loadCloudVisits(){
  const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).limit(5000);
  if(error)throw error;persistedEventIds.clear();(data||[]).forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=(data||[]).map(dbVisit);if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
  for(const v of visits){if(!v.assignmentId&&v.status==='Pendiente de aceptación'&&v.assignedTo){try{await ensureVisitAssignment(v)}catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}}}
- if(!visits.some(v=>v.id===selected))selected='';if($('hvRows'))render();
+ const requestedVisit=new URLSearchParams(location.search).get('visit');if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;history.replaceState({},'',location.pathname+'?view=domicilios');}else if(!visits.some(v=>v.id===selected))selected='';if($('hvRows')){render();if(requestedVisit){setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}}
 }
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
@@ -506,7 +506,7 @@ function bindProfessionalPicker(){
 }
 
 function dismissInvitation(id){dismissedInvitationId=id;render()}function reopenInvitation(id){dismissedInvitationId='';selected=id;render()}window.hvDismissInvitation=dismissInvitation;window.hvReopenInvitation=reopenInvitation;
-window.hvCreate=create;window.hvAddAdditionalPatient=addAdditionalPatient;window.hvReviewAdditionalPatient=reviewAdditionalPatient;window.hvReset=reset;window.hvStatus=changeStatus;window.hvAddTests=addTests;window.hvTestStatus=testStatus;window.hvToggleTest=toggleTest;window.hvSelect=id=>{selected=id;moreTestSelection=[];render()};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
+window.hvCreate=create;window.hvAddAdditionalPatient=addAdditionalPatient;window.hvReviewAdditionalPatient=reviewAdditionalPatient;window.hvReset=reset;window.hvStatus=changeStatus;window.hvAddTests=addTests;window.hvTestStatus=testStatus;window.hvToggleTest=toggleTest;window.hvSelect=id=>{selected=id;moreTestSelection=[];render()};window.hvOpenNotificationVisit=id=>{const visit=visits.find(v=>v.id===id);if(!visit)return;selected=id;render();setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
 async function activatePush(){
  const button=$('hvActivatePush'),status=$('hvPushStatus');
  const set=(message,error=false)=>{if(status){status.textContent=message;status.style.color=error?'#a33e47':'#557184'}};
