@@ -539,7 +539,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v218'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v219'/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
 });
 
