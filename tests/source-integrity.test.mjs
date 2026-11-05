@@ -855,3 +855,17 @@ test('las políticas RLS de sincronización y domicilios evalúan auth.uid una s
   assert.match(rlsPerformanceMigration, /\(select auth\.uid\(\)\)/i);
   assert.doesNotMatch(rlsPerformanceMigration, /(?:=|,)\s*auth\.uid\(\)/i);
 });
+
+test('Domicilios separa agenda, historial, calendario y creación con detalle junto a la lista', () => {
+  assert.match(domicilios, /data-hv-tab="agenda"/);
+  assert.match(domicilios, /data-hv-tab="history"/);
+  assert.match(domicilios, /data-hv-tab="calendar"/);
+  assert.match(domicilios, /data-hv-tab="create"/);
+  assert.match(domicilios, /id="hvHistoryPanel"/);
+  assert.match(domicilios, /id="hvHistoryRows"/);
+  assert.doesNotMatch(domicilios, /id="hvAgendaPanel"[\s\S]{0,2500}hvHistoryDetails/);
+  assert.match(domicilios, /#hvWorkspace>\.hv-detail-panel\{grid-column:2/);
+  assert.match(domicilios, /if\(agendaPanel\)agendaPanel\.hidden=activeTab!=='agenda'/);
+  assert.match(domicilios, /selected=v\.id;activeTab='agenda';reset\(\);render\(\)/);
+  assert.match(domicilios, /function calendarVisit\(id\)\{selected=id;activeTab='agenda';render\(\)\}/);
+});
