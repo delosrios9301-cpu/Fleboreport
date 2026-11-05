@@ -708,3 +708,9 @@ test('los resultados del catálogo de domicilios mantienen el texto horizontal e
   assert.match(domicilios, /writing-mode:horizontal-tb/);
   assert.match(domicilios, /\.hv-review-correction \.hv-test-result b/);
 });
+
+
+test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vista de campo', () => {
+  assert.match(domicilios, /if\(next==='Aceptado'\)\{dismissedInvitationId=id;v\.status='Aceptado';v\.assignmentStatus='accepted';selected=id;\}render\(\)/);
+  assert.match(domicilios, /const locked=v\.status==='Pendiente de aceptación'&&v\.assignmentStatus!=='accepted'/);
+});
