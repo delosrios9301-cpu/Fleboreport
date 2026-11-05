@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-const PAGE=50, MAX_EXPORT=10000;
+const PAGE=50, MAX_EXPORT=20000;
 let client=null, workspaceId=null, rows=[], total=0, page=0, busy=false, sites=[];
 const $=id=>document.getElementById(id);
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
