@@ -528,13 +528,14 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
   assert.match(clinicalCloudSync, /function clinicalUiIsBusy\(\)/);
   assert.match(clinicalCloudSync, /clinicalProcessingModal/);
+  assert.match(clinicalCloudSync, /config&&!config\.closest\('\[hidden\]'\)/);
   assert.match(clinicalCloudSync, /function refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /pendingClinicalRefresh/);
   assert.match(clinicalCloudSync, /document\.addEventListener\('focusout'/);
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v216'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v217'/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
 });
 
