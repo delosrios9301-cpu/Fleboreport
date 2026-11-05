@@ -111,7 +111,19 @@ async function ensureVisitAssignment(v){
  }
  const assignmentId=makeId();
  const ins=await c.from('home_visit_assignments').insert({id:assignmentId,workspace_id:w,home_visit_id:v.id,professional_id:prof.id,assigned_user_id:prof.user_id,status:'invited',created_by:u});
- if(ins.error)throw ins.error;
+ if(ins.error){
+  if(ins.error.code==='23505'){
+   const concurrent=await c.from('home_visit_assignments').select('id,status,professional_id,assigned_user_id').eq('workspace_id',w).eq('home_visit_id',v.id).order('assigned_at',{ascending:false}).limit(1).maybeSingle();
+   if(concurrent.error)throw concurrent.error;
+   if(concurrent.data&&concurrent.data.assigned_user_id===prof.user_id&&concurrent.data.professional_id===prof.id){
+    v.assignmentId=concurrent.data.id;v.assignmentStatus=concurrent.data.status;v.assignedProfessionalId=prof.id;
+    if(concurrent.data.status==='invited')await dispatchNotice(concurrent.data.id);
+    return;
+   }
+   throw new Error('Este domicilio ya tiene una asignación activa. Actualiza la agenda antes de asignarlo nuevamente.');
+  }
+  throw ins.error;
+ }
  v.assignmentId=assignmentId;v.assignmentStatus='invited';v.assignedProfessionalId=prof.id;v.assignedTo=prof.name||v.assignedTo;
  await dispatchNotice(assignmentId);
 }
@@ -221,7 +233,7 @@ async function persistVisit(v){
     serviceId=asUuid(service?.id)||null;
     if(!serviceId)throw new Error('La prueba adicional '+t.name+' no existe activa en el catálogo maestro. Selecciona una prueba de la lista de coincidencias.');
    }
-   testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:t.addedById||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||serviceFields(t)});
+   testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:asUuid(t.addedById)||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||serviceFields(t)});
   }
   if(testRows.length){if(technician){for(const tr of testRows){const upd=await c.from('home_visit_tests').update({status:tr.status,notes:tr.notes,catalog_snapshot:tr.catalog_snapshot}).eq('id',tr.id).eq('workspace_id',w).select('id').maybeSingle();if(upd.error)throw upd.error;if(!upd.data&&tr.source==='additional'){const ins=await c.from('home_visit_tests').insert(tr);if(ins.error)throw ins.error}else if(!upd.data)throw new Error('No se pudo actualizar la prueba '+tr.test_name+'.')}}else{const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}}
  }
