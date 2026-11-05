@@ -530,3 +530,12 @@ test('el listado del catálogo clínico conserva el ancho del nombre y separa la
   assert.match(html, /#clinicalConfigList \.clinical-config-row>\.clinical-actions\{[^}]*width:auto!important/);
   assert.match(html, /word-break:normal/);
 });
+
+const homeVisitAssigneeResponseMigration = await readFile(new URL('../supabase/migrations/20261105010000_allow_assigned_technician_to_respond_home_visit_invitation.sql', import.meta.url), 'utf8');
+
+test('el flebotomista asignado puede aceptar o rechazar su invitación sin permiso general de edición', () => {
+  assert.match(homeVisitAssigneeResponseMigration, /create policy home_visit_assignments_permission_update_scope[\\s\\S]*?as restrictive[\\s\\S]*?for update/i);
+  assert.match(homeVisitAssigneeResponseMigration, /is_current_home_visit_assignee\\([\\s\\S]*?array\\['invited'::text\\]/i);
+  assert.match(homeVisitAssigneeResponseMigration, /status in \\('accepted', 'rejected'\\)/i);
+  assert.match(domicilios, /\\.eq\\('assigned_user_id',u\\)\\.eq\\('status','invited'\\)/);
+});
