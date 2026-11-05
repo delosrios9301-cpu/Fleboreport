@@ -195,7 +195,8 @@ async function persistVisit(v){
  }
  const eventRows=(staffReassignment?[]:(v.events||[])).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>{
   const transition=(e.detail||'').match(/([^→]+)→\s*([^·]+)/);
-  return{id:e.id,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:transition?.[1]?.trim()||null,to_status:transition?.[2]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}};
+  const eventId=asUuid(e.id)||crypto.randomUUID();e.id=eventId;
+  return{id:eventId,workspace_id:w,home_visit_id:v.id,event_type:e.action||'Actualización',from_status:transition?.[1]?.trim()||null,to_status:transition?.[2]?.trim()||null,description:e.detail||null,actor_user_id:u,metadata:{by:e.by||''}};
  });
  if(eventRows.length){const er=await c.from('home_visit_events').insert(eventRows);if(er.error)throw er.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
  const latestEvent=(v.events||[])[0];
