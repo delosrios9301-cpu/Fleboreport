@@ -306,7 +306,7 @@ async function syncLocal(){
    const result=await writeRemote(local,revision);
    if(!result.saved){
     // Solo ante un conflicto se descarga el estado completo para fusionar cambios de otro dispositivo.
-    const latest=await fetchRemote();if(!latest)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
+    const latest=await fetchRemote();if(!latest)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');await persistLegacyAuditEvents(latest.state&&latest.state.auditLog||[]);
     if(latest.reset_epoch&&(latest.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,latest.reset_epoch);applyCloudState(latest.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,latest.revision,latest.reset_epoch);return;}
     const merged=mergeState(latest.state,local),retry=await writeRemote(merged,latest.revision);
     if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
