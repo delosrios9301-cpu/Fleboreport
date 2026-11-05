@@ -225,7 +225,8 @@ test('las bandejas separan la revisión clínica del procesamiento y confirman t
   assert.match(html, /\['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'\]/);
   assert.match(html, /\['REGISTRADO','EN_REVISION'\]/);
   assert.match(html, /transitionResult\.ok!==true\|\|transitionResult\.status!==next/);
-  assert.match(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
+  assert.match(html, /refreshSamples\(\)\.catch\(function\(e\)/);
+  assert.match(clinicalCloudSync, /refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)[\s\S]*?return true/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?requireReady\(\['admin','clinician','technician','reception'\]\)[\s\S]*?loadRemoteSamples\(\)[\s\S]*?return true/);
   assert.match(clinicalCloudSync, /data\.status!==next/);
