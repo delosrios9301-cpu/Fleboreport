@@ -548,7 +548,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v222'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v223'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -620,6 +620,14 @@ test('el catálogo local no intenta reinsertar pruebas que ya existen por códig
   assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
 });
 
+
+test('los cambios de estado no reportan falso error por notificaciones y agrupan recargas realtime', () => {
+  assert.match(domicilios, /invokeDomicileNotifications\(\{action:'status-update'[\s\S]*?\.catch\(error=>console\.warn/);
+  assert.doesNotMatch(domicilios, /if\(notice\.error\)console\.warn\('No se pudo notificar el cambio de domicilio'/);
+  assert.match(domicilios, /function scheduleCloudVisitsRefresh\(\)/);
+  assert.match(domicilios, /cloudRefreshTimer=setTimeout/);
+  assert.match(domicilios, /\(\)=>scheduleCloudVisitsRefresh\(\)/);
+});
 
 test('las prioridades de domicilio son obligatorias, se ordenan y aparecen en invitaciones y notificaciones', () => {
   assert.match(domicilios, /id="hvPriority" required/);
