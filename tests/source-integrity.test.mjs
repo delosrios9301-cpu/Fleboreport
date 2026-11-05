@@ -879,3 +879,13 @@ test('el modal de seguimiento de domicilios evita repintar toda la pantalla en e
   assert.match(domicilios, /body > \.hv-detail-backdrop/);
   assert.doesNotMatch(domicilios, /\.hv-detail-backdrop\\{[^}]*backdrop-filter/);
 });
+
+
+test('el historial de domicilios permite buscar por cédula o nombre, filtrar por fecha y abrir el detalle modal', () => {
+  assert.match(domicilios, /id="hvHistorySearch"/);
+  assert.match(domicilios, /id="hvHistoryDate"/);
+  assert.match(domicilios, /v\.document/);
+  assert.match(domicilios, /historyStatuses\.includes\(v\.status\)&&historyMatches\(v\)/);
+  assert.match(domicilios, /\['agenda','history'\]\.includes\(activeTab\)/);
+  assert.match(domicilios, /hvHistorySearch','hvHistoryDate/);
+});
