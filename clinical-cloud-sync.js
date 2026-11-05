@@ -1,9 +1,10 @@
 (function(){
 'use strict';
-let client=null,workspaceId=null,userId=null,role=null,ready=false,busy=false,syncPromise=null;
+let client=null,workspaceId=null,userId=null,role=null,ready=false,busy=false,syncPromise=null,activeClinicalMutations=0;
 const app=()=>window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null;
 let pendingClinicalRefresh=false;
 function clinicalUiIsBusy(){
+ if(activeClinicalMutations>0)return true;
  const active=document.activeElement;
  if(active&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName))return true;
  if(document.getElementById('clinicalProcessingModal'))return true;
@@ -30,9 +31,20 @@ function refreshClinicalViewSafely(){
 function flushPendingClinicalRefresh(){if(pendingClinicalRefresh)refreshClinicalViewSafely()}
 document.addEventListener('focusout',()=>setTimeout(flushPendingClinicalRefresh,0));
 window.addEventListener('flebo:local-state-saved',()=>setTimeout(flushPendingClinicalRefresh,0));
+window.addEventListener('flebo:clinical-operation-idle',()=>setTimeout(flushPendingClinicalRefresh,0));
 const uid=()=>window.crypto&&crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 const fail=e=>{throw new Error(e&&e.message?e.message:String(e||'Error de sincronización clínica'))};
 const actorName=()=>{const u=window.FleboAuth&&window.FleboAuth.user,m=u&&u.user_metadata||{};return String(m.display_name||m.name||(u&&u.email?u.email.split('@')[0]:'')||'Usuario autenticado').trim()};
+function trackClinicalMutation(fn){
+ return async function(...args){
+  activeClinicalMutations++;
+  try{return await fn.apply(this,args)}
+  finally{
+   activeClinicalMutations=Math.max(0,activeClinicalMutations-1);
+   if(activeClinicalMutations===0)window.dispatchEvent(new Event('flebo:clinical-operation-idle'));
+  }
+ };
+}
 async function connect(){
  try{
   if(!window.FleboAuth)return;
@@ -337,7 +349,7 @@ async function syncStorageConfiguration(){
  return true;
 }
 async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();refreshClinicalViewSafely();return true}
-window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,saveAliquots,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration:trackClinicalMutation(saveConfiguration),syncStorageConfiguration:trackClinicalMutation(syncStorageConfiguration),refreshSamples,registerSample:trackClinicalMutation(registerSample),deleteSample:trackClinicalMutation(deleteSample),transition:trackClinicalMutation(transition),saveAliquots:trackClinicalMutation(saveAliquots),registerCryovial:trackClinicalMutation(registerCryovial),moveCryovial:trackClinicalMutation(moveCryovial),get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
 function boot(){connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})})}
