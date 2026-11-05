@@ -210,7 +210,7 @@ test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borr
   assert.doesNotThrow(() => new Function(clinicalCloudSync), 'clinical-cloud-sync.js debe tener sintaxis válida');
   assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)/);
   assert.match(clinicalCloudSync, /\.is\('deleted_at',null\)/);
-  assert.match(clinicalCloudSync, /deleteSample,transition/);
+  assert.match(clinicalCloudSync, /deleteSample:trackClinicalMutation\(deleteSample\),transition:trackClinicalMutation\(transition\)/);
   assert.match(html, /async function deleteClinicalSample\(id\)/);
   assert.match(html, /Eliminar (?:registro|muestra|sujeto)|Quitar local/);
   assert.match(clinicalDeleteMigration, /create or replace function public\.delete_clinical_sample/i);
