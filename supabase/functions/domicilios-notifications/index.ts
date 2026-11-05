@@ -65,6 +65,12 @@ Deno.serve(async (req: Request) => {
     if (action === "subscribe") {
       const sub = body.subscription || {};
       if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) return reply({ error: "Suscripción Push incompleta" }, 400);
+      // Un endpoint del navegador pertenece a una sola cuenta activa. Si el dispositivo
+      // cambió de usuario, desactivar su vínculo anterior antes de reasignarlo.
+      const { error: previousOwnerError } = await admin.from("home_visit_push_subscriptions")
+        .update({ active: false, updated_at: new Date().toISOString() })
+        .eq("endpoint", sub.endpoint).neq("user_id", user.id).eq("active", true);
+      if (previousOwnerError) throw previousOwnerError;
       const { error } = await admin.from("home_visit_push_subscriptions").upsert({
         workspace_id: membership.workspace_id, user_id: user.id, endpoint: sub.endpoint,
         p256dh: sub.keys.p256dh, auth_secret: sub.keys.auth,
