@@ -510,14 +510,31 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
 });
 
 
-test('la sincronización no borra ni vuelve a dibujar toda la pantalla durante la carga', () => {
+test('la sincronización de fondo evita el repintado global y protege formularios y selecciones', () => {
   assert.match(html, /refresh:function\(\)[\s\S]*?replace:function\(next,options\)[\s\S]*?if\(!options\.deferRender\)this\.refresh\(\)/);
-  assert.match(clinicalCloudSync, /\{silent:true,deferRender:true\}/);
-  assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?window\.FleboAppState\.refresh\(\)/);
-  assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?window\.FleboAppState\.refresh\(\)/);
+  assert.match(html, /if\(view==='patients'\)renderPatients\(\)/);
+  assert.match(html, /if\(view==='journey'\)renderJourneyPatients\(\)/);
+  assert.doesNotMatch(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
+  assert.match(cloudSync, /replace\(safe,\{silent:true,deferRender:true\}\)/);
+  assert.doesNotMatch(cloudSync, /FleboAppState\.refresh\(\)/);
   assert.match(patientCloudSync, /replace\(\{\.\.\.s,patients:list\},\{silent:true,deferRender:true\}\)/);
+  assert.match(patientCloudSync, /function refreshPatientViews\(\)/);
+  assert.match(patientCloudSync, /view\.id==='view-patients'[\s\S]*?patientsHome[\s\S]*?renderPatients\(\)/);
+  assert.match(patientCloudSync, /view\.id==='view-journey'[\s\S]*?renderJourneyPatients\(\)/);
+  assert.match(patientCloudSync, /document\.addEventListener\('focusout'/);
+  assert.doesNotMatch(patientCloudSync, /FleboAppState\.refresh\(\)/);
   assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?saveList\(remote\)/);
   assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
+  assert.match(clinicalCloudSync, /function clinicalUiIsBusy\(\)/);
+  assert.match(clinicalCloudSync, /clinicalProcessingModal/);
+  assert.match(clinicalCloudSync, /function refreshClinicalViewSafely\(\)/);
+  assert.match(clinicalCloudSync, /pendingClinicalRefresh/);
+  assert.match(clinicalCloudSync, /document\.addEventListener\('focusout'/);
+  assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
+  assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
+  assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v216'/);
+  assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
 });
 
 // Processing aliquots are captured in the processing-start modal and saved
