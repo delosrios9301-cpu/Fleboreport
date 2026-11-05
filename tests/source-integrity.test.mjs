@@ -104,6 +104,9 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
   assert.match(domicilios, /if\(cloud\.role==='technician'\)return technicianFieldScreen\(v\)/);
+  assert.match(domicilios, /id="hvTestPush"/);
+  assert.match(domicilios, /invokeDomicileNotifications\(\{action:'test-push'\}\)/);
+  assert.match(domicilios, /testPushInBackground/);
 
 });
 
