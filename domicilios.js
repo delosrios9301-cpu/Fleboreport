@@ -232,16 +232,20 @@ async function persistVisit(v){
   if(!response.data)throw new Error('No se confirmó la respuesta. Esta invitación ya fue respondida o no pertenece a tu cuenta.');
   v.assignmentStatus=response.data.status;
   if(technicianResponse){
-   if(response.data.status==='accepted')v.status='Aceptado';
-   const acceptanceEvent=(v.events||[])[0];
-   if(acceptanceEvent){
-    const eventId=asUuid(acceptanceEvent.id)||crypto.randomUUID();
-    try{
-     const eventResult=await c.from('home_visit_events').insert({id:eventId,workspace_id:w,home_visit_id:v.id,event_type:'Domicilio aceptado',from_status:'pending_acceptance',to_status:'accepted',description:'El flebotomista confirmó que realizará el domicilio.',actor_user_id:u,metadata:{by:actor()}});
-     if(eventResult.error)console.warn('[Domicilios] La aceptación se guardó, pero no se pudo registrar el evento:',eventResult.error.message||eventResult.error);
-    }catch(eventError){console.warn('[Domicilios] La aceptación se guardó; falló el registro secundario del evento:',eventError?.message||eventError)}
+   if(response.data.status==='accepted'){
+    v.status='Aceptado';
+    const acceptanceEvent=(v.events||[])[0];
+    if(acceptanceEvent){
+     const eventId=asUuid(acceptanceEvent.id)||crypto.randomUUID();
+     try{
+      const eventResult=await c.from('home_visit_events').insert({id:eventId,workspace_id:w,home_visit_id:v.id,event_type:'Domicilio aceptado',from_status:'pending_acceptance',to_status:'accepted',description:'El flebotomista confirmó que realizará el domicilio.',actor_user_id:u,metadata:{by:actor()}});
+      if(eventResult.error)console.warn('[Domicilios] La aceptación se guardó, pero no se pudo registrar el evento:',eventResult.error.message||eventResult.error);
+     }catch(eventError){console.warn('[Domicilios] La aceptación se guardó; falló el registro secundario del evento:',eventError?.message||eventError)}
+    }
    }
-   try{await loadCloudVisits()}catch(refreshError){console.warn('[Domicilios] La aceptación quedó guardada; no se pudo refrescar la agenda:',refreshError?.message||refreshError)}
+   // Una invitación rechazada queda registrada en home_visit_assignments.
+   // No debe intentar insertar un evento de aceptación para una asignación rechazada.
+   try{await loadCloudVisits()}catch(refreshError){console.warn('[Domicilios] La respuesta quedó guardada; no se pudo refrescar la agenda:',refreshError?.message||refreshError)}
    return;
   }
  }
