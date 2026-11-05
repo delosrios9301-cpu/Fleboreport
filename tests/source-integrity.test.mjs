@@ -596,7 +596,7 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
 
 test('la revisión de muestras informa cuando una visita no tiene pruebas guardadas', () => {
   assert.match(domicilios, /No hay pruebas registradas/);
-  assert.match(domicilios, /No es posible confirmar muestras sin una lista de pruebas guardada/);
+  assert.match(domicilios, /no es posible confirmar muestras sin una lista de pruebas guardada/i);
   assert.match(domicilios, /Solicita a Coordinación que revise este domicilio/);
 });
 
@@ -610,4 +610,12 @@ test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () =
 test('un flebotomista que rechaza la invitación no puede ver los datos del paciente', () => {
   assert.match(domicilios, /v\.assignmentStatus==='rejected'\|\|v\.status==='Rechazado'/);
   assert.match(domicilios, /La información del paciente permanece protegida/);
+});
+
+
+test('el servicio Push reintenta invitaciones fallidas y no repite las ya entregadas', () => {
+  assert.match(domiciliosNotificationsFunction, /pushAlreadySent/);
+  assert.match(domiciliosNotificationsFunction, /!pushAlreadySent && publicVapid && privateVapid/);
+  assert.match(domiciliosNotificationsFunction, /!pushAlreadySent && pushStatus === "sent"/);
+  assert.match(domicilios, /if\(assignment\.status==='invited'\)[\s\S]*?dispatchNotice\(assignment\.id\)/);
 });
