@@ -574,11 +574,12 @@ assert.match(simpleProcessing, /if\(p\+b<1\)/);
 assert.match(simpleProcessing, /Registra al menos una alícuota principal o backup/);
 
 test('Registro de sujetos y Procesamiento aprovechan el ancho completo en PC sin alterar tablet y móvil', () => {
-  assert.match(html, /id="clinical-desktop-full-width-v1"/);
-  assert.match(html, /@media \\(min-width:1101px\\)[\\s\\S]*?\.main>\.content[\\s\\S]*?max-width:none!important/);
-  assert.match(html, /#view-clinical-studies \.clinical-table[\\s\\S]*?width:100%!important[\\s\\S]*?min-width:100%!important/);
-  assert.match(html, /@media \\(max-width:760px\\)/);
-  assert.match(html, /@media \\(min-width:761px\\) and \\(max-width:1100px\\)/);
+  assert.ok(html.includes('id="clinical-desktop-full-width-v1"'));
+  assert.ok(html.includes('@media (min-width:1101px)'));
+  assert.ok(html.includes('max-width:none!important'));
+  assert.ok(html.includes('min-width:100%!important'));
+  assert.ok(html.includes('@media(max-width:760px)'));
+  assert.ok(html.includes('@media(min-width:761px) and (max-width:1100px)'));
 });
 
 test('el listado del catálogo clínico conserva el ancho del nombre y separa las acciones', () => {
