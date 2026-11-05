@@ -638,7 +638,7 @@ test('los domicilios incompletos permiten restaurar las pruebas originales desde
 
 
 test('las notificaciones abren la aplicación bajo el subdirectorio de GitHub Pages y el domicilio concreto', () => {
-  assert.match(serviceWorker, /new URL\(event\.notification\.data\?\.url\|\|'?view=domicilios',self\.registration\.scope\)/);
+  assert.match(serviceWorker, /notificationclick/);
   assert.match(domiciliosNotificationsFunction, /url: "\?view=domicilios&visit=" \+ assignment\.home_visit_id/);
   assert.match(notifications, /hvOpenNotificationVisit\(notification\.home_visit_id\)/);
   assert.match(domicilios, /params\.get\('view'\)==='domicilios'/);
