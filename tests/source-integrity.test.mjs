@@ -571,7 +571,7 @@ test('las asignaciones de domicilios normalizan el VAPID subject y notifican com
 });
 
 test('el alta de domicilios solo usa pruebas UUID del catálogo central', () => {
-  assert.match(domicilios, /const catalog\(\)=>remoteCatalog/);
+  assert.match(domicilios, /const catalog=\(\)=>remoteCatalog/);
   assert.match(domicilios, /const selectedTests=ids\.map\(id=>remoteCatalog\.find\(x=>x\.id===id\)\)/);
   assert.match(domicilios, /!item\|\|!asUuid\(ids\[i\]\)/);
   assert.match(domicilios, /createBusy=true/);
@@ -604,4 +604,10 @@ test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () =
   assert.match(domicilios, /const normalizedTestId=asUuid\(t\.id\)\|\|crypto\.randomUUID\(\)/);
   assert.match(domicilios, /let serviceId=asUuid\(t\.serviceId\|\|t\.testId\)\|\|null/);
   assert.match(domicilios, /const eventId=asUuid\(e\.id\)\|\|crypto\.randomUUID\(\)/);
+});
+
+
+test('un flebotomista que rechaza la invitación no puede ver los datos del paciente', () => {
+  assert.match(domicilios, /v\.assignmentStatus==='rejected'\|\|v\.status==='Rechazado'/);
+  assert.match(domicilios, /La información del paciente permanece protegida/);
 });
