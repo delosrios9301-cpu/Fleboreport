@@ -276,15 +276,28 @@ async function persistVisit(v){
  if(eventRows.length){const er=await c.from('home_visit_events').insert(eventRows);if(er.error)throw er.error;eventRows.forEach(e=>persistedEventIds.add(e.id))}
  const latestEvent=(v.events||[])[0];
  if(latestEvent&&eventRows.length){
-  await invokeDomicileNotifications({action:'status-update',visit_id:v.id,event_type:latestEvent.action,description:latestEvent.detail||'',status:v.status});
-  if(notice.error)console.warn('No se pudo notificar el cambio de domicilio:',notice.error.message||notice.error);
+  // La notificación es secundaria: no debe convertir un cambio ya guardado en un falso error.
+  invokeDomicileNotifications({action:'status-update',visit_id:v.id,event_type:latestEvent.action,description:latestEvent.detail||'',status:v.status})
+   .then(result=>{if(!result?.ok)console.warn('[Domicilios] El cambio se guardó, pero el aviso no fue confirmado:',result)})
+   .catch(error=>console.warn('[Domicilios] El cambio se guardó; falló el aviso:',error?.message||error));
  }
- if(v.status!=='Cancelado'&&v.assignedTo&&['admin','clinician','reception'].includes(cloud.role))await ensureVisitAssignment(v);
+ if(v.status!=='Cancelado'&&v.assignedTo&&['admin','clinician','reception'].includes(cloud.role)&&(!v.assignmentId||staffReassignment))await ensureVisitAssignment(v);
 }
 async function save(v){
  if(!cloud.ready||!cloud.client){say('No se guardó: inicia sesión y conecta el laboratorio a Supabase.');return false}
  try{await persistVisit(v);const n=$('hvConnectionNotice');if(n)n.style.display='none';return true}
  catch(e){cloudNotice('Error al guardar en Supabase: '+(e.message||'Error desconocido')+'. El cambio no se confirmó.',true);say('No se pudo guardar el cambio: '+(e.message||'Error desconocido'));return false}
+}
+let cloudRefreshTimer=null,cloudRefreshRunning=false,cloudRefreshAgain=false;
+function scheduleCloudVisitsRefresh(){
+ if(cloudRefreshTimer)clearTimeout(cloudRefreshTimer);
+ cloudRefreshTimer=setTimeout(async()=>{
+  cloudRefreshTimer=null;
+  if(cloudRefreshRunning){cloudRefreshAgain=true;return;}
+  cloudRefreshRunning=true;
+  try{await loadCloudVisits()}catch(error){cloudNotice(error?.message||'No se pudo actualizar la agenda.',true)}
+  finally{cloudRefreshRunning=false;if(cloudRefreshAgain){cloudRefreshAgain=false;scheduleCloudVisitsRefresh()}}
+ },250);
 }
 async function connectCloud(){
  if(cloud.loading)return;cloud.loading=true;
@@ -297,10 +310,10 @@ async function connectCloud(){
   cloud.workspaceId=membership.workspace_id;cloud.role=membership.role;await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
   if(cloud.channel)c.removeChannel(cloud.channel);
   cloud.channel=c.channel('fleboreport-home-'+cloud.workspaceId)
-   .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>loadCloudVisits().catch(e=>cloudNotice(e.message,true)))
-   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_tests',filter:'workspace_id=eq.'+cloud.workspaceId},()=>loadCloudVisits().catch(e=>cloudNotice(e.message,true)))
-   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_assignments',filter:'workspace_id=eq.'+cloud.workspaceId},()=>loadCloudVisits().catch(e=>cloudNotice(e.message,true)))
-   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_events',filter:'workspace_id=eq.'+cloud.workspaceId},()=>loadCloudVisits().catch(e=>cloudNotice(e.message,true))).subscribe();
+   .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
+   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_tests',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
+   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_assignments',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
+   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_events',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh()).subscribe();
  }catch(e){cloud.ready=false;cloudNotice('No se pudo conectar con Supabase: '+(e.message||'Error de conexión'),true)}
  finally{cloud.loading=false}
 }
