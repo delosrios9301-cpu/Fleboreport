@@ -162,7 +162,7 @@ test('el perfil administrador muestra todos los permisos activos y no permite de
   assert.match(configuration, /adminRoleLocked\?' disabled':''/);
   assert.match(configuration, /Permisos del administrador · acceso integral/);
   assert.match(adminRolePermissionsMigration, /cross join \(values/i);
-  assert.match(adminRolePermissionsMigration, /role_key='admin'/i);
+  assert.match(adminRolePermissionsMigration, /select w\.id,'admin'/i);
   assert.match(adminRolePermissionsMigration, /do update set allowed=true/i);
 });
 
@@ -559,7 +559,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v225'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v226'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -788,7 +788,7 @@ test('la sincronización consulta primero la revisión y solo descarga el estado
   const receiveStart=cloudSync.indexOf('async function receiveRemote(){');
   const receiveEnd=cloudSync.indexOf('async function syncLocal(){',receiveStart);
   const receive=cloudSync.slice(receiveStart,receiveEnd);
-  assert.ok(receive.indexOf('if(remoteMeta.revision<=revision)return;') < receive.indexOf('const remote=await fetchRemote()'));
+  assert.match(receive,/if\(remoteMeta\.revision<=revision\)return;[\s\S]*?let remote=await fetchRemote\(\)/);
   assert.ok(cloudSync.includes('Solo ante un conflicto se descarga el estado completo'));
   const syncStart=cloudSync.indexOf('async function syncLocal(){');
   const syncEnd=cloudSync.indexOf('function schedule(){',syncStart);
@@ -809,7 +809,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v224/);
+  assert.match(serviceWorker, /fleboreport-shell-v226/);
 });
 
 
