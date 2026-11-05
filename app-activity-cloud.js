@@ -19,12 +19,12 @@ async function flushQueue(){
  if(!api||!api.ready)return;
  flushing=true;
  try{
-  let items=readQueue().concat(memoryQueue.splice(0));
-  while(items.length){
-   const event=items[0];
+  let items=readQueue();
+  while(items.length||memoryQueue.length){
+   const fromMemory=items.length===0;
+   const event=fromMemory?memoryQueue[0]:items[0];
    try{await api.record(event)}catch(error){console.warn('[FleboReport Activity]',error);break}
-   items.shift();
-   writeQueue(items);
+   if(fromMemory)memoryQueue.shift();else{items.shift();writeQueue(items)}
   }
  }finally{flushing=false}
 }
