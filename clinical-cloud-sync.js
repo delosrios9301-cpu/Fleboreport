@@ -13,7 +13,7 @@ function clinicalUiIsBusy(){
  const formIds=['clinicalProtocol','clinicalStudyName','clinicalStudyClient','clinicalSponsor','clinicalCRO','clinicalPI','clinicalStudyStart','clinicalStudyEnd','clinicalStudyNotes','clinicalSubjectCode','clinicalSubjectNotes','clinicalProcessSubject','clinicalProcessVisit','clinicalSampleType','clinicalProcessNotes','clinicalProcessTime'];
  if(formIds.some(id=>{const el=document.getElementById(id);return !!(el&&!el.disabled&&String(el.value||'').trim())}))return true;
  const config=document.getElementById('clinicalConfigFields');
- if(config&&Array.from(config.querySelectorAll('input:not([type="hidden"]),select,textarea')).some(el=>String(el.value||'').trim()))return true;
+ if(config&&!config.closest('[hidden]')&&Array.from(config.querySelectorAll('input:not([type="hidden"]),select,textarea')).some(el=>String(el.value||'').trim()))return true;
  return false;
 }
 function refreshClinicalViewSafely(){
