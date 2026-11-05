@@ -769,3 +769,22 @@ test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vi
   assert.match(domicilios, /function closeAssignmentOverlays\(\)\{document\.querySelectorAll\('\.hv-assignment-overlay'\)\.forEach\(node=>node\.remove\(\)\)\}/);
   assert.match(domicilios, /const locked=v\.status==='Pendiente de aceptación'&&v\.assignmentStatus!=='accepted'/);
 });
+
+
+test('la sincronización consulta primero la revisión y solo descarga el estado completo si hay cambios o conflicto', () => {
+  assert.match(cloudSync, /async function fetchRemoteMeta\(\)[\\s\\S]*?select\('revision,updated_at,reset_epoch'\)/);
+  assert.match(cloudSync, /const remoteMeta=await fetchRemoteMeta\(\);if\(!remoteMeta\)return;[\\s\\S]*?if\(remoteMeta\.revision<=revision\)return;[\\s\\S]*?const remote=await fetchRemote\(\)/);
+  assert.match(cloudSync, /Solo ante un conflicto se descarga el estado completo/);
+  assert.match(cloudSync, /async function syncLocal\(\)[\\s\\S]*?const remoteMeta=await fetchRemoteMeta\(\)/);
+});
+
+test('rechazar una invitación no intenta registrar un evento de domicilio aceptado', () => {
+  const responseBranch=domicilios.slice(domicilios.indexOf('if(technicianResponse){'),domicilios.indexOf('const saved=',domicilios.indexOf('if(technicianResponse){')));
+  assert.match(responseBranch, /if\(response\.data\.status==='accepted'\)\{[\\s\\S]*?home_visit_events'\)\.insert/);
+  assert.doesNotMatch(responseBranch, /if\(technicianResponse\)[\\s\\S]*?home_visit_events'\)\.insert/);
+  assert.match(responseBranch, /Una invitación rechazada queda registrada en home_visit_assignments/);
+});
+
+test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
+  assert.match(serviceWorker, /fleboreport-shell-v224/);
+});
