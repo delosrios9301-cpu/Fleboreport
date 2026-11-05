@@ -562,7 +562,7 @@ function render(){
   if(agendaPanel){const heading=agendaPanel.querySelector('h2');if(heading)heading.textContent=technician?'Mis domicilios':'Agenda y seguimiento';}
   if(calendarPanel){const heading=calendarPanel.querySelector('h2');if(heading)heading.textContent=technician?'Mi calendario':'Calendario de domicilios';}
   const q=($('hvSearch').value||'').toLowerCase(),date=$('hvFilterDate').value||'',st=$('hvFilterStatus').value||'';
-  const normalizeSearch=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('es').trim();
+  const normalizeSearch=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
   const matches=v=>(!q||normalizeSearch([v.patientName,v.document,v.id,v.address,v.assignedTo].join(' ')).includes(normalizeSearch(q)))&&(!date||v.scheduledDate===date)&&(!st||v.status===st);
   const historyQuery=normalizeSearch($('hvHistorySearch')?.value||''),historyDate=$('hvHistoryDate')?.value||'';
   const historyMatches=v=>(!historyQuery||normalizeSearch([v.patientName,v.document,v.id,v.address,v.assignedTo].join(' ')).includes(historyQuery))&&(!historyDate||v.scheduledDate===historyDate);
