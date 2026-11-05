@@ -80,6 +80,64 @@ Deno.serve(async (req: Request) => {
       return reply({ ok: true });
     }
 
+    if (action === "cancelled") {
+      if (!["admin", "clinician", "reception"].includes(membership.role)) return reply({ error: "Solo Agenda puede notificar la cancelación." }, 403);
+      const visitId = String(body.visit_id || "");
+      if (!visitId) return reply({ error: "Falta visit_id" }, 400);
+      const { data: visit, error: visitError } = await admin.from("home_visits").select("id,scheduled_at,status,cancellation_reason,created_by,workspace_id").eq("id", visitId).eq("workspace_id", membership.workspace_id).maybeSingle();
+      if (visitError) throw visitError;
+      if (!visit || visit.status !== "cancelled") return reply({ error: "La cancelación no está confirmada en la agenda." }, 409);
+      const { data: assignments, error: assignmentError } = await admin.from("home_visit_assignments").select("assigned_user_id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).not("assigned_user_id", "is", null);
+      if (assignmentError) throw assignmentError;
+      const recipients = [...new Set([...(assignments || []).map((row: { assigned_user_id?: string | null }) => row.assigned_user_id).filter(Boolean), visit.created_by].filter((id): id is string => !!id && id !== user.id))];
+      if (!recipients.length) return reply({ ok: true, notified: 0, push_sent: 0 });
+      const when = visit.scheduled_at ? new Date(visit.scheduled_at).toLocaleString("es-PA", { timeZone: "America/Panama" }) : "Horario por confirmar";
+      const reason = String(visit.cancellation_reason || body.reason || "No se indicó motivo adicional").trim().slice(0, 500);
+      const title = "Domicilio cancelado";
+      const message = "La visita programada para " + when + " fue cancelada. Motivo: " + reason + ". No te desplaces ni prepares la toma. Consulta la agenda de FleboReport para verificar la actualización.";
+      const metadata = { event: "home_visit_cancelled", visit_id: visitId };
+      let inAppSaved = 0, pushSent = 0, pushAttempted = 0, pushFailed = 0;
+      for (const recipientId of recipients) {
+        const { data: existing, error: lookupError } = await admin.from("home_visit_notifications").select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).eq("recipient_user_id", recipientId).eq("channel", "in_app").contains("metadata", metadata).limit(1);
+        if (lookupError) throw lookupError;
+        if (!(existing || []).length) {
+          const { error } = await admin.from("home_visit_notifications").insert({ workspace_id: membership.workspace_id, home_visit_id: visitId, recipient_user_id: recipientId, channel: "in_app", template_name: "home_visit_cancelled", status: "queued", message_body: title + "\\n" + message, metadata });
+          if (error) throw error;
+          inAppSaved++;
+        }
+        if (!publicVapid || !privateVapid) continue;
+        const { data: previous, error: previousError } = await admin.from("home_visit_notifications").select("id,status,metadata").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).eq("recipient_user_id", recipientId).eq("channel", "push").contains("metadata", metadata).limit(1);
+        if (previousError) throw previousError;
+        if ((previous || []).some((row: { status?: string; metadata?: Record<string, unknown> }) => row.status === "sent" || row.metadata?.push_status === "sent")) continue;
+        const { data: subs, error: subError } = await admin.from("home_visit_push_subscriptions").select("id,endpoint,p256dh,auth_secret").eq("user_id", recipientId).eq("workspace_id", membership.workspace_id).eq("active", true);
+        if (subError) throw subError;
+        pushAttempted += subs?.length || 0;
+        let sentForUser = 0, sendError: string | null = null;
+        if (subs?.length) {
+          try { webpush.setVapidDetails(subject, publicVapid, privateVapid); } catch (e) { sendError = e instanceof Error ? e.message : "Configuración VAPID inválida"; }
+          for (const sub of subs) {
+            if (sendError) break;
+            try {
+              await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } }, JSON.stringify({ title, body: message, url: "./?view=domicilios", tag: "flebo-cancelled-" + visitId }));
+              sentForUser++;
+            } catch (e) {
+              const status = (e as { statusCode?: number })?.statusCode;
+              if (status === 404 || status === 410) await admin.from("home_visit_push_subscriptions").update({ active: false }).eq("id", sub.id);
+              sendError = e instanceof Error ? e.message : "Error del proveedor Push";
+            }
+          }
+        }
+        pushSent += sentForUser;
+        if (sendError || !sentForUser) pushFailed++;
+        const { data: pushRows, error: pushLookupError } = await admin.from("home_visit_notifications").select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).eq("recipient_user_id", recipientId).eq("channel", "push").contains("metadata", metadata).limit(1);
+        if (pushLookupError) throw pushLookupError;
+        const pushRecord = { workspace_id: membership.workspace_id, home_visit_id: visitId, recipient_user_id: recipientId, channel: "push", template_name: "home_visit_cancelled", status: sentForUser > 0 ? "sent" : "failed", message_body: message, sent_at: sentForUser > 0 ? new Date().toISOString() : null, error_code: sendError || (!subs?.length ? "NO_ACTIVE_SUBSCRIPTION" : null), metadata: { ...metadata, attempted: subs?.length || 0, sent: sentForUser, push_status: sentForUser > 0 ? "sent" : "failed" } };
+        if ((pushRows || []).length) {
+          if (sentForUser > 0) { const { error } = await admin.from("home_visit_notifications").update(pushRecord).eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).eq("recipient_user_id", recipientId).eq("channel", "push").contains("metadata", metadata); if (error) throw error; }
+        } else { const { error } = await admin.from("home_visit_notifications").insert(pushRecord); if (error) throw error; }
+      }
+      return reply({ ok: true, notified: recipients.length, in_app_saved: inAppSaved, push_sent: pushSent, push_attempted: pushAttempted, push_failed: pushFailed });
+    }
     if (action === "status-update") {
       const visitId = String(body.visit_id || "");
       if (!visitId) return reply({ error: "Falta visit_id" }, 400);
