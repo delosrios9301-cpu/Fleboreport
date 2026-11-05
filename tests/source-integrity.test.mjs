@@ -596,10 +596,10 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
   assert.match(domicilios, /Por privacidad, el nombre del paciente, la dirección y las pruebas se mostrarán después de aceptar/);
 });
 
-test('la revisión de muestras informa cuando una visita no tiene pruebas guardadas', () => {
-  assert.match(domicilios, /No hay pruebas registradas/);
-  assert.match(domicilios, /no es posible confirmar muestras sin una lista de pruebas guardada/i);
-  assert.match(domicilios, /Solicita a Coordinación que revise este domicilio/);
+test('la revisión de muestras permite recuperar una solicitud vacía desde el catálogo central sin confirmar por error', () => {
+  assert.match(domicilios, /id="hvCorrectionSearch"/);
+  assert.match(domicilios, /No se encontraron pruebas activas con ese nombre o código/);
+  assert.match(domicilios, /confirm\.disabled=c\.pending>0\|\|c\.taken===0/);
 });
 
 test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () => {
