@@ -2,6 +2,34 @@
 'use strict';
 let client=null,workspaceId=null,userId=null,role=null,ready=false,busy=false,syncPromise=null;
 const app=()=>window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null;
+let pendingClinicalRefresh=false;
+function clinicalUiIsBusy(){
+ const active=document.activeElement;
+ if(active&&/^(INPUT|SELECT|TEXTAREA)$/.test(active.tagName))return true;
+ if(document.getElementById('clinicalProcessingModal'))return true;
+ if(document.querySelector('#clinicalQueueRows input:checked,#clinicalReviewRows input:checked,[data-clinical-sample]:checked'))return true;
+ const editIds=['clinicalStudyEditId','clinicalSubjectEditId','clinicalProcessingEditId','clinicalConfigEditId'];
+ if(editIds.some(id=>{const el=document.getElementById(id);return !!(el&&String(el.value||'').trim())}))return true;
+ const formIds=['clinicalProtocol','clinicalStudyName','clinicalStudyClient','clinicalSponsor','clinicalCRO','clinicalPI','clinicalStudyStart','clinicalStudyEnd','clinicalStudyNotes','clinicalSubjectCode','clinicalSubjectNotes','clinicalProcessSubject','clinicalProcessVisit','clinicalSampleType','clinicalProcessNotes','clinicalProcessTime'];
+ if(formIds.some(id=>{const el=document.getElementById(id);return !!(el&&!el.disabled&&String(el.value||'').trim())}))return true;
+ const config=document.getElementById('clinicalConfigFields');
+ if(config&&Array.from(config.querySelectorAll('input:not([type="hidden"]),select,textarea')).some(el=>String(el.value||'').trim()))return true;
+ return false;
+}
+function refreshClinicalViewSafely(){
+ const activeView=document.querySelector('#view-clinical-studies.active,#view-clinical-processing.active');
+ if(!activeView){pendingClinicalRefresh=false;return false}
+ if(clinicalUiIsBusy()){pendingClinicalRefresh=true;return false}
+ if(typeof window.renderClinicalStudies==='function'){
+  pendingClinicalRefresh=false;
+  window.renderClinicalStudies();
+  return true;
+ }
+ return false;
+}
+function flushPendingClinicalRefresh(){if(pendingClinicalRefresh)refreshClinicalViewSafely()}
+document.addEventListener('focusout',()=>setTimeout(flushPendingClinicalRefresh,0));
+window.addEventListener('flebo:local-state-saved',()=>setTimeout(flushPendingClinicalRefresh,0));
 const uid=()=>window.crypto&&crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 const fail=e=>{throw new Error(e&&e.message?e.message:String(e||'Error de sincronización clínica'))};
 const actorName=()=>{const u=window.FleboAuth&&window.FleboAuth.user,m=u&&u.user_metadata||{};return String(m.display_name||m.name||(u&&u.email?u.email.split('@')[0]:'')||'Usuario autenticado').trim()};
@@ -166,7 +194,7 @@ async function syncConfiguration(){
    if(role==='admin'||role==='technician')await loadRemoteBoxes();
    stage='lectura de muestras y crioviales';
    await loadRemoteSamples();
-   if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();
+   refreshClinicalViewSafely();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -190,7 +218,7 @@ async function saveConfiguration(){
     for(const type of linkedTypes)await saveSampleType(study,sid,type);
    }
    await loadRemoteConfiguration();
-   if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();
+   refreshClinicalViewSafely();
    return true;
   }catch(error){
    console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
@@ -308,7 +336,7 @@ async function syncStorageConfiguration(){
  await loadRemoteBoxes();
  return true;
 }
-async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();if(window.FleboAppState&&window.FleboAppState.refresh)window.FleboAppState.refresh();return true}
+async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);await loadRemoteConfiguration();await loadRemoteSamples();refreshClinicalViewSafely();return true}
 window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration,syncStorageConfiguration,refreshSamples,registerSample,deleteSample,transition,saveAliquots,registerCryovial,moveCryovial,get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect()});
