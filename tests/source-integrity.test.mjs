@@ -683,3 +683,10 @@ test('una suscripción Push se desactiva en cuentas anteriores al vincular el di
   assert.match(domiciliosNotificationsFunction, /\.eq\("endpoint", sub\.endpoint\)\.neq\("user_id", user\.id\)\.eq\("active", true\)/);
   assert.match(domiciliosNotificationsFunction, /\.eq\("user_id", assignment\.assigned_user_id\)/);
 });
+
+
+test('la aceptación del flebotomista se confirma sin depender del guardado secundario del evento', () => {
+  assert.match(domicilios, /if\(technicianResponse\)\{[\s\S]*?v\.status='Aceptado'/);
+  assert.match(domicilios, /La aceptación se guardó, pero no se pudo registrar el evento/);
+  assert.match(domicilios, /await loadCloudVisits\(\)/);
+});
