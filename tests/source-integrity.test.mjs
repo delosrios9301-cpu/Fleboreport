@@ -872,3 +872,10 @@ test('Domicilios separa agenda, historial, calendario y creación con detalle ju
   assert.match(domicilios, /selected=v\.id;activeTab='agenda';reset\(\);render\(\)/);
   assert.match(domicilios, /function calendarVisit\(id\)\{selected=id;activeTab='agenda';render\(\)\}/);
 });
+
+
+test('el modal de seguimiento de domicilios evita repintar toda la pantalla en escritorio', () => {
+  assert.match(domicilios, /document\.body\.appendChild\(detailBackdrop\)/);
+  assert.match(domicilios, /body > \.hv-detail-backdrop/);
+  assert.doesNotMatch(domicilios, /\.hv-detail-backdrop\\{[^}]*backdrop-filter/);
+});
