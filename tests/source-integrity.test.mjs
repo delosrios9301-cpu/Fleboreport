@@ -624,6 +624,8 @@ test('el catálogo local no intenta reinsertar pruebas que ya existen por códig
 test('los cambios de estado no reportan falso error por notificaciones y agrupan recargas realtime', () => {
   assert.match(domicilios, /invokeDomicileNotifications\(\{action:'status-update'[\s\S]*?\.catch\(error=>console\.warn/);
   assert.doesNotMatch(domicilios, /if\(notice\.error\)console\.warn\('No se pudo notificar el cambio de domicilio'/);
+  assert.match(domicilios, /El servidor no devolvió confirmación para emitir la notificación/);
+  assert.doesNotMatch(domicilios, /notice\.error\.message\|\|notice\.error/);
   assert.match(domicilios, /function scheduleCloudVisitsRefresh\(\)/);
   assert.match(domicilios, /cloudRefreshTimer=setTimeout/);
   assert.match(domicilios, /\(\)=>scheduleCloudVisitsRefresh\(\)/);
