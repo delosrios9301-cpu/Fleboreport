@@ -651,3 +651,13 @@ test('el cuadro de aceptación de domicilio se monta en el body y se centra en e
   assert.match(domicilios, /align-items:center!important/);
   assert.match(domicilios, /max-height:calc\(100dvh - 40px\)/);
 });
+
+
+test('la sesión autenticada persiste en almacenamiento local y renovar token no bloquea la aplicación', () => {
+  assert.match(auth, /localStorage\.getItem\(key\)/);
+  assert.match(auth, /localStorage\.setItem\(key,value\)/);
+  assert.match(auth, /event==='TOKEN_REFRESHED'/);
+  assert.match(auth, /const sameUser=!!\(currentUser&&currentUser\.id===user\.id\)/);
+  assert.match(auth, /if\(!sameUser\)\{currentUser=user;currentMembership=null/);
+  assert.match(auth, /membershipRefreshSequence/);
+});
