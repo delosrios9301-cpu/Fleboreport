@@ -256,7 +256,7 @@ async function receiveRemote(){
   let local=app()||{};
   await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
   if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
-  if(remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state),cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote();if(!remote)return}
+  if(remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote();if(!remote)return}else remote=Object.assign({},remote,{state:cleaned})}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local);
   if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+revision);return}
