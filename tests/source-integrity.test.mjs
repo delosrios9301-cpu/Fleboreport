@@ -644,3 +644,10 @@ test('las notificaciones abren la aplicación bajo el subdirectorio de GitHub Pa
   assert.match(domicilios, /params\.get\('view'\)==='domicilios'/);
   assert.match(domicilios, /new URLSearchParams\(location\.search\)\.get\('visit'\)/);
 });
+
+
+test('el cuadro de aceptación de domicilio se monta en el body y se centra en el viewport', () => {
+  assert.match(domicilios, /document\.body\.appendChild\(overlay\)/);
+  assert.match(domicilios, /align-items:center!important/);
+  assert.match(domicilios, /max-height:calc\(100dvh - 40px\)/);
+});
