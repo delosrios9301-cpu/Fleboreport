@@ -583,3 +583,25 @@ test('el catálogo local no intenta reinsertar pruebas que ya existen por códig
   assert.match(domicilios, /saved\.error\.code==='23505'/);
   assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
 });
+
+
+test('las invitaciones de domicilios se presentan como cuadro flotante con aceptación explícita', () => {
+  assert.match(domicilios, /hv-assignment-overlay/);
+  assert.match(domicilios, /hv-assignment-modal/);
+  assert.match(domicilios, /Domicilio pendiente de aprobación/);
+  assert.match(domicilios, /Aceptar domicilio/);
+  assert.match(domicilios, /Rechazar domicilio/);
+  assert.match(domicilios, /Los datos del paciente, la dirección y las pruebas se mostrarán después de aceptar/);
+});
+
+test('la revisión de muestras informa cuando una visita no tiene pruebas guardadas', () => {
+  assert.match(domicilios, /No hay pruebas registradas/);
+  assert.match(domicilios, /No es posible confirmar muestras sin una lista de pruebas guardada/);
+  assert.match(domicilios, /Solicita a Coordinación que revise este domicilio/);
+});
+
+test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () => {
+  assert.match(domicilios, /const normalizedTestId=asUuid\(t\.id\)\|\|crypto\.randomUUID\(\)/);
+  assert.match(domicilios, /let serviceId=asUuid\(t\.serviceId\|\|t\.testId\)\|\|null/);
+  assert.match(domicilios, /const eventId=asUuid\(e\.id\)\|\|crypto\.randomUUID\(\)/);
+});
