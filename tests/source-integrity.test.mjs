@@ -661,3 +661,10 @@ test('la sesión autenticada persiste en almacenamiento local y renovar token no
   assert.match(auth, /if\(!sameUser\)\{currentUser=user;currentMembership=null/);
   assert.match(auth, /membershipRefreshSequence/);
 });
+
+
+test('la restauración inicial de sesión no muestra el bloqueo antes de completar la verificación', () => {
+  assert.match(auth, /const authChecking=!authBootComplete&&!currentUser/);
+  assert.match(auth, /gate\.hidden=authorized\|\|authChecking/);
+  assert.match(auth, /flebo-auth-locked',!authorized&&authBootComplete/);
+});
