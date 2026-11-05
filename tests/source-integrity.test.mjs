@@ -668,3 +668,17 @@ test('la restauración inicial de sesión no muestra el bloqueo antes de complet
   assert.match(auth, /gate\.hidden=authorized\|\|authChecking/);
   assert.match(auth, /flebo-auth-locked',!authorized&&authBootComplete/);
 });
+
+
+test('el cuadro de invitación no instala un MutationObserver global y se centra al renderizar', () => {
+  assert.doesNotMatch(domicilios, /assignmentOverlayObserver\.observe\(document\.documentElement/);
+  assert.match(domicilios, /portalAssignmentOverlay\(\);/);
+});
+test('rechazar una invitación no depende de prompt nativo y puede persistirse', () => {
+  assert.match(domicilios, /next==='Rechazado'\?'El flebotomista no puede realizar el domicilio\.'/);
+  assert.match(domicilios, /status:v\.status==='Aceptado'\?'accepted':'rejected'/);
+});
+test('una suscripción Push se desactiva en cuentas anteriores al vincular el dispositivo a otra cuenta', () => {
+  assert.match(domiciliosNotificationsFunction, /\.eq\("endpoint", sub\.endpoint\)\.neq\("user_id", user\.id\)\.eq\("active", true\)/);
+  assert.match(domiciliosNotificationsFunction, /\.eq\("user_id", assignment\.assigned_user_id\)/);
+});
