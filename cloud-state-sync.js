@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const META_KEY='fleboReport.cloudSync.v1';
-const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','auditLog','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
+const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHistory','clinicalStudies','clinicalSubjects','clinicalProcessing','clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory','clinicalCryovials','clinicalCryovialHistory','clinicalFreezers','clinicalRacks','clinicalVisits','clinicalSampleTypes','clinicalStatuses','clinicalSponsors','clinicalCros','clinicalStaff','clinicalLocations','individualTestCatalog','individualServices','examPackages'];
 // Estos catálogos se administran en clinical_* de Supabase, no en el estado JSON legado.
 const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampleTypes'];
 // Las muestras y su historial viven exclusivamente en clinical_samples/clinical_sample_events.
@@ -14,6 +14,7 @@ function status(message,error){
  const dot=el.querySelector('.status-dot');if(dot)dot.style.background=error?'#dc5555':'#20a477';
 }
 function app(){return window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null}
+function stripLegacyAudit(s){const out=Object.assign({},s||{});delete out.auditLog;return out}
 function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch(_){return{}}}
 function saveMeta(hash,rev,resetEpoch){const old=meta();localStorage.setItem(META_KEY,JSON.stringify({workspaceId,revision:rev,hash,syncedAt:new Date().toISOString(),resetEpoch:resetEpoch===undefined?(old.resetEpoch||null):resetEpoch}));revision=rev;lastHash=hash}
 function backupResetLocalState(state,epoch){if(!meaningful(state))return false;const key='fleboReport.resetBackup.'+workspaceId+'.'+epoch;try{if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,resetEpoch:epoch,state}));return true}catch(e){throw new Error('No se pudo respaldar el estado local anterior al restablecimiento. Libera espacio del navegador e inténtalo de nuevo.')}}
@@ -64,6 +65,7 @@ function itemKey(x,collection){
 function stamp(x){const v=x&&(x.updatedAt||x.updated_at||x.modifiedAt||x.createdAt||x.created_at);const n=v?Date.parse(v):0;return Number.isFinite(n)?n:0}
 function mergeState(remote,local){
  const out=Object.assign({},local||{},remote||{});
+ delete out.auditLog;
  for(const key of ARRAY_KEYS){
   const a=Array.isArray(remote&&remote[key])?remote[key]:[];
   const b=Array.isArray(local&&local[key])?local[key]:[];
@@ -91,12 +93,47 @@ function mergeState(remote,local){
  return out;
 }
 async function hashState(s){
- const raw=JSON.stringify(s||{});
+ const raw=JSON.stringify(stripLegacyAudit(s));
  if(window.crypto&&crypto.subtle&&window.TextEncoder){
   const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw));
   return Array.from(new Uint8Array(digest)).map(x=>x.toString(16).padStart(2,'0')).join('');
  }
  let h=2166136261;for(let i=0;i<raw.length;i++){h^=raw.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(16);
+}
+async function persistLegacyAuditEvents(events){
+ if(!Array.isArray(events)||!events.length||!client||!workspaceId||!userId)return 0;
+ const rows=events.filter(x=>x&&x.id).map(x=>({
+  workspace_id:workspaceId,actor_id:userId,
+  actor_name:String(x.operator||'Operador local').slice(0,180),
+  entity_table:'app_activity',entity_id:null,
+  action:String(x.action||'Actividad').slice(0,500),
+  changed_fields:[],occurred_at:x.timestamp||new Date().toISOString(),site_id:null,
+  details:{source:'legacy_client_audit_log',module_key:'application',section:String(x.section||'Aplicación').slice(0,180),legacy_event_id:String(x.id)},
+  source_event_key:'legacy:'+userId+':'+String(x.id).slice(0,180)
+ }));
+ let inserted=0;
+ for(let i=0;i<rows.length;i+=100){
+  const batch=rows.slice(i,i+100);
+  const r=await client.from('audit_logs').upsert(batch,{onConflict:'source_event_key',ignoreDuplicates:true});
+  if(r.error)throw r.error;
+  inserted+=batch.length;
+ }
+ return inserted;
+}
+async function recordAppActivity(event){
+ if(!ready||!client||!workspaceId||!userId)throw new Error('La bitácora en la nube aún no está lista.');
+ const row={
+  workspace_id:workspaceId,actor_id:userId,
+  actor_name:String(event.operator||'Operador local').slice(0,180),
+  entity_table:'app_activity',entity_id:null,
+  action:String(event.action||'Actividad').slice(0,500),
+  changed_fields:[],occurred_at:event.timestamp||new Date().toISOString(),site_id:null,
+  details:{source:'client_app_activity',module_key:'application',section:String(event.section||'Aplicación').slice(0,180)},
+  source_event_key:'client:'+userId+':'+String(event.id||'').slice(0,180)
+ };
+ const r=await client.from('audit_logs').upsert(row,{onConflict:'source_event_key',ignoreDuplicates:true});
+ if(r.error)throw r.error;
+ return true;
 }
 async function fetchRemoteMeta(){
  const r=await client.from('workspace_app_state').select('revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
@@ -107,7 +144,7 @@ async function fetchRemote(){
  if(r.error)throw r.error;return r.data||null;
 }
 async function writeRemote(state,expected){
- const payload=Object.assign({},state||{});
+ const payload=stripLegacyAudit(state);
  if(Array.isArray(payload.catalog))payload.catalog=dedupeCatalog(payload.catalog);
  // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
@@ -121,7 +158,7 @@ async function writeRemote(state,expected){
 }
 function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
- const current=app()||{},safe=Object.assign({},s||{});
+ const current=app()||{},safe=stripLegacyAudit(s);safe.auditLog=[];
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
@@ -158,14 +195,17 @@ async function connect(){
    try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){throw new Error('No se pudo respaldar el estado local del espacio anterior. No se modificaron tus datos; libera espacio del navegador e inténtalo de nuevo.')}
    applyCloudState(window.FleboAppState.empty());local=app()||{};
   }
-  const localHash=await hashState(local);
   let remote=await fetchRemote();
-  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
+  await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote&&remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
+  if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
+  if(remote&&remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state),cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote()}
+  const localHash=await hashState(local);
+  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
   if(!remote){
-   if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
+   if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
    const result=await writeRemote(local,0);
    if(!result.saved){remote=await fetchRemote();if(!remote)throw new Error('No se pudo inicializar el espacio de datos en la nube.')}
-   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);ready=true;status('Datos locales migrados a la nube');subscribe();return}
+   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Datos locales migrados a la nube');subscribe();return}
   }
   if(remote){
    const sameWorkspace=m.workspaceId===workspaceId;
@@ -184,7 +224,7 @@ async function connect(){
     applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
    }
   }
-  ready=true;status('Sincronizado con la nube · versión '+revision);subscribe();
+  ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Sincronizado con la nube · versión '+revision);subscribe();
  }catch(e){ready=false;console.error('[FleboReport Sync]',e);status('Error de sincronización: '+(e.message||'No se pudo conectar'),true)}
  finally{busy=false;runPending()}
 }
@@ -212,8 +252,11 @@ async function receiveRemote(){
    status('Restablecimiento recibido desde la nube · versión '+revision);return;
   }
   if(remoteMeta.revision<=revision)return;
-  const remote=await fetchRemote();if(!remote)return;
+  let remote=await fetchRemote();if(!remote)return;
   let local=app()||{};
+  await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
+  if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
+  if(remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state),cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote();if(!remote)return}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local);
   if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+revision);return}
@@ -237,7 +280,9 @@ async function syncLocal(){
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
-  let local=app()||{};if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
+  let local=app()||{};
+  if(Array.isArray(local.auditLog)&&local.auditLog.length){await persistLegacyAuditEvents(local.auditLog);local=stripLegacyAudit(local);applyCloudState(local)}
+  if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local),m=meta();
   if(m.workspaceId===workspaceId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return}
   // La consulta ligera evita descargar el estado completo antes de cada guardado.
@@ -279,6 +324,7 @@ window.addEventListener('online',()=>{if(ready)syncLocal()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}});
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},30000);
 window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}}};
+window.FleboCloudAudit={record:recordAppActivity,importLegacy:persistLegacyAuditEvents,get ready(){return !!(ready&&client&&workspaceId&&userId)},get workspaceId(){return workspaceId}};
 function boot(){if(started)return;started=true;status('Conectando con la nube…');if(window.FleboAuth&&window.FleboAuth.user)connect()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 })();
