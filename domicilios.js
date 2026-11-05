@@ -165,7 +165,7 @@ async function loadServiceCatalog(){
    return result.data||[];
   };
   existingRows=await readExisting();
-  const normalize=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
   if(cloud.role==='admin'){
    // El catálogo del administrador es la fuente maestra. Nunca importar elementos inactivos ni conservar activos eliminados del catálogo.
    const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name&&x.active!==false);
