@@ -246,7 +246,7 @@ async function receiveRemote(){
   const m=meta();
   if(remoteMeta.reset_epoch&&(remoteMeta.reset_epoch!==(m.resetEpoch||null))){
    const resetRemote=await fetchRemote();if(!resetRemote)return;
-   const local=app()||{};backupResetLocalState(local,resetRemote.reset_epoch);
+   const local=app()||{};await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((resetRemote.state&&Array.isArray(resetRemote.state.auditLog))?resetRemote.state.auditLog:[])]);backupResetLocalState(local,resetRemote.reset_epoch);
    applyCloudState(resetRemote.state);const h=await hashState(app()||{});
    saveMeta(h,resetRemote.revision,resetRemote.reset_epoch);
    status('Restablecimiento recibido desde la nube · versión '+revision);return;
