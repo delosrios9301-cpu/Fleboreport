@@ -621,6 +621,16 @@ test('el catálogo local no intenta reinsertar pruebas que ya existen por códig
 });
 
 
+test('las prioridades de domicilio son obligatorias, se ordenan y aparecen en invitaciones y notificaciones', () => {
+  assert.match(domicilios, /id="hvPriority" required/);
+  assert.match(domicilios, /priority:priority,assignedTo/);
+  assert.match(domicilios, /priorityRank\(a\.priority\)-priorityRank\(b\.priority\)/);
+  assert.match(domicilios, /Prioridad: '\+priorityLabel\(v\.priority\)/);
+  assert.match(domiciliosNotificationsFunction, /Prioridad: '\+ priority/);
+  assert.match(domiciliosNotificationsFunction, /URGENTE · /);
+  assert.match(domiciliosNotificationsFunction, /home_visits\(id,scheduled_at,notes,priority\)/);
+});
+
 test('las invitaciones de domicilios se presentan como cuadro flotante con aceptación explícita', () => {
   assert.match(domicilios, /hv-assignment-overlay/);
   assert.match(domicilios, /hv-assignment-modal/);
