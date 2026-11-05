@@ -701,3 +701,10 @@ test('la revisión de muestras permite corregir pruebas desde el catálogo centr
   assert.match(domicilios, /await save\(v\)/);
   assert.match(domicilios, /const technician=cloud\.role==='technician'/);
 });
+
+
+test('los resultados del catálogo de domicilios mantienen el texto horizontal en móviles y tablets', () => {
+  assert.match(domicilios, /\.hv-test-result\{display:grid;grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(domicilios, /writing-mode:horizontal-tb/);
+  assert.match(domicilios, /\.hv-review-correction \.hv-test-result b/);
+});
