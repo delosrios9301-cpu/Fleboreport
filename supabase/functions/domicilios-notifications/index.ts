@@ -1,0 +1,222 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import webpush from "npm:web-push@3.6.7";
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const cors = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS"
+};
+const reply = (payload: unknown, status = 200) =>
+  new Response(JSON.stringify(payload), { status, headers: { ...cors, "Content-Type": "application/json" } });
+
+const url = Deno.env.get("SUPABASE_URL")!;
+const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const admin = createClient(url, service, { auth: { persistSession: false } });
+const publicVapid = Deno.env.get("VAPID_PUBLIC_KEY") || "";
+const privateVapid = Deno.env.get("VAPID_PRIVATE_KEY") || "";
+const configuredVapidSubject = (Deno.env.get("VAPID_SUBJECT") || "").trim();
+const subject = /^mailto:/i.test(configuredVapidSubject) || /^https:\/\//i.test(configuredVapidSubject)
+  ? configuredVapidSubject
+  : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(configuredVapidSubject)
+    ? "mailto:" + configuredVapidSubject
+    : "mailto:soporte@fleboreport.app";
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") return reply({ error: "Método no permitido" }, 405);
+
+  try {
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+    if (!token) return reply({ error: "Sesión requerida" }, 401);
+    const auth = createClient(url, anon, {
+      global: { headers: { Authorization: "Bearer " + token } },
+      auth: { persistSession: false }
+    });
+    const { data: { user }, error: authError } = await auth.auth.getUser();
+    if (authError || !user) return reply({ error: "Sesión inválida" }, 401);
+
+    const body = await req.json();
+    const action = String(body.action || "");
+    const { data: membership, error: membershipError } = await admin
+      .from("workspace_members").select("workspace_id,role,active")
+      .eq("user_id", user.id).eq("active", true).limit(1).maybeSingle();
+    if (membershipError) throw membershipError;
+    if (!membership) return reply({ error: "Membresía activa requerida" }, 403);
+
+    if (action === "config-status") {
+      if (membership.role !== "admin") return reply({ error: "Solo el administrador puede consultar la configuración de canales." }, 403);
+      return reply({ ok: true, push: { public_key_present: !!publicVapid, private_key_present: !!privateVapid, configured: !!(publicVapid && privateVapid) } });
+    }
+
+    if (action === "vapid-public") {
+      const missing: string[] = [];
+      if (!publicVapid) missing.push("VAPID_PUBLIC_KEY");
+      if (!privateVapid) missing.push("VAPID_PRIVATE_KEY");
+      if (publicVapid && publicVapid.length !== 87) missing.push("VAPID_PUBLIC_KEY tiene longitud inesperada (" + publicVapid.length + ").");
+      if (privateVapid && privateVapid.length !== 43) missing.push("VAPID_PRIVATE_KEY tiene longitud inesperada (" + privateVapid.length + ").");
+      return reply({ publicKey: publicVapid, configured: missing.length === 0, diagnostic: {
+        publicKeyPresent: !!publicVapid, privateKeyPresent: !!privateVapid,
+        publicKeyLength: publicVapid.length, privateKeyLength: privateVapid.length, missing
+      } });
+    }
+
+    if (action === "subscribe") {
+      const sub = body.subscription || {};
+      if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) return reply({ error: "Suscripción Push incompleta" }, 400);
+      const { error } = await admin.from("home_visit_push_subscriptions").upsert({
+        workspace_id: membership.workspace_id, user_id: user.id, endpoint: sub.endpoint,
+        p256dh: sub.keys.p256dh, auth_secret: sub.keys.auth,
+        user_agent: String(body.user_agent || "").slice(0, 500), active: true, updated_at: new Date().toISOString()
+      }, { onConflict: "user_id,endpoint" });
+      if (error) throw error;
+      return reply({ ok: true });
+    }
+
+    if (action === "status-update") {
+      const visitId = String(body.visit_id || "");
+      if (!visitId) return reply({ error: "Falta visit_id" }, 400);
+      const { data: assignment, error } = await admin.from("home_visit_assignments")
+        .select("id,assigned_user_id,status,assigned_at").eq("workspace_id", membership.workspace_id)
+        .eq("home_visit_id", visitId).order("assigned_at", { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      if (!assignment || assignment.assigned_user_id !== user.id || assignment.status !== "accepted")
+        return reply({ error: "Solo el flebotomista que aceptó la asignación vigente puede operar este domicilio." }, 403);
+      return reply({ ok: true, notified: 0, push_sent: 0 });
+    }
+
+    if (action === "test-push") {
+      if (!publicVapid || !privateVapid) return reply({ error: "Faltan las claves VAPID del servidor." }, 503);
+      try { webpush.setVapidDetails(subject, publicVapid, privateVapid); }
+      catch (e) { return reply({ error: "Las claves VAPID no son válidas o no corresponden: " + (e instanceof Error ? e.message : "error de configuración") }, 500); }
+      const { data: subs, error } = await admin.from("home_visit_push_subscriptions")
+        .select("id,endpoint,p256dh,auth_secret").eq("user_id", user.id)
+        .eq("workspace_id", membership.workspace_id).eq("active", true);
+      if (error) throw error;
+      if (!subs?.length) return reply({ error: "Este usuario no tiene un dispositivo Push registrado." }, 404);
+      let sent = 0, failed = 0;
+      for (const sub of subs) {
+        try {
+          await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } },
+            JSON.stringify({ title: "Prueba de notificaciones · FleboReport", body: "¡Funciona! Este dispositivo está recibiendo notificaciones push.", url: "./?view=domicilios", tag: "fleboreport-push-test" }));
+          sent++;
+        } catch (e) {
+          failed++;
+          const status = (e as { statusCode?: number })?.statusCode;
+          if (status === 404 || status === 410) await admin.from("home_visit_push_subscriptions").update({ active: false }).eq("id", sub.id);
+        }
+      }
+      return reply({ ok: sent > 0, sent, attempted: subs.length, failed });
+    }
+
+    if (action === "dispatch") {
+      if (!["admin", "clinician", "reception"].includes(membership.role))
+        return reply({ error: "No tienes permiso para asignar domicilios" }, 403);
+      const assignmentId = String(body.assignment_id || "");
+      if (!assignmentId) return reply({ error: "Falta assignment_id" }, 400);
+
+      const { data: assignment, error: assignmentError } = await admin.from("home_visit_assignments")
+        .select("id,workspace_id,home_visit_id,assigned_user_id,status,home_visits(id,scheduled_at,notes)")
+        .eq("id", assignmentId).eq("workspace_id", membership.workspace_id).single();
+      if (assignmentError || !assignment || !assignment.assigned_user_id)
+        return reply({ error: "No se encontró la asignación con usuario asignado" }, 404);
+
+      const visit = assignment.home_visits as { scheduled_at?: string; notes?: string } | null;
+      const when = visit?.scheduled_at
+        ? new Date(visit.scheduled_at).toLocaleString("es-PA", { timeZone: "America/Panama" })
+        : "Horario por confirmar";
+      const title = "Domicilio pendiente de aprobación";
+      const message = "Tienes un nuevo domicilio asignado.\nFecha y hora: " + when +
+        "\nAbre FleboReport para aceptar o rechazar la asignación. Los datos del paciente, dirección y pruebas se mostrarán después de aceptar.";
+      const metadata = { assignment_id: assignment.id, event: "home_visit_assigned" };
+
+      // Guardar primero el aviso dentro de FleboReport, aunque Push no esté configurado.
+      const { data: existingInApp, error: inAppLookupError } = await admin.from("home_visit_notifications")
+        .select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", assignment.home_visit_id)
+        .eq("recipient_user_id", assignment.assigned_user_id).eq("channel", "in_app")
+        .contains("metadata", { assignment_id: assignment.id }).limit(1);
+      if (inAppLookupError) throw inAppLookupError;
+      let inAppSaved = false;
+      if (!(existingInApp || []).length) {
+        const { error } = await admin.from("home_visit_notifications").insert({
+          workspace_id: membership.workspace_id, home_visit_id: assignment.home_visit_id,
+          recipient_user_id: assignment.assigned_user_id, channel: "in_app", status: "queued",
+          template_name: "home_visit_assigned", message_body: title + "\n" + message, metadata
+        });
+        if (error) throw error;
+        inAppSaved = true;
+      } else inAppSaved = true;
+
+      let pushSent = 0, pushAttempted = 0, pushStatus = "not_configured", pushError: string | null = null;
+      if (publicVapid && privateVapid) {
+        try {
+          webpush.setVapidDetails(subject, publicVapid, privateVapid);
+          const { data: subs, error } = await admin.from("home_visit_push_subscriptions")
+            .select("id,endpoint,p256dh,auth_secret").eq("user_id", assignment.assigned_user_id)
+            .eq("workspace_id", membership.workspace_id).eq("active", true);
+          if (error) throw error;
+          pushAttempted = subs?.length || 0;
+          if (!pushAttempted) pushStatus = "no_active_subscription";
+          else {
+            for (const sub of subs || []) {
+              try {
+                await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } },
+                  JSON.stringify({ title, body: message, url: "./?view=domicilios&visit=" + assignment.home_visit_id, tag: "flebo-assignment-" + assignment.id }));
+                pushSent++;
+              } catch (e) {
+                const status = (e as { statusCode?: number })?.statusCode;
+                if (status === 404 || status === 410)
+                  await admin.from("home_visit_push_subscriptions").update({ active: false }).eq("id", sub.id);
+                pushError = e instanceof Error ? e.message : "Error del proveedor Push";
+              }
+            }
+            pushStatus = pushSent > 0 ? "sent" : "failed";
+          }
+        } catch (e) {
+          pushStatus = "failed";
+          pushError = e instanceof Error ? e.message : "Error de configuración Push";
+        }
+      }
+
+      // Registrar resultado Push por asignación para auditoría y permitir reintentos de reasignaciones.
+      const { data: existingPush, error: pushLookupError } = await admin.from("home_visit_notifications")
+        .select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", assignment.home_visit_id)
+        .eq("recipient_user_id", assignment.assigned_user_id).eq("channel", "push")
+        .contains("metadata", { assignment_id: assignment.id }).limit(1);
+      if (pushLookupError) throw pushLookupError;
+      const pushRow = {
+        workspace_id: membership.workspace_id, home_visit_id: assignment.home_visit_id,
+        recipient_user_id: assignment.assigned_user_id, channel: "push",
+        status: pushStatus === "sent" ? "sent" : "failed", message_body: message,
+        sent_at: pushStatus === "sent" ? new Date().toISOString() : null,
+        error_code: pushError || (pushStatus === "not_configured" ? "VAPID_NOT_CONFIGURED" : pushStatus === "no_active_subscription" ? "NO_ACTIVE_SUBSCRIPTION" : null),
+        metadata: { ...metadata, attempted: pushAttempted, sent: pushSent, push_status: pushStatus }
+      };
+      if (!(existingPush || []).length) {
+        const { error } = await admin.from("home_visit_notifications").insert(pushRow);
+        if (error) throw error;
+      } else if (pushStatus === "sent") {
+        const { error } = await admin.from("home_visit_notifications").update(pushRow)
+          .eq("workspace_id", membership.workspace_id).eq("home_visit_id", assignment.home_visit_id)
+          .eq("recipient_user_id", assignment.assigned_user_id).eq("channel", "push")
+          .contains("metadata", { assignment_id: assignment.id });
+        if (error) throw error;
+      }
+
+      return reply({
+        ok: true, assignment_saved: true, in_app_saved: inAppSaved,
+        push_sent: pushSent, push_attempted: pushAttempted, push_status: pushStatus,
+        push_configured: !!(publicVapid && privateVapid),
+        message: pushStatus === "sent"
+          ? "Asignación guardada y aviso Push enviado."
+          : "Asignación guardada. Aviso interno registrado; Push pendiente de configuración o de dispositivo."
+      });
+    }
+
+    return reply({ error: "Acción no válida" }, 400);
+  } catch (e) {
+    console.error("[domicilios-notifications]", e);
+    return reply({ error: e instanceof Error ? e.message : "Error interno" }, 500);
+  }
+});
