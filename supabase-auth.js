@@ -27,12 +27,12 @@ function applyActionVisibility(root=document){
  if(root.matches?.(selector))controls.push(root);
  controls.push(...root.querySelectorAll(selector));
  const patterns={
-  delete:/\\b(eliminar|borrar|suprimir|quitar)\\b/i,
-  configure:/\\b(configurar|configuracion|ajustes|parametrizar)\\b/i,
-  manage:/\\b(administrar|gestionar|asignar|activar|desactivar)\\b/i,
-  edit:/\\b(editar|edicion|modificar|actualizar|cambiar|corregir)\\b/i,
-  create:/\\b(crear|nuevo|nueva|registrar|registro|agregar|añadir|adicionar)\\b/i,
-  save:/\\b(guardar|save)\\b/i
+  delete:/\b(eliminar|borrar|suprimir|quitar)\b/i,
+  configure:/\b(configurar|configuracion|ajustes|parametrizar)\b/i,
+  manage:/\b(administrar|gestionar|asignar|activar|desactivar)\b/i,
+  edit:/\b(editar|edicion|modificar|actualizar|cambiar|corregir)\b/i,
+  create:/\b(crear|nuevo|nueva|registrar|registro|agregar|añadir|adicionar)\b/i,
+  save:/\b(guardar|save)\b/i
  };
  controls.forEach(el=>{
   if(el.closest('#fleboAuthGate')||el.id==='fleboGlobalSignOut'||el.hasAttribute('data-nav')||el.hasAttribute('data-mobile'))return;
