@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
       const { data: visit, error: visitError } = await admin.from("home_visits").select("id,scheduled_at,status,cancellation_reason,created_by,workspace_id").eq("id", visitId).eq("workspace_id", membership.workspace_id).maybeSingle();
       if (visitError) throw visitError;
       if (!visit || visit.status !== "cancelled") return reply({ error: "La cancelación no está confirmada en la agenda." }, 409);
-      const { data: assignments, error: assignmentError } = await admin.from("home_visit_assignments").select("assigned_user_id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).not("assigned_user_id", "is", null);
+      const { data: assignments, error: assignmentError } = await admin.from("home_visit_assignments").select("assigned_user_id,status,assigned_at").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId).not("assigned_user_id", "is", null).order("assigned_at", { ascending: false }).limit(1);
       if (assignmentError) throw assignmentError;
       const recipients = [...new Set([...(assignments || []).map((row: { assigned_user_id?: string | null }) => row.assigned_user_id).filter(Boolean), visit.created_by].filter((id): id is string => !!id && id !== user.id))];
       if (!recipients.length) return reply({ ok: true, notified: 0, push_sent: 0 });
