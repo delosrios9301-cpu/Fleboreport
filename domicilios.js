@@ -165,21 +165,28 @@ async function loadServiceCatalog(){
    return result.data||[];
   };
   existingRows=await readExisting();
-  const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
+  const normalize=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
   if(cloud.role==='admin'){
-   for(const item of localCatalog().filter(x=>x&&x.id&&x.name)){
+   // El catálogo del administrador es la fuente maestra. Nunca importar elementos inactivos ni conservar activos eliminados del catálogo.
+   const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name&&x.active!==false);
+   const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
-    const existsBySource=existingRows.some(x=>x.catalog_source_id===sourceId);
-    const existsByCode=!!code&&existingRows.some(x=>normalize(x.code)===code);
-    const existsByName=!code&&existingRows.some(x=>!normalize(x.code)&&normalize(x.name)===name);
-    if(existsBySource||existsByCode||existsByName)continue;
-    const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,catalog_source_id:sourceId,code:item.code||item.codigo||null,name:String(item.name),category:item.category||null,price:Number(item.price)||0,description:item.description||item.desc||null,fields:serviceFields(item),active:item.active!==false};
+    return row.catalog_source_id===sourceId||(code&&normalize(row.code)===code)||(!code&&normalize(row.name)===name);
+   };
+   for(const item of masterCatalog){
+    if(existingRows.some(x=>matchesMaster(x,item)))continue;
+    const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,catalog_source_id:String(item.id),code:item.code||item.codigo||null,name:String(item.name),category:item.category||null,price:Number(item.price)||0,description:item.description||item.desc||null,fields:serviceFields(item),active:true};
     const saved=await cloud.client.from('services').insert(row).select(selectColumns).maybeSingle();
     if(saved.error){
      if(saved.error.code==='23505'){existingRows=await readExisting();continue}
      throw saved.error;
     }
     if(saved.data)existingRows.push(saved.data);
+   }
+   const obsolete=existingRows.filter(row=>row.active!==false&&!masterCatalog.some(item=>matchesMaster(row,item)));
+   for(const row of obsolete){
+    const disabled=await cloud.client.from('services').update({active:false}).eq('workspace_id',cloud.workspaceId).eq('id',row.id);
+    if(disabled.error)throw disabled.error;
    }
   }
   const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);
@@ -195,7 +202,6 @@ async function loadServiceCatalog(){
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
  }finally{catalogLoading=false}
 }
-async function refreshCentralCatalogForSearch(prefix,filter){const seq=++serviceSearchSeq;if(!cloud.client||!cloud.workspaceId)return;try{const result=await cloud.client.from('services').select('id,catalog_source_id,code,name,category,description,fields,active').eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);if(result.error)throw result.error;if(seq!==serviceSearchSeq)return;remoteCatalog=(result.data||[]).map(x=>{const f=x.fields&&typeof x.fields==='object'?x.fields:{};return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name||'',sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'tube',category:x.category||'',description:x.description||''}}).filter(x=>x.name);drawTestPicker(prefix,filter,true);if(!remoteCatalog.length)cloudNotice('El catálogo central no tiene pruebas activas para este laboratorio.',true)}catch(e){console.error('[Domicilios] No se pudo consultar el catálogo central:',e);cloudNotice('No se pudo consultar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true)}}
 async function loadCloudVisits(){
  const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).limit(5000);
  if(error)throw error;persistedEventIds.clear();(data||[]).forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=(data||[]).map(dbVisit);if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
