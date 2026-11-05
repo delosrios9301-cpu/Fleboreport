@@ -138,15 +138,18 @@ Deno.serve(async (req: Request) => {
         .contains("metadata", { assignment_id: assignment.id }).limit(1);
       if (inAppLookupError) throw inAppLookupError;
       let inAppSaved = false;
-      if (!(existingInApp || []).length) {
-        const { error } = await admin.from("home_visit_notifications").insert({
+      let inAppNotificationId = (existingInApp || [])[0]?.id || null;
+      if (!inAppNotificationId) {
+        const { data: inAppRow, error } = await admin.from("home_visit_notifications").insert({
           workspace_id: membership.workspace_id, home_visit_id: assignment.home_visit_id,
           recipient_user_id: assignment.assigned_user_id, channel: "in_app", status: "queued",
-          template_name: "home_visit_assigned", message_body: title + "\n" + message, metadata
-        });
+          template_name: "home_visit_assigned", message_body: title + "\\n" + message, metadata
+        }).select("id").single();
         if (error) throw error;
-        inAppSaved = true;
-      } else inAppSaved = true;
+        inAppNotificationId = inAppRow?.id || null;
+      }
+      inAppSaved = !!inAppNotificationId;
+      const notificationTag = inAppNotificationId ? "fleboreport-notif-" + inAppNotificationId : "flebo-assignment-" + assignment.id;
 
       const { data: previousPushRows, error: previousPushError } = await admin.from("home_visit_notifications")
         .select("id,status,metadata").eq("workspace_id", membership.workspace_id)
@@ -171,7 +174,7 @@ Deno.serve(async (req: Request) => {
             for (const sub of subs || []) {
               try {
                 await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } },
-                  JSON.stringify({ title, body: message, url: "./?view=domicilios&visit=" + assignment.home_visit_id, tag: "flebo-assignment-" + assignment.id }));
+                  JSON.stringify({ title, body: message, url: "./?view=domicilios&visit=" + assignment.home_visit_id, tag: notificationTag }));
                 pushSent++;
               } catch (e) {
                 const status = (e as { statusCode?: number })?.statusCode;
