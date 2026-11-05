@@ -591,7 +591,7 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
   assert.match(domicilios, /Domicilio pendiente de aprobación/);
   assert.match(domicilios, /Aceptar domicilio/);
   assert.match(domicilios, /Rechazar domicilio/);
-  assert.match(domicilios, /Los datos del paciente, la dirección y las pruebas se mostrarán después de aceptar/);
+  assert.match(domicilios, /Por privacidad, el nombre del paciente, la dirección y las pruebas se mostrarán después de aceptar/);
 });
 
 test('la revisión de muestras informa cuando una visita no tiene pruebas guardadas', () => {
