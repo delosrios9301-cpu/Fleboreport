@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
+const notificationSettings = await readFile(new URL('../notification-settings.js', import.meta.url), 'utf8');
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
@@ -105,7 +106,9 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
   assert.match(domicilios, /if\(cloud\.role==='technician'\)return technicianFieldScreen\(v\)/);
-  assert.match(domicilios, /id="hvTestPush"/);
+  assert.doesNotMatch(domicilios, /id="hvTestPush"/);
+  assert.match(notificationSettings, /id="hvActivatePush"/);
+  assert.match(notificationSettings, /id="hvTestPush"/);
   assert.match(domicilios, /invokeDomicileNotifications\(\{action:'test-push'\}\)/);
   assert.match(domicilios, /testPushInBackground/);
   assert.match(domicilios, /action:'cancelled'/);
@@ -560,7 +563,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v226'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v227'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -830,7 +833,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v226/);
+  assert.match(serviceWorker, /fleboreport-shell-v227/);
 });
 
 
