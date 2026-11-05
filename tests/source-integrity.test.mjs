@@ -523,3 +523,10 @@ assert.match(simpleProcessing, /window\.openClinicalProcessingModal=function\(id
 assert.match(simpleProcessing, /cloud\.transition\(sample,'PROCESANDO',\{primaryAliquots:p,backupAliquots:b/);
 assert.match(simpleProcessing, /if\(p\+b<1\)/);
 assert.match(simpleProcessing, /Registra al menos una alícuota principal o backup/);
+
+test('el listado del catálogo clínico conserva el ancho del nombre y separa las acciones', () => {
+  assert.match(html, /id="clinical-catalog-layout-stability-v1"/);
+  assert.match(html, /#clinicalConfigList \.clinical-config-row>span:first-child\{[^}]*flex:1 1 0%[^}]*min-width:0/);
+  assert.match(html, /#clinicalConfigList \.clinical-config-row>\.clinical-actions\{[^}]*width:auto!important/);
+  assert.match(html, /word-break:normal/);
+});
