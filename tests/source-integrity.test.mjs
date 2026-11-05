@@ -553,7 +553,8 @@ test('domicilios separa agenda activa e historial plegable por defecto', () => {
 test('la agenda de domicilios tiene vistas diferenciadas y diseño adaptable', () => {
   assert.match(domicilios, /createPanel\.hidden=technician\|\|!manager/);
   assert.match(domicilios, /kpis\.hidden=technician/);
-  assert.match(domicilios, /detailPanel\.hidden=technician/);
+  assert.doesNotMatch(domicilios, /detailPanel\.hidden=technician/);
+  assert.match(domicilios, /detail\(activeVisit\)/);
   assert.match(domicilios, /hv-responsive-agenda-v1/);
   assert.match(domicilios, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/);
   assert.match(domicilios, /@media\(max-width:900px\)/);
