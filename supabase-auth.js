@@ -21,8 +21,44 @@ async function retryMembership(){if(!currentUser)return;setStatus('Volviendo a v
 async function signOut(){try{if(client)await client.auth.signOut();currentUser=null;currentMembership=null;currentPermissions=[];permissionsLoaded=false;document.body.classList.remove('flebo-authenticated');document.getElementById('fleboGlobalSignOut')?.setAttribute('hidden','');renderState();setStatus('Sesión cerrada.')}catch(e){setStatus(e.message,true)}}
 function roleModules(role){const all=['home','journey','companies','patients','domicilios','catalog','reports','report-history','clinical-studies','clinical-processing','audit','settings'];const map={admin:all,clinician:['home','journey','companies','patients','domicilios','catalog','reports','report-history','clinical-studies','clinical-processing'],reception:['home','journey','companies','patients','domicilios','catalog','reports','report-history'],technician:['home','domicilios'],viewer:['home','reports','report-history']};return map[role]||[]}
 const VIEW_MODULE_MAP={home:'dashboard',journey:'journeys',companies:'companies',patients:'patients',domicilios:'domicilios',catalog:'catalog',reports:'reports','report-history':'reports','clinical-studies':'studies','clinical-processing':'processing',settings:'settings',audit:'audit'};function canAction(module,action,siteId){if(!currentUser||!currentMembership)return false;if(currentMembership.role==='admin')return true;if(permissionsLoaded){const overrides=currentPermissions.filter(p=>p.source==='member'&&p.module_key===module&&p.action_key===action&&(p.site_id===null||p.site_id===undefined||p.site_id===siteId));const specific=siteId?overrides.find(p=>p.site_id===siteId):null;const global=overrides.find(p=>p.site_id===null||p.site_id===undefined);if(specific)return !!specific.allowed;if(global)return !!global.allowed;const base=currentPermissions.find(p=>p.source==='role'&&p.module_key===module&&p.action_key===action);return !!base?.allowed}return false}function canAccess(view){if(!currentUser||!currentMembership||currentMembership.active!==true)return false;if(view==='settings'&&currentMembership.role!=='admin')return false;if(permissionsLoaded)return canAction(VIEW_MODULE_MAP[view]||view,'view');return currentMembership.role==='admin'&&roleModules(currentMembership.role).includes(view)}window.fleboCan=(module,action,siteId)=>canAction(module,action,siteId);
+function applyActionVisibility(root=document){
+ const controls=root.querySelectorAll('button,a.btn,input[type="button"],input[type="submit"],[role="button"],[data-permission-action]');
+ const createWords=/\\b(crear|nuevo|nueva|registrar|registro|agregar|añadir|adicionar)\\b/i;
+ const editWords=/\\b(editar|edicion|modificar|actualizar|cambiar|guardar cambios)\\b/i;
+ const deleteWords=/\\b(eliminar|borrar|suprimir)\\b/i;
+ const saveWords=/\\b(guardar|save)\\b/i;
+ controls.forEach(el=>{
+  if(el.closest('#fleboAuthGate')||el.id==='fleboGlobalSignOut'||el.hasAttribute('data-nav')||el.hasAttribute('data-mobile'))return;
+  const view=el.closest('.view[id^="view-"]');
+  if(!view)return;
+  const viewKey=view.id.replace(/^view-/,'');
+  const module=el.dataset.permissionModule||VIEW_MODULE_MAP[viewKey]||viewKey;
+  const label=[el.innerText,el.getAttribute('aria-label'),el.getAttribute('title'),el.value,el.dataset.action].filter(Boolean).join(' ');
+  let action=el.dataset.permissionAction||el.dataset.action||'';
+  if(!action){
+   if(deleteWords.test(label))action='delete';
+   else if(editWords.test(label))action='edit';
+   else if(createWords.test(label))action='create';
+   else if(saveWords.test(label))action='save';
+  }
+  if(!action)return;
+  let allowed=true;
+  if(action==='save')allowed=canAction(module,'create')||canAction(module,'edit');
+  else if(['create','edit','delete','approve','assign','export','print','manage','configure','request'].includes(action))allowed=canAction(module,action);
+  if(!allowed){
+   el.hidden=true;
+   el.setAttribute('aria-hidden','true');
+   el.dataset.fleboPermissionHidden='true';
+  }else if(el.dataset.fleboPermissionHidden==='true'){
+   el.hidden=false;
+   el.removeAttribute('aria-hidden');
+   delete el.dataset.fleboPermissionHidden;
+  }
+ });
+}
 function applyAccess(){
  const role=currentMembership?.role||'';
+ applyActionVisibility();
  document.querySelectorAll('[data-nav]').forEach(el=>{el.hidden=!canAccess(el.dataset.nav)});
  document.querySelectorAll('[data-mobile]').forEach(el=>{el.hidden=!canAccess(el.dataset.mobile)});
  document.querySelectorAll('.view[id^="view-"]').forEach(el=>{const key=el.id.replace(/^view-/,'');const allowed=canAccess(key);el.hidden=!allowed;el.setAttribute('aria-hidden',String(!allowed))});
@@ -40,6 +76,7 @@ function applyAccess(){
  const current=document.querySelector('.view.active');
  const view=current?.id?.replace('view-','');
  if(view&&!canAccess(view)&&currentUser&&currentMembership&&window.navigate)window.navigate('home');
+ applyActionVisibility();
 }
 function installGlobalControls(){if(!document.getElementById('fleboGlobalAuthStatus')){const notice=document.createElement('div');notice.id='fleboGlobalAuthStatus';notice.hidden=true;notice.setAttribute('role','alert');notice.setAttribute('aria-live','assertive');document.body.appendChild(notice)}if(!document.getElementById('fleboGlobalAuthStyles')){const st=document.createElement('style');st.id='fleboGlobalAuthStyles';st.textContent=`
 .view[hidden]{display:none!important}\n.flebo-role-home{display:flex;align-items:center;gap:18px;max-width:760px;margin:24px auto;padding:24px;background:linear-gradient(135deg,#fff,#edf8f7);border-radius:22px;box-shadow:0 14px 32px #0f766e1c}\n.flebo-role-home[hidden]{display:none!important}\n.flebo-role-home h2{margin:4px 0 8px;color:#12324a}\n.flebo-role-home p{margin:0 0 16px;color:#62768b}\n.flebo-role-home-icon{display:grid;place-items:center;flex:0 0 58px;width:58px;height:58px;border-radius:19px;background:linear-gradient(145deg,#0d9488,#0c6d75);color:white;font-size:30px;box-shadow:0 8px 16px #0d94884d}\n@media(max-width:600px){.flebo-role-home{margin:16px 0;padding:18px;align-items:flex-start}.flebo-role-home-icon{flex-basis:48px;width:48px;height:48px}}\n#fleboGlobalAuthStatus{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:11000;width:min(92vw,620px);padding:12px 15px;border:1px solid #e9a5a5;border-radius:13px;background:#fff4f3;color:#982b2b;box-shadow:0 12px 30px #153e5728;font-size:13px;line-height:1.45;text-align:center;overflow-wrap:anywhere}
@@ -255,6 +292,8 @@ async function createAdminUser(){const status=document.getElementById('frUsersSt
 async function updateAdminUser(event){const control=event.target;if(control.matches('[data-user-role]')&&event.type!=='change')return;if(control.matches('[data-user-active]')&&event.type!=='click')return;if(!control.matches('[data-user-role],[data-user-active]'))return;const row=control.closest('[data-user-id]');if(!row)return;const status=document.getElementById('frUsersStatus'),isRole=control.matches('[data-user-role]'),previousRole=control.dataset.currentRole,previousActive=control.dataset.userActive;try{control.disabled=true;const payload={target_user_id:row.dataset.userId};if(isRole)payload.role=control.value;else payload.active=control.dataset.userActive==='true';await adminRequest('admin-update-user',payload);if(isRole)control.dataset.currentRole=control.value;else{const active=payload.active;control.dataset.userActive=active?'false':'true';control.textContent=active?'Desactivar':'Activar';control.classList.toggle('danger',active);control.classList.toggle('primary',!active)}if(status)status.textContent=isRole?'Rol actualizado correctamente.':'Estado del usuario actualizado.'}catch(e){if(isRole&&previousRole)control.value=previousRole;if(!isRole&&previousActive)control.dataset.userActive=previousActive;if(status)status.textContent=e.message}finally{control.disabled=false}}
 function renderState(){const badge=document.getElementById('fleboAuthBadge'),form=document.getElementById('fleboAuthForm'),session=document.getElementById('fleboAuthSession'),userLabel=document.getElementById('fleboAuthUser'),role=document.getElementById('fleboAuthRole'),retry=document.getElementById('fleboAuthRetryMembership'),help=document.getElementById('fleboAuthWorkspaceHelp'),workspace=document.getElementById('hvWorkspace'),panel=document.getElementById('fleboAuthPanel'),gate=document.getElementById('fleboAuthGate');if(!badge)return;const authorized=!!(currentUser&&currentMembership&&currentMembership.active===true);if(workspace)workspace.hidden=!authorized;if(panel)panel.hidden=authorized;if(gate){gate.hidden=authorized;if(authBootComplete)gate.removeAttribute('data-checking')}document.body.classList.toggle('flebo-authenticated',authorized);document.body.classList.toggle('flebo-auth-locked',!authorized);if(currentUser){badge.textContent=authorized?'Sesión activa':'Cuenta autenticada';badge.style.background=authorized?'#dcfce7':'#fff0d4';badge.style.color=authorized?'#166534':'#925c00';form.hidden=true;session.hidden=false;userLabel.textContent=currentUser.user_metadata?.display_name||currentUser.user_metadata?.name||currentUser.email||'Usuario autenticado';const roleNames={admin:currentMembership?.is_primary_admin?'Super Administrador Máster':'Administrador',clinician:'Supervisor clínico',reception:'Recepción / Agenda',technician:'Flebotomista',viewer:'Solo consulta',role_custom:'Rol personalizado'};role.textContent=currentMembership?((currentMembership.workspaces&&currentMembership.workspaces.name)||'FleboReport')+' · Rol: '+(roleNames[currentMembership.role]||'Rol no reconocido')+(currentMembership.role==='role_custom'?' (permisos definidos por el administrador)':''):'No se ha confirmado la vinculación con el espacio de trabajo.';if(retry)retry.hidden=authorized;if(help)help.hidden=authorized;if(currentMembership&&!currentMembership.active)setStatus('Tu acceso a este espacio de trabajo está desactivado. Contacta al administrador.',true);else if(currentMembership&&!permissionsLoaded)setStatus('Verificando permisos de acceso…',true)}else{badge.textContent='Acceso requerido';badge.style.background='#fff0d4';badge.style.color='#925c00';form.hidden=false;session.hidden=true}let signout=document.getElementById('fleboGlobalSignOut');const signoutFooter=document.querySelector('#sidebar .drawer-footer');if(signout&&signoutFooter&&signout.parentElement!==signoutFooter)signoutFooter.appendChild(signout);if(signout)signout.hidden=!currentUser;if(authorized)applyAccess();window.dispatchEvent(new Event('flebo:auth-changed'))}
 let bootPromise=null;function boot(){if(bootPromise)return bootPromise;bootPromise=(async()=>{installGlobalControls();mountPanel();try{await init();await refreshRegistrationMode();const {data,error}=await client.auth.getSession();if(error)throw error;await refreshSession(data.session&&data.session.user)}catch(e){setStatus(e.message,true)}finally{authBootComplete=true;renderState()}})();return bootPromise}
-window.addEventListener('flebo:domicilios-mounted',()=>{mountPanel();if(!window.fleboSupabase)boot();else renderState();});const observer=new MutationObserver(()=>{if(document.getElementById('view-domicilios')){mountPanel();if(!window.fleboSupabase)boot()}});observer.observe(document.documentElement,{childList:true,subtree:true});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
+window.addEventListener('flebo:domicilios-mounted',()=>{mountPanel();if(!window.fleboSupabase)boot();else renderState();});const observer=new MutationObserver(()=>{if(document.getElementById('view-domicilios')){mountPanel();if(!window.fleboSupabase)boot()}});observer.observe(document.documentElement,{childList:true,subtree:true});
+const permissionObserver=new MutationObserver(records=>{if(!currentUser||!currentMembership||!permissionsLoaded)return;for(const record of records){if(record.addedNodes&&record.addedNodes.length){applyActionVisibility(record.target.nodeType===1?record.target:document);break}}});
+permissionObserver.observe(document.documentElement,{childList:true,subtree:true});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 window.FleboAuth={init,get client(){return client},get user(){return currentUser},get membership(){return currentMembership}};
 })();
