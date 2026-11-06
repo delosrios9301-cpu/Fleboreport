@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
       const labels: Record<string,string> = { acceptance_pending: "Domicilio pendiente de aceptación: revisa la asignación", departure_due: "Inicia el desplazamiento del domicilio", departure_followup: "Seguimiento: aún no estás en camino", departure_overdue: "Domicilio fuera de hora: inicia el desplazamiento", sample_24h: "Muestra próxima a vencer: quedan 24 horas", sample_20m: "Alerta crítica: quedan 20 minutos para procesar la muestra", sample_overdue: "Muestra fuera del plazo de 72 horas" };
       const title = labels[alert.alert_code] || "Alerta de seguimiento · FleboReport";
       const subjectText = alert.entity === "home_visit" ? "domicilio" : "muestra clínica";
-      const bodyText = alert.severity === "overdue" ? "El plazo ya venció. Revisa el seguimiento del " + subjectText + "." : alert.severity === "critical" ? "Atención inmediata. El plazo está por agotarse. Revisa el " + subject + "." : "Se aproxima el límite de tiempo. Revisa el " + subject + ".";
+      const bodyText = alert.severity === "overdue" ? "El plazo ya venció. Revisa el seguimiento del " + subjectText + "." : alert.severity === "critical" ? "Atención inmediata. El plazo está por agotarse. Revisa el " + subjectText + "." : "Se aproxima el límite de tiempo. Revisa el " + subjectText + ".";
       webpush.setVapidDetails(subject, publicVapid, privateVapid);
       let sent = 0, failed = 0;
       for (const sub of subs || []) {
