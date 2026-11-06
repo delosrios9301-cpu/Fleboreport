@@ -838,7 +838,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v231/);
+  assert.match(serviceWorker, /fleboreport-shell-v232/);
 });
 
 
