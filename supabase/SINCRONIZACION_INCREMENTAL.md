@@ -33,7 +33,7 @@ Los triggers registran también los cambios en tablas secundarias. Las modificac
 2. Captura el cursor antes de esa descarga y reproduce los cambios que ocurrieron durante la carga.
 3. En sincronizaciones siguientes, consulta solo cambios posteriores al cursor.
 4. Descarga los registros principales afectados y sus relaciones actuales; esto también detecta eliminaciones.
-5. Avanza el cursor solo después de aplicar los cambios.
+5. Avanza el cursor solo después de aplicar los cambios. La asignación de secuencias se serializa por laboratorio hasta el COMMIT para evitar saltos cuando dos transacciones concurrentes terminan en distinto orden.
 6. Al recuperar conexión o volver a mostrar la aplicación, consulta los cambios que pudieron ocurrir mientras el dispositivo estuvo desconectado.
 
 En Domicilios, la caché de arranque solo se utiliza para usuarios con permisos de lectura y gestión; vence a los cinco minutos y no se utiliza para flebotomistas. En Estudios Clínicos, el cursor se guarda junto con la instantánea clínica local, aislado por usuario, espacio y rol; nunca se publica en `workspace_app_state`.
