@@ -52,8 +52,17 @@ async function connect(){
   client=await window.FleboAuth.init();
   const auth=window.FleboAuth,m=auth.membership;
   if(!auth.user||!m||m.active!==true||!m.workspace_id){ready=false;return}
-  userId=auth.user.id;workspaceId=m.workspace_id;role=m.role;
+  const nextUserId=auth.user.id,nextWorkspaceId=m.workspace_id;
+  if(userId!==nextUserId||workspaceId!==nextWorkspaceId)clinicalSyncCursor=null;
+  userId=nextUserId;workspaceId=nextWorkspaceId;role=m.role;
   ready=['admin','clinician','technician','reception'].includes(role);
+  if(clinicalRealtimeChannel)client.removeChannel(clinicalRealtimeChannel);
+  clinicalRealtimeChannel=null;
+  if(ready){
+   clinicalRealtimeChannel=client.channel('fleboreport-clinical-delta-'+workspaceId)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'sync_change_log',filter:'workspace_id=eq.'+workspaceId},scheduleClinicalIncrementalRefresh)
+    .subscribe();
+  }
  }catch(e){ready=false;console.error('[FleboReport Clinical Cloud]',e)}
 }
 function requireReady(roles){
@@ -160,43 +169,97 @@ async function loadRemoteBoxes(){
  // La nube es la fuente oficial: no concatenar cajas, racks ni congeladores locales antiguos.
  window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true,deferRender:true});
 }
+let clinicalSyncCursor=null,clinicalRealtimeChannel=null,clinicalRealtimeTimer=null,clinicalRealtimeRunning=false,clinicalRealtimeAgain=false;
+async function latestClinicalSyncCursor(){
+ const result=await client.from('sync_change_log').select('seq').eq('workspace_id',workspaceId).eq('entity','clinical_samples').order('seq',{ascending:false}).limit(1).maybeSingle();
+ if(result.error)fail(result.error);
+ return result.data?Number(result.data.seq):0;
+}
+async function fetchSampleRelatedRows(table,columns,ids,order){
+ const rows=[];
+ for(let i=0;i<ids.length;i+=200){
+  let query=client.from(table).select(columns).eq('workspace_id',workspaceId).in('sample_id',ids.slice(i,i+200));
+  if(order)for(const item of order)query=query.order(item.column,{ascending:item.ascending});
+  rows.push(...await fetchAllPages(query));
+ }
+ return rows;
+}
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
  const locallyDeleted=new Set((stateNow['clinicalLocalDeleted'+'SampleIds']||[]).map(String));
+ const fullSnapshot=clinicalSyncCursor===null;
+ const cursorBefore=fullSnapshot?await latestClinicalSyncCursor():clinicalSyncCursor;
+ const changes=fullSnapshot?[]:await fetchAllPages(client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',workspaceId).eq('entity','clinical_samples').gt('seq',clinicalSyncCursor).order('seq',{ascending:true}));
+ if(!fullSnapshot&&!changes.length)return false;
+ const changedCloudIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
  const oldByCloudId=new Map(),oldByLegacyId=new Map();
  oldSamples.forEach(x=>{if(x.cloudId)oldByCloudId.set(String(x.cloudId),x);if(x.id)oldByLegacyId.set(String(x.id),x)});
  const sampleQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).order('id',{ascending:false});
- const [sampleRows,containerRows,eventRows,profiles]=await Promise.all([
-  fetchAllPages(sampleQuery),
-  fetchAllPages(client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId).order('sample_id',{ascending:true}).order('barcode',{ascending:true})),
-  fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false})),
-  client.from('profiles').select('user_id,display_name')
- ]);
- const r={data:sampleRows};const containers={data:containerRows};const events={data:eventRows};
+ let sampleRows=[],containerRows=[],eventRows=[];
+ if(fullSnapshot){
+  [sampleRows,containerRows,eventRows]=await Promise.all([
+   fetchAllPages(sampleQuery),
+   fetchAllPages(client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId).order('sample_id',{ascending:true}).order('barcode',{ascending:true})),
+   fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false}))
+  ]);
+ }else{
+  sampleRows=await fetchSampleRelatedRows('clinical_samples','id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at',changedCloudIds,[{column:'received_at',ascending:false},{column:'id',ascending:false}]);
+  [containerRows,eventRows]=await Promise.all([
+   fetchSampleRelatedRows('clinical_sample_containers','sample_id,barcode',changedCloudIds,[{column:'sample_id',ascending:true},{column:'barcode',ascending:true}]),
+   fetchSampleRelatedRows('clinical_sample_events','id,sample_id,previous_status,next_status,notes,actor_id,occurred_at',changedCloudIds,[{column:'occurred_at',ascending:false},{column:'id',ascending:false}])
+  ]);
+ }
+ const profiles=await client.from('profiles').select('user_id,display_name');
  if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
  const currentUser=window.FleboAuth&&window.FleboAuth.user,currentMeta=currentUser&&currentUser.user_metadata||{},currentName=currentMeta.display_name||currentMeta.name||(currentUser&&currentUser.email?currentUser.email.split('@')[0]:'');
  if(currentUser&&currentName)profileMap.set(currentUser.id,String(currentName).trim());
- const containerBarcodes=new Map();(containers.data||[]).forEach(x=>{const key=String(x.sample_id);if(!containerBarcodes.has(key))containerBarcodes.set(key,[]);containerBarcodes.get(key).push(x.barcode)});
- const cloudSampleById=new Map((r.data||[]).map(x=>[String(x.id),x]));
+ const containerBarcodes=new Map();containerRows.forEach(x=>{const key=String(x.sample_id);if(!containerBarcodes.has(key))containerBarcodes.set(key,[]);containerBarcodes.get(key).push(x.barcode)});
+ const cloudSampleById=new Map(sampleRows.map(x=>[String(x.id),x]));
  const studyMap=new Map((stateNow.clinicalStudies||[]).map(x=>[x.cloudId,x]));
  const visitMap=new Map((stateNow.clinicalVisits||[]).map(x=>[x.cloudId,x]));
  const typeMap=new Map((stateNow.clinicalSampleTypes||[]).map(x=>[x.cloudId,x]));
  const patientMap=new Map((stateNow.patients||[]).filter(x=>x.cloudPatientId).map(x=>[x.cloudPatientId,x]));
- const next=(r.data||[]).map(row=>{
+ const next=sampleRows.map(row=>{
   const old=oldByCloudId.get(String(row.id))||oldByLegacyId.get(String(row.legacy_id))||{};
   const study=studyMap.get(row.study_id),visit=visitMap.get(row.visit_id),type=typeMap.get(row.sample_type_id),patient=patientMap.get(row.patient_id);
-  const d=new Date(row.collection_at),rd=new Date(row.received_at);
-  const bars=containerBarcodes.get(String(row.id))||[];
+  const d=new Date(row.collection_at),rd=new Date(row.received_at),bars=containerBarcodes.get(String(row.id))||[];
   return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,receivedBy:profileMap.get(row.received_by)||row.received_by||'',receivedById:row.received_by||'',reviewedBy:profileMap.get(row.reviewed_by)||row.reviewed_by||'',reviewedById:row.reviewed_by||'',reviewedAt:row.reviewed_at,processingStartedBy:profileMap.get(row.processing_started_by)||row.processing_started_by||'',processingStartedById:row.processing_started_by||'',processingStartedAt:row.processing_started_at,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||row.processed_by||'',processedById:row.processed_by||'',storedBy:profileMap.get(row.stored_by)||row.stored_by||'',storedById:row.stored_by||'',storedAt:row.stored_at,notes:row.notes||'',temporaryBoxId:row.temporary_box_id,temporaryBoxCloudId:row.temporary_box_id,definitiveBoxId:row.definitive_box_id,definitiveBoxCloudId:row.definitive_box_id,createdAt:row.created_at,updatedAt:row.updated_at});
  });
- const merged=next;
- const visibleNext=next.filter(x=>!locallyDeleted.has(String(x.id)));
- const history=(events.data||[]).map(e=>{
-  const sample=cloudSampleById.get(String(e.sample_id));return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||'cloud-sm-'+sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
+ let mergedSamples;
+ let changedLocalKeys=new Set();
+ if(fullSnapshot){mergedSamples=next;}
+ else{
+  changedCloudIds.forEach(id=>{changedLocalKeys.add(id);const old=oldByCloudId.get(id);if(old?.id)changedLocalKeys.add(String(old.id));});
+  next.forEach(x=>{changedLocalKeys.add(String(x.cloudId));changedLocalKeys.add(String(x.id));});
+  mergedSamples=oldSamples.filter(x=>!changedLocalKeys.has(String(x.cloudId||''))&&!changedLocalKeys.has(String(x.id||''))).concat(next);
+ }
+ const visibleNext=mergedSamples.filter(x=>!locallyDeleted.has(String(x.id)));
+ const eventRowsMapped=eventRows.map(e=>{
+  const sample=cloudSampleById.get(String(e.sample_id))||oldByCloudId.get(String(e.sample_id));
+  return{id:'db-'+e.sample_id+'-'+e.occurred_at,sampleId:sample?(sample.legacy_id||sample.id):'cloud-sm-'+e.sample_id,previousStatus:e.previous_status||'',newStatus:e.next_status,timestamp:e.occurred_at,operator:profileMap.get(e.actor_id)||e.actor_id||'Sistema',note:e.notes||''};
  });
- // No reincorporar registros ni historial del almacenamiento local: Supabase es la única fuente.
+ const oldHistory=stateNow.clinicalSampleHistory||[];
+ const history=fullSnapshot?eventRowsMapped:oldHistory.filter(e=>!changedLocalKeys.has(String(e.sampleId))).concat(eventRowsMapped);
  window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history}),{silent:true,deferRender:true});
+ if(fullSnapshot){
+  clinicalSyncCursor=cursorBefore;
+  // Reproduce los cambios ocurridos mientras se descargaba la instantánea inicial.
+  return await loadRemoteSamples();
+ }
+ clinicalSyncCursor=Number(changes[changes.length-1].seq);
+ return true;
+}
+function scheduleClinicalIncrementalRefresh(){
+ if(clinicalRealtimeTimer)clearTimeout(clinicalRealtimeTimer);
+ clinicalRealtimeTimer=setTimeout(async()=>{
+  clinicalRealtimeTimer=null;
+  if(clinicalRealtimeRunning){clinicalRealtimeAgain=true;return;}
+  clinicalRealtimeRunning=true;
+  try{await loadRemoteSamples();refreshClinicalViewSafely();}
+  catch(error){console.error('[FleboReport Clinical Cloud] No se pudo aplicar el delta incremental:',error);}
+  finally{clinicalRealtimeRunning=false;if(clinicalRealtimeAgain){clinicalRealtimeAgain=false;scheduleClinicalIncrementalRefresh();}}
+ },300);
 }
 async function syncConfiguration(){
  requireReady(['admin','clinician','technician','reception']);
