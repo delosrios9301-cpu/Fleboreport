@@ -6,6 +6,8 @@ const ARRAY_KEYS=['catalog','patients','journeyEntries','companies','reportHisto
 const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampleTypes'];
 // Las muestras y su historial viven exclusivamente en clinical_samples/clinical_sample_events.
 const CLINICAL_DB_RECORD_KEYS=['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'];
+// El cursor clínico pertenece a la caché local de cada dispositivo y nunca se comparte entre sesiones.
+const CLINICAL_DB_SYNC_KEYS=['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -149,6 +151,7 @@ async function writeRemote(state,expected){
  // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
  CLINICAL_DB_RECORD_KEYS.forEach(k=>{payload[k]=[]});
+ CLINICAL_DB_SYNC_KEYS.forEach(k=>{delete payload[k]});
  const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
  const r=await client.rpc('save_workspace_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
@@ -162,6 +165,7 @@ function applyCloudState(s,clearClinical){
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
+ CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
  window.FleboAppState.replace(safe,{silent:true,deferRender:true});
 }
 async function publishMerged(local,remote,expected){
