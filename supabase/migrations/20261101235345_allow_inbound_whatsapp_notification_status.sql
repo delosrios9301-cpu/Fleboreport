@@ -1,0 +1,1 @@
+alter table public.home_visit_notifications drop constraint if exists home_visit_notifications_status_check; alter table public.home_visit_notifications add constraint home_visit_notifications_status_check check (status = any (array['queued'::text,'sent'::text,'failed'::text,'read'::text,'cancelled'::text,'received'::text]));

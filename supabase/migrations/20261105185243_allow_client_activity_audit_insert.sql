@@ -1,0 +1,1 @@
+create policy audit_logs_client_activity_insert on public.audit_logs for insert to authenticated with check (entity_table = 'app_activity' and source_event_key is not null and actor_id = (select auth.uid()) and exists (select 1 from public.workspace_members m where m.workspace_id = audit_logs.workspace_id and m.user_id = (select auth.uid()) and m.active = true));

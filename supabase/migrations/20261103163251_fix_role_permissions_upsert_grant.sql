@@ -1,3 +1,5 @@
--- Allow the authenticated role to complete ON CONFLICT DO UPDATE in the role-permission editor.
--- Row-level security remains enabled and the existing admin-only policies continue to guard writes.
+
+-- The role-permission editor performs an UPSERT from the authenticated client.
+-- PostgreSQL requires UPDATE privilege for the ON CONFLICT DO UPDATE branch.
+-- RLS continues to restrict writes to active workspace administrators.
 grant update on table public.role_permissions to authenticated;
