@@ -566,7 +566,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v230'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v231'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -838,7 +838,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v230/);
+  assert.match(serviceWorker, /fleboreport-shell-v231/);
 });
 
 
@@ -903,4 +903,38 @@ test('Recordarme controla dónde se conserva la sesión y permite cambiar la pre
   assert.match(auth, /authStorageAdapter\.setRemember\(remember\.checked\)/);
   assert.match(auth, /target=remember\?localStorage:sessionStorage/);
   assert.match(auth, /source=remember\?sessionStorage:localStorage/);
+});
+
+const syncChangeLogMigration = await readFile(new URL('../supabase/migrations/20261106134333_sync_change_log_outbox.sql', import.meta.url), 'utf8');
+const syncOutboxPolicyMigration = await readFile(new URL('../supabase/migrations/20261106134655_sync_outbox_assignee_visibility.sql', import.meta.url), 'utf8');
+
+test('la sincronización incremental registra solo identificadores y respeta RLS por módulo', () => {
+  assert.match(syncChangeLogMigration, /create table if not exists public\.sync_change_log/i);
+  assert.match(syncChangeLogMigration, /enable row level security/i);
+  assert.match(syncChangeLogMigration, /security definer[\s\S]*?set search_path = ''/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visits/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visit_tests/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visit_assignments/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visit_events/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visit_documents/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_home_visit_additional_patients/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_clinical_samples/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_clinical_sample_containers/i);
+  assert.match(syncChangeLogMigration, /create trigger sync_change_log_clinical_sample_events/i);
+  assert.match(syncChangeLogMigration, /alter publication supabase_realtime add table public\.sync_change_log/i);
+  assert.doesNotMatch(syncChangeLogMigration, /patient_name|document_number|address|row_data|payload/i);
+  assert.match(syncOutboxPolicyMigration, /is_current_home_visit_assignee/i);
+  assert.match(syncOutboxPolicyMigration, /has_workspace_role/i);
+});
+
+test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto a la instantánea', () => {
+  assert.match(domicilios, /async function latestHomeVisitSyncCursor\(\)/);
+  assert.match(domicilios, /\.from\('sync_change_log'\)/);
+  assert.match(domicilios, /homeVisitSyncCursor/);
+  assert.match(domicilios, /async function fetchHomeVisitRows\(ids\)/);
+  assert.match(clinicalCloudSync, /async function latestClinicalSyncCursor\(\)/);
+  assert.match(clinicalCloudSync, /\.from\('sync_change_log'\)/);
+  assert.match(clinicalCloudSync, /_clinicalCloudSyncCursor:nextCursor/);
+  assert.match(clinicalCloudSync, /clinicalSyncCursor=Number\(changes\[changes\.length-1\]\.seq\)/);
+  assert.match(clinicalCloudSync, /scheduleClinicalIncrementalRefresh/);
 });
