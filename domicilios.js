@@ -205,8 +205,9 @@ async function loadServiceCatalog(){
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
  }finally{catalogLoading=false}
 }
+function canCacheHomeVisitSnapshot(){return cloud.role==='admin'||!!(window.fleboCan&&window.fleboCan('domicilios','manage'))}
 function restoreHomeVisitCache(){
- if(cloud.role==='technician'||!cloud.user?.id)return false;
+ if(!canCacheHomeVisitSnapshot()||!cloud.user?.id)return false;
  try{
   const cached=JSON.parse(localStorage.getItem(KEY)||'null');
   if(!cached||cached.workspaceId!==cloud.workspaceId||cached.userId!==cloud.user.id||cached.role!==cloud.role||!Array.isArray(cached.visits)||!Number.isFinite(Number(cached.cursor)))return false;
@@ -217,7 +218,7 @@ function restoreHomeVisitCache(){
  }catch(error){console.warn('[Domicilios] No se pudo restaurar la caché de agenda:',error);return false;}
 }
 function saveHomeVisitCache(){
- if(cloud.role==='technician'||!cloud.user?.id||homeVisitSyncCursor===null)return;
+ if(!canCacheHomeVisitSnapshot()||!cloud.user?.id||homeVisitSyncCursor===null)return;
  try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));}
  catch(error){console.warn('[Domicilios] No se pudo actualizar la caché de agenda:',error);}
 }
