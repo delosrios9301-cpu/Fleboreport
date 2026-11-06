@@ -232,7 +232,7 @@ async function loadRemoteSamples(){
    fetchSampleRelatedRows('clinical_sample_events','id,sample_id,previous_status,next_status,notes,actor_id,occurred_at',changedCloudIds,[{column:'occurred_at',ascending:false},{column:'id',ascending:false}])
   ]);
  }
- const profiles=await client.from('profiles').select('user_id,display_name,username');
+ const profiles=await client.rpc('get_workspace_profile_names',{p_workspace_id:workspaceId});
  if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,String(x.display_name||x.username||'').trim()]));
  const currentUser=window.FleboAuth&&window.FleboAuth.user,currentMeta=currentUser&&currentUser.user_metadata||{},currentName=currentMeta.display_name||currentMeta.name||(currentUser&&currentUser.email?currentUser.email.split('@')[0]:'');
