@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 
 const cloud = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const activity = await readFile(new URL('../app-activity-cloud.js', import.meta.url), 'utf8');
-const migration = await readFile(new URL('../supabase/migrations/20261105235000_separate_client_activity_from_workspace_sync.sql', import.meta.url), 'utf8');
-const policy = await readFile(new URL('../supabase/migrations/20261105235500_allow_client_activity_audit_insert.sql', import.meta.url), 'utf8');
-const grant = await readFile(new URL('../supabase/migrations/20261105235600_grant_authenticated_audit_insert.sql', import.meta.url), 'utf8');
+const migration = await readFile(new URL('../supabase/migrations/20261105185219_separate_client_activity_from_workspace_sync.sql', import.meta.url), 'utf8');
+const policy = await readFile(new URL('../supabase/migrations/20261105185243_allow_client_activity_audit_insert.sql', import.meta.url), 'utf8');
+const grant = await readFile(new URL('../supabase/migrations/20261105185251_grant_authenticated_audit_insert.sql', import.meta.url), 'utf8');
 const history = await readFile(new URL('../audit-history.js', import.meta.url), 'utf8');
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const sw = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
