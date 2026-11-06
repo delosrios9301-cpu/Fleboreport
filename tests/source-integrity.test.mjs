@@ -290,7 +290,7 @@ test('las eliminaciones de muestras se conservan en la sincronización general y
   assert.match(cloudSync, /clinicalSamples','clinicalLocalDeletedSampleIds','clinicalSampleHistory/);
   assert.match(cloudSync, /deletedClinicalSampleIds=new Set\(\(out\.clinicalLocalDeletedSampleIds\|\|\[\]\)\.map\(String\)\)/);
   assert.match(cloudSync, /out\.clinicalSamples=\(out\.clinicalSamples\|\|\[\]\)\.filter\(x=>!deletedClinicalSampleIds\.has\(String\(x\.id\)\)\)/);
-  assert.match(clinicalCloudSync, /visibleNext=next\.filter\(x=>!locallyDeleted\.has\(String\(x\.id\)\)\)/);
+  assert.match(clinicalCloudSync, /visibleNext=mergedSamples\.filter\(x=>!locallyDeleted\.has\(String\(x\.id\)\)\)/);
   assert.match(html, /await window\.FleboClinicalCloud\.deleteSample\(sample,reason\);[\s\S]*?clinicalLocalDeletedSampleIds=Array\.from\(new Set/);
 });
 
@@ -440,7 +440,7 @@ test('las muestras y su historial solo se hidratan desde las tablas clínicas de
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS=\['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'\]/);
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{out\[k\]=\[\]\}\)/);
   assert.match(cloudSync, /CLINICAL_DB_RECORD_KEYS\.forEach\(k=>\{payload\[k\]=\[\]\}\)/);
-  assert.match(clinicalCloudSync, /const merged=next/);
+  assert.match(clinicalCloudSync, /if\(fullSnapshot\)\{mergedSamples=next;\}/);
   assert.doesNotMatch(clinicalCloudSync, /oldSamples\.filter\(x=>!x\.cloudId/);
   assert.doesNotMatch(clinicalCloudSync, /history\.concat\(oldSampleHistory/);
 });
