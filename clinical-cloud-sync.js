@@ -203,7 +203,7 @@ async function loadRemoteSamples(){
    fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false}))
   ]);
  }else{
-  sampleRows=await fetchSampleRelatedRows('clinical_samples','id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at',changedCloudIds,[{column:'received_at',ascending:false},{column:'id',ascending:false}]);
+  sampleRows=await fetchAllPages(sampleQuery.in('id',changedCloudIds));
   [containerRows,eventRows]=await Promise.all([
    fetchSampleRelatedRows('clinical_sample_containers','sample_id,barcode',changedCloudIds,[{column:'sample_id',ascending:true},{column:'barcode',ascending:true}]),
    fetchSampleRelatedRows('clinical_sample_events','id,sample_id,previous_status,next_status,notes,actor_id,occurred_at',changedCloudIds,[{column:'occurred_at',ascending:false},{column:'id',ascending:false}])
@@ -230,7 +230,7 @@ async function loadRemoteSamples(){
  let changedLocalKeys=new Set();
  if(fullSnapshot){mergedSamples=next;}
  else{
-  changedCloudIds.forEach(id=>{changedLocalKeys.add(id);const old=oldByCloudId.get(id);if(old?.id)changedLocalKeys.add(String(old.id));});
+  changedCloudIds.forEach(id=>{changedLocalKeys.add(id);changedLocalKeys.add('cloud-sm-'+id);const old=oldByCloudId.get(id);if(old?.id)changedLocalKeys.add(String(old.id));});
   next.forEach(x=>{changedLocalKeys.add(String(x.cloudId));changedLocalKeys.add(String(x.id));});
   mergedSamples=oldSamples.filter(x=>!changedLocalKeys.has(String(x.cloudId||''))&&!changedLocalKeys.has(String(x.id||''))).concat(next);
  }
