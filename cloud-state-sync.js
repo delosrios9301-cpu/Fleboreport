@@ -165,8 +165,9 @@ function applyCloudState(s,clearClinical){
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
- CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
+ CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(!clearClinical&&Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
  window.FleboAppState.replace(safe,{silent:true,deferRender:true});
+ if(clearClinical)window.dispatchEvent(new Event('flebo:clinical-cache-reset'));
 }
 async function publishMerged(local,remote,expected){
  let candidate=mergeState(remote&&remote.state||{},local||{});
