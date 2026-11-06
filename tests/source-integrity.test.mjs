@@ -950,4 +950,8 @@ test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto
   assert.match(clinicalCloudSync, /_clinicalCloudSyncCursor:nextCursor/);
   assert.match(clinicalCloudSync, /clinicalSyncCursor=Number\(changes\[changes\.length-1\]\.seq\)/);
   assert.match(clinicalCloudSync, /scheduleClinicalIncrementalRefresh/);
+  assert.match(clinicalCloudSync, /document\.addEventListener\('visibilitychange',[\s\S]*?scheduleClinicalIncrementalRefresh\(\)/);
+  assert.match(clinicalCloudSync, /window\.addEventListener\('online',[\s\S]*?scheduleClinicalIncrementalRefresh\(\)/);
+  assert.match(domicilios, /document\.addEventListener\('visibilitychange',[\s\S]*?scheduleCloudVisitsRefresh\(\)/);
+  assert.match(domicilios, /window\.addEventListener\('online',[\s\S]*?scheduleCloudVisitsRefresh\(\)/);
 });
