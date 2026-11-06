@@ -736,8 +736,10 @@ test('el cuadro de aceptación de domicilio se monta en el body y se centra en e
 
 
 test('la sesión autenticada persiste en almacenamiento local y renovar token no bloquea la aplicación', () => {
-  assert.match(auth, /localStorage\.getItem\(key\)/);
-  assert.match(auth, /localStorage\.setItem\(key,value\)/);
+  assert.match(auth, /function rememberSessionEnabled\(\)/);
+  assert.match(auth, /target=remember\?localStorage:sessionStorage/);
+  assert.match(auth, /target\.setItem\(key,value\)/);
+  assert.match(auth, /authStorageAdapter\.setRemember/);
   assert.match(auth, /event==='TOKEN_REFRESHED'/);
   assert.match(auth, /const sameUser=!!\(currentUser&&currentUser\.id===user\.id\)/);
   assert.match(auth, /if\(!sameUser\)\{currentUser=user;currentMembership=null/);
