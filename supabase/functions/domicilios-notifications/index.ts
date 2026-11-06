@@ -173,13 +173,125 @@ Deno.serve(async (req: Request) => {
     if (action === "status-update") {
       const visitId = String(body.visit_id || "");
       if (!visitId) return reply({ error: "Falta visit_id" }, 400);
-      const { data: assignment, error } = await admin.from("home_visit_assignments")
+      const { data: assignment, error: assignmentError } = await admin.from("home_visit_assignments")
         .select("id,assigned_user_id,status,assigned_at").eq("workspace_id", membership.workspace_id)
         .eq("home_visit_id", visitId).order("assigned_at", { ascending: false }).limit(1).maybeSingle();
-      if (error) throw error;
+      if (assignmentError) throw assignmentError;
       if (!assignment || assignment.assigned_user_id !== user.id || assignment.status !== "accepted")
         return reply({ error: "Solo el flebotomista que aceptó la asignación vigente puede operar este domicilio." }, 403);
-      return reply({ ok: true, notified: 0, push_sent: 0 });
+
+      const { data: visit, error: visitError } = await admin.from("home_visits")
+        .select("id,workspace_id,created_by,scheduled_at,priority").eq("id", visitId)
+        .eq("workspace_id", membership.workspace_id).maybeSingle();
+      if (visitError) throw visitError;
+      if (!visit) return reply({ error: "No se encontró el domicilio." }, 404);
+
+      const { data: coordinators, error: coordinatorError } = await admin.from("workspace_members")
+        .select("user_id").eq("workspace_id", membership.workspace_id).eq("active", true)
+        .in("role", ["admin", "reception", "clinician"]);
+      if (coordinatorError) throw coordinatorError;
+
+      const recipients = [...new Set([
+        ...(coordinators || []).map((m: { user_id: string }) => m.user_id),
+        visit.created_by
+      ].filter((id): id is string => !!id && id !== user.id))];
+      if (!recipients.length) return reply({ ok: true, notified: 0, push_sent: 0 });
+
+      const eventType = String(body.event_type || body.status || "actualización").trim().slice(0, 100);
+      const description = String(body.description || "").trim().slice(0, 500);
+      const status = String(body.status || "").trim().slice(0, 100);
+      const statusLabels: Record<string,string> = {
+        pending: "Pendiente de aceptación", accepted: "Domicilio aceptado",
+        en_route: "Flebotomista en camino", at_home: "Flebotomista en el domicilio",
+        samples_taken: "Muestras tomadas", patient_absent: "Paciente ausente",
+        patient_refused: "Paciente rechazó la atención", not_performed: "Domicilio no realizado",
+        completed: "Domicilio completado", cancelled: "Domicilio cancelado"
+      };
+      const statusText = statusLabels[status] || statusLabels[eventType] || eventType;
+      const title = "Actualización de domicilio";
+      const message = statusText + (description ? ". " + description : "") +
+        ". Revisa el seguimiento del domicilio en FleboReport.";
+      const metadata = {
+        event: "home_visit_status_changed", visit_id: visitId,
+        event_type: eventType, status, description
+      };
+      const when = new Date().toISOString();
+      let inAppSaved = 0, pushSent = 0, pushAttempted = 0, pushFailed = 0;
+      for (const recipientId of recipients) {
+        const { data: existing, error: lookupError } = await admin.from("home_visit_notifications")
+          .select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId)
+          .eq("recipient_user_id", recipientId).eq("channel", "in_app")
+          .contains("metadata", metadata).limit(1);
+        if (lookupError) throw lookupError;
+        if (!(existing || []).length) {
+          const { error } = await admin.from("home_visit_notifications").insert({
+            workspace_id: membership.workspace_id, home_visit_id: visitId,
+            recipient_user_id: recipientId, channel: "in_app",
+            template_name: "home_visit_status_changed", status: "queued",
+            message_body: title + "\\n" + message, metadata
+          });
+          if (error) throw error;
+          inAppSaved++;
+        }
+
+        if (!publicVapid || !privateVapid) continue;
+        const { data: subs, error: subError } = await admin.from("home_visit_push_subscriptions")
+          .select("id,endpoint,p256dh,auth_secret").eq("user_id", recipientId)
+          .eq("workspace_id", membership.workspace_id).eq("active", true);
+        if (subError) throw subError;
+        pushAttempted += subs?.length || 0;
+        let sentForUser = 0, sendError: string | null = null;
+        if (subs?.length) {
+          try { webpush.setVapidDetails(subject, publicVapid, privateVapid); }
+          catch (e) { sendError = e instanceof Error ? e.message : "Configuración VAPID inválida"; }
+          for (const sub of subs) {
+            if (sendError) break;
+            try {
+              await webpush.sendNotification(
+                { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } },
+                JSON.stringify({
+                  title, body: message, url: "./?view=domicilios",
+                  tag: "flebo-status-" + visitId + "-" + eventType
+                })
+              );
+              sentForUser++;
+            } catch (e) {
+              const code = (e as { statusCode?: number })?.statusCode;
+              if (code === 404 || code === 410)
+                await admin.from("home_visit_push_subscriptions").update({ active: false }).eq("id", sub.id);
+              sendError = e instanceof Error ? e.message : "Error del proveedor Push";
+            }
+          }
+        }
+        pushSent += sentForUser;
+        if (sendError || !sentForUser) pushFailed++;
+        const { data: pushRows, error: pushLookupError } = await admin.from("home_visit_notifications")
+          .select("id").eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId)
+          .eq("recipient_user_id", recipientId).eq("channel", "push").contains("metadata", metadata).limit(1);
+        if (pushLookupError) throw pushLookupError;
+        const pushRecord = {
+          workspace_id: membership.workspace_id, home_visit_id: visitId,
+          recipient_user_id: recipientId, channel: "push", template_name: "home_visit_status_changed",
+          status: sentForUser > 0 ? "sent" : "failed", message_body: message,
+          sent_at: sentForUser > 0 ? when : null,
+          error_code: sendError || (!subs?.length ? "NO_ACTIVE_SUBSCRIPTION" : null),
+          metadata: { ...metadata, attempted: subs?.length || 0, sent: sentForUser,
+            push_status: sentForUser > 0 ? "sent" : "failed" }
+        };
+        if ((pushRows || []).length) {
+          if (sentForUser > 0) {
+            const { error } = await admin.from("home_visit_notifications").update(pushRecord)
+              .eq("workspace_id", membership.workspace_id).eq("home_visit_id", visitId)
+              .eq("recipient_user_id", recipientId).eq("channel", "push").contains("metadata", metadata);
+            if (error) throw error;
+          }
+        } else {
+          const { error } = await admin.from("home_visit_notifications").insert(pushRecord);
+          if (error) throw error;
+        }
+      }
+      return reply({ ok: true, notified: recipients.length, in_app_saved: inAppSaved,
+        push_sent: pushSent, push_attempted: pushAttempted, push_failed: pushFailed });
     }
 
     if (action === "test-push") {
