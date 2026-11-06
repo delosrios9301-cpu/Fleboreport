@@ -176,6 +176,7 @@ async function loadRemoteBoxes(){
  window.FleboAppState.replace(Object.assign({},live,{clinicalFreezers:freezers,clinicalRacks:racks,clinicalLocations:locations}),{silent:true,deferRender:true});
 }
 let clinicalSyncCursor=null,clinicalRealtimeChannel=null,clinicalRealtimeTimer=null,clinicalRealtimeRunning=false,clinicalRealtimeAgain=false;
+window.addEventListener('flebo:clinical-cache-reset',()=>{clinicalSyncCursor=null;});
 async function latestClinicalSyncCursor(){
  const result=await client.from('sync_change_log').select('seq').eq('workspace_id',workspaceId).eq('entity','clinical_samples').order('seq',{ascending:false}).limit(1).maybeSingle();
  if(result.error)fail(result.error);
