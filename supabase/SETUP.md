@@ -1,63 +1,52 @@
-# Preparar Supabase
+# Supabase: configuración y operación de FleboReport
 
-Esta carpeta contiene una migración inicial. La app aún requiere la URL y la clave pública del proyecto para autenticarse y sincronizar.
+## Estado actual
 
-## Requisitos
+FleboReport ya está conectado al proyecto Supabase configurado en el frontend. El proyecto está activo y utiliza:
 
-1. Crear un proyecto Supabase y escoger la región apropiada.
-2. Crear/invitar la primera cuenta desde Authentication.
-3. Tener Node.js y la CLI de Supabase.
-4. Descargar un respaldo JSON en FleboReport antes de migrar datos locales.
+- Supabase Auth, con inicio de sesión por nombre de usuario y contraseña mediante `flebo-username-auth`.
+- Tablas por espacio de trabajo con Row Level Security (RLS).
+- Estado general de aplicación por combinación de espacio de trabajo y usuario.
+- Expedientes de pacientes, domicilios y registros clínicos en tablas específicas.
+- Supabase Realtime y sincronización adicional para mantener actualizadas las vistas.
+- Edge Functions para autenticación y notificaciones.
 
-## Aplicar el esquema
+La URL del proyecto y la clave publicable se utilizan en el navegador. Una clave publicable no reemplaza RLS. Nunca incluyas `service_role`, claves secretas ni contraseñas en HTML, JavaScript, GitHub o archivos públicos.
 
-Desde la raíz del repositorio:
+## Persistencia y alcance
 
-```powershell
-npx supabase login
-npx supabase link --project-ref TU_PROJECT_REF
-npx supabase db push
-```
+La tabla `workspace_app_state` separa el estado general por `workspace_id` y `user_id`; esto permite que la misma cuenta utilice distintos dispositivos sin convertir automáticamente todo ese estado en información compartida con los demás miembros.
 
-Aplica cambios remotos mediante migraciones versionadas, no editando el esquema sin actualizar el historial.
+Los expedientes de pacientes, domicilios y registros de Estudios Clínicos utilizan tablas específicas del espacio de trabajo. Sus accesos se controlan con RLS, funciones protegidas y permisos granulares. Al modificar estos flujos, verifica tanto la interfaz como las políticas y funciones de PostgreSQL.
 
-## Primer espacio y roles
+## Edge Functions
 
-Tras conectar el cliente autenticado, la cuenta administradora ejecuta `create_workspace('Nombre del laboratorio')`. Invita a los demás usuarios desde Authentication y asigna su rol en `workspace_members`.
+Las funciones de Supabase se despliegan por separado de GitHub Pages. Un cambio en `supabase/functions/*` no queda publicado al desplegar el sitio estático.
 
-Roles: `admin`, `clinician`, `technician`, `reception`, `viewer`. RLS restringe la información al espacio de trabajo y las operaciones según el rol.
+Funciones del proyecto:
+- `flebo-username-auth`: registro inicial, inicio de sesión y administración de usuarios autorizada.
+- `domicilios-notifications`: notificaciones internas y Push para los flujos de domicilios.
+- `domicilios-whatsapp-webhook`: integración opcional de webhook; su presencia no significa que la entrega por WhatsApp esté configurada.
 
-## Claves del cliente
+Antes de desplegar una función, revisa sus comprobaciones de identidad, pertenencia al espacio, permisos, secretos y logs. Las credenciales privilegiadas deben permanecer exclusivamente en los secretos del entorno de Supabase.
 
-En **Project Settings → API** copia solo el **Project URL** y la **Publishable key** (o la clave pública `anon` heredada). Nunca pongas la clave `service_role` en el HTML, en GitHub Actions o en un navegador. Una clave pública no protege tablas por sí sola: las políticas RLS deben permanecer habilitadas y verificarse.
+## Estado de migraciones: atención obligatoria
 
-La migración no importa automáticamente el respaldo JSON. Antes del uso compartido falta terminar el cliente web, probar roles con cuentas diferentes y verificar la migración de datos.
+En la revisión del 6 de noviembre de 2026 se observaron **81 entradas en el historial remoto** y **61 archivos SQL en el repositorio**. Hay entradas remotas sin un archivo fuente coincidente y archivos locales cuyo nombre/versión no coincide directamente con el historial remoto. También hay marcas de tiempo duplicadas entre archivos locales.
 
-## Incluido en el esquema
+Esto no demuestra por sí solo que el esquema desplegado esté incorrecto; sí significa que el historial de migraciones no es actualmente una fuente reproducible y confiable para reconstruir el proyecto desde cero.
 
-Empresas, jornadas, pacientes, atenciones, profesionales, servicios/paquetes, pruebas, evidencias, firmas, reportes, facturas, pagos, inventario, citas, recordatorios, auditoría, estudios clínicos, muestras, historia, congeladores, gavetas, racks, bandejas, cajas y crioviales. Los congeladores se crean con cuatro gavetas; los racks generan cinco bandejas; cada bandeja tiene cuatro posiciones de caja.
+**No ejecutes `supabase db push`, no apliques archivos SQL en producción y no intentes reparar versiones con `migration repair` sin un inventario previo y una comparación de esquema.** Primero hay que recuperar o reconstruir las migraciones faltantes, identificar cuáles ya están representadas por otras migraciones y resolver las marcas de tiempo duplicadas sin alterar el historial remoto.
 
-Las notificaciones de correo/WhatsApp, sensores físicos y sincronización del navegador necesitan su configuración adicional. El esquema registra operaciones, pero no envía mensajes ni obtiene lecturas de sensores.
+## Seguridad y validación
 
-## Autenticación inicial de FleboReport
+- Mantén RLS habilitado en todas las tablas del esquema expuesto.
+- Las funciones `SECURITY DEFINER` deben validar identidad y autorización dentro de la función; no las conviertas en `SECURITY INVOKER` ni retires permisos de forma masiva sin revisar sus usos.
+- Las políticas permisivas múltiples deben evaluarse junto con las políticas restrictivas. PostgreSQL combina las permisivas con OR y las restrictivas como condiciones adicionales.
+- Antes de cambiar una política, función o índice, prueba el resultado con cuentas de cada rol y verifica que no se rompan agenda, aceptación de domicilios, revisión clínica, procesamiento ni auditoría.
+- No borres registros de auditoría ni datos de producción como parte de una prueba.
+- El asesor de seguridad de Supabase reportó desactivada la protección contra contraseñas filtradas. El administrador del proyecto debe revisar y habilitar esa protección desde la configuración de Auth.
 
-El frontend carga `supabase-auth.js` antes de `domicilios.js`. Utiliza exclusivamente la URL del proyecto y la clave publicable; nunca debe incluirse una clave `service_role` o secreta en GitHub Pages.
+## Publicación
 
-### Actualizar la función de inicio de sesión
-
-El archivo `supabase/functions/flebo-username-auth/index.ts` se ejecuta en Supabase Edge Functions; publicar GitHub Pages no actualiza esa función. Después de cambios en ese archivo, actualízala desde PowerShell con la CLI de Supabase:
-
-```powershell
-npx supabase login
-npx supabase functions deploy flebo-username-auth --project-ref knfjwvafwbhallhpsjqe
-```
-
-La sesión de la CLI debe corresponder a una cuenta que tenga acceso de despliegue a ese proyecto. No compartas contraseñas ni claves secretas en el chat ni en el código del navegador.
-
-En el módulo Domicilios:
-1. El primer administrador registra su nombre, correo, contraseña y nombre del laboratorio.
-2. Si la confirmación de correo está habilitada, debe confirmar el mensaje recibido y después iniciar sesión.
-3. Al iniciar sesión, si todavía no pertenece a un espacio de trabajo, puede crear uno mediante `public.create_workspace(text)`. La función asigna el rol `admin` al usuario autenticado.
-4. Los usuarios adicionales deben ser creados y asociados por un administrador; no deben autoprovisionarse como administradores.
-
-La autenticación ya está preparada en la interfaz. La persistencia de domicilios en la nube y la sincronización Realtime siguen pendientes de la integración de datos y de las pruebas con dos cuentas.
+GitHub Pages publica el frontend estático. Las migraciones, funciones Edge y secretos de Supabase tienen ciclos de despliegue separados. Una publicación web correcta no certifica por sí sola el estado de las funciones ni la sincronización entre dispositivos.
