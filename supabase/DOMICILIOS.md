@@ -1,36 +1,47 @@
 # Módulo de domicilios · FleboReport
 
-La interfaz de agenda se integra en `index.html` y reutiliza el catálogo maestro y los pacientes locales. El frontend utiliza Supabase Auth, las tablas operativas de domicilios y Supabase Realtime. El inicio de sesión admite nombre de usuario y contraseña mediante la Edge Function `flebo-username-auth`; el correo se utiliza al registrar la cuenta y para la confirmación de identidad.
+El módulo de domicilios utiliza Supabase Auth, tablas operativas del espacio de trabajo y Supabase Realtime. El acceso se realiza con nombre de usuario y contraseña mediante la Edge Function `flebo-username-auth`.
 
-## Flujo local validado
+## Flujo operativo
 
-- Agenda crea el domicilio, selecciona las pruebas del catálogo y registra el responsable.
-- El seguimiento incluye aceptación, desplazamiento, llegada, toma y finalización.
-- Se contemplan las incidencias **Paciente ausente**, **Paciente rechazó la toma** y **No realizado**, todas con motivo obligatorio.
-- Cada prueba tiene su propio estado. Si una prueba queda como **No tomada**, se exige una observación y queda registrada en el historial y en el CSV.
-- No se permite finalizar el domicilio si quedan pruebas pendientes o si no hay ninguna prueba tomada.
-- Las pruebas adicionales se seleccionan desde el catálogo; sus requisitos se guardan como snapshot para conservar la configuración original.
+- Agenda crea uno o varios domicilios, define fecha, hora y prioridad, selecciona pruebas del catálogo y asigna al flebotomista.
+- La persona asignada recibe una notificación interna/Push y debe aceptar o rechazar la invitación.
+- La información sensible del paciente y la dirección se limita según el estado de la asignación y las políticas de acceso.
+- Después de aceptar, el flebotomista asignado puede actualizar el avance: en camino, en domicilio, muestras tomadas o incidencias.
+- Agenda puede cancelar antes de que comience la ejecución; la cancelación requiere motivo y genera trazabilidad y notificación.
+- Cada prueba conserva su estado. Si una prueba no se toma, se exige una observación.
+- Las pruebas adicionales se seleccionan desde el catálogo activo y conservan una copia de los requisitos del catálogo.
+- El historial permite consultar detalles y buscar por nombre, cédula o fecha.
 
-## Esquema de Supabase
+## Seguridad y datos
 
-Aplicar en este orden, cuando se haya identificado y activado el proyecto destinado exclusivamente a FleboReport:
+La visibilidad y las operaciones no dependen únicamente de ocultar botones. RLS, funciones protegidas y triggers en PostgreSQL controlan el acceso al espacio de trabajo y las acciones del usuario asignado.
 
-1. `20261101000000_initial_schema.sql`
-2. `20261102000000_home_visits.sql`
-3. `20261103000000_home_visits_security_snapshots.sql`
-4. `20261101195613_lock_down_security_definer_functions.sql`
-5. `20261101195637_enable_home_visit_realtime.sql`
+No relajes las políticas para resolver errores de permisos sin identificar primero la operación, el usuario, la asignación vigente y el permiso requerido. Las funciones privilegiadas deben comprobar `auth.uid()`, membresía, asignación y autorización antes de modificar registros.
 
-La tercera migración refuerza RLS para que agenda pueda consultar todos los domicilios del espacio de trabajo y el flebotomista únicamente sus asignaciones. También protege los datos originales de la visita y de las pruebas, registra el actor de los eventos desde la sesión autenticada y conserva los snapshots del catálogo. Un técnico solo puede añadir pruebas adicionales que estén en el catálogo activo y que correspondan a un domicilio asignado y aceptado.
+## Notificaciones
 
-Las migraciones cuarta y quinta restringen la ejecución directa de funciones privilegiadas y publican las cinco tablas operativas de domicilios en Supabase Realtime. El frontend ya consulta y escribe las tablas operativas y se suscribe a cambios Realtime. Antes de producción, hay que validar los permisos con usuarios reales de agenda y flebotomistas.
+El flujo actual utiliza notificaciones dentro de la aplicación y Push cuando el navegador/dispositivo lo admite y el usuario ha activado el permiso. Algunos dispositivos o versiones antiguas pueden no admitir Push; en esos casos, el usuario debe consultar el centro de notificaciones al abrir FleboReport.
 
-Antes de usar datos reales hay que conectar Auth, vincular cada profesional con su usuario autenticado, crear el espacio de trabajo y probar las políticas con cuentas separadas de agenda y flebotomista. No basta con ocultar registros en la interfaz: RLS y los triggers aplican la restricción en la base de datos.
+La función `domicilios-whatsapp-webhook` es una integración opcional. No debe asumirse que WhatsApp está configurado como canal de entrega ni que se requiere contratar una API para operar el flujo actual.
 
-## WhatsApp
+## Migraciones y despliegue
 
-WhatsApp automático todavía no está activo. Se requiere Meta Business, WhatsApp Cloud API, número habilitado, token, Phone Number ID y una plantilla aprobada. Las credenciales deben almacenarse como secretos de Supabase Edge Functions, nunca en HTML/JS, en GitHub o en el navegador.
+El proyecto Supabase ya tiene migraciones aplicadas. La lista antigua de cinco migraciones que aparece en documentación histórica no es una guía válida para reconstruir el estado actual.
 
-## Validación antes de producción
+El historial remoto y los archivos SQL actuales del repositorio requieren reconciliación. **No apliques migraciones de domicilios manualmente ni ejecutes `supabase db push` en producción** hasta completar esa revisión. Consulta [SETUP.md](SETUP.md).
 
-Probar con cuentas ficticias y dos flebotomistas distintos: visibilidad aislada, aceptación/rechazo, actualización de estados, incidencias, notas por prueba, pruebas adicionales del catálogo, historial inmutable, CSV, reconexión y sincronización. No usar expedientes reales hasta completar autenticación, sincronización, respaldo y pruebas de seguridad.
+Las Edge Functions se despliegan por separado de GitHub Pages. Publicar el frontend no actualiza automáticamente la lógica de notificaciones o autenticación del servidor.
+
+## Pruebas necesarias
+
+Usa cuentas de prueba y datos ficticios para verificar:
+- Agenda y coordinador pueden consultar y administrar los domicilios que les corresponden.
+- Cada flebotomista ve y responde solo a su asignación vigente.
+- Una reasignación invalida el acceso del asignado anterior.
+- No se muestran datos sensibles antes de la aceptación.
+- Cancelación, rechazo, incidencias y cambios de estado generan trazabilidad y notificaciones correctas.
+- Las pruebas adicionales solo provienen del catálogo permitido.
+- Historial, búsqueda, filtros, sincronización y reconexión funcionan sin duplicar registros.
+
+No uses datos reales para pruebas destructivas ni borres eventos de auditoría.
