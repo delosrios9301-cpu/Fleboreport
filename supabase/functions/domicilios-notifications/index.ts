@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
     if (action === "dispatch-sla") {
       const supplied = req.headers.get("x-sla-hook-token") || "";
-      const { data: hook, error: hookError } = await admin.schema("private").from("workflow_sla_push_secret").select("token").eq("singleton", true).maybeSingle();
+      const { data: hook, error: hookError } = await admin.from("workflow_sla_push_secrets").select("token").eq("singleton", true).maybeSingle();
       if (hookError) throw hookError;
       if (!hook?.token || supplied !== hook.token) return reply({ error: "No autorizado" }, 401);
       if (!publicVapid || !privateVapid) return reply({ error: "Claves VAPID no configuradas" }, 503);
