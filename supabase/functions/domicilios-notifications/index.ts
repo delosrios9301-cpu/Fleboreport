@@ -4,7 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-api-version, x-sla-hook-token",
   "Access-Control-Allow-Methods": "POST, OPTIONS"
 };
 const reply = (payload: unknown, status = 200) =>
@@ -39,6 +39,37 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
     const action = String(body.action || "");
+    if (action === "dispatch-sla") {
+      const supplied = req.headers.get("x-sla-hook-token") || "";
+      const { data: hook, error: hookError } = await admin.schema("private").from("workflow_sla_push_secret").select("token").eq("singleton", true).maybeSingle();
+      if (hookError) throw hookError;
+      if (!hook?.token || supplied !== hook.token) return reply({ error: "No autorizado" }, 401);
+      if (!publicVapid || !privateVapid) return reply({ error: "Claves VAPID no configuradas" }, 503);
+      const alertId = String(body.alert_id || "");
+      if (!alertId) return reply({ error: "Falta alert_id" }, 400);
+      const { data: alert, error: alertError } = await admin.from("workflow_sla_alerts").select("id,workspace_id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,metadata,resolved_at").eq("id", alertId).maybeSingle();
+      if (alertError) throw alertError;
+      if (!alert || alert.resolved_at) return reply({ ok: true, skipped: "alert_not_active" });
+      const { data: subs, error: subsError } = await admin.from("home_visit_push_subscriptions").select("id,endpoint,p256dh,auth_secret").eq("user_id", alert.recipient_user_id).eq("workspace_id", alert.workspace_id).eq("active", true);
+      if (subsError) throw subsError;
+      const labels: Record<string,string> = { departure_due: "Inicia el desplazamiento del domicilio", departure_followup: "Seguimiento: aún no estás en camino", departure_overdue: "Domicilio fuera de hora: inicia el desplazamiento", sample_24h: "Muestra próxima a vencer: quedan 24 horas", sample_20m: "Alerta crítica: quedan 20 minutos para procesar la muestra", sample_overdue: "Muestra fuera del plazo de 72 horas" };
+      const title = labels[alert.alert_code] || "Alerta de seguimiento · FleboReport";
+      const subjectText = alert.entity === "home_visit" ? "domicilio" : "muestra clínica";
+      const bodyText = alert.severity === "overdue" ? "El plazo ya venció. Revisa el seguimiento del " + subjectText + "." : alert.severity === "critical" ? "Atención inmediata. El plazo está por agotarse. Revisa el " + subject + "." : "Se aproxima el límite de tiempo. Revisa el " + subject + ".";
+      webpush.setVapidDetails(subject, publicVapid, privateVapid);
+      let sent = 0, failed = 0;
+      for (const sub of subs || []) {
+        try {
+          await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } }, JSON.stringify({ title, body: bodyText, url: alert.entity === "home_visit" ? "./?view=domicilios" : "./?view=clinical-processing", tag: "fleboreport-sla-" + alert.id }));
+          sent++;
+        } catch (e) {
+          failed++;
+          const status = (e as { statusCode?: number })?.statusCode;
+          if (status === 404 || status === 410) await admin.from("home_visit_push_subscriptions").update({ active: false }).eq("id", sub.id);
+        }
+      }
+      return reply({ ok: true, sent, attempted: subs?.length || 0, failed, alert_id: alert.id });
+    }
     const { data: membership, error: membershipError } = await admin
       .from("workspace_members").select("workspace_id,role,active")
       .eq("user_id", user.id).eq("active", true).limit(1).maybeSingle();
