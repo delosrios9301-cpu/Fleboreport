@@ -930,12 +930,16 @@ test('la sincronización incremental registra solo identificadores y respeta RLS
 test('los cursores clínicos permanecen locales y se reinician al limpiar datos del espacio', () => {
   assert.match(cloudSync, /CLINICAL_DB_SYNC_KEYS=\['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'\]/);
   assert.match(cloudSync, /CLINICAL_DB_SYNC_KEYS\.forEach\(k=>\{delete payload\[k\]\}\)/);
+  assert.match(cloudSync, /if\(!clearClinical&&Object\.prototype\.hasOwnProperty\.call\(current,k\)\)safe\[k\]=current\[k\]/);
   assert.match(cloudSync, /if\(clearClinical\)window\.dispatchEvent\(new Event\('flebo:clinical-cache-reset'\)\)/);
   assert.match(clinicalCloudSync, /flebo:clinical-cache-reset/);
 });
 
 test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto a la instantánea', () => {
   assert.match(domicilios, /async function latestHomeVisitSyncCursor\(\)/);
+  assert.match(domicilios, /function canCacheHomeVisitSnapshot\(\)/);
+  assert.match(domicilios, /Date\.now\(\)-Number\(cached\.cachedAt\|\|0\)>5\*60\*1000/);
+  assert.match(domicilios, /if\(!canCacheHomeVisitSnapshot\(\)\|\|!cloud\.user\?\.id\)return false/);
   assert.match(domicilios, /\.from\('sync_change_log'\)/);
   assert.match(domicilios, /homeVisitSyncCursor/);
   assert.match(domicilios, /async function fetchHomeVisitRows\(ids\)/);
