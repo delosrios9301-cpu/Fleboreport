@@ -29,7 +29,7 @@ La función `domicilios-whatsapp-webhook` es una integración opcional. No debe 
 
 El proyecto Supabase ya tiene migraciones aplicadas. La lista antigua de cinco migraciones que aparece en documentación histórica no es una guía válida para reconstruir el estado actual.
 
-El historial remoto y los archivos SQL actuales del repositorio requieren reconciliación. **No apliques migraciones de domicilios manualmente ni ejecutes `supabase db push` en producción** hasta completar esa revisión. Consulta [SETUP.md](SETUP.md).
+Las migraciones remotas y las fuentes versionadas están conciliadas: el directorio activo contiene las 81 entradas del registro de Supabase, con coincidencia exacta de versión y nombre. Los archivos anteriores se preservaron en `migration_archive/current-main/`. La recuperación fue solo de archivos; no se aplicó SQL ni se modificó producción. Antes de aplicar una nueva migración de domicilios, valida `supabase migration list` y revisa [SETUP.md](SETUP.md).
 
 Las Edge Functions se despliegan por separado de GitHub Pages. Publicar el frontend no actualiza automáticamente la lógica de notificaciones o autenticación del servidor.
 
