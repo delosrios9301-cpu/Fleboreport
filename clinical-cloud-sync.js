@@ -34,6 +34,7 @@ window.addEventListener('flebo:local-state-saved',()=>setTimeout(flushPendingCli
 window.addEventListener('flebo:clinical-operation-idle',()=>setTimeout(flushPendingClinicalRefresh,0));
 const uid=()=>window.crypto&&crypto.randomUUID?crypto.randomUUID():('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&3|8)).toString(16)}));
 const fail=e=>{throw new Error(e&&e.message?e.message:String(e||'Error de sincronización clínica'))};
+async function fetchAllPages(query,pageSize=500){const rows=[];for(let from=0;;from+=pageSize){const result=await query.range(from,from+pageSize-1);if(result.error)fail(result.error);const page=result.data||[];rows.push(...page);if(page.length<pageSize)break;}return rows;}
 const actorName=()=>{const u=window.FleboAuth&&window.FleboAuth.user,m=u&&u.user_metadata||{};return String(m.display_name||m.name||(u&&u.email?u.email.split('@')[0]:'')||'Usuario autenticado').trim()};
 function trackClinicalMutation(fn){
  return async function(...args){
@@ -164,14 +165,15 @@ async function loadRemoteSamples(){
  const locallyDeleted=new Set((stateNow['clinicalLocalDeleted'+'SampleIds']||[]).map(String));
  const oldByCloudId=new Map(),oldByLegacyId=new Map();
  oldSamples.forEach(x=>{if(x.cloudId)oldByCloudId.set(String(x.cloudId),x);if(x.id)oldByLegacyId.set(String(x.id),x)});
- const r=await client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).limit(5000);
- if(r.error)fail(r.error);
- const [containers,events,profiles]=await Promise.all([
-  client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId),
-  client.from('clinical_sample_events').select('sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).limit(10000),
+ const sampleQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).order('id',{ascending:false});
+ const [sampleRows,containerRows,eventRows,profiles]=await Promise.all([
+  fetchAllPages(sampleQuery),
+  fetchAllPages(client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId).order('sample_id',{ascending:true}).order('barcode',{ascending:true})),
+  fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false})),
   client.from('profiles').select('user_id,display_name')
  ]);
- if(containers.error)fail(containers.error);if(events.error)fail(events.error);if(profiles.error)fail(profiles.error);
+ const r={data:sampleRows};const containers={data:containerRows};const events={data:eventRows};
+ if(profiles.error)fail(profiles.error);
  const profileMap=new Map((profiles.data||[]).map(x=>[x.user_id,x.display_name]));
  const currentUser=window.FleboAuth&&window.FleboAuth.user,currentMeta=currentUser&&currentUser.user_metadata||{},currentName=currentMeta.display_name||currentMeta.name||(currentUser&&currentUser.email?currentUser.email.split('@')[0]:'');
  if(currentUser&&currentName)profileMap.set(currentUser.id,String(currentName).trim());
