@@ -36,7 +36,7 @@ En la revisión del 6 de noviembre de 2026 se observaron **81 entradas en el his
 
 Esto no demuestra por sí solo que el esquema desplegado esté incorrecto; sí significa que el historial de migraciones no es actualmente una fuente reproducible y confiable para reconstruir el proyecto desde cero.
 
-**No ejecutes `supabase db push`, no apliques archivos SQL en producción y no intentes reparar versiones con `migration repair` sin un inventario previo y una comparación de esquema.** Primero hay que recuperar o reconstruir las migraciones faltantes, identificar cuáles ya están representadas por otras migraciones y resolver las marcas de tiempo duplicadas sin alterar el historial remoto.
+**Estado de conciliación:** `supabase/migrations/` contiene ahora las 81 migraciones registradas en `supabase_migrations.schema_migrations`, con coincidencia exacta de `version` y `name`. El SQL de cada archivo se recuperó de `statements[1]` del registro remoto; no se ejecutó SQL ni se modificó el esquema o los datos de producción. Los 61 archivos que estaban antes en el repositorio se conservaron en `supabase/migration_archive/current-main/`; consulta `supabase/migration_archive/README.md` antes de reutilizarlos. Antes de aplicar una migración nueva, ejecuta `supabase migration list` con el proyecto enlazado y confirma que no haya diferencias locales/remotas. No uses `migration repair` para forzar coincidencias ni ejecutes `db push` como parte de esta recuperación.
 
 ## Seguridad y validación
 
