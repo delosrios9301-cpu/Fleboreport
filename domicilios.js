@@ -388,9 +388,11 @@ async function connectCloud(){
   if(!window.FleboAuth)throw new Error('El módulo de acceso no está disponible.');
   const c=await window.FleboAuth.init();cloud.client=c;const {data:{session},error}=await c.auth.getSession();if(error)throw error;
   if(!session?.user){cloud.ready=false;cloudNotice('Inicia sesión para cargar y guardar la agenda compartida en la nube.',false);return}
-  cloud.user=session.user;const membership=window.FleboAuth.membership;
+  const membership=window.FleboAuth.membership;
   if(!membership?.workspace_id){cloud.ready=false;cloudNotice('La cuenta está autenticada, pero aún no tiene un laboratorio asignado. Crea el espacio de trabajo desde el panel de acceso.',true);return}
-  cloud.workspaceId=membership.workspace_id;cloud.role=membership.role;await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
+  const nextWorkspace=membership.workspace_id,nextRole=membership.role;
+  if(cloud.user?.id!==session.user.id||cloud.workspaceId!==nextWorkspace||cloud.role!==nextRole){homeVisitSyncCursor=null;homeVisitCacheActive=false;visits=[];selected='';}
+  cloud.user=session.user;cloud.workspaceId=nextWorkspace;cloud.role=nextRole;await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
   if(cloud.channel)c.removeChannel(cloud.channel);
   cloud.channel=c.channel('fleboreport-home-'+cloud.workspaceId)
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
