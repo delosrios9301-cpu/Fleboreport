@@ -4,7 +4,7 @@ const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
 let activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
-let homeVisitSyncCursor=null;
+let homeVisitSyncCursor=null,homeVisitCacheActive=false;
 let pushRegistrationPromise=null;
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
 const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b,a]));
@@ -205,21 +205,21 @@ async function loadServiceCatalog(){
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
  }finally{catalogLoading=false}
 }
-function canCacheHomeVisitSnapshot(){return cloud.role==='admin'||!!(window.fleboCan&&window.fleboCan('domicilios','manage'))}
+function canCacheHomeVisitSnapshot(){return cloud.role==='admin'||!!(window.fleboCan&&window.fleboCan('domicilios','view')&&window.fleboCan('domicilios','manage'))}
 function restoreHomeVisitCache(){
  if(!canCacheHomeVisitSnapshot()||!cloud.user?.id)return false;
  try{
   const cached=JSON.parse(localStorage.getItem(KEY)||'null');
   if(!cached||cached.workspaceId!==cloud.workspaceId||cached.userId!==cloud.user.id||cached.role!==cloud.role||!Array.isArray(cached.visits)||!Number.isFinite(Number(cached.cursor)))return false;
   if(Date.now()-Number(cached.cachedAt||0)>5*60*1000)return false;
-  visits=cached.visits;homeVisitSyncCursor=Number(cached.cursor);
+  visits=cached.visits;homeVisitSyncCursor=Number(cached.cursor);homeVisitCacheActive=true;
   if($('hvRows'))render();
   return true;
  }catch(error){console.warn('[Domicilios] No se pudo restaurar la caché de agenda:',error);return false;}
 }
 function saveHomeVisitCache(){
- if(!canCacheHomeVisitSnapshot()||!cloud.user?.id||homeVisitSyncCursor===null)return;
- try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));}
+ if(!canCacheHomeVisitSnapshot()||!cloud.user?.id||homeVisitSyncCursor===null){if(homeVisitCacheActive){try{localStorage.removeItem(KEY)}catch(_){}homeVisitCacheActive=false;}return;}
+ try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));homeVisitCacheActive=true;}
  catch(error){console.warn('[Domicilios] No se pudo actualizar la caché de agenda:',error);}
 }
 async function latestHomeVisitSyncCursor(){
@@ -238,6 +238,7 @@ async function fetchHomeVisitRows(ids){
  return rows;
 }
 async function loadCloudVisits(){
+ if(homeVisitCacheActive&&!canCacheHomeVisitSnapshot()){homeVisitCacheActive=false;homeVisitSyncCursor=null;visits=[];try{localStorage.removeItem(KEY)}catch(_){}}
  if(homeVisitSyncCursor===null)restoreHomeVisitCache();
  const fullSnapshot=homeVisitSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
