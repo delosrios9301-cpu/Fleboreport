@@ -28,15 +28,6 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return reply({ error: "Método no permitido" }, 405);
 
   try {
-    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
-    if (!token) return reply({ error: "Sesión requerida" }, 401);
-    const auth = createClient(url, anon, {
-      global: { headers: { Authorization: "Bearer " + token } },
-      auth: { persistSession: false }
-    });
-    const { data: { user }, error: authError } = await auth.auth.getUser();
-    if (authError || !user) return reply({ error: "Sesión inválida" }, 401);
-
     const body = await req.json();
     const action = String(body.action || "");
     if (action === "dispatch-sla") {
@@ -70,6 +61,18 @@ Deno.serve(async (req: Request) => {
       }
       return reply({ ok: true, sent, attempted: subs?.length || 0, failed, alert_id: alert.id });
     }
+
+    // Las llamadas internas de pg_net se autentican con el token secreto de SLA
+    // validado arriba; las acciones interactivas siguen exigiendo JWT de usuario.
+    const token = (req.headers.get("Authorization") || "").replace(/^Bearer\\s+/i, "");
+    if (!token) return reply({ error: "Sesión requerida" }, 401);
+    const auth = createClient(url, anon, {
+      global: { headers: { Authorization: "Bearer " + token } },
+      auth: { persistSession: false }
+    });
+    const { data: { user }, error: authError } = await auth.auth.getUser();
+    if (authError || !user) return reply({ error: "Sesión inválida" }, 401);
+
     const { data: membership, error: membershipError } = await admin
       .from("workspace_members").select("workspace_id,role,active")
       .eq("user_id", user.id).eq("active", true).limit(1).maybeSingle();
