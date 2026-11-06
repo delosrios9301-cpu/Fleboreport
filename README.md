@@ -34,6 +34,6 @@ La interfaz incluye opciones para descargar y restaurar un respaldo JSON. Ese ar
 
 El proyecto Supabase de FleboReport está activo. La base de datos tiene RLS habilitado en las 53 tablas públicas revisadas.
 
-**Importante para desarrolladores:** el historial remoto de migraciones y los archivos versionados en este repositorio no están completamente reconciliados. No ejecutes `supabase db push`, ni apliques migraciones manualmente en producción, hasta completar el inventario y validar cada diferencia. Consulta [supabase/SETUP.md](supabase/SETUP.md).
+**Migraciones Supabase:** `supabase/migrations/` fue reconstruido desde las 81 entradas del registro remoto (`schema_migrations`); las 81 versiones y nombres coinciden exactamente. Los 61 archivos anteriores se conservaron en `supabase/migration_archive/current-main/` y las fuentes recuperadas se copiaron desde el SQL registrado, sin ejecutar cambios en producción. Antes de aplicar una migración nueva, valida el resultado de `supabase migration list` con el proyecto enlazado. Consulta [supabase/SETUP.md](supabase/SETUP.md).
 
 Las Edge Functions se despliegan por separado de GitHub Pages. Publicar la web no actualiza automáticamente las funciones de Supabase.
