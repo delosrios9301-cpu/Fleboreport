@@ -205,6 +205,22 @@ async function loadServiceCatalog(){
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
  }finally{catalogLoading=false}
 }
+function restoreHomeVisitCache(){
+ if(cloud.role==='technician'||!cloud.user?.id)return false;
+ try{
+  const cached=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(!cached||cached.workspaceId!==cloud.workspaceId||cached.userId!==cloud.user.id||cached.role!==cloud.role||!Array.isArray(cached.visits)||!Number.isFinite(Number(cached.cursor)))return false;
+  if(Date.now()-Number(cached.cachedAt||0)>5*60*1000)return false;
+  visits=cached.visits;homeVisitSyncCursor=Number(cached.cursor);
+  if($('hvRows'))render();
+  return true;
+ }catch(error){console.warn('[Domicilios] No se pudo restaurar la caché de agenda:',error);return false;}
+}
+function saveHomeVisitCache(){
+ if(cloud.role==='technician'||!cloud.user?.id||homeVisitSyncCursor===null)return;
+ try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));}
+ catch(error){console.warn('[Domicilios] No se pudo actualizar la caché de agenda:',error);}
+}
 async function latestHomeVisitSyncCursor(){
  const result=await cloud.client.from('sync_change_log').select('seq').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').order('seq',{ascending:false}).limit(1).maybeSingle();
  if(result.error)throw result.error;
@@ -221,10 +237,11 @@ async function fetchHomeVisitRows(ids){
  return rows;
 }
 async function loadCloudVisits(){
+ if(homeVisitSyncCursor===null)restoreHomeVisitCache();
  const fullSnapshot=homeVisitSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
  const changes=fullSnapshot?[]:await fetchAllPages(cloud.client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').gt('seq',homeVisitSyncCursor).order('seq',{ascending:true}));
- if(!fullSnapshot&&!changes.length)return false;
+ if(!fullSnapshot&&!changes.length){saveHomeVisitCache();return false;}
  const changedIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
  const data=await fetchHomeVisitRows(fullSnapshot?null:changedIds);
  const mapped=data.map(dbVisit);
@@ -254,10 +271,12 @@ async function loadCloudVisits(){
  }
  if(fullSnapshot){
   homeVisitSyncCursor=cursorBefore;
+  saveHomeVisitCache();
   // Recupera las modificaciones que pudieron ocurrir mientras se cargaba la instantánea.
   return await loadCloudVisits();
  }
  homeVisitSyncCursor=Number(changes[changes.length-1].seq);
+ saveHomeVisitCache();
  return true;
 }
 async function persistVisit(v){
