@@ -66,6 +66,36 @@ Prioridad para el siguiente análisis de rendimiento: claves foráneas y consult
 4. Continuar con planes `EXPLAIN` de consultas frecuentes y medir el impacto antes de crear índices para las claves foráneas sin cobertura.
 5. Mantener el archivo de migraciones anterior como respaldo de auditoría; no aplicarlo.
 
+
+## Segunda pasada: consultas y carga de datos (6 de noviembre de 2026)
+
+Se contrastaron las consultas del cliente con índices y estadísticas actuales de PostgreSQL. Las métricas de `pg_stat_user_tables` son acumuladas desde el último reinicio/reset de estadísticas y deben interpretarse como señales, no como latencias por usuario.
+
+### Domicilios
+
+- La agenda descarga hasta 5.000 domicilios por espacio de trabajo con pruebas, eventos, documentos, pacientes adicionales y asignaciones relacionadas.
+- La agenda y el historial filtran y ordenan posteriormente en el cliente. El índice `home_visits_schedule_idx (workspace_id, scheduled_at, status)` cubre el filtro de espacio y orden temporal principal.
+- Las tablas hijas tienen índices por `(workspace_id, home_visit_id)` o por fecha descendente, adecuados para cargar el detalle de cada domicilio.
+- La búsqueda del historial de paciente consulta hasta 20 domicilios por paciente y ya filtra por espacio y paciente.
+- No se observó evidencia de que falte un índice principal para la consulta de agenda; el riesgo de escalabilidad está en transferir todos los domicilios y relaciones cada vez que se refresca la agenda.
+
+### Asignaciones de domicilios
+
+- `home_visit_assignments` registró 511.028 exploraciones secuenciales frente a 474.944 búsquedas por índice, con 27 filas vivas y 37 muertas en el snapshot.
+- La función `is_current_home_visit_assignee` consulta la tabla dos veces para validar la asignación más reciente y su estado. La subconsulta de la última asignación ordena por `workspace_id, home_visit_id, assigned_at DESC, id DESC`; el índice único parcial existente solo cubre asignaciones `invited/accepted` y no sustituye por completo ese patrón de ordenación.
+- Un índice compuesto que cubra ese orden es candidato a evaluación, pero no se creó: el plan observado con el volumen actual ejecutó en aproximadamente 0,2 ms y la tabla tiene muy pocas filas. Debe medirse de nuevo cuando aumente el volumen y revisar la función/políticas RLS antes de decidir.
+
+### Estudios clínicos y procesamiento
+
+- La sincronización descarga hasta 5.000 muestras activas, hasta 10.000 eventos clínicos y todos los contenedores del espacio de trabajo. Los límites reducen el riesgo de respuesta ilimitada, pero la carga completa de eventos y muestras en cada sincronización puede crecer de forma innecesaria.
+- Los índices existentes cubren la cola de muestras por `(workspace_id, received_at DESC)` con filtro de borrado lógico, las colas por estado y el historial de eventos por `(workspace_id, sample_id, occurred_at DESC)`.
+- Las estadísticas del snapshot mostraron 7 muestras vivas y 39 eventos clínicos vivos. La consulta de eventos por espacio de trabajo tardó alrededor de 1,1 ms en el volumen actual; no justifica todavía un cambio de índice.
+- El principal trabajo futuro es paginar/incrementalizar la sincronización de eventos y muestras, preservando el orden cronológico y la consistencia de la bandeja. No se cambió el protocolo de sincronización en esta pasada.
+
+### Decisión de rendimiento
+
+No se ejecutaron cambios DDL ni se eliminaron índices. Los datos actuales no demuestran un cuello de botella de consulta que justifique modificar producción. Se recomienda priorizar una futura optimización de carga incremental/paginada para Domicilios y Estudios Clínicos, y volver a medir la función de asignaciones conforme crezca su tabla.
+
 ## Resultado
 
 La estructura crítica revisada está activa y protegida por RLS. No se identificó una causa que justifique una migración correctiva inmediata sin más análisis. Los pendientes principales son la configuración de contraseñas filtradas y la optimización de índices guiada por planes de ejecución.
