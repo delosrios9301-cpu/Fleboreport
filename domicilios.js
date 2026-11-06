@@ -827,6 +827,8 @@ const portalAssignmentOverlay=()=>{
 };
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='hvActivatePush')activatePush();if(e.target&&e.target.id==='hvTestPush')testPushInBackground()});
 window.addEventListener('flebo:auth-changed',()=>{connectCloud()});
+window.addEventListener('online',()=>{if(!cloud.ready)connectCloud();else scheduleCloudVisitsRefresh()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&cloud.ready)scheduleCloudVisitsRefresh()});
 function mountSafe(){
  try{mount();const params=new URLSearchParams(location.search);if(params.get('view')==='domicilios'&&window.navigate)window.navigate('domicilios')}
  catch(error){
