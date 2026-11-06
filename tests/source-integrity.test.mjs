@@ -3,32 +3,32 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
-const migration = await readFile(new URL('../supabase/migrations/20261101000000_initial_schema.sql', import.meta.url), 'utf8');
+const migration = await readFile(new URL('../supabase/migrations/20261101195511_20261101000000_initial_schema.sql', import.meta.url), 'utf8');
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
 const notificationSettings = await readFile(new URL('../notification-settings.js', import.meta.url), 'utf8');
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
-const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103100000_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
-const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103110000_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
-const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103120000_patient_search_rpc.sql', import.meta.url), 'utf8');
-const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104111000_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
-const testCatalogMigration = await readFile(new URL('../supabase/migrations/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
+const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103015842_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
+const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103020920_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
+const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103021214_patient_search_rpc.sql', import.meta.url), 'utf8');
+const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104135426_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
+const testCatalogMigration = await readFile(new URL('../supabase/migration_archive/current-main/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
 const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104152352_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
 const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
 const clinicalProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
-const authenticatedReceptionMigration = await readFile(new URL('../supabase/migrations/20261104170000_track_authenticated_clinical_sample_reception.sql', import.meta.url), 'utf8');
-const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104110000_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
+const authenticatedReceptionMigration = await readFile(new URL('../supabase/migrations/20261104154830_track_authenticated_clinical_sample_reception.sql', import.meta.url), 'utf8');
+const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104135155_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
-const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261102120000_workspace_app_state_sync.sql', import.meta.url), 'utf8');
+const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261103013544_workspace_app_state_sync.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
 const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
-const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154000_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
-const granularMigration = await readFile(new URL('../supabase/migrations/20261102160000_granular_permission_enforcement.sql', import.meta.url), 'utf8');
-const permissionUpsertMigration = await readFile(new URL('../supabase/migrations/20261102173000_member_permission_upsert.sql', import.meta.url), 'utf8');
-const permissionSaveMigration = await readFile(new URL('../supabase/migrations/20261102180000_fix_member_permission_save.sql', import.meta.url), 'utf8');
-const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrations/20261105200000_complete_admin_role_permissions.sql', import.meta.url), 'utf8');
+const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154422_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
+const granularMigration = await readFile(new URL('../supabase/migrations/20261102154606_granular_permission_enforcement.sql', import.meta.url), 'utf8');
+const permissionUpsertMigration = await readFile(new URL('../supabase/migrations/20261102155041_member_permission_upsert.sql', import.meta.url), 'utf8');
+const permissionSaveMigration = await readFile(new URL('../supabase/migrations/20261103001739_fix_member_permission_save.sql', import.meta.url), 'utf8');
+const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrations/20261105195850_complete_admin_role_permissions.sql', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -58,7 +58,7 @@ test('el esquema incluye seguridad por espacio y trazabilidad', () => {
 });
 
 
-const homeVisitMigration = await readFile(new URL('../supabase/migrations/20261103000000_home_visits_security_snapshots.sql', import.meta.url), 'utf8');
+const homeVisitMigration = await readFile(new URL('../supabase/migrations/20261101195538_20261103000000_home_visits_security_snapshots.sql', import.meta.url), 'utf8');
 
 test('los domicilios limitan a cada técnico a sus asignaciones', () => {
   for (const policy of [
@@ -228,7 +228,7 @@ test('la PWA renueva la caché para instalar la última versión de Domicilios y
   assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
 });
 
-const clinicalDeleteMigration = await readFile(new URL('../supabase/migrations/20261103190000_clinical_sample_soft_delete_with_audit.sql', import.meta.url), 'utf8');
+const clinicalDeleteMigration = await readFile(new URL('../supabase/migrations/20261103184435_clinical_sample_soft_delete_with_audit.sql', import.meta.url), 'utf8');
 
 test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borrar la trazabilidad', () => {
   assert.doesNotThrow(() => new Function(clinicalCloudSync), 'clinical-cloud-sync.js debe tener sintaxis válida');
@@ -375,7 +375,7 @@ test('la eliminación de visitas y tipos de muestra se confirma en Supabase', as
   assert.match(catalogPersistence, /restoreClinicalCatalogItem/);
 });
 
-const resetMigration = await readFile(new URL('../supabase/migrations/20261103230800_allow_protected_reset_of_archived_event_ledgers.sql', import.meta.url), 'utf8');
+const resetMigration = await readFile(new URL('../supabase/migrations/20261103230047_allow_protected_reset_of_archived_event_ledgers.sql', import.meta.url), 'utf8');
 
 test('el restablecimiento completo conserva seguridad, crea respaldo y exige al administrador principal', () => {
   assert.doesNotThrow(() => new Function(configuration), 'configuracion.js debe tener sintaxis válida');
@@ -398,7 +398,7 @@ test('el restablecimiento completo conserva seguridad, crea respaldo y exige al 
 });
 
 
-const triggerFunctionSecurityMigration = await readFile(new URL('../supabase/migrations/20261104090000_lock_down_trigger_function_execution.sql', import.meta.url), 'utf8');
+const triggerFunctionSecurityMigration = await readFile(new URL('../supabase/migrations/20261104124910_lock_down_trigger_function_execution.sql', import.meta.url), 'utf8');
 
 test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RPC públicas', () => {
   for (const name of [
@@ -592,7 +592,7 @@ test('el listado del catálogo clínico conserva el ancho del nombre y separa la
   assert.match(html, /word-break:normal/);
 });
 
-const homeVisitAssigneeResponseMigration = await readFile(new URL('../supabase/migrations/20261105010000_allow_assigned_technician_to_respond_home_visit_invitation.sql', import.meta.url), 'utf8');
+const homeVisitAssigneeResponseMigration = await readFile(new URL('../supabase/migrations/20261105011901_allow_assigned_technician_to_respond_home_visit_invitation.sql', import.meta.url), 'utf8');
 
 test('el flebotomista asignado puede aceptar o rechazar su invitación sin permiso general de edición', () => {
   assert.ok(homeVisitAssigneeResponseMigration.includes('create policy home_visit_assignments_permission_update_scope'));
@@ -839,7 +839,7 @@ test('la caché de la PWA cambia al publicar la optimización de sincronización
 });
 
 
-const rlsPerformanceMigration = await readFile(new URL('../supabase/migrations/20261105230600_optimize_auth_rls_initplans.sql', import.meta.url), 'utf8');
+const rlsPerformanceMigration = await readFile(new URL('../supabase/migrations/20261105180806_optimize_auth_rls_initplans.sql', import.meta.url), 'utf8');
 
 test('las políticas RLS de sincronización y domicilios evalúan auth.uid una sola vez por sentencia', () => {
   for (const policy of [
