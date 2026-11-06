@@ -14,6 +14,7 @@ const patientCloudMigration = await readFile(new URL('../supabase/migrations/202
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103020920_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
 const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103021214_patient_search_rpc.sql', import.meta.url), 'utf8');
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104135426_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
+const removeUnusedClinicalSlotsMigration = await readFile(new URL('../supabase/migrations/20261104135505_remove_unused_automatically_seeded_clinical_slots.sql', import.meta.url), 'utf8');
 const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104152352_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
 const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
 const clinicalProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
@@ -475,7 +476,8 @@ test('no se crean gavetas ni bandejas clínicas automáticamente', () => {
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_rack_seed_trays/i);
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_freezer_seed_drawers/i);
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_rack_seed_trays/i);
-  assert.match(noAutoClinicalStructureMigration, /remove_unused_automatically_seeded_clinical_slots/i);
+  assert.match(removeUnusedClinicalSlotsMigration, /delete from public\.clinical_rack_trays/i);
+  assert.match(removeUnusedClinicalSlotsMigration, /delete from public\.clinical_freezer_drawers/i);
   assert.doesNotMatch(clinicalCloudSync, /for\(let n=1;n<=5;n\+\+\)/);
   assert.match(clinicalCloudSync, /configuredTrays=boxes\.filter/);
   assert.match(clinicalCloudSync, /usedDrawerKeys=new Set/);
