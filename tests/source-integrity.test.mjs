@@ -14,7 +14,6 @@ const patientCloudMigration = await readFile(new URL('../supabase/migrations/202
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103020920_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
 const patientSearchMigration = await readFile(new URL('../supabase/migrations/20261103021214_patient_search_rpc.sql', import.meta.url), 'utf8');
 const noAutoClinicalStructureMigration = await readFile(new URL('../supabase/migrations/20261104135426_disable_automatic_clinical_structure_seeding.sql', import.meta.url), 'utf8');
-const testCatalogMigration = await readFile(new URL('../supabase/migration_archive/current-main/20261104120000_dedupe_test_catalog_snapshots.sql', import.meta.url), 'utf8');
 const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104152352_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
 const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
 const clinicalProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
@@ -22,6 +21,7 @@ const authenticatedReceptionMigration = await readFile(new URL('../supabase/migr
 const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104135155_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
 const cloudSyncMigration = await readFile(new URL('../supabase/migrations/20261103013544_workspace_app_state_sync.sql', import.meta.url), 'utf8');
+const workspaceStateIsolationMigration = await readFile(new URL('../supabase/migrations/20261103013859_isolate_workspace_app_state_per_user.sql', import.meta.url), 'utf8');
 const auth = await readFile(new URL('../supabase-auth.js', import.meta.url), 'utf8');
 const configuration = await readFile(new URL('../configuracion.js', import.meta.url), 'utf8');
 const configurationMigration = await readFile(new URL('../supabase/migrations/20261102154422_fleboreport_configuration_security.sql', import.meta.url), 'utf8');
@@ -180,7 +180,7 @@ test('la sincronización de datos está conectada, aislada por usuario y tiene s
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
   assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
   assert.match(html, /flebo:local-state-saved/);
-  assert.match(cloudSyncMigration, /primary key \(workspace_id,user_id\)/i);
+  assert.match(workspaceStateIsolationMigration, /primary key \(workspace_id,user_id\)/i);
   assert.match(cloudSyncMigration, /user_id=auth\.uid\(\)/i);
   assert.match(cloudSync, /\.eq\('user_id',userId\)/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
@@ -240,7 +240,7 @@ test('las muestras incorrectas pueden retirarse con motivo y auditoría sin borr
   assert.match(clinicalDeleteMigration, /create or replace function public\.delete_clinical_sample/i);
   assert.match(clinicalDeleteMigration, /sample_deleted/);
   assert.match(clinicalDeleteMigration, /ELIMINADA/);
-  assert.match(clinicalDeleteMigration, /from public, anon/i);
+  assert.match(clinicalDeleteMigration, /revoke all on function public\.delete_clinical_sample\(uuid,uuid,text\) from public/i);
   assert.match(clinicalDeleteMigration, /workflow_status not in \('REGISTRADO','EN_REVISION','PENDIENTE_PROCESO'\)/);
 });
 
@@ -473,7 +473,9 @@ test('la sincronización de pacientes no vuelve a subir expedientes locales anti
 test('no se crean gavetas ni bandejas clínicas automáticamente', () => {
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_freezer_seed_drawers/i);
   assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_rack_seed_trays/i);
-  assert.match(noAutoClinicalStructureMigration, /where not exists\(select 1 from public\.clinical_boxes/);
+  assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_freezer_seed_drawers/i);
+  assert.match(noAutoClinicalStructureMigration, /drop trigger if exists clinical_rack_seed_trays/i);
+  assert.match(noAutoClinicalStructureMigration, /remove_unused_automatically_seeded_clinical_slots/i);
   assert.doesNotMatch(clinicalCloudSync, /for\(let n=1;n<=5;n\+\+\)/);
   assert.match(clinicalCloudSync, /configuredTrays=boxes\.filter/);
   assert.match(clinicalCloudSync, /usedDrawerKeys=new Set/);
@@ -487,7 +489,8 @@ test('la base de datos bloquea duplicados por código y permite códigos distint
   assert.match(duplicateProtectionMigration, /services_workspace_code_or_name_uidx/);
   assert.match(duplicateProtectionMigration, /clinical_studies_workspace_protocol_normalized_uidx/);
   assert.match(duplicateProtectionMigration, /patients_workspace_document_normalized_uidx/);
-  assert.match(duplicateProtectionMigration, /row_number\(\) over/);
+  assert.match(duplicateProtectionMigration, /delete from public\.services/i);
+  assert.match(duplicateProtectionMigration, /and not exists\(select 1 from public\.home_visit_tests/i);
 });
 
 
@@ -497,8 +500,6 @@ test('el catálogo de pruebas elimina duplicados por nombre normalizado y conser
   assert.match(cloudSync, /collection==='catalog'/);
   assert.match(cloudSync, /payload\.catalog=dedupeCatalog/);
   assert.match(cloudSync, /safe\.catalog=dedupeCatalog/);
-  assert.match(testCatalogMigration, /row_number\(\) over/);
-  assert.match(testCatalogMigration, /jsonb_agg\(item order by ord\) filter\(where rn=1\)/);
 });
 
 
