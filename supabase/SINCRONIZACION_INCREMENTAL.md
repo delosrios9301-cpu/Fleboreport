@@ -38,8 +38,12 @@ Los triggers registran también los cambios en tablas secundarias. Las modificac
 
 En Domicilios, la caché de arranque solo se utiliza para usuarios con permisos de lectura y gestión; vence a los cinco minutos y no se utiliza para flebotomistas. En Estudios Clínicos, el cursor se guarda junto con la instantánea clínica local, aislado por usuario, espacio y rol; nunca se publica en `workspace_app_state`.
 
-## Reconciliación y mantenimiento
+## Reconciliación, retención y cursores vencidos
 
 La primera carga sin caché y la caché vencida realizan una reconciliación completa. Los cursores se reinician al cambiar de usuario/espacio/rol o al restablecer los datos clínicos.
 
-La tabla de cambios no tiene todavía una política automática de retención. No se deben borrar filas sin implementar primero un límite de retención y una detección de cursores vencidos que fuerce una reconciliación completa. Conviene revisar su crecimiento antes de programar limpieza.
+La retención automática conserva 90 días del outbox. Supabase Cron ejecuta la depuración diariamente a las 02:15, hora de Panamá (07:15 UTC), en lotes de hasta 10.000 filas y con un máximo de 20 lotes por ejecución. Si existe un atraso mayor, continúa en la siguiente ejecución; no intenta borrar toda la tabla en una sola transacción.
+
+Antes de eliminar un grupo de cambios, el proceso registra en `sync_change_log_retention` el mayor `seq` depurado por espacio y entidad. Esta tabla solo expone el cursor de retención, no información de pacientes ni muestras, y tiene RLS. El proceso de limpieza es una función privilegiada no ejecutable desde clientes autenticados.
+
+Antes de pedir deltas, cada cliente compara su cursor con ese límite. Si el cursor es anterior al límite, descarta la instantánea incremental local y descarga una instantánea completa desde Supabase. La nueva posición se calcula usando el mayor valor entre el último cambio existente y el límite de retención, incluso si ya no queda ninguna fila del outbox. Así se evita que un dispositivo inactivo quede atrapado en un cursor que ya no puede recuperar.
