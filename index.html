@@ -2339,7 +2339,11 @@ html,body{max-width:100%;overflow-x:hidden}
  #view-reports .report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:760px){
- #view-journey>.page-heading,#view-reports>.page-heading,#view-report-history>.page-heading{display:flex;flex-direction:column;align-items:stretch}
+ #view-journey>.page-heading,#view-report-history>.page-heading{display:flex;flex-direction:column;align-items:stretch}
+ /* Reportes: título, descripción y acciones en flujo compacto */
+ #view-reports>.page-heading{display:block!important;height:auto!important;min-height:0!important;margin-bottom:14px!important}
+ #view-reports>.page-heading>div:first-child{display:block!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important}
+ #view-reports>.page-heading>.heading-actions{display:flex!important;position:static!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;margin:12px 0 0!important;padding:0!important;align-items:stretch!important;justify-content:flex-start!important;gap:8px!important}
  #view-journey>.page-heading>.heading-actions{width:100%}
  #view-journey .fields{grid-template-columns:minmax(0,1fr)}
  #view-journey .field.full{grid-column:auto}
