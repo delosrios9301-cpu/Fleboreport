@@ -177,10 +177,18 @@ async function loadRemoteBoxes(){
 }
 let clinicalSyncCursor=null,clinicalRealtimeChannel=null,clinicalRealtimeTimer=null,clinicalRealtimeRunning=false,clinicalRealtimeAgain=false;
 window.addEventListener('flebo:clinical-cache-reset',()=>{clinicalSyncCursor=null;});
-async function latestClinicalSyncCursor(){
- const result=await client.from('sync_change_log').select('seq').eq('workspace_id',workspaceId).eq('entity','clinical_samples').order('seq',{ascending:false}).limit(1).maybeSingle();
+async function latestClinicalPrunedFloor(){
+ const result=await client.from('sync_change_log_retention').select('pruned_through_seq').eq('workspace_id',workspaceId).eq('entity','clinical_samples').maybeSingle();
  if(result.error)fail(result.error);
- return result.data?Number(result.data.seq):0;
+ return result.data?Number(result.data.pruned_through_seq)||0:0;
+}
+async function latestClinicalSyncCursor(){
+ const [result,floor]=await Promise.all([
+  client.from('sync_change_log').select('seq').eq('workspace_id',workspaceId).eq('entity','clinical_samples').order('seq',{ascending:false}).limit(1).maybeSingle(),
+  latestClinicalPrunedFloor()
+ ]);
+ if(result.error)fail(result.error);
+ return Math.max(result.data?Number(result.data.seq)||0:0,floor);
 }
 async function fetchSampleRelatedRows(table,columns,ids,order){
  const rows=[];
@@ -194,6 +202,10 @@ async function fetchSampleRelatedRows(table,columns,ids,order){
 async function loadRemoteSamples(){
  const stateNow=app()||{},oldSamples=stateNow.clinicalSamples||[];
  const locallyDeleted=new Set((stateNow['clinicalLocalDeleted'+'SampleIds']||[]).map(String));
+ if(clinicalSyncCursor!==null){
+  const floor=await latestClinicalPrunedFloor();
+  if(Number(clinicalSyncCursor)<floor)clinicalSyncCursor=null;
+ }
  const fullSnapshot=clinicalSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestClinicalSyncCursor():clinicalSyncCursor;
  const changes=fullSnapshot?[]:await fetchAllPages(client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',workspaceId).eq('entity','clinical_samples').gt('seq',clinicalSyncCursor).order('seq',{ascending:true}));
