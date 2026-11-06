@@ -52,10 +52,16 @@ async function connect(){
   client=await window.FleboAuth.init();
   const auth=window.FleboAuth,m=auth.membership;
   if(!auth.user||!m||m.active!==true||!m.workspace_id){ready=false;return}
-  const nextUserId=auth.user.id,nextWorkspaceId=m.workspace_id;
-  if(userId!==nextUserId||workspaceId!==nextWorkspaceId)clinicalSyncCursor=null;
-  userId=nextUserId;workspaceId=nextWorkspaceId;role=m.role;
+  const nextUserId=auth.user.id,nextWorkspaceId=m.workspace_id,nextRole=m.role;
+  if(userId!==nextUserId||workspaceId!==nextWorkspaceId||role!==nextRole)clinicalSyncCursor=null;
+  userId=nextUserId;workspaceId=nextWorkspaceId;role=nextRole;
   ready=['admin','clinician','technician','reception'].includes(role);
+  if(clinicalSyncCursor===null){
+   const cached=app()||{};
+   if(cached._clinicalCloudSyncWorkspace===workspaceId&&cached._clinicalCloudSyncUser===userId&&cached._clinicalCloudSyncRole===role&&cached._clinicalCloudSyncCursor!=null&&Number.isFinite(Number(cached._clinicalCloudSyncCursor))){
+    clinicalSyncCursor=Number(cached._clinicalCloudSyncCursor);
+   }
+  }
   if(clinicalRealtimeChannel)client.removeChannel(clinicalRealtimeChannel);
   clinicalRealtimeChannel=null;
   if(ready){
@@ -203,7 +209,11 @@ async function loadRemoteSamples(){
    fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false}))
   ]);
  }else{
-  sampleRows=await fetchAllPages(sampleQuery.in('id',changedCloudIds));
+  sampleRows=[];
+  for(let i=0;i<changedCloudIds.length;i+=200){
+   const pageQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).in('id',changedCloudIds.slice(i,i+200)).order('received_at',{ascending:false}).order('id',{ascending:false});
+   sampleRows.push(...await fetchAllPages(pageQuery));
+  }
   [containerRows,eventRows]=await Promise.all([
    fetchSampleRelatedRows('clinical_sample_containers','sample_id,barcode',changedCloudIds,[{column:'sample_id',ascending:true},{column:'barcode',ascending:true}]),
    fetchSampleRelatedRows('clinical_sample_events','id,sample_id,previous_status,next_status,notes,actor_id,occurred_at',changedCloudIds,[{column:'occurred_at',ascending:false},{column:'id',ascending:false}])
@@ -241,7 +251,8 @@ async function loadRemoteSamples(){
  });
  const oldHistory=stateNow.clinicalSampleHistory||[];
  const history=fullSnapshot?eventRowsMapped:oldHistory.filter(e=>!changedLocalKeys.has(String(e.sampleId))).concat(eventRowsMapped);
- window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history}),{silent:true,deferRender:true});
+ const nextCursor=fullSnapshot?cursorBefore:Number(changes[changes.length-1].seq);
+ window.FleboAppState.replace(Object.assign({},app()||stateNow,{clinicalSamples:visibleNext,clinicalSampleHistory:history,_clinicalCloudSyncCursor:nextCursor,_clinicalCloudSyncWorkspace:workspaceId,_clinicalCloudSyncUser:userId,_clinicalCloudSyncRole:role}),{silent:true,deferRender:true});
  if(fullSnapshot){
   clinicalSyncCursor=cursorBefore;
   // Reproduce los cambios ocurridos mientras se descargaba la instantánea inicial.
