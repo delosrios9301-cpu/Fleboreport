@@ -1,28 +1,40 @@
 # Guía de FleboReport
 
-## Instalar en el teléfono
+## Abrir e instalar
 
 Abre [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/) desde el navegador:
 
 - **Android / Chrome:** menú ⋮ → Instalar app o Añadir a pantalla de inicio.
-- **iPhone o iPad / Safari:** Compartir → Añadir a pantalla de inicio.
+- **iPhone o iPad / Safari:** Compartir → Añadir a pantalla de inicio, si el dispositivo y la versión del sistema lo permiten.
 
-## Uso principal
+## Acceso
 
-1. Configura el laboratorio y el catálogo.
-2. Registra empresa, jornada, fecha, horario y responsable.
-3. Agrega pacientes y sus pruebas.
-4. Revisa el conteo y selecciona infografía o formato formal.
-5. Descarga PNG o imprime como PDF. El reporte de jornada no incluye nombres ni cédulas.
+Inicia sesión con tu nombre de usuario y contraseña. La opción **Recordarme** controla si la sesión se conserva después de cerrar el navegador. No compartas tus credenciales.
 
-## Estudios clínicos
+Los módulos y las acciones disponibles dependen del rol y de los permisos asignados por el administrador. Si no tienes autorización, el sistema debe ocultar la acción y validar el permiso también en el servidor.
 
-Configura protocolos, visitas, muestras, estados y ubicaciones. En recepción se registra el código de sujeto y el horario de toma/recepción. La bandeja permite buscar y filtrar; el procesamiento registra alícuotas principal y backup. Escanea cada criovial y registra almacenamiento temporal o definitivo. Las posiciones ocupadas y libres se muestran por caja.
+## Datos y sincronización
 
-## Guardar y proteger los datos
+FleboReport utiliza Supabase para autenticación y almacenamiento en la nube:
 
-La app instalada y el sitio web guardan los datos en el navegador de cada dispositivo. No se sincronizan entre dispositivos. Usa **Configuración → Datos locales → Descargar respaldo completo** para exportar y **Restaurar respaldo** para recuperar un JSON. El archivo no está cifrado; conserva acceso privado.
+- El estado general de la aplicación se sincroniza por usuario dentro del espacio de trabajo.
+- Los expedientes de pacientes, domicilios y registros clínicos usan tablas del espacio de trabajo y controles de acceso.
+- Para consultar datos compartidos entre colaboradores, utiliza el módulo correspondiente; no todos los elementos del estado general de cada usuario son compartidos entre miembros.
 
-## Estado de conexión a nube
+Mantén una conexión a internet para iniciar sesión y sincronizar los cambios. Si aparece un error de conexión, no repitas varias veces una operación de escritura: primero verifica si el registro ya quedó guardado.
 
-El esquema Supabase se prepara en `supabase/migrations`, pero el cliente web aún debe conectarse a un proyecto y configurar autenticación. Hasta entonces, la aplicación permanece en modo local. Nunca introduzcas una clave secreta de servidor en GitHub Pages.
+## Respaldo
+
+La aplicación permite descargar y restaurar un archivo JSON desde Configuración. El archivo puede incluir información sensible; guárdalo en un lugar privado y protegido. Este respaldo de aplicación no sustituye las copias de seguridad de la base de datos.
+
+## Estudios Clínicos
+
+Configura protocolos, visitas, tipos de muestra y requisitos. Registra la toma y recepción, revisa las muestras y envía las aprobadas a Procesamiento. En Procesamiento se gestionan las alícuotas y los estados de almacenamiento permitidos por el flujo configurado.
+
+## Domicilios
+
+Agenda el domicilio, selecciona las pruebas del catálogo y asigna al flebotomista. La persona asignada debe aceptar o rechazar la invitación. Después de aceptar, puede actualizar el avance y registrar el resultado de cada prueba. Agenda puede cancelar un domicilio antes de que comience su ejecución, dejando el motivo registrado.
+
+## Ayuda y seguridad
+
+Si una pantalla no se actualiza, comprueba primero la conexión y vuelve a cargar la aplicación. No borres los datos del navegador ni restablezcas el espacio de trabajo como método de solución: esas acciones pueden afectar información que todavía no se haya sincronizado.
