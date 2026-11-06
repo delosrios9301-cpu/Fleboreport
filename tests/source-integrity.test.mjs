@@ -907,6 +907,7 @@ test('Recordarme controla dónde se conserva la sesión y permite cambiar la pre
 
 const syncChangeLogMigration = await readFile(new URL('../supabase/migrations/20261106134333_sync_change_log_outbox.sql', import.meta.url), 'utf8');
 const syncOutboxPolicyMigration = await readFile(new URL('../supabase/migrations/20261106134655_sync_outbox_assignee_visibility.sql', import.meta.url), 'utf8');
+const syncOutboxHistoricalAssigneeMigration = await readFile(new URL('../supabase/migrations/20261106135954_sync_outbox_historical_assignee_scope.sql', import.meta.url), 'utf8');
 
 test('la sincronización incremental registra solo identificadores y respeta RLS por módulo', () => {
   assert.match(syncChangeLogMigration, /create table if not exists public\.sync_change_log/i);
@@ -925,6 +926,9 @@ test('la sincronización incremental registra solo identificadores y respeta RLS
   assert.doesNotMatch(syncChangeLogMigration, /patient_name|document_number|address|row_data|payload/i);
   assert.match(syncOutboxPolicyMigration, /is_current_home_visit_assignee/i);
   assert.match(syncOutboxPolicyMigration, /has_workspace_role/i);
+  assert.match(syncOutboxHistoricalAssigneeMigration, /private\.was_home_visit_assignee/i);
+  assert.match(syncOutboxHistoricalAssigneeMigration, /set row_security = 'off'/i);
+  assert.match(syncOutboxHistoricalAssigneeMigration, /grant execute on function private\.was_home_visit_assignee\(uuid,uuid\) to authenticated/i);
 });
 
 test('los cursores clínicos permanecen locales y se reinician al limpiar datos del espacio', () => {
