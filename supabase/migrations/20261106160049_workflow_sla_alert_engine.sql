@@ -39,3 +39,5 @@ with check (
   and (recipient_user_id=(select auth.uid()) or public.has_workspace_role(workspace_id,array['admin','clinician','reception']))
 );
 revoke insert, delete on public.workflow_sla_alerts from authenticated;
+
+select cron.schedule('fleboreport-workflow-sla-alerts','* * * * *','select private.generate_workflow_sla_alerts();');
