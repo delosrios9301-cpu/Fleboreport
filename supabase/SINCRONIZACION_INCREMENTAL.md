@@ -22,7 +22,7 @@ Los triggers registran también los cambios en tablas secundarias. Las modificac
 ## Seguridad
 
 - RLS está habilitado en la tabla de cambios.
-- Domicilios respeta el alcance de lectura de responsables y flebotomistas asignados.
+- Domicilios respeta el alcance de lectura de responsables y flebotomistas asignados. Un antiguo asignado solo puede consultar identificadores de cambios de visitas que tuvo asignadas, para que su dispositivo retire datos que ya no debe mostrar; no recibe el contenido de la visita.
 - Estudios Clínicos respeta los roles autorizados que ya pueden leer muestras.
 - La función de trigger es `SECURITY DEFINER`, usa `search_path` vacío y no es ejecutable directamente por clientes.
 - El registro está publicado en Supabase Realtime para avisar a los dispositivos; el cliente vuelve a consultar con RLS antes de recibir datos.
