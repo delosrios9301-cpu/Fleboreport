@@ -222,10 +222,26 @@ function saveHomeVisitCache(){
  try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));homeVisitCacheActive=true;}
  catch(error){console.warn('[Domicilios] No se pudo actualizar la caché de agenda:',error);}
 }
-async function latestHomeVisitSyncCursor(){
- const result=await cloud.client.from('sync_change_log').select('seq').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').order('seq',{ascending:false}).limit(1).maybeSingle();
+async function latestHomeVisitPrunedFloor(){
+ const result=await cloud.client.from('sync_change_log_retention').select('pruned_through_seq').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').maybeSingle();
  if(result.error)throw result.error;
- return result.data?Number(result.data.seq):0;
+ return result.data?Number(result.data.pruned_through_seq)||0:0;
+}
+async function latestHomeVisitSyncCursor(){
+ const [result,floor]=await Promise.all([
+  cloud.client.from('sync_change_log').select('seq').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').order('seq',{ascending:false}).limit(1).maybeSingle(),
+  latestHomeVisitPrunedFloor()
+ ]);
+ if(result.error)throw result.error;
+ return Math.max(result.data?Number(result.data.seq)||0:0,floor);
+}
+async function ensureHomeVisitCursorFresh(){
+ if(homeVisitSyncCursor===null)return true;
+ const floor=await latestHomeVisitPrunedFloor();
+ if(Number(homeVisitSyncCursor)>=floor)return true;
+ homeVisitSyncCursor=null;homeVisitCacheActive=false;visits=[];persistedEventIds.clear();selected='';
+ try{localStorage.removeItem(KEY)}catch(_){}
+ return false;
 }
 async function fetchHomeVisitRows(ids){
  const select='*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))';
@@ -240,6 +256,7 @@ async function fetchHomeVisitRows(ids){
 async function loadCloudVisits(){
  if(homeVisitCacheActive&&!canCacheHomeVisitSnapshot()){homeVisitCacheActive=false;homeVisitSyncCursor=null;visits=[];try{localStorage.removeItem(KEY)}catch(_){}}
  if(homeVisitSyncCursor===null)restoreHomeVisitCache();
+ if(homeVisitSyncCursor!==null)await ensureHomeVisitCursorFresh();
  const fullSnapshot=homeVisitSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
  const changes=fullSnapshot?[]:await fetchAllPages(cloud.client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').gt('seq',homeVisitSyncCursor).order('seq',{ascending:true}));
