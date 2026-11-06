@@ -1,31 +1,39 @@
 # FleboReport
 
-Aplicación web instalable para jornadas, atención individual, reportes y trazabilidad de muestras de estudios clínicos.
+Aplicación web instalable para jornadas, atención individual, reportes, domicilios y trazabilidad de muestras de estudios clínicos.
 
-## Módulos actuales
+## Módulos
 
 - Inicio y resumen operativo.
 - Empresas, jornadas, pacientes y catálogo de pruebas.
 - Reportes PNG, impresión/PDF e historial.
 - Atención individual con formularios dinámicos, archivos, firma y edición.
-- Estudios clínicos: protocolos, recepción, procesamiento, alícuotas, crioviales y almacenamiento.
-- Configuración e historial local de actividad.
+- Domicilios: agenda, asignaciones, aceptación, seguimiento, calendario, historial y notificaciones.
+- Estudios clínicos: protocolos, recepción, revisión, procesamiento, alícuotas, crioviales y almacenamiento.
+- Configuración, usuarios, permisos granulares e historial de auditoría.
 
-## Abrir
+## Aplicación publicada
 
-Visita [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/). En teléfono se puede agregar a la pantalla de inicio desde el menú del navegador.
+Abre [FleboReport](https://delosrios9301-cpu.github.io/Fleboreport/). En teléfonos y tablets compatibles se puede instalar desde el menú del navegador.
 
-## Datos locales y respaldo
+## Autenticación y datos en la nube
 
-La versión publicada actualmente guarda información en el almacenamiento del navegador. No tiene todavía conexión de autenticación ni sincronización Supabase; los datos de distintos navegadores o dispositivos no se comparten. En **Configuración → Datos locales** se puede descargar y restaurar un respaldo JSON. El respaldo incluye información sensible y no está cifrado: protégelo como un expediente.
+La aplicación publicada utiliza Supabase para autenticación, datos operativos y sincronización. El inicio de sesión utiliza nombre de usuario y contraseña mediante la Edge Function `flebo-username-auth`. El navegador solo contiene la clave publicable de Supabase; nunca debe contener una clave `service_role` o secreta.
 
-## Backend Supabase en preparación
+La persistencia tiene distintos alcances:
 
-El esquema inicial, con usuarios, roles, seguridad por espacio de trabajo, trazabilidad y módulos de operación, está en `supabase/migrations`. Sigue [la guía de configuración](supabase/SETUP.md). La app no se conectará a la nube hasta configurar el proyecto Supabase y su clave pública en el cliente. Nunca publiques una clave `service_role`.
+- El estado general de la aplicación se sincroniza por espacio de trabajo y usuario autenticado, para que la misma cuenta pueda continuar desde sus dispositivos.
+- Los expedientes de pacientes, domicilios y registros de Estudios Clínicos se almacenan en tablas del espacio de trabajo y se protegen mediante RLS y permisos.
+- No se debe asumir que todos los datos del estado general de un usuario se comparten automáticamente con todos los demás miembros. Cada módulo tiene su propio modelo de persistencia y acceso.
 
-No uses esta app local para expedientes que requieran acceso compartido y controlado hasta terminar la conexión y validación del backend.
+## Respaldo
 
+La interfaz incluye opciones para descargar y restaurar un respaldo JSON. Ese archivo puede contener información sensible: protégelo y no lo compartas por canales públicos. El respaldo de la aplicación no sustituye las copias de seguridad administradas de la base de datos Supabase.
 
-## Agenda de domicilios
+## Supabase y migraciones
 
-Consulta supabase/DOMICILIOS.md para el alcance, el modo local y los pasos para activar Supabase y WhatsApp Cloud API.
+El proyecto Supabase de FleboReport está activo. La base de datos tiene RLS habilitado en las 53 tablas públicas revisadas.
+
+**Importante para desarrolladores:** el historial remoto de migraciones y los archivos versionados en este repositorio no están completamente reconciliados. No ejecutes `supabase db push`, ni apliques migraciones manualmente en producción, hasta completar el inventario y validar cada diferencia. Consulta [supabase/SETUP.md](supabase/SETUP.md).
+
+Las Edge Functions se despliegan por separado de GitHub Pages. Publicar la web no actualiza automáticamente las funciones de Supabase.
