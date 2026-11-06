@@ -566,7 +566,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v233'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v234'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -838,7 +838,9 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v233/);
+  assert.match(serviceWorker, /fleboreport-shell-v234/);
+  assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
+  assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
 
 test('el acceso no presenta una vinculación ausente mientras la membresía sigue verificándose', () => {
