@@ -10,6 +10,7 @@ const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b
 const testToDb={'Pendiente':'pending','Tomada':'collected','No tomada':'not_collected'};
 const testFromDb=Object.fromEntries(Object.entries(testToDb).map(([a,b])=>[b,a]));
 const makeId=()=>crypto.randomUUID();
+async function fetchAllPages(query,pageSize=500){const rows=[];for(let from=0;;from+=pageSize){const result=await query.range(from,from+pageSize-1);if(result.error)throw result.error;const page=result.data||[];rows.push(...page);if(page.length<pageSize)break;}return rows;}
 const priorityLabel=value=>({urgent:'Urgente',high:'Prioritario',normal:'Normal'}[value]||'Normal');
 const priorityRank=value=>({urgent:0,high:1,normal:2}[value]??2);
 const priorityDb=value=>value==='priority'?'high':(['urgent','high','normal'].includes(value)?value:'normal');
@@ -204,8 +205,8 @@ async function loadServiceCatalog(){
  }finally{catalogLoading=false}
 }
 async function loadCloudVisits(){
- const {data,error}=await cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).limit(5000);
- if(error)throw error;persistedEventIds.clear();(data||[]).forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=(data||[]).map(dbVisit);if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
+ const data=await fetchAllPages(cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
+ persistedEventIds.clear();data.forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=data.map(dbVisit);if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
  for(const v of visits){if(!v.assignmentId&&v.status==='Pendiente de aceptación'&&v.assignedTo){try{await ensureVisitAssignment(v)}catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}}}
  const requestedVisit=new URLSearchParams(location.search).get('visit');if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;activeTab='agenda';history.replaceState({},'',location.pathname+'?view=domicilios');}else if(!visits.some(v=>v.id===selected))selected='';if($('hvRows')){render();if(requestedVisit){setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}}
 }
