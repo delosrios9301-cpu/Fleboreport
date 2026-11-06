@@ -4,6 +4,7 @@ const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
 let activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
+let homeVisitSyncCursor=null;
 let pushRegistrationPromise=null;
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
 const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b,a]));
@@ -204,11 +205,60 @@ async function loadServiceCatalog(){
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
  }finally{catalogLoading=false}
 }
+async function latestHomeVisitSyncCursor(){
+ const result=await cloud.client.from('sync_change_log').select('seq').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').order('seq',{ascending:false}).limit(1).maybeSingle();
+ if(result.error)throw result.error;
+ return result.data?Number(result.data.seq):0;
+}
+async function fetchHomeVisitRows(ids){
+ const select='*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))';
+ const rows=[];
+ if(!ids)return fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
+ for(let i=0;i<ids.length;i+=200){
+  const page=await fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).in('id',ids.slice(i,i+200)).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
+  rows.push(...page);
+ }
+ return rows;
+}
 async function loadCloudVisits(){
- const data=await fetchAllPages(cloud.client.from('home_visits').select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))').eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
- persistedEventIds.clear();data.forEach(row=>(row.home_visit_events||[]).forEach(e=>persistedEventIds.add(e.id)));visits=data.map(dbVisit);if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
- for(const v of visits){if(!v.assignmentId&&v.status==='Pendiente de aceptación'&&v.assignedTo){try{await ensureVisitAssignment(v)}catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}}}
- const requestedVisit=new URLSearchParams(location.search).get('visit');if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;activeTab='agenda';history.replaceState({},'',location.pathname+'?view=domicilios');}else if(!visits.some(v=>v.id===selected))selected='';if($('hvRows')){render();if(requestedVisit){setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}}
+ const fullSnapshot=homeVisitSyncCursor===null;
+ const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
+ const changes=fullSnapshot?[]:await fetchAllPages(cloud.client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').gt('seq',homeVisitSyncCursor).order('seq',{ascending:true}));
+ if(!fullSnapshot&&!changes.length)return false;
+ const changedIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
+ const data=await fetchHomeVisitRows(fullSnapshot?null:changedIds);
+ const mapped=data.map(dbVisit);
+ if(fullSnapshot){
+  visits=mapped;
+  persistedEventIds.clear();
+ }else{
+  const changedSet=new Set(changedIds);
+  // Un registro que ya no es visible por RLS o fue eliminado debe desaparecer de este dispositivo.
+  visits=visits.filter(v=>!changedSet.has(String(v.id))).concat(mapped);
+ }
+ if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
+ visits.sort((a,b)=>String(a.scheduledDate+a.scheduledTime).localeCompare(String(b.scheduledDate+b.scheduledTime)));
+ for(const v of (fullSnapshot?visits:mapped)){
+  (v.events||[]).forEach(e=>persistedEventIds.add(e.id));
+  if(!v.assignmentId&&v.status==='Pendiente de aceptación'&&v.assignedTo){
+   try{await ensureVisitAssignment(v)}
+   catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}
+  }
+ }
+ const requestedVisit=new URLSearchParams(location.search).get('visit');
+ if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;activeTab='agenda';history.replaceState({},'',location.pathname+'?view=domicilios');}
+ else if(!visits.some(v=>v.id===selected))selected='';
+ if($('hvRows')){
+  render();
+  if(requestedVisit){setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}
+ }
+ if(fullSnapshot){
+  homeVisitSyncCursor=cursorBefore;
+  // Recupera las modificaciones que pudieron ocurrir mientras se cargaba la instantánea.
+  return await loadCloudVisits();
+ }
+ homeVisitSyncCursor=Number(changes[changes.length-1].seq);
+ return true;
 }
 async function persistVisit(v){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
@@ -325,7 +375,8 @@ async function connectCloud(){
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_tests',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_assignments',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
-   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_events',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh()).subscribe();
+   .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_events',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'sync_change_log',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh()).subscribe();
  }catch(e){cloud.ready=false;cloudNotice('No se pudo conectar con Supabase: '+(e.message||'Error de conexión'),true)}
  finally{cloud.loading=false}
 }
