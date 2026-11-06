@@ -566,7 +566,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v231'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v232'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
@@ -909,6 +909,8 @@ const syncChangeLogMigration = await readFile(new URL('../supabase/migrations/20
 const syncOutboxPolicyMigration = await readFile(new URL('../supabase/migrations/20261106134655_sync_outbox_assignee_visibility.sql', import.meta.url), 'utf8');
 const syncOutboxHistoricalAssigneeMigration = await readFile(new URL('../supabase/migrations/20261106135954_sync_outbox_historical_assignee_scope.sql', import.meta.url), 'utf8');
 const syncOutboxCommitOrderMigration = await readFile(new URL('../supabase/migrations/20261106140506_sync_outbox_commit_order_cursor.sql', import.meta.url), 'utf8');
+const syncRetentionMigration = await readFile(new URL('../supabase/migrations/20261106142502_sync_change_log_retention_and_cursor_floor.sql', import.meta.url), 'utf8');
+const syncRetentionFixMigration = await readFile(new URL('../supabase/migrations/20261106142513_fix_sync_retention_floor_visibility_and_batch_count.sql', import.meta.url), 'utf8');
 
 test('la sincronización incremental registra solo identificadores y respeta RLS por módulo', () => {
   assert.match(syncChangeLogMigration, /create table if not exists public\.sync_change_log/i);
@@ -939,6 +941,22 @@ test('los cursores clínicos permanecen locales y se reinician al limpiar datos 
   assert.match(cloudSync, /if\(!clearClinical&&Object\.prototype\.hasOwnProperty\.call\(current,k\)\)safe\[k\]=current\[k\]/);
   assert.match(cloudSync, /if\(clearClinical\)window\.dispatchEvent\(new Event\('flebo:clinical-cache-reset'\)\)/);
   assert.match(clinicalCloudSync, /flebo:clinical-cache-reset/);
+});
+
+
+test('la retención del outbox publica un piso seguro y fuerza reconciliación si vence un cursor', () => {
+  assert.match(syncRetentionMigration, /create extension if not exists pg_cron/i);
+  assert.match(syncRetentionMigration, /create table if not exists public\.sync_change_log_retention/i);
+  assert.match(syncRetentionMigration, /enable row level security/i);
+  assert.match(syncRetentionMigration, /interval '90 days'/i);
+  assert.match(syncRetentionMigration, /cron\.schedule/i);
+  assert.match(syncRetentionFixMigration, /entity = 'domiciles'[\s\S]*?and is_workspace_member\(workspace_id\)/i);
+  assert.match(syncRetentionFixMigration, /v_total := v_total \+ v_batch/i);
+  assert.match(domicilios, /async function latestHomeVisitPrunedFloor\(\)/);
+  assert.match(domicilios, /async function ensureHomeVisitCursorFresh\(\)/);
+  assert.match(domicilios, /Number\(homeVisitSyncCursor\)>=floor/);
+  assert.match(clinicalCloudSync, /async function latestClinicalPrunedFloor\(\)/);
+  assert.match(clinicalCloudSync, /Number\(clinicalSyncCursor\)<floor/);
 });
 
 test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto a la instantánea', () => {
