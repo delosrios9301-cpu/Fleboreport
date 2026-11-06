@@ -938,6 +938,8 @@ test('los cursores clínicos permanecen locales y se reinician al limpiar datos 
 test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto a la instantánea', () => {
   assert.match(domicilios, /async function latestHomeVisitSyncCursor\(\)/);
   assert.match(domicilios, /function canCacheHomeVisitSnapshot\(\)/);
+  assert.match(domicilios, /window\.fleboCan\('domicilios','view'\)&&window\.fleboCan\('domicilios','manage'\)/);
+  assert.match(domicilios, /cloud\.user\?\.id!==session\.user\.id\|\|cloud\.workspaceId!==nextWorkspace\|\|cloud\.role!==nextRole/);
   assert.match(domicilios, /Date\.now\(\)-Number\(cached\.cachedAt\|\|0\)>5\*60\*1000/);
   assert.match(domicilios, /if\(!canCacheHomeVisitSnapshot\(\)\|\|!cloud\.user\?\.id\)return false/);
   assert.match(domicilios, /\.from\('sync_change_log'\)/);
