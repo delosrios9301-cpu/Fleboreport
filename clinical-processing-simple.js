@@ -209,6 +209,11 @@
  window.startClinicalProcessing=function(id){
   var sample=findClinicalSample(id);
   if(!sample){if(typeof toast==='function')toast('No se encontró la muestra seleccionada en la bandeja. Actualiza la vista e inténtalo nuevamente.');return}
+  if(sample.coagulationEnabled===true&&Number.isFinite(Number(sample.coagulationMinMinutes))&&Number(sample.coagulationMinMinutes)>0){
+   var collected=new Date(sample.collectedAt||((sample.collectionDate||'')+'T'+(sample.collectionTime||'00:00'))).getTime();
+   var elapsed=Date.now()-collected,required=Number(sample.coagulationMinMinutes)*60000;
+   if(Number.isFinite(collected)&&elapsed<required){var remaining=Math.ceil((required-elapsed)/60000);if(typeof toast==='function')toast('Aún no se alcanza el tiempo mínimo de coagulación. Faltan '+remaining+' minuto(s).');return}
+  }
   if(statusOf(sample)!=='PENDIENTE_PROCESO'){if(typeof toast==='function')toast('La muestra no está aprobada para iniciar procesamiento. Estado actual: '+(labels[statusOf(sample)]||statusOf(sample)));return}
   if(typeof window.openClinicalProcessingModal!=='function'){if(typeof toast==='function')toast('No está disponible la ficha de procesamiento. Recarga la aplicación.');return}
   window.openClinicalProcessingModal(sample.id);
