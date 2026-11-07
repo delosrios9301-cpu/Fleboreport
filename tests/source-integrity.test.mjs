@@ -411,7 +411,7 @@ test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RP
     'guard_home_visit_technician_update',
     'log_clinical_sample_created'
   ]) {
-    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\\.' + name + '\\(\\) from public, anon, authenticated', 'i'));
+    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\.' + name + '\(\) from public, anon, authenticated', 'i'));
   }
   assert.match(triggerFunctionSecurityMigration, /revoke execute on function public\.cancel_home_visit\(uuid, text\) from public, anon/i);
   assert.match(triggerFunctionSecurityMigration, /grant execute on function public\.cancel_home_visit\(uuid, text\) to authenticated/i);
@@ -960,17 +960,16 @@ test('ninguna migración nueva puede borrar automáticamente datos operativos', 
     '20261104012740_complete_workspace_reset_without_archive.sql',
     '20261104133832_clear_clinical_samples_and_legacy_snapshots.sql'
   ]);
-  const protectedTables = '(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)';
   for (const file of files) {
     if (historicalDestructiveMigrations.has(file)) continue;
     const source = await readFile(new URL(file, migrationDirectory), 'utf8');
-    assert.doesNotMatch(source, /\\bdelete\\s+from\\s+public\\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\\b/i, 'La migración ' + file + ' intenta borrar datos operativos automáticamente.');
-    assert.doesNotMatch(source, /\\btruncate\\s+(?:table\\s+)?public\\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\\b/i, 'La migración ' + file + ' intenta truncar datos operativos.');
+    assert.doesNotMatch(source, /\bdelete\s+from\s+public\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\b/i, 'La migración ' + file + ' intenta borrar datos operativos automáticamente.');
+    assert.doesNotMatch(source, /\btruncate\s+(?:table\s+)?public\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\b/i, 'La migración ' + file + ' intenta truncar datos operativos.');
   }
 });
 
 test('solo el administrador puede borrar muestras y los reinicios no pueden borrar la auditoría', () => {
-  assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)\{\\s*requireReady\(\['admin'\]\)/);
+  assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)\{\s*requireReady\(\['admin'\]\)/);
   assert.match(clinicalCloudSync, /if\(role!=='admin'\)throw new Error\('Solo el administrador puede eliminar muestras\.'/);
   assert.match(html, /var canDelete=!!\(window\.FleboAuth&&window\.FleboAuth\.membership&&window\.FleboAuth\.membership\.role==='admin'\)/);
   assert.match(dataRetentionGuardMigration, /has_workspace_role\(p_workspace_id,array\['admin'\]::text\[\]\)/i);
