@@ -1027,9 +1027,9 @@ test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto
 test('el texto permanece horizontal y el procesamiento conserva alícuotas desde el estado vigente', () => {
   assert.match(html, /fleboreport-horizontal-text-global-v1/);
   assert.match(html, /writing-mode:horizontal-tb!important/);
-  assert.match(html, /clinical-processing-simple\\.js\\?v=20261107-horizontal-aliquots1/);
-  assert.match(clinicalProcessing, /function currentSamples\\(\\)/);
-  assert.match(clinicalProcessing, /function findClinicalSample\\(id\\)/);
+  assert.match(html, /clinical-processing-simple\.js\?v=20261107-horizontal-aliquots1/);
+  assert.match(clinicalProcessing, /function currentSamples\(\)/);
+  assert.match(clinicalProcessing, /function findClinicalSample\(id\)/);
   assert.match(clinicalProcessing, /var aliquotInfo=/);
   assert.match(aliquotPersistenceMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
   assert.match(aliquotPersistenceMigration, /backup_aliquots=case when p_next_status='PROCESANDO'/);
