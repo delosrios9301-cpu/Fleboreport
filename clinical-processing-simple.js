@@ -79,7 +79,7 @@
   visible=visible.filter(function(x){
    var hay=[x.subjectCode,x.sampleType,x.visit,typeof clinicalStudyName==='function'?clinicalStudyName(x.studyId):''].join(' ').toLocaleLowerCase('es');
    return (!fs||x.studyId===fs)&&(!fv||x.visitId===fv)&&(!ft||(x.sampleTypeId===ft||x.sampleType===ft))&&(!fst||statusOf(x)===fst||x.status===fst)&&(!fd||(String(x.receivedAt||x.date||'').slice(0,10)===fd))&&(!q||hay.includes(q));
-  }).sort(function(a,b){var ta=Date.parse(a.reviewedAt||a.receivedAt||a.createdAt||a.collectionAt||'')||0,tb=Date.parse(b.reviewedAt||b.receivedAt||b.createdAt||b.collectionAt||'')||0;return tb-ta||String(b.id||'').localeCompare(String(a.id||''))});
+  }).sort(function(a,b){var priority={PENDIENTE_PROCESO:0,PROCESANDO:1,ALMACENAMIENTO_TEMPORAL:2,CONGELADOR_DEFINITIVO:3},pa=priority[statusOf(a)]==null?4:priority[statusOf(a)],pb=priority[statusOf(b)]==null?4:priority[statusOf(b)];if(pa!==pb)return pa-pb;var ta=Date.parse(a.reviewedAt||a.receivedAt||a.createdAt||a.collectionAt||'')||0,tb=Date.parse(b.reviewedAt||b.receivedAt||b.createdAt||b.collectionAt||'')||0;return tb-ta||String(b.id||'').localeCompare(String(a.id||''))});
   var counts={
    pending:samples.filter(function(x){return statusOf(x)==='PENDIENTE_PROCESO'}).length,
    processing:samples.filter(function(x){return statusOf(x)==='PROCESANDO'}).length,
