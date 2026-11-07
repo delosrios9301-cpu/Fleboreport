@@ -375,7 +375,7 @@ Deno.serve(async (req: Request) => {
         inAppNotificationId = inAppRow?.id || null;
       }
       inAppSaved = !!inAppNotificationId;
-      const notificationTag = inAppNotificationId ? "fleboreport-notif-" + inAppNotificationId : "flebo-assignment-" + assignment.id;
+      const notificationTag = "flebo-assignment-" + assignment.id;
 
       const { data: previousPushRows, error: previousPushError } = await admin.from("home_visit_notifications")
         .select("id,status,metadata").eq("workspace_id", membership.workspace_id)
@@ -400,7 +400,7 @@ Deno.serve(async (req: Request) => {
             for (const sub of subs || []) {
               try {
                 await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } },
-                  JSON.stringify({ title, body: message, url: "?view=domicilios&visit=" + assignment.home_visit_id, tag: notificationTag }));
+                  JSON.stringify({ title, body: message, url: "./?view=domicilios&visit=" + assignment.home_visit_id, tag: notificationTag }));
                 pushSent++;
               } catch (e) {
                 const status = (e as { statusCode?: number })?.statusCode;
