@@ -428,8 +428,7 @@ test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RP
     'guard_home_visit_technician_update',
     'log_clinical_sample_created'
   ]) {
-    assert.match(triggerFunctionSecurityMigration, new RegExp('revoke execute on function public\.' + name + '\(\) from public, anon, authenticated', 'i'));
-  }
+    assert.ok(triggerFunctionSecurityMigration.toLowerCase().includes('revoke execute on function public.' + name + '() from public, anon, authenticated'), 'falta revocación para ' + name);  }
   assert.match(triggerFunctionSecurityMigration, /revoke execute on function public\.cancel_home_visit\(uuid, text\) from public, anon/i);
   assert.match(triggerFunctionSecurityMigration, /grant execute on function public\.cancel_home_visit\(uuid, text\) to authenticated/i);
 });
@@ -729,10 +728,9 @@ test('el servicio Push reintenta invitaciones fallidas y no repite las ya entreg
 });
 
 
-test('el aviso Push y el aviso del centro usan la misma etiqueta para evitar duplicados', () => {
-  assert.match(domiciliosNotificationsFunction, /const notificationTag = inAppNotificationId \? "fleboreport-notif-" \+ inAppNotificationId/);
+test('la invitación Push de domicilio usa una etiqueta única por asignación', () => {
+  assert.match(domiciliosNotificationsFunction, /const notificationTag = "flebo-assignment-" \+ assignment\.id/);
   assert.match(domiciliosNotificationsFunction, /tag: notificationTag/);
-  assert.match(notifications, /tag:'fleboreport-notif-'\+n\.id/);
 });
 
 
