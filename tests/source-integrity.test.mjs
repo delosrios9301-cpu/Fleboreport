@@ -953,6 +953,22 @@ test('el procesamiento permite guardar alícuotas también después de iniciar',
   assert.match(simpleProcessing, /completeClinicalSampleProcessing/);
 });
 
+test('ninguna migración nueva puede borrar automáticamente datos operativos', async () => {
+  const migrationDirectory = new URL('../supabase/migrations/', import.meta.url);
+  const files = (await readdir(migrationDirectory)).filter((name) => name.endsWith('.sql'));
+  const historicalDestructiveMigrations = new Set([
+    '20261104012740_complete_workspace_reset_without_archive.sql',
+    '20261104133832_clear_clinical_samples_and_legacy_snapshots.sql'
+  ]);
+  const protectedTables = '(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)';
+  for (const file of files) {
+    if (historicalDestructiveMigrations.has(file)) continue;
+    const source = await readFile(new URL(file, migrationDirectory), 'utf8');
+    assert.doesNotMatch(source, new RegExp('\\\\bdelete\\\\s+from\\\\s+public\\\\.' + protectedTables + '\\\\b', 'i'), 'La migración ' + file + ' intenta borrar datos operativos automáticamente.');
+    assert.doesNotMatch(source, new RegExp('\\\\btruncate\\\\s+(?:table\\\\s+)?public\\\\.' + protectedTables + '\\\\b', 'i'), 'La migración ' + file + ' intenta truncar datos operativos.');
+  }
+});
+
 test('solo el administrador puede borrar muestras y los reinicios no pueden borrar la auditoría', () => {
   assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)\{\\s*requireReady\(\['admin'\]\)/);
   assert.match(clinicalCloudSync, /if\(role!=='admin'\)throw new Error\('Solo el administrador puede eliminar muestras\.'/);
