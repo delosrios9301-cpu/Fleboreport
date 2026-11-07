@@ -2614,4 +2614,89 @@ html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!imp
 }
 @media(prefers-reduced-motion:reduce){#view-home *{transition:none!important}}
 </style>
+
+<style id="inicio-dashboard-layout-v3">
+/* Composición tipo centro de control institucional. Solo presentación; conserva los nodos e IDs funcionales. */
+#view-home.active{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:18px;row-gap:18px;align-items:start;padding:0 0 30px!important;background:#f4f7fb!important;border-radius:0!important}
+#view-home>.op-hero,#view-home>#operationalKpis,#view-home>.clinical-dash-panel,#view-home>.op-grid,#view-home>section.op-panel,#view-home>.op-footer{min-width:0;grid-column:1/-1}
+#view-home>.op-hero{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:24px!important;min-height:205px!important;padding:34px 38px!important;margin:0!important;border-radius:24px!important;background:linear-gradient(112deg,#102f50 0%,#124d70 58%,#087e83 100%)!important;box-shadow:0 18px 42px #163e5b20!important}
+#view-home>.op-hero>div:first-child{max-width:720px}
+#view-home>.op-hero .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid #ffffff30;border-radius:99px;background:#ffffff12;color:#9de9df!important;letter-spacing:1.5px!important}
+#view-home>.op-hero h1{margin:13px 0 8px!important;font-size:clamp(28px,3vw,40px)!important;line-height:1.12!important}
+#view-home>.op-hero p{max-width:570px;font-size:13px!important;line-height:1.65!important}
+#view-home>.op-hero .op-date{width:230px;flex:0 0 230px;padding:18px 20px!important;border:1px solid #ffffff38!important;border-radius:18px!important;background:#ffffff14!important;backdrop-filter:blur(10px)}
+#view-home>#operationalKpis.op-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin:0!important}
+#view-home .op-kpi{position:relative;display:flex;align-items:center;gap:14px;min-width:0;min-height:116px!important;padding:19px!important;border:1px solid #e1e9f0!important;border-radius:18px!important;background:#fff!important;box-shadow:0 5px 18px #193d5710!important;overflow:hidden}
+#view-home .op-kpi:before{width:4px!important;background:var(--kpi-color,#168c91)!important}
+#view-home .op-kpi:after{right:-24px!important;top:-38px!important;width:115px!important;height:115px!important;opacity:.55!important}
+#view-home .op-kpi-icon{flex:0 0 46px;width:46px!important;height:46px!important;border-radius:14px!important}
+#view-home .op-kpi-value{font-size:29px!important;line-height:1.1!important}
+#view-home>.clinical-dash-panel{margin:0!important;border:1px solid #dfe8ef!important;border-radius:20px!important;box-shadow:0 8px 24px #163e5b0d!important}
+#view-home>.clinical-dash-panel>.panel-head{padding:19px 22px!important;background:#fff!important}
+#view-home>.clinical-dash-panel>.panel-head:before{content:"";display:block;width:4px;height:34px;border-radius:5px;background:#0e9991;margin-right:4px}
+#view-home>.clinical-dash-panel>.panel-head>div{flex:1}
+#view-home>.clinical-dash-panel>.panel-head .eyebrow{font-size:9px!important;letter-spacing:1.4px}
+#view-home>.clinical-dash-panel>.panel-body{padding:20px 22px!important}
+#view-home .clinical-dash-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+#view-home .clinical-dash-kpi{min-width:0;border:1px solid #e4edf2!important;border-radius:15px!important;background:#f8fbfd!important;box-shadow:none!important}
+#view-home .clinical-dash-columns{display:grid!important;grid-template-columns:1.1fr 1fr 1fr!important;gap:13px!important}
+#view-home .clinical-dash-columns>section{min-width:0;border:1px solid #e5edf2!important;border-radius:15px!important;background:#fbfdfe!important}
+#view-home .clinical-dash-recent{border:1px solid #e5edf2!important;border-radius:15px!important;background:#fff!important}
+#view-home>.op-grid{display:contents!important}
+#view-home .op-grid:has(#dashPatientTrend)>.op-panel:first-child{grid-column:span 7}
+#view-home .op-grid:has(#dashPatientTrend)>.op-panel:last-child{grid-column:span 5}
+#view-home .op-grid:has(#dashServiceMix)>.op-panel{grid-column:span 3}
+#view-home .op-grid:has(#dashTopServices)>.op-panel{grid-column:span 6}
+#view-home .op-grid:has(#dashFinance)>.op-panel{grid-column:span 6}
+#view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:span 4}
+#view-home .op-grid:has(#dashPatientTrend),#view-home .op-grid:has(#dashServiceMix),#view-home .op-grid:has(#dashTopServices),#view-home .op-grid:has(#dashFinance),#view-home .op-grid:has(#dashFunnel){margin:0!important;gap:18px!important}
+#view-home .op-panel{min-width:0;margin:0!important;border:1px solid #e1e9ef!important;border-radius:18px!important;background:#fff!important;box-shadow:0 6px 20px #163e5b0b!important}
+#view-home .op-panel>.panel-head{min-height:67px!important;padding:16px 18px!important;background:linear-gradient(110deg,#f7fafc,#fff)!important;border-bottom:1px solid #edf1f4!important}
+#view-home .op-panel>.panel-head h2{font-size:13px!important;letter-spacing:-.1px}
+#view-home .op-panel>.panel-head p{font-size:10px!important;line-height:1.5}
+#view-home .op-panel>.panel-body{padding:17px 18px!important;min-width:0}
+#view-home .op-panel .btn.small{border-radius:9px!important}
+#view-home .op-quick{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:11px!important}
+#view-home .op-quick button{min-width:0;min-height:105px!important;align-items:flex-start!important;text-align:left!important;border:1px solid #e1e9ef!important;border-radius:15px!important;background:#fff!important;box-shadow:0 4px 14px #173d500b!important}
+#view-home .op-quick button>span{display:grid;place-items:center}
+#view-home .op-footer{margin:0!important;border-radius:13px!important}
+#view-home,#view-home *{writing-mode:horizontal-tb!important;text-orientation:mixed!important}
+@media(max-width:1050px){
+ #view-home.active{column-gap:12px;row-gap:13px}
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel:first-child{grid-column:span 7}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel:last-child{grid-column:span 5}
+ #view-home .op-grid:has(#dashServiceMix)>.op-panel{grid-column:span 6}
+ #view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:span 6}
+ #view-home .op-quick{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+ #view-home.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;padding:0 0 20px!important}
+ #view-home>.op-hero,#view-home>#operationalKpis,#view-home>.clinical-dash-panel,#view-home>.op-grid,#view-home>section.op-panel,#view-home>.op-footer{grid-column:1!important}
+ #view-home>.op-hero{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-height:0!important;padding:21px!important;border-radius:18px!important;gap:14px!important}
+ #view-home>.op-hero h1{font-size:25px!important}
+ #view-home>.op-hero .op-date{width:100%!important;flex:0 0 auto!important}
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ #view-home .op-kpi{min-height:88px!important;padding:11px!important;gap:9px!important}
+ #view-home .op-kpi-icon{flex-basis:35px;width:35px!important;height:35px!important}
+ #view-home .op-kpi-value{font-size:21px!important}
+ #view-home>.clinical-dash-panel>.panel-head{flex-wrap:wrap;gap:10px;padding:14px!important}
+ #view-home>.clinical-dash-panel>.panel-head:before{display:none}
+ #view-home>.clinical-dash-panel>.panel-body{padding:12px!important}
+ #view-home .clinical-dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .clinical-dash-columns{grid-template-columns:minmax(0,1fr)!important}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel,
+ #view-home .op-grid:has(#dashServiceMix)>.op-panel,
+ #view-home .op-grid:has(#dashTopServices)>.op-panel,
+ #view-home .op-grid:has(#dashFinance)>.op-panel,
+ #view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:1/-1!important}
+ #view-home .op-grid:has(#dashPatientTrend),#view-home .op-grid:has(#dashServiceMix),#view-home .op-grid:has(#dashTopServices),#view-home .op-grid:has(#dashFinance),#view-home .op-grid:has(#dashFunnel){gap:11px!important}
+ #view-home .op-quick{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ #view-home .op-quick button{min-height:91px!important;padding:11px!important}
+ #view-home .op-panel>.panel-head{padding:13px!important}
+ #view-home .op-panel>.panel-body{padding:13px!important}
+}
+@media(prefers-reduced-motion:reduce){#view-home *{transition:none!important}}
+</style>
+
 </body></html>
