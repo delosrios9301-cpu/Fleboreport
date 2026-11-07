@@ -18,6 +18,7 @@ const removeUnusedClinicalSlotsMigration = await readFile(new URL('../supabase/m
 const aliquotStartMigration = await readFile(new URL('../supabase/migrations/20261104152352_require_aliquot_counts_at_processing_start.sql', import.meta.url), 'utf8');
 const clinicalCloudSync = await readFile(new URL('../clinical-cloud-sync.js', import.meta.url), 'utf8');
 const clinicalProcessing = await readFile(new URL('../clinical-processing-simple.js', import.meta.url), 'utf8');
+const aliquotPersistenceMigration = await readFile(new URL('../supabase/migrations/20261106223000_fix_clinical_processing_aliquot_persistence.sql', import.meta.url), 'utf8');
 const authenticatedReceptionMigration = await readFile(new URL('../supabase/migrations/20261104154830_track_authenticated_clinical_sample_reception.sql', import.meta.url), 'utf8');
 const duplicateProtectionMigration = await readFile(new URL('../supabase/migrations/20261104135155_prevent_duplicate_user_registered_records.sql', import.meta.url), 'utf8');
 const notifications = await readFile(new URL('../notifications-center.js', import.meta.url), 'utf8');
@@ -1021,4 +1022,15 @@ test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto
   assert.match(clinicalCloudSync, /window\.addEventListener\('online',[\s\S]*?scheduleClinicalIncrementalRefresh\(\)/);
   assert.match(domicilios, /document\.addEventListener\('visibilitychange',[\s\S]*?scheduleCloudVisitsRefresh\(\)/);
   assert.match(domicilios, /window\.addEventListener\('online',[\s\S]*?scheduleCloudVisitsRefresh\(\)/);
+});
+
+test('el texto permanece horizontal y el procesamiento conserva alícuotas desde el estado vigente', () => {
+  assert.match(html, /fleboreport-horizontal-text-global-v1/);
+  assert.match(html, /writing-mode:horizontal-tb!important/);
+  assert.match(html, /clinical-processing-simple\\.js\\?v=20261107-horizontal-aliquots1/);
+  assert.match(clinicalProcessing, /function currentSamples\\(\\)/);
+  assert.match(clinicalProcessing, /function findClinicalSample\\(id\\)/);
+  assert.match(clinicalProcessing, /var aliquotInfo=/);
+  assert.match(aliquotPersistenceMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
+  assert.match(aliquotPersistenceMigration, /backup_aliquots=case when p_next_status='PROCESANDO'/);
 });
