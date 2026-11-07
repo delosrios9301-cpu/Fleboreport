@@ -44,9 +44,34 @@
   var key=String(id);
   return currentSamples().find(function(x){return String(x.id)===key||String(x.cloudId)===key})||null;
  }
+ function sampleAgeClass(sample,status){
+  if(status!=='PENDIENTE_PROCESO')return '';
+  var raw=sample&&sample.collectedAt;
+  if(!raw){
+   var date=String(sample&&sample.collectionDate||'').trim();
+   var time=String(sample&&sample.collectionTime||'').trim();
+   if(!date)return '';
+   raw=date+(time?'T'+time: 'T00:00:00');
+  }
+  var takenAt=new Date(raw);
+  if(Number.isNaN(takenAt.getTime()))return '';
+  var elapsed=Date.now()-takenAt.getTime();
+  if(elapsed<0)return '';
+  if(elapsed>=60*60*60*1000)return 'clinical-age-red';
+  if(elapsed>=48*60*60*1000)return 'clinical-age-orange';
+  return '';
+ }
+ function ensureSampleAgeStyles(){
+  if(document.getElementById('clinical-sample-age-styles'))return;
+  var style=document.createElement('style');
+  style.id='clinical-sample-age-styles';
+  style.textContent='#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td{background-color:#fff1dc!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td:first-child{box-shadow:inset 3px 0 0 #e6ad61}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td{background-color:#fde9e9!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td:first-child{box-shadow:inset 3px 0 0 #df9292}';
+  document.head.appendChild(style);
+ }
  function renderQueue(){
   var host=byId('clinicalQueueRows'),view=byId('view-clinical-processing');
   if(!host||!view)return;
+  ensureSampleAgeStyles();
   var samples=currentSamples();
   var visible=samples.filter(function(x){return ['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'].includes(statusOf(x))});
   var fs=byId('clinicalQueueStudy')?.value||'',fv=byId('clinicalQueueVisit')?.value||'',ft=byId('clinicalQueueType')?.value||'',fst=byId('clinicalQueueStatus')?.value||'',fd=byId('clinicalQueueDate')?.value||'',q=(byId('clinicalQueueSearch')?.value||'').trim().toLocaleLowerCase('es');
@@ -74,7 +99,8 @@
    if(canDeleteSample)action+='<button class="btn danger" onclick="deleteClinicalSample(\''+esc(x.id)+'\')">Eliminar sujeto</button>';
    var aliquotInfo='<strong>Principales:</strong> '+esc(x.primaryAliquots==null?'—':x.primaryAliquots)+'<br><strong>Backup:</strong> '+esc(x.backupAliquots==null?'—':x.backupAliquots)+'<br><strong>Total:</strong> '+((Number(x.primaryAliquots)||0)+(Number(x.backupAliquots)||0));
    function actorTime(raw){if(!raw)return '';var d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleString('es-PA',{dateStyle:'short',timeStyle:'short'})}var actorRows=[['Recibió',x.receivedBy,x.receivedAt],['Verificó',x.reviewedBy,x.reviewedAt],['Inició proceso',x.processingStartedBy,x.processingStartedAt],['Procesó',x.processedBy,x.processedAt],['Almacenó',x.storedBy,x.storedAt]].filter(function(item){return !!(item[1]||item[2])}).map(function(item){return '<small><strong>'+esc(item[0])+':</strong> '+esc(item[1]||'Responsable no identificado')+(item[2]?' · '+esc(actorTime(item[2])):'')+'</small>'}).join('<br>')||'—';
-   return '<tr><td>'+esc(typeof clinicalStudyName==='function'?clinicalStudyName(x.studyId):'—')+'<br><strong>'+esc(x.subjectCode||'—')+'</strong></td><td>'+esc(x.visit||'—')+'<br>'+esc(x.sampleType||'—')+'</td><td>'+esc(x.collectionDate||'—')+' '+esc(x.collectionTime||'')+'<br>'+esc(typeof clinicalRecordDate==='function'?clinicalRecordDate(x):'—')+' '+esc(typeof clinicalRecordTime==='function'?clinicalRecordTime(x):'')+'</td><td>'+esc(x.tubes==null?'—':x.tubes)+'</td><td>'+aliquotInfo+'</td><td><span class="clinical-status">'+esc(labels[st]||st)+'</span></td><td>'+actorRows+'</td><td class="clinical-actions">'+action+'</td></tr>';
+   var ageClass=sampleAgeClass(x,st);
+   return '<tr'+(ageClass?' class="'+ageClass+'"':'')+'><td>'+esc(typeof clinicalStudyName==='function'?clinicalStudyName(x.studyId):'—')+'<br><strong>'+esc(x.subjectCode||'—')+'</strong></td><td>'+esc(x.visit||'—')+'<br>'+esc(x.sampleType||'—')+'</td><td>'+esc(x.collectionDate||'—')+' '+esc(x.collectionTime||'')+'<br>'+esc(typeof clinicalRecordDate==='function'?clinicalRecordDate(x):'—')+' '+esc(typeof clinicalRecordTime==='function'?clinicalRecordTime(x):'')+'</td><td>'+esc(x.tubes==null?'—':x.tubes)+'</td><td>'+aliquotInfo+'</td><td><span class="clinical-status">'+esc(labels[st]||st)+'</span></td><td>'+actorRows+'</td><td class="clinical-actions">'+action+'</td></tr>';
   }).join('');
   var empty=byId('clinicalQueueEmpty');if(empty)empty.hidden=visible.length>0;
  }
