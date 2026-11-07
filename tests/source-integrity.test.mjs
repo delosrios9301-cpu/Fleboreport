@@ -964,8 +964,8 @@ test('ninguna migración nueva puede borrar automáticamente datos operativos', 
   for (const file of files) {
     if (historicalDestructiveMigrations.has(file)) continue;
     const source = await readFile(new URL(file, migrationDirectory), 'utf8');
-    assert.doesNotMatch(source, new RegExp('\\\\bdelete\\\\s+from\\\\s+public\\\\.' + protectedTables + '\\\\b', 'i'), 'La migración ' + file + ' intenta borrar datos operativos automáticamente.');
-    assert.doesNotMatch(source, new RegExp('\\\\btruncate\\\\s+(?:table\\\\s+)?public\\\\.' + protectedTables + '\\\\b', 'i'), 'La migración ' + file + ' intenta truncar datos operativos.');
+    assert.doesNotMatch(source, /\\bdelete\\s+from\\s+public\\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\\b/i, 'La migración ' + file + ' intenta borrar datos operativos automáticamente.');
+    assert.doesNotMatch(source, /\\btruncate\\s+(?:table\\s+)?public\\.(?:clinical_samples|clinical_sample_events|clinical_sample_containers|clinical_cryovials|clinical_cryovial_events|workspace_app_state|audit_logs|home_visits|home_visit_events|inventory_movements)\\b/i, 'La migración ' + file + ' intenta truncar datos operativos.');
   }
 });
 
