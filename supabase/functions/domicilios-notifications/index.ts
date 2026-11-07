@@ -79,6 +79,20 @@ Deno.serve(async (req: Request) => {
     if (membershipError) throw membershipError;
     if (!membership) return reply({ error: "Membresía activa requerida" }, 403);
 
+    if (action === "subscription-status") {
+      const endpoint = String(body.endpoint || "");
+      if (!endpoint) return reply({ error: "Falta el endpoint del dispositivo" }, 400);
+      const { data: subscription, error: subscriptionError } = await admin
+        .from("home_visit_push_subscriptions")
+        .select("id,active")
+        .eq("workspace_id", membership.workspace_id)
+        .eq("user_id", user.id)
+        .eq("endpoint", endpoint)
+        .maybeSingle();
+      if (subscriptionError) throw subscriptionError;
+      return reply({ ok: true, registered: !!subscription, active: !!subscription?.active });
+    }
+
     if (action === "config-status") {
       if (membership.role !== "admin") return reply({ error: "Solo el administrador puede consultar la configuración de canales." }, 403);
       return reply({ ok: true, push: { public_key_present: !!publicVapid, private_key_present: !!privateVapid, configured: !!(publicVapid && privateVapid) } });
