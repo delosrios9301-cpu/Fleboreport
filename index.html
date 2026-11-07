@@ -1497,14 +1497,15 @@ function clinicalSelection(){return Array.from(document.querySelectorAll('[data-
 async function deleteClinicalSample(id){
  var sample=state.clinicalSamples.find(function(x){return x.id===id});
  if(!sample){toast('No se encontró la muestra seleccionada.');return}
- var canDelete=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin')||!!(window.fleboCan&&window.fleboCan('processing','delete'));
- if(!canDelete){toast('No tienes permiso para eliminar muestras. Solicita acceso al administrador.');return}
+ var canDelete=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin');
+ if(!canDelete){toast('Solo el administrador puede eliminar muestras.');return}
  var reason=prompt('Indica el motivo de eliminación de esta muestra (mínimo 5 caracteres):','Datos ingresados incorrectamente');
  if(reason===null)return;
  reason=reason.trim();
  if(reason.length<5){toast('El motivo debe contener al menos 5 caracteres.');return}
  if(!confirm('¿Eliminar el registro de la muestra del sujeto '+(sample.subjectCode||'')+'? La muestra dejará de aparecer en las bandejas, pero su trazabilidad de auditoría se conservará.'))return;
  if(!sample.cloudId){
+  toast('No se puede eliminar: la muestra todavía no está confirmada en la base de datos central. Sincronízala primero.');return;
   var previousSamples=state.clinicalSamples,previousDeleted=state.clinicalLocalDeletedSampleIds||[];
   state.clinicalLocalDeletedSampleIds=Array.from(new Set(previousDeleted.concat([String(sample.id)])));
   state.clinicalSamples=previousSamples.filter(function(x){return x.id!==id});
