@@ -112,12 +112,12 @@ async function saveSampleType(study,studyCloudId,type){
  if(result.error)fail(result.error);
  const id=Array.isArray(result.data)?result.data[0]:result.data;
  if(!id)throw new Error('Supabase no devolvió el identificador del tipo de muestra.');
- const coagUpdate=await client.from('clinical_sample_types').update({
-  coagulation_enabled:merged.coagulationEnabled===true,
-  coagulation_min_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMinMinutes):null,
-  coagulation_max_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMaxMinutes):null,
-  coagulation_alert_before_minutes:merged.coagulationEnabled===true?(Number(merged.coagulationAlertBeforeMinutes)||15):null
- }).eq('id',id).eq('workspace_id',workspaceId);
+ const coagUpdate=await client.rpc('set_clinical_sample_type_coagulation_config',{
+  p_workspace_id:workspaceId,p_sample_type_id:id,p_enabled:merged.coagulationEnabled===true,
+  p_min_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMinMinutes):null,
+  p_max_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMaxMinutes):null,
+  p_alert_before_minutes:merged.coagulationEnabled===true?(Number(merged.coagulationAlertBeforeMinutes)||15):null
+ });
  if(coagUpdate.error)fail(coagUpdate.error);
  type.cloudId=id;return id;
 }
@@ -156,7 +156,7 @@ async function loadRemoteConfiguration(){
  const types=(tr.data||[]).map(row=>{
   const study=studies.find(x=>x.cloudId===row.study_id);if(!study)return null;
   const old=oldTypes.find(x=>x.cloudId===row.id)||{};
-  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,coagulation_enabled:row.coagulation_enabled,coagulation_min_minutes:row.coagulation_min_minutes,coagulation_max_minutes:row.coagulation_max_minutes,coagulation_alert_before_minutes:row.coagulation_alert_before_minutes,description:row.description||'',active:row.active});
+  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,coagulation_enabled:row.coagulation_enabled,coagulation_min_minutes:row.coagulation_min_minutes,coagulation_max_minutes:row.coagulation_max_minutes,coagulation_alert_before_minutes:row.coagulation_alert_before_minutes,coagulationEnabled:row.coagulation_enabled===true,coagulationMinMinutes:row.coagulation_min_minutes,coagulationMaxMinutes:row.coagulation_max_minutes,coagulationAlertBeforeMinutes:row.coagulation_alert_before_minutes,description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
  // Supabase es la fuente oficial. Nunca reincorporar estudios, visitas o tipos
@@ -375,11 +375,10 @@ async function registerSample(sample){
   if(!data||!data.sample_id)throw new Error('Supabase no devolvió el identificador de la muestra.');
   sample.cloudId=data.sample_id;sample.workflowStatus=data.workflow_status||'REGISTRADO';
   if(sample.coagulationEnabled===true){
-   const coagSave=await client.from('clinical_samples').update({
-    coagulation_enabled:true,coagulation_min_minutes:Number(sample.coagulationMinMinutes),
-    coagulation_max_minutes:Number(sample.coagulationMaxMinutes),
-    coagulation_alert_before_minutes:Number(sample.coagulationAlertBeforeMinutes)||15
-   }).eq('id',data.sample_id).eq('workspace_id',workspaceId);
+   const coagSave=await client.rpc('set_clinical_sample_coagulation_snapshot',{
+    p_workspace_id:workspaceId,p_sample_id:data.sample_id,p_min_minutes:Number(sample.coagulationMinMinutes),
+    p_max_minutes:Number(sample.coagulationMaxMinutes),p_alert_before_minutes:Number(sample.coagulationAlertBeforeMinutes)||15
+   });
    if(coagSave.error)fail(coagSave.error);
   }
   return data;
