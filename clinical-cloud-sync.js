@@ -213,11 +213,16 @@ async function loadRemoteSamples(){
  const sampleQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).order('id',{ascending:false});
  let sampleRows=[],containerRows=[],eventRows=[];
  if(fullSnapshot){
-  [sampleRows,containerRows,eventRows]=await Promise.all([
-   fetchAllPages(sampleQuery),
-   fetchAllPages(client.from('clinical_sample_containers').select('sample_id,barcode').eq('workspace_id',workspaceId).order('sample_id',{ascending:true}).order('barcode',{ascending:true})),
-   fetchAllPages(client.from('clinical_sample_events').select('id,sample_id,previous_status,next_status,notes,actor_id,occurred_at').eq('workspace_id',workspaceId).order('occurred_at',{ascending:false}).order('id',{ascending:false}))
-  ]);
+  // Primero obtener solo las muestras activas. Después descargar sus contenedores
+  // e historial por lotes: evita recorrer registros huérfanos o de muestras retiradas.
+  sampleRows=await fetchAllPages(sampleQuery);
+  const activeSampleIds=sampleRows.map(row=>String(row.id));
+  if(activeSampleIds.length){
+   [containerRows,eventRows]=await Promise.all([
+    fetchSampleRelatedRows('clinical_sample_containers','sample_id,barcode',activeSampleIds,[{column:'sample_id',ascending:true},{column:'barcode',ascending:true}]),
+    fetchSampleRelatedRows('clinical_sample_events','id,sample_id,previous_status,next_status,notes,actor_id,occurred_at',activeSampleIds,[{column:'occurred_at',ascending:false},{column:'id',ascending:false}])
+   ]);
+  }
  }else{
   sampleRows=[];
   for(let i=0;i<changedCloudIds.length;i+=200){
