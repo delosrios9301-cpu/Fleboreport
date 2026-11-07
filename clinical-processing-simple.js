@@ -35,10 +35,19 @@
  window.workflowLabel=function(status){return labels[status]||status||'—'};
  function esc(value){return typeof window.esc==='function'?window.esc(value):String(value==null?'':value).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])})}
  function byId(id){return document.getElementById(id)}
+ function currentSamples(){
+  var snapshot=window.FleboAppState&&typeof window.FleboAppState.get==='function'?window.FleboAppState.get():null;
+  if(snapshot&&Array.isArray(snapshot.clinicalSamples))return snapshot.clinicalSamples;
+  return typeof state!=='undefined'&&state&&Array.isArray(state.clinicalSamples)?state.clinicalSamples:[];
+ }
+ function findClinicalSample(id){
+  var key=String(id);
+  return currentSamples().find(function(x){return String(x.id)===key||String(x.cloudId)===key})||null;
+ }
  function renderQueue(){
   var host=byId('clinicalQueueRows'),view=byId('view-clinical-processing');
   if(!host||!view)return;
-  var samples=Array.isArray(state.clinicalSamples)?state.clinicalSamples:[];
+  var samples=currentSamples();
   var visible=samples.filter(function(x){return ['PENDIENTE_PROCESO','PROCESANDO','ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'].includes(statusOf(x))});
   var fs=byId('clinicalQueueStudy')?.value||'',fv=byId('clinicalQueueVisit')?.value||'',ft=byId('clinicalQueueType')?.value||'',fst=byId('clinicalQueueStatus')?.value||'',fd=byId('clinicalQueueDate')?.value||'',q=(byId('clinicalQueueSearch')?.value||'').trim().toLocaleLowerCase('es');
   visible=visible.filter(function(x){
@@ -61,7 +70,7 @@
    else if(st==='PROCESANDO')action='<button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(x.id)+'\')">Pasar a almacenamiento temporal</button>';
    else if(st==='ALMACENAMIENTO_TEMPORAL')action='<button class="btn primary" onclick="finalizeClinicalSampleStorage(\''+esc(x.id)+'\')">Marcar definitivo</button>';
    else action='<span class="clinical-status">Proceso finalizado</span>';
-   var canDeleteSample=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin')||!!(window.fleboCan&&window.fleboCan('processing','delete'));
+   var canDeleteSample=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin');
    if(canDeleteSample)action+='<button class="btn danger" onclick="deleteClinicalSample(\''+esc(x.id)+'\')">Eliminar sujeto</button>';
    var aliquotInfo='<strong>Principales:</strong> '+esc(x.primaryAliquots==null?'—':x.primaryAliquots)+'<br><strong>Backup:</strong> '+esc(x.backupAliquots==null?'—':x.backupAliquots)+'<br><strong>Total:</strong> '+((Number(x.primaryAliquots)||0)+(Number(x.backupAliquots)||0));
    function actorTime(raw){if(!raw)return '';var d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleString('es-PA',{dateStyle:'short',timeStyle:'short'})}var actorRows=[['Recibió',x.receivedBy,x.receivedAt],['Verificó',x.reviewedBy,x.reviewedAt],['Inició proceso',x.processingStartedBy,x.processingStartedAt],['Procesó',x.processedBy,x.processedAt],['Almacenó',x.storedBy,x.storedAt]].filter(function(item){return !!(item[1]||item[2])}).map(function(item){return '<small><strong>'+esc(item[0])+':</strong> '+esc(item[1]||'Responsable no identificado')+(item[2]?' · '+esc(actorTime(item[2])):'')+'</small>'}).join('<br>')||'—';
@@ -99,7 +108,7 @@
  // Ficha de inicio: esta versión es la autoridad final y lee siempre el estado vigente.
  window.openClinicalProcessingModal=function(id){
   var appState=window.FleboAppState&&typeof window.FleboAppState.get==='function'?window.FleboAppState.get():null;
-  var samples=appState&&Array.isArray(appState.clinicalSamples)?appState.clinicalSamples:[];
+  var samples=currentSamples();
   var sample=samples.find(function(x){return String(x.id)===String(id)||String(x.cloudId)===String(id)});
   if(!sample){if(typeof toast==='function')toast('No se encontró la muestra seleccionada. Actualiza la bandeja de procesamiento.');return}
   var current=statusOf(sample);
@@ -171,9 +180,7 @@
   document.body.appendChild(overlay);setTimeout(function(){primary.focus()},0);
  };
  window.startClinicalProcessing=function(id){
-  var currentState=window.FleboAppState&&typeof window.FleboAppState.get==='function'?window.FleboAppState.get():null;
-  var samples=currentState&&Array.isArray(currentState.clinicalSamples)?currentState.clinicalSamples:[];
-  var sample=samples.find(function(x){return String(x.id)===String(id)||String(x.cloudId)===String(id)});
+  var sample=findClinicalSample(id);
   if(!sample){if(typeof toast==='function')toast('No se encontró la muestra seleccionada en la bandeja. Actualiza la vista e inténtalo nuevamente.');return}
   if(statusOf(sample)!=='PENDIENTE_PROCESO'){if(typeof toast==='function')toast('La muestra no está aprobada para iniciar procesamiento. Estado actual: '+(labels[statusOf(sample)]||statusOf(sample)));return}
   if(typeof window.openClinicalProcessingModal!=='function'){if(typeof toast==='function')toast('No está disponible la ficha de procesamiento. Recarga la aplicación.');return}
@@ -181,7 +188,7 @@
  };
  window.processClinicalSample=window.startClinicalProcessing;
  window.completeClinicalSampleProcessing=async function(id){
-  var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
+  var sample=findClinicalSample(id);
   if(!sample||statusOf(sample)!=='PROCESANDO'){if(typeof toast==='function')toast('La muestra no está en procesamiento.');return}
   if((Number(sample.primaryAliquots)||0)+(Number(sample.backupAliquots)||0)<1){
    if(typeof toast==='function')toast('Primero registra y guarda las alícuotas principales y de backup.');
@@ -191,7 +198,7 @@
   return move(sample,'ALMACENAMIENTO_TEMPORAL','Procesamiento completado; alícuotas verificadas y almacenamiento temporal autorizado');
  };
  window.finalizeClinicalSampleStorage=function(id){
-  var sample=(state.clinicalSamples||[]).find(function(x){return x.id===id});
+  var sample=findClinicalSample(id);
   if(!sample||statusOf(sample)!=='ALMACENAMIENTO_TEMPORAL'){if(typeof toast==='function')toast('La muestra debe estar en almacenamiento temporal.');return}
   if(!confirm('¿Confirmas que esta muestra pasa a almacenamiento definitivo?'))return;
   return move(sample,'CONGELADOR_DEFINITIVO','Almacenamiento definitivo confirmado');
