@@ -57,6 +57,7 @@
   if(Number.isNaN(takenAt.getTime()))return '';
   var elapsed=Date.now()-takenAt.getTime();
   if(elapsed<0)return '';
+  if(elapsed>=72*60*60*1000)return 'clinical-age-critical';
   if(elapsed>=60*60*60*1000)return 'clinical-age-red';
   if(elapsed>=48*60*60*1000)return 'clinical-age-orange';
   return '';
@@ -65,7 +66,7 @@
   if(document.getElementById('clinical-sample-age-styles'))return;
   var style=document.createElement('style');
   style.id='clinical-sample-age-styles';
-  style.textContent='#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td{background-color:#fff1dc!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td:first-child{box-shadow:inset 3px 0 0 #e6ad61}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td{background-color:#fde9e9!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td:first-child{box-shadow:inset 3px 0 0 #df9292}';
+  style.textContent='#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td{background-color:#fff1dc!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-orange>td:first-child{box-shadow:inset 3px 0 0 #e6ad61}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td{background-color:#fde9e9!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-red>td:first-child{box-shadow:inset 3px 0 0 #df9292}#view-clinical-processing .clinical-table tbody tr.clinical-age-critical>td{background-color:#f8cccc!important}#view-clinical-processing .clinical-table tbody tr.clinical-age-critical>td:first-child{box-shadow:inset 4px 0 0 #c43d3d}';
   document.head.appendChild(style);
  }
  function renderQueue(){
