@@ -337,6 +337,9 @@ test('la bandeja semaforiza muestras pendientes por horas exactas desde la toma 
   assert.match(simpleProcessing, /status!=='PENDIENTE_PROCESO'/);
   assert.match(simpleProcessing, /elapsed>=48\*60\*60\*1000/);
   assert.match(simpleProcessing, /elapsed>=60\*60\*60\*1000/);
+  assert.match(simpleProcessing, /elapsed>=72\*60\*60\*1000/);
+  assert.match(simpleProcessing, /clinical-age-critical/);
+  assert.match(simpleProcessing, /background-color:#f8cccc/);
   assert.match(simpleProcessing, /clinical-age-orange/);
   assert.match(simpleProcessing, /clinical-age-red/);
   assert.match(simpleProcessing, /background-color:#fff1dc/);
