@@ -197,6 +197,13 @@ test('los expedientes se sincronizan en la tabla maestra compartida del espacio'
   assert.match(patientCloudSync, /journeyHistory/);
 });
 
+test('la sincronización de expedientes evita descargar todos los pacientes si no hubo cambios', () => {
+  assert.match(patientCloudSync, /async function fetchRemoteVersion\(\)/);
+  assert.match(patientCloudSync, /count:'exact',head:true/);
+  assert.match(patientCloudSync, /if\(version===remoteVersionFingerprint\)return/);
+  assert.match(patientCloudSync, /remoteVersionFingerprint=version/);
+});
+
 test('la barra superior muestra estado cloud sin fecha duplicada ni mensajes de guardado local', () => {
   assert.ok(!html.includes("toast('Registro guardado en este dispositivo.')"));
   assert.ok(!html.includes("toast('Expediente guardado en este dispositivo.')"));
