@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/migrations/20261101195511_20261101000000_initial_schema.sql', import.meta.url), 'utf8');
@@ -30,6 +30,7 @@ const granularMigration = await readFile(new URL('../supabase/migrations/2026110
 const permissionUpsertMigration = await readFile(new URL('../supabase/migrations/20261102155041_member_permission_upsert.sql', import.meta.url), 'utf8');
 const permissionSaveMigration = await readFile(new URL('../supabase/migrations/20261103001739_fix_member_permission_save.sql', import.meta.url), 'utf8');
 const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrations/20261105195850_complete_admin_role_permissions.sql', import.meta.url), 'utf8');
+const dataRetentionGuardMigration = await readFile(new URL('../supabase/migrations/20261106220000_admin_only_deletion_and_audit_retention.sql', import.meta.url), 'utf8');
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -950,6 +951,16 @@ test('el procesamiento permite guardar alícuotas también después de iniciar',
   assert.match(simpleProcessing, /current!=='PENDIENTE_PROCESO'&&current!=='PROCESANDO'/);
   assert.match(simpleProcessing, /if\(current==='PROCESANDO'\)\{[\s\S]*?cloud\.saveAliquots\(sample,p,b\)/);
   assert.match(simpleProcessing, /completeClinicalSampleProcessing/);
+});
+
+test('solo el administrador puede borrar muestras y los reinicios no pueden borrar la auditoría', () => {
+  assert.match(clinicalCloudSync, /async function deleteSample\(sample,reason\)\{\\s*requireReady\(\['admin'\]\)/);
+  assert.match(clinicalCloudSync, /if\(role!=='admin'\)throw new Error\('Solo el administrador puede eliminar muestras\.'/);
+  assert.match(html, /var canDelete=!!\(window\.FleboAuth&&window\.FleboAuth\.membership&&window\.FleboAuth\.membership\.role==='admin'\)/);
+  assert.match(dataRetentionGuardMigration, /has_workspace_role\(p_workspace_id,array\['admin'\]::text\[\]\)/i);
+  assert.match(dataRetentionGuardMigration, /sample_deleted/);
+  assert.match(dataRetentionGuardMigration, /revoke all on function private\.reset_workspace_completely\(uuid,text\) from public, anon, authenticated, service_role/i);
+  assert.match(dataRetentionGuardMigration, /revoke all on function public\.reset_workspace_completely\(uuid,text\) from public, anon, authenticated, service_role/i);
 });
 
 test('los cursores clínicos permanecen locales y se reinician al limpiar datos del espacio', () => {
