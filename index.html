@@ -1482,7 +1482,7 @@ function renderClinicalStudies(){
  var queueCounts=processingModule?{received:0,pending:samples.filter(function(x){return workflowStatusOf(x)==='PENDIENTE_PROCESO'}).length,processed:samples.filter(function(x){return workflowStatusOf(x)==='ALMACENAMIENTO_TEMPORAL'}).length,stored:samples.filter(function(x){return workflowStatusOf(x)==='CONGELADOR_DEFINITIVO'}).length}:{received:samples.filter(function(x){return workflowStatusOf(x)==='REGISTRADO'}).length,pending:samples.filter(function(x){return workflowStatusOf(x)==='EN_REVISION'}).length,processed:0,stored:0};document.getElementById('clinicalQueueKpiReceived').textContent=queueCounts.received;document.getElementById('clinicalQueueKpiPending').textContent=queueCounts.pending;document.getElementById('clinicalQueueKpiProcessed').textContent=queueCounts.processed;document.getElementById('clinicalQueueKpiStored').textContent=queueCounts.stored;document.getElementById('clinicalQueueRows').innerHTML=queued.map(function(x){
  var workflow=workflowStatusOf(x);
  if(processingModule){
-  var canDeleteSample=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin')||!!(window.fleboCan&&window.fleboCan('processing','delete'));var action=workflow==='PENDIENTE_PROCESO'?'<button class="btn primary" onclick="processClinicalSample(\''+esc(x.id)+'\')">Iniciar procesamiento</button>':workflow==='PROCESANDO'?'<button class="btn" onclick="openClinicalProcessingModal(\''+esc(x.id)+'\')">Ver ficha / alícuotas</button><button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(x.id)+'\')">Pasar a almacenamiento temporal</button>':workflow==='ALMACENAMIENTO_TEMPORAL'?'<button class="btn primary" onclick="openClinicalCryoPanel(\''+esc(x.id)+'\')">Asignar congelador temporal</button>':'';if(canDeleteSample)action+='<button class="btn danger" onclick="deleteClinicalSample(\''+esc(x.id)+'\')">Eliminar muestra</button>';
+  var canDeleteSample=!!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin');var action=workflow==='PENDIENTE_PROCESO'?'<button class="btn primary" onclick="processClinicalSample(\''+esc(x.id)+'\')">Iniciar procesamiento</button>':workflow==='PROCESANDO'?'<button class="btn" onclick="openClinicalProcessingModal(\''+esc(x.id)+'\')">Ver ficha / alícuotas</button><button class="btn primary" onclick="completeClinicalSampleProcessing(\''+esc(x.id)+'\')">Pasar a almacenamiento temporal</button>':workflow==='ALMACENAMIENTO_TEMPORAL'?'<button class="btn primary" onclick="openClinicalCryoPanel(\''+esc(x.id)+'\')">Asignar congelador temporal</button>':'';if(canDeleteSample)action+='<button class="btn danger" onclick="deleteClinicalSample(\''+esc(x.id)+'\')">Eliminar muestra</button>';
   return '<tr><td>'+esc(clinicalStudyName(x.studyId))+'<br><strong>'+esc(x.subjectCode||'—')+'</strong></td><td>'+esc(x.visit||'—')+'<br>'+esc(x.sampleType||'—')+'</td><td><strong>Toma:</strong> '+esc(x.collectionDate||'—')+' '+esc(x.collectionTime||'—')+'<br><strong>Recepción:</strong> '+esc(clinicalRecordDate(x))+' '+esc(clinicalRecordTime(x)||'—')+'</td><td>'+esc(x.tubes||'—')+'</td><td><strong>Principales:</strong> '+esc(x.primaryAliquots==null?'—':x.primaryAliquots)+'<br><strong>Backup:</strong> '+esc(x.backupAliquots==null?'—':x.backupAliquots)+'<br><strong>Total:</strong> '+((Number(x.primaryAliquots)||0)+(Number(x.backupAliquots)||0))+'</td><td><span class="clinical-status">'+esc(({PENDIENTE_PROCESO:'Pendiente de procesamiento',PROCESANDO:'Procesando',ALMACENAMIENTO_TEMPORAL:'Almacenamiento temporal'})[workflow]||workflow)+'</span></td><td>'+esc(x.processingStartedBy||x.processedBy||x.receivedBy||'—')+'</td><td class="clinical-actions">'+action+'</td></tr>';
  }
  var ready=['Recibida','En revisión','Pendiente de procesamiento'].indexOf(x.status)>=0;
@@ -2379,7 +2379,7 @@ html,body{max-width:100%;overflow-x:hidden}
  #view-reports>.report-card,#view-report-history>.panel,#view-report-history>.stats-grid{width:100%!important;max-width:100%!important}
 }
 </style>
-<script src="./clinical-processing-simple.js?v=20261104-3"></script><script src="./clinical-catalog-persistence.js"></script>
+<script src="./clinical-processing-simple.js?v=20261107-horizontal-aliquots1"></script><script src="./clinical-catalog-persistence.js"></script>
 <style id="clinical-catalog-layout-stability-v1">
 /* Evita que las acciones compriman el nombre de la prueba hasta una letra por línea. */
 #clinicalConfigList .clinical-config-row{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0}
@@ -2442,4 +2442,9 @@ html,body{max-width:100%;overflow-x:hidden}
 }
 </style>
 
+
+<style id="fleboreport-horizontal-text-global-v1">
+/* Regla global: ningún texto se presenta en orientación vertical. */
+html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!important}
+</style>
 </body></html>
