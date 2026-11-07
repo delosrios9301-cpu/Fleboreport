@@ -251,4 +251,5 @@
  }
  document.addEventListener('DOMContentLoaded',init);
  setTimeout(init,0);
+ if(!window.__clinicalSampleAgeRefreshTimer)window.__clinicalSampleAgeRefreshTimer=window.setInterval(renderQueue,60000);
 })();
