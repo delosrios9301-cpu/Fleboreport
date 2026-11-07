@@ -145,14 +145,22 @@
    var p=primary.value.trim()===''?0:Number(primary.value),b=backup.value.trim()===''?0:Number(backup.value);
    if(!Number.isInteger(p)||p<0||!Number.isInteger(b)||b<0){error.textContent='Las cantidades deben ser números enteros iguales o mayores que cero.';error.style.display='block';return}
    if(p+b<1){error.textContent='Registra al menos una alícuota principal o backup.';error.style.display='block';return}
-   if(current!=='PENDIENTE_PROCESO'){error.textContent='Esta muestra ya inició procesamiento. No se puede volver a iniciar desde esta ficha.';error.style.display='block';return}
+   if(current!=='PENDIENTE_PROCESO'&&current!=='PROCESANDO'){error.textContent='Esta muestra no está en un estado que permita guardar alícuotas.';error.style.display='block';return}
    saveButton.disabled=true;cancel.disabled=true;saveButton.textContent='Guardando…';error.style.display='none';
    try{
     var cloud=window.FleboClinicalCloud;if(!cloud)throw new Error('No está disponible la conexión con Supabase.');
-    var result=await cloud.transition(sample,'PROCESANDO',{primaryAliquots:p,backupAliquots:b,notes:String(note.value||'').trim()||'Inicio de procesamiento técnico'});
-    if(!result||result.ok!==true||result.status!=='PROCESANDO')throw new Error('El servidor no confirmó el inicio del procesamiento.');
-    sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';sample.primaryAliquots=p;sample.backupAliquots=b;sample.processingNotes=String(note.value||'').trim();sample.processingStartedAt=sample.processingStartedAt||new Date().toISOString();sample.processingStartedBy=typeof clinicalActor==='function'?clinicalActor():sample.processingStartedBy||'Responsable no identificado';
-    if(typeof appendClinicalSampleHistory==='function')appendClinicalSampleHistory(sample,result.previous_status||'PENDIENTE_PROCESO','PROCESANDO',String(note.value||'').trim()||'Inicio de procesamiento técnico',typeof clinicalActor==='function'?clinicalActor():'');
+    var result;
+    if(current==='PROCESANDO'){
+     result=await cloud.saveAliquots(sample,p,b);
+     if(!result||result.ok!==true)throw new Error('Supabase no confirmó las cantidades de alícuotas.');
+     sample.primaryAliquots=p;sample.backupAliquots=b;sample.updatedAt=new Date().toISOString();
+     sample.processingNotes=String(note.value||'').trim()||sample.processingNotes||'';
+    }else{
+     result=await cloud.transition(sample,'PROCESANDO',{primaryAliquots:p,backupAliquots:b,notes:String(note.value||'').trim()||'Inicio de procesamiento técnico'});
+     if(!result||result.ok!==true||result.status!=='PROCESANDO')throw new Error('El servidor no confirmó el inicio del procesamiento.');
+     sample.workflowStatus='PROCESANDO';sample.status='Pendiente de procesamiento';sample.primaryAliquots=p;sample.backupAliquots=b;sample.processingNotes=String(note.value||'').trim();sample.processingStartedAt=sample.processingStartedAt||new Date().toISOString();sample.processingStartedBy=typeof clinicalActor==='function'?clinicalActor():sample.processingStartedBy||'Responsable no identificado';
+     if(typeof appendClinicalSampleHistory==='function')appendClinicalSampleHistory(sample,result.previous_status||'PENDIENTE_PROCESO','PROCESANDO',String(note.value||'').trim()||'Inicio de procesamiento técnico',typeof clinicalActor==='function'?clinicalActor():'');
+    }
     if(typeof save==='function')save();
     overlay.remove();renderQueue();if(typeof window.renderClinicalStudies==='function')window.renderClinicalStudies();
     if(typeof toast==='function')toast('Procesamiento iniciado. Alícuotas y observaciones guardadas.');
