@@ -332,6 +332,18 @@ test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni
   assert.match(simpleProcessing, /cloud\.transition\(sample,next/);
 });
 
+test('la bandeja semaforiza muestras pendientes por horas exactas desde la toma sin alterar datos ni estados', () => {
+  assert.match(simpleProcessing, /function sampleAgeClass\(sample,status\)/);
+  assert.match(simpleProcessing, /status!=='PENDIENTE_PROCESO'/);
+  assert.match(simpleProcessing, /elapsed>=48\*60\*60\*1000/);
+  assert.match(simpleProcessing, /elapsed>=60\*60\*60\*1000/);
+  assert.match(simpleProcessing, /clinical-age-orange/);
+  assert.match(simpleProcessing, /clinical-age-red/);
+  assert.match(simpleProcessing, /background-color:#fff1dc/);
+  assert.match(simpleProcessing, /background-color:#fde9e9/);
+  assert.match(simpleProcessing, /setInterval\(renderQueue,60000\)/);
+});
+
 test('la base de datos permite completar almacenamiento temporal y definitivo sin cajas ni crioviales', () => {
   assert.match(simpleProcessingMigration, /create or replace function public\.guard_clinical_sample_workflow/i);
   assert.match(simpleProcessingMigration, /create or replace function public\.transition_clinical_sample/i);
