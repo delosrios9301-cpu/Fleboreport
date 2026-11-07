@@ -301,7 +301,9 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
   assert.match(simpleProcessing, /numberField\('Alícuotas principales'/);
   assert.match(simpleProcessing, /numberField\('Alícuotas backup'/);
   assert.match(simpleProcessing, /primaryAliquots:p,backupAliquots:b/);
-  assert.match(simpleProcessing, /Alícuotas: /);
+  assert.match(simpleProcessing, /Principales:/);
+  assert.match(html, /clinicalSampleHistorySearch/);
+  assert.match(html, /Alícuotas obtenidas/);
   assert.match(clinicalCloudSync, /if\(next==='PROCESANDO'\).*args\.primaryAliquots/);
   assert.match(aliquotStartMigration, /p_next_status='PROCESANDO'/);
   assert.match(aliquotStartMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
