@@ -944,6 +944,12 @@ test('la sincronización incremental registra solo identificadores y respeta RLS
   assert.match(syncOutboxCommitOrderMigration, /pg_advisory_xact_lock\(hashtextextended\(v_workspace_id::text, 0\)\)/);
 });
 
+test('el procesamiento permite guardar alícuotas también después de iniciar', () => {
+  assert.match(simpleProcessing, /current!=='PENDIENTE_PROCESO'&&current!=='PROCESANDO'/);
+  assert.match(simpleProcessing, /if\(current==='PROCESANDO'\)\{[\s\S]*?cloud\.saveAliquots\(sample,p,b\)/);
+  assert.match(simpleProcessing, /completeClinicalSampleProcessing/);
+});
+
 test('los cursores clínicos permanecen locales y se reinician al limpiar datos del espacio', () => {
   assert.match(cloudSync, /CLINICAL_DB_SYNC_KEYS=\['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'\]/);
   assert.match(cloudSync, /CLINICAL_DB_SYNC_KEYS\.forEach\(k=>\{delete payload\[k\]\}\)/);
