@@ -2520,4 +2520,98 @@ html,body{max-width:100%;overflow-x:hidden}
 /* Regla global: ningún texto se presenta en orientación vertical. */
 html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!important}
 </style>
+<style id="inicio-clinical-control-v2">
+/* Rediseño visual real de Inicio: estilos aislados, sin alterar la lógica ni los datos. */
+#view-home{padding-bottom:28px;background:linear-gradient(180deg,#f1f7fa 0,#f7fafc 34%,#f7fafc 100%);border-radius:22px}
+#view-home>.op-hero{
+ min-height:190px!important;padding:30px 32px!important;margin:0 0 20px!important;border:0!important;border-radius:22px!important;
+ background:radial-gradient(circle at 84% 18%,#5de0d055 0,transparent 24%),radial-gradient(circle at 68% 115%,#42a9d955 0,transparent 34%),linear-gradient(118deg,#092f4d 0%,#075b78 58%,#087f83 100%)!important;
+ box-shadow:0 18px 40px #0b456329!important;position:relative;isolation:isolate
+}
+#view-home>.op-hero:before{content:"";position:absolute;z-index:-1;right:24%;top:-100px;width:300px;height:300px;border:1px solid #ffffff24;border-radius:50%;box-shadow:0 0 0 30px #ffffff0b,0 0 0 62px #ffffff08}
+#view-home>.op-hero .eyebrow{color:#8ee9df!important;font-size:10px!important;letter-spacing:2px!important;font-weight:900!important}
+#view-home>.op-hero h1{color:#fff!important;font-size:clamp(27px,3.5vw,38px)!important;font-weight:850!important;letter-spacing:-1px!important}
+#view-home>.op-hero p{color:#d8edf2!important;font-size:13px!important}
+#view-home>.op-hero .op-date{min-width:200px!important;padding:16px 18px!important;border:1px solid #ffffff38!important;border-radius:16px!important;background:#ffffff13!important;box-shadow:inset 0 1px #ffffff25!important}
+#view-home>.op-hero .op-date span{color:#9de9e0!important}
+#view-home>.op-hero .op-date b{font-size:16px!important;color:white!important}
+#view-home>.op-hero .op-date small{color:#d7edf1!important}
+#view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;margin:0 0 20px!important}
+#view-home .op-kpi{
+ min-height:112px!important;padding:17px!important;border:1px solid #dce9ef!important;border-radius:17px!important;
+ background:linear-gradient(145deg,#fff 0%,#f9fcfd 100%)!important;box-shadow:0 7px 0 #e6eef2,0 12px 24px #17465b12!important
+}
+#view-home .op-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:17px 0 0 17px;background:var(--kpi-color,#148b91)}
+#view-home .op-kpi:after{right:-18px!important;top:-35px!important;width:112px!important;height:112px!important;background:var(--kpi-tint,#e8f5f5)!important;opacity:.75}
+#view-home .op-kpi-icon{width:48px!important;height:48px!important;border-radius:15px!important;background:var(--kpi-tint,#e8f5f5)!important;color:var(--kpi-color,#148b91)!important;font-size:21px!important;box-shadow:inset 0 1px #fff,0 5px 12px #173d5012!important}
+#view-home .op-kpi-label{font-size:11px!important;color:#617b8c!important;font-weight:750!important}
+#view-home .op-kpi-value{font-size:27px!important;color:#123a55!important;font-weight:900!important}
+#view-home .op-kpi-trend{font-size:10px!important}
+#view-home .clinical-dash-panel,#view-home .op-panel{
+ border:1px solid #dce8ee!important;border-radius:18px!important;background:#fff!important;
+ box-shadow:0 8px 0 #eaf0f3,0 14px 30px #123d5510!important;overflow:hidden
+}
+#view-home .clinical-dash-panel{margin-bottom:19px!important}
+#view-home .clinical-dash-panel>.panel-head,#view-home .op-panel>.panel-head{
+ min-height:66px;padding:17px 20px!important;border-bottom:1px solid #e5eef2!important;
+ background:linear-gradient(105deg,#eaf5f8 0%,#f6fbfc 58%,#eef8f6 100%)!important
+}
+#view-home .op-panel .panel-head h2,#view-home .clinical-dash-panel .panel-head h2{font-size:15px!important;color:#103d59!important;font-weight:850!important}
+#view-home .op-panel .panel-head p,#view-home .clinical-dash-panel .panel-head p{font-size:10px!important;color:#668293!important}
+#view-home .op-panel .panel-body,#view-home .clinical-dash-panel .panel-body{padding:18px 20px!important;background:#fff!important}
+#view-home .clinical-dash-panel .eyebrow{color:#0c8b83!important;font-weight:900!important;letter-spacing:1.3px!important}
+#view-home .clinical-dash-kpis{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+#view-home .clinical-dash-kpi{padding:14px!important;border:1px solid #dcebef!important;border-radius:14px!important;background:linear-gradient(145deg,#f0f8fa,#fff)!important;box-shadow:inset 0 3px #159c9a!important}
+#view-home .clinical-dash-kpi b{font-size:25px!important;color:#0b4965!important}
+#view-home .clinical-dash-columns{gap:12px!important;margin-top:18px!important}
+#view-home .clinical-dash-columns>section{padding:15px!important;border:1px solid #e1edf1!important;border-radius:14px!important;background:linear-gradient(155deg,#fbfdfe,#f3f8fa)!important}
+#view-home .clinical-dash-columns h3,#view-home .clinical-dash-recent h3{font-size:12px!important;color:#14516a!important;font-weight:850!important}
+#view-home .clinical-dash-recent{margin-top:18px!important;padding:15px!important;border:1px solid #e1edf1!important;border-radius:14px!important;background:#fbfdfe!important}
+#view-home .op-grid{gap:16px!important;margin-bottom:17px!important}
+#view-home .op-alert{padding:14px 15px!important;border-radius:13px!important;font-size:11px!important;box-shadow:inset 4px 0 #e2a04b!important}
+#view-home .op-alert.info{box-shadow:inset 4px 0 #398eb8!important}
+#view-home .op-alert.ok{box-shadow:inset 4px 0 #20a477!important}
+#view-home .op-quick{gap:12px!important}
+#view-home .op-quick button{min-height:112px!important;padding:16px!important;border:1px solid #dce9ef!important;border-radius:15px!important;background:linear-gradient(145deg,#fff,#f0f7fa)!important;box-shadow:0 5px 0 #e5eef2,0 9px 18px #16465b10!important}
+#view-home .op-quick button:nth-child(3n+1)>span{background:#e2f1ff!important;color:#1876b9!important}
+#view-home .op-quick button:nth-child(3n+2)>span{background:#e1f6f0!important;color:#0c8b75!important}
+#view-home .op-quick button:nth-child(3n)>span{background:#f0eaff!important;color:#7956bd!important}
+#view-home .op-quick button>span{width:38px!important;height:38px!important;border-radius:12px!important;font-size:20px!important}
+#view-home .op-quick button b{font-size:12px!important;color:#123f59!important}
+#view-home .op-quick button small{font-size:10px!important;color:#698393!important}
+#view-home .op-footer{margin-top:5px!important;padding:14px 17px!important;border:1px solid #dce9ef!important;border-radius:14px!important;background:linear-gradient(90deg,#eaf5f8,#f5fafb)!important;color:#557486!important}
+#view-home .op-table{min-width:560px!important}
+#view-home,#view-home *{writing-mode:horizontal-tb!important;text-orientation:mixed!important}
+@media(max-width:1050px){
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .clinical-dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+ #view-home{border-radius:0!important}
+ #view-home>.op-hero{min-height:0!important;padding:20px!important;margin-bottom:13px!important;border-radius:17px!important;gap:14px!important}
+ #view-home>.op-hero h1{font-size:24px!important}
+ #view-home>.op-hero .op-date{width:100%!important;min-width:0!important;padding:11px 13px!important}
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-bottom:14px!important}
+ #view-home .op-kpi{min-height:91px!important;padding:11px!important;gap:9px!important}
+ #view-home .op-kpi-icon{width:35px!important;height:35px!important;font-size:16px!important}
+ #view-home .op-kpi-value{font-size:21px!important}
+ #view-home .op-kpi-label{font-size:9px!important}
+ #view-home .op-kpi-trend{font-size:8px!important}
+ #view-home .clinical-dash-panel>.panel-head,#view-home .op-panel>.panel-head{padding:13px!important}
+ #view-home .op-panel .panel-body,#view-home .clinical-dash-panel .panel-body{padding:12px!important}
+ #view-home .clinical-dash-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .clinical-dash-columns{grid-template-columns:minmax(0,1fr)!important;gap:9px!important}
+ #view-home .clinical-dash-columns>section{padding:11px!important}
+ #view-home .op-grid{grid-template-columns:minmax(0,1fr)!important;gap:10px!important;margin-bottom:11px!important}
+ #view-home .op-quick{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ #view-home .op-quick button{min-height:96px!important;padding:11px!important}
+ #view-home .op-quick button>span{width:32px!important;height:32px!important;font-size:17px!important}
+ #view-home .op-footer{font-size:9px!important}
+}
+@media(max-width:360px){
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:minmax(0,1fr)!important}
+ #view-home .op-quick{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(prefers-reduced-motion:reduce){#view-home *{transition:none!important}}
+</style>
 </body></html>
