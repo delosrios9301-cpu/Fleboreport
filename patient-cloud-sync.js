@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const TABLE='patients';
-let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false,patientRefreshPending=false,remoteVersionFingerprint=null;
+let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false,patientRefreshPending=false;
 const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
@@ -36,17 +36,6 @@ function merge(local,remote){
 async function fetchAll(){
  const {data,error}=await client.from(TABLE).select('id,legacy_id,document_number,first_name,last_name,birth_date,sex,phone,email,address,app_data,updated_at').eq('workspace_id',workspaceId).order('updated_at',{ascending:false}).limit(5000);
  if(error)throw error;return(data||[]).map(fromRow);
-}
-async function fetchRemoteVersion(){
- const [latest,countResult]=await Promise.all([
-  client.from(TABLE).select('id,updated_at').eq('workspace_id',workspaceId)
-   .order('updated_at',{ascending:false}).order('id',{ascending:false}).limit(1).maybeSingle(),
-  client.from(TABLE).select('id',{count:'exact',head:true}).eq('workspace_id',workspaceId)
- ]);
- if(latest.error)throw latest.error;
- if(countResult.error)throw countResult.error;
- const row=latest.data||null;
- return String(countResult.count||0)+'|'+String(row?.id||'')+'|'+String(row?.updated_at||'');
 }
 async function pushOne(p){
  const data=payloadOf(p),result=await client.rpc('sync_workspace_patient',{p_workspace_id:workspaceId,p_legacy_id:String(p.id||''),p_data:data});
@@ -86,59 +75,38 @@ async function syncNow(options){
   // En el primer arranque, la nube es la autoridad. Los datos locales antiguos se respaldan,
   // pero nunca se vuelven a subir por el simple hecho de abrir la aplicación.
   if(!initialized){
-   const version=await fetchRemoteVersion();
    const remote=await fetchAll();
    if(local.length&&!remote.length){
     try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:local}))}catch(_){ }
     // Una respuesta vacía inicial nunca debe vaciar la lista visible: se conserva el estado actual.
     lastContent=new Map(local.map(p=>[keyOf(p),contentOf(p)]));
-    pendingKeys.clear();initialized=true;remoteVersionFingerprint=version;
+    pendingKeys.clear();initialized=true;
     return;
    }
    if(saveList(remote))refreshPatientViews();
    lastContent=new Map(remote.map(p=>[keyOf(p),contentOf(p)]));
-   pendingKeys.clear();initialized=true;remoteVersionFingerprint=version;
+   pendingKeys.clear();initialized=true;
    return;
   }
   // Solo se envían expedientes que cambiaron después de cargar la fuente oficial
   // y que por tanto corresponden a una acción reciente del usuario.
-  if(pendingKeys.size){
+  if(options.allowLocalPush||pendingKeys.size){
    const localByKey=new Map(local.map(p=>[keyOf(p),p]));
    for(const key of Array.from(pendingKeys)){
     const patient=localByKey.get(key);
     if(patient)await pushOne(patient);
    }
    pendingKeys.clear();
-   // Una escritura local sí requiere reconciliar el listado compartido.
-   const version=await fetchRemoteVersion();
-   const latest=await fetchAll();
-   const currentPatients=(app()?.patients||[]).slice();
-   if(currentPatients.length&&!latest.length){
-    try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:currentPatients}))}catch(_){ }
-    lastContent=new Map(currentPatients.map(p=>[keyOf(p),contentOf(p)]));
-    remoteVersionFingerprint=version;
-    return;
-   }
-   if(saveList(latest))refreshPatientViews();
-   lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
-   remoteVersionFingerprint=version;
-   return;
   }
-  // La consulta periódica compara solo una huella ligera (cantidad + último registro actualizado).
-  // No descarga app_data ni expedientes completos si la nube no cambió.
-  const version=await fetchRemoteVersion();
-  if(version===remoteVersionFingerprint)return;
   const latest=await fetchAll();
   const currentPatients=(app()?.patients||[]).slice();
   if(currentPatients.length&&!latest.length){
    try{const key='fleboreport.patient-local-backup.'+workspaceId;if(!localStorage.getItem(key))localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),workspaceId,patients:currentPatients}))}catch(_){ }
    lastContent=new Map(currentPatients.map(p=>[keyOf(p),contentOf(p)]));
-   remoteVersionFingerprint=version;
    return;
   }
   if(saveList(latest))refreshPatientViews();
   lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
-  remoteVersionFingerprint=version;
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
 }
