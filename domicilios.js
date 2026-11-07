@@ -28,23 +28,35 @@ function b64urlToBytes(s){const p="=".repeat((4-s.length%4)%4),b=atob((s+p).repl
 async function syncPushActivationUI(){
  const button=$('hvActivatePush'),status=$('hvPushStatus');
  if(!button||!status)return;
- if(!('Notification'in window)||Notification.permission!=='granted'||!('serviceWorker'in navigator)){
+ if(!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window)){
   button.disabled=false;button.textContent='Activar notificaciones';button.classList.add('primary');
-  status.textContent='Activa las notificaciones para recibir avisos de asignaciones y cambios de domicilios.';
+  status.textContent='Este navegador no admite notificaciones Push en este contexto.';
+  return;
+ }
+ if(Notification.permission!=='granted'){
+  button.disabled=false;button.textContent='Activar notificaciones';button.classList.add('primary');
+  status.textContent=Notification.permission==='denied'?'El permiso está bloqueado en el navegador. Habilita las notificaciones del sitio para poder recibir avisos.':'Concede el permiso de notificaciones para registrar este dispositivo.';
   return;
  }
  try{
   const reg=await navigator.serviceWorker.ready;
   const sub=await reg.pushManager.getSubscription();
-  if(sub){
-   button.disabled=true;button.textContent='Notificaciones activadas';button.classList.remove('primary');
-   status.textContent='Este dispositivo ya está registrado. No necesitas activarlas otra vez.';
-  }else{
+  if(!sub){
    button.disabled=false;button.textContent='Completar activación';button.classList.add('primary');
-   status.textContent='El permiso está concedido, pero falta registrar este dispositivo para recibir avisos.';
+   status.textContent='El permiso está concedido, pero este navegador todavía no tiene una suscripción Push.';
+   return;
+  }
+  const server=await invokeDomicileNotifications({action:'subscription-status',endpoint:sub.endpoint});
+  if(server?.active){
+   button.disabled=true;button.textContent='Notificaciones activadas';button.classList.remove('primary');
+   status.textContent='Este navegador tiene una suscripción activa en el servidor.';
+  }else{
+   button.disabled=false;button.textContent='Reactivar notificaciones';button.classList.add('primary');
+   status.textContent='El navegador conserva una suscripción, pero el servidor la marcó inactiva. Pulsa Reactivar notificaciones para renovarla.';
   }
  }catch(e){
-  button.disabled=false;button.textContent='Verificar activación';status.textContent='No se pudo comprobar el registro de este dispositivo.';
+  button.disabled=false;button.textContent='Verificar activación';button.classList.add('primary');
+  status.textContent='No se pudo verificar la suscripción con el servidor. Puedes reintentar la activación.';
  }
 }
 window.hvRefreshPushStatus=syncPushActivationUI;
@@ -60,6 +72,13 @@ async function registerPushIfPermitted(){
    const data=await invokeDomicileNotifications({action:"vapid-public"});
    if(!data?.configured||!data.publicKey){const d=data?.diagnostic||{};const details=(d.missing||[]).join(" ");throw new Error("Configuración VAPID incompleta. Pública: "+(d.publicKeyPresent?"detectada ("+d.publicKeyLength+" caracteres)":"no detectada")+". Privada: "+(d.privateKeyPresent?"detectada ("+d.privateKeyLength+" caracteres)":"no detectada")+". "+details+" Revisa los nombres y valores de los secretos en Supabase.");}
    let sub=await reg.pushManager.getSubscription();
+   if(sub){
+    const server=await invokeDomicileNotifications({action:"subscription-status",endpoint:sub.endpoint});
+    if(!server?.active){
+     await sub.unsubscribe().catch(()=>false);
+     sub=null;
+    }
+   }
    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64urlToBytes(data.publicKey)});
    const saved=await invokeDomicileNotifications({action:"subscribe",subscription:sub.toJSON(),user_agent:navigator.userAgent});
    if(!saved.ok)throw new Error(saved.error||"El servidor no confirmó la suscripción.");
@@ -820,13 +839,10 @@ async function testPushInBackground(){
  if(!('serviceWorker'in navigator)||!('PushManager'in window)||!window.isSecureContext){set('Este navegador no admite notificaciones Push en segundo plano.',true);return}
  if(button){button.disabled=true;button.textContent='Enviando prueba…'}
  try{
+  const activated=await registerPushIfPermitted();
+  if(!activated)throw new Error(window.hvPushLastError||'No se pudo registrar o renovar este dispositivo para Push.');
   const registration=await navigator.serviceWorker.ready;
-  let subscription=await registration.pushManager.getSubscription();
-  if(!subscription){
-   const activated=await registerPushIfPermitted();
-   if(!activated)throw new Error(window.hvPushLastError||'No se pudo registrar este dispositivo para Push.');
-   subscription=await registration.pushManager.getSubscription();
-  }
+  const subscription=await registration.pushManager.getSubscription();
   if(!subscription)throw new Error('No existe una suscripción Push activa en este dispositivo. Pulsa Activar notificaciones y vuelve a probar.');
   const result=await invokeDomicileNotifications({action:'test-push'});
   if(!result?.ok||!result.sent)throw new Error(result?.error||'El servidor no confirmó el envío de la notificación de prueba.');
