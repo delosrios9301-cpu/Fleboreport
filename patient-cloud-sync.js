@@ -102,7 +102,7 @@ async function syncNow(options){
   }
   // Solo se envían expedientes que cambiaron después de cargar la fuente oficial
   // y que por tanto corresponden a una acción reciente del usuario.
-  if(options.allowLocalPush||pendingKeys.size){
+  if(pendingKeys.size){
    const localByKey=new Map(local.map(p=>[keyOf(p),p]));
    for(const key of Array.from(pendingKeys)){
     const patient=localByKey.get(key);
