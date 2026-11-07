@@ -112,6 +112,13 @@ async function saveSampleType(study,studyCloudId,type){
  if(result.error)fail(result.error);
  const id=Array.isArray(result.data)?result.data[0]:result.data;
  if(!id)throw new Error('Supabase no devolvió el identificador del tipo de muestra.');
+ const coagUpdate=await client.from('clinical_sample_types').update({
+  coagulation_enabled:merged.coagulationEnabled===true,
+  coagulation_min_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMinMinutes):null,
+  coagulation_max_minutes:merged.coagulationEnabled===true?Number(merged.coagulationMaxMinutes):null,
+  coagulation_alert_before_minutes:merged.coagulationEnabled===true?(Number(merged.coagulationAlertBeforeMinutes)||15):null
+ }).eq('id',id).eq('workspace_id',workspaceId);
+ if(coagUpdate.error)fail(coagUpdate.error);
  type.cloudId=id;return id;
 }
 async function syncBoxes(studies){
@@ -149,7 +156,7 @@ async function loadRemoteConfiguration(){
  const types=(tr.data||[]).map(row=>{
   const study=studies.find(x=>x.cloudId===row.study_id);if(!study)return null;
   const old=oldTypes.find(x=>x.cloudId===row.id)||{};
-  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,description:row.description||'',active:row.active});
+  const item=Object.assign({},old,{id:old.id||'cloud-t-'+row.id,cloudId:row.id,studyId:study.id,code:row.code||'',name:row.name,tube:row.tube||'',volume:row.volume||'',processingRequired:row.processing_protocol||'',color:row.color||'',marking:row.marking||'',expectedContainers:row.expected_containers,expectedPrimaryAliquots:row.expected_primary_aliquots,expectedBackupAliquots:row.expected_backup_aliquots,coagulation_enabled:row.coagulation_enabled,coagulation_min_minutes:row.coagulation_min_minutes,coagulation_max_minutes:row.coagulation_max_minutes,coagulation_alert_before_minutes:row.coagulation_alert_before_minutes,description:row.description||'',active:row.active});
   study.sampleTypeIds.push(item.id);return item;
  }).filter(Boolean);
  // Supabase es la fuente oficial. Nunca reincorporar estudios, visitas o tipos
@@ -210,7 +217,7 @@ async function loadRemoteSamples(){
  const changedCloudIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
  const oldByCloudId=new Map(),oldByLegacyId=new Map();
  oldSamples.forEach(x=>{if(x.cloudId)oldByCloudId.set(String(x.cloudId),x);if(x.id)oldByLegacyId.set(String(x.id),x)});
- const sampleQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).order('id',{ascending:false});
+ const sampleQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,coagulation_enabled,coagulation_min_minutes,coagulation_max_minutes,coagulation_alert_before_minutes,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).order('received_at',{ascending:false}).order('id',{ascending:false});
  let sampleRows=[],containerRows=[],eventRows=[];
  if(fullSnapshot){
   // Primero obtener solo las muestras activas. Después descargar sus contenedores
@@ -226,7 +233,7 @@ async function loadRemoteSamples(){
  }else{
   sampleRows=[];
   for(let i=0;i<changedCloudIds.length;i+=200){
-   const pageQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).in('id',changedCloudIds.slice(i,i+200)).order('received_at',{ascending:false}).order('id',{ascending:false});
+   const pageQuery=client.from('clinical_samples').select('id,legacy_id,study_id,patient_id,subject_code,visit_id,sample_type_id,collection_at,received_at,received_by,container_count,status,primary_aliquots,backup_aliquots,processed_by,processed_at,notes,created_by,created_at,updated_at,workflow_status,tube_barcode,reviewed_by,reviewed_at,processing_started_by,processing_started_at,coagulation_enabled,coagulation_min_minutes,coagulation_max_minutes,coagulation_alert_before_minutes,temporary_box_id,definitive_box_id,stored_by,stored_at').eq('workspace_id',workspaceId).is('deleted_at',null).in('id',changedCloudIds.slice(i,i+200)).order('received_at',{ascending:false}).order('id',{ascending:false});
    sampleRows.push(...await fetchAllPages(pageQuery));
   }
   [containerRows,eventRows]=await Promise.all([
@@ -249,7 +256,7 @@ async function loadRemoteSamples(){
   const old=oldByCloudId.get(String(row.id))||oldByLegacyId.get(String(row.legacy_id))||{};
   const study=studyMap.get(row.study_id),visit=visitMap.get(row.visit_id),type=typeMap.get(row.sample_type_id),patient=patientMap.get(row.patient_id);
   const d=new Date(row.collection_at),rd=new Date(row.received_at),bars=containerBarcodes.get(String(row.id))||[];
-  return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,receivedBy:profileMap.get(row.received_by)||(row.received_by?'Responsable no identificado':''),receivedById:row.received_by||'',reviewedBy:profileMap.get(row.reviewed_by)||(row.reviewed_by?'Responsable no identificado':''),reviewedById:row.reviewed_by||'',reviewedAt:row.reviewed_at,processingStartedBy:profileMap.get(row.processing_started_by)||(row.processing_started_by?'Responsable no identificado':''),processingStartedById:row.processing_started_by||'',processingStartedAt:row.processing_started_at,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||(row.processed_by?'Responsable no identificado':''),processedById:row.processed_by||'',storedBy:profileMap.get(row.stored_by)||(row.stored_by?'Responsable no identificado':''),storedById:row.stored_by||'',storedAt:row.stored_at,notes:row.notes||'',temporaryBoxId:row.temporary_box_id,temporaryBoxCloudId:row.temporary_box_id,definitiveBoxId:row.definitive_box_id,definitiveBoxCloudId:row.definitive_box_id,createdAt:row.created_at,updatedAt:row.updated_at});
+  return Object.assign({},old,{id:row.legacy_id||old.id||'cloud-sm-'+row.id,cloudId:row.id,patientId:patient?patient.id:row.patient_id,studyId:study?study.id:old.studyId,subjectCode:row.subject_code,visitId:visit?visit.id:old.visitId,visit:visit?visit.name:old.visit,sampleTypeId:type?type.id:old.sampleTypeId,sampleType:type?type.name:old.sampleType,collectionDate:Number.isNaN(d.getTime())?'':d.toISOString().slice(0,10),collectionTime:Number.isNaN(d.getTime())?'':d.toISOString().slice(11,16),collectedAt:row.collection_at,date:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(0,10),time:Number.isNaN(rd.getTime())?'':rd.toISOString().slice(11,16),receivedAt:row.received_at,tubes:row.container_count,tubeBarcodes:bars.length?bars:(row.tube_barcode?[row.tube_barcode]:[]),status:row.status,workflowStatus:row.workflow_status,primaryAliquots:row.primary_aliquots,backupAliquots:row.backup_aliquots,receivedBy:profileMap.get(row.received_by)||(row.received_by?'Responsable no identificado':''),receivedById:row.received_by||'',reviewedBy:profileMap.get(row.reviewed_by)||(row.reviewed_by?'Responsable no identificado':''),reviewedById:row.reviewed_by||'',reviewedAt:row.reviewed_at,processingStartedBy:profileMap.get(row.processing_started_by)||(row.processing_started_by?'Responsable no identificado':''),processingStartedById:row.processing_started_by||'',processingStartedAt:row.processing_started_at,coagulationEnabled:row.coagulation_enabled===true,coagulationMinMinutes:row.coagulation_min_minutes,coagulationMaxMinutes:row.coagulation_max_minutes,coagulationAlertBeforeMinutes:row.coagulation_alert_before_minutes,processedAt:row.processed_at,processedBy:profileMap.get(row.processed_by)||(row.processed_by?'Responsable no identificado':''),processedById:row.processed_by||'',storedBy:profileMap.get(row.stored_by)||(row.stored_by?'Responsable no identificado':''),storedById:row.stored_by||'',storedAt:row.stored_at,notes:row.notes||'',temporaryBoxId:row.temporary_box_id,temporaryBoxCloudId:row.temporary_box_id,definitiveBoxId:row.definitive_box_id,definitiveBoxCloudId:row.definitive_box_id,createdAt:row.created_at,updatedAt:row.updated_at});
  });
  let mergedSamples;
  let changedLocalKeys=new Set();
@@ -367,6 +374,14 @@ async function registerSample(sample){
   const data=Array.isArray(result.data)?result.data[0]:result.data;
   if(!data||!data.sample_id)throw new Error('Supabase no devolvió el identificador de la muestra.');
   sample.cloudId=data.sample_id;sample.workflowStatus=data.workflow_status||'REGISTRADO';
+  if(sample.coagulationEnabled===true){
+   const coagSave=await client.from('clinical_samples').update({
+    coagulation_enabled:true,coagulation_min_minutes:Number(sample.coagulationMinMinutes),
+    coagulation_max_minutes:Number(sample.coagulationMaxMinutes),
+    coagulation_alert_before_minutes:Number(sample.coagulationAlertBeforeMinutes)||15
+   }).eq('id',data.sample_id).eq('workspace_id',workspaceId);
+   if(coagSave.error)fail(coagSave.error);
+  }
   return data;
  }catch(error){
   console.error('[FleboReport Clinical Cloud] Falló '+stage,error);
