@@ -284,7 +284,8 @@ test('las muestras locales retiradas no reaparecen al sincronizar desde la nube'
   assert.match(html, /clinicalLocalDeletedSampleIds:Array\.isArray\(parsed\.clinicalLocalDeletedSampleIds\)/);
   assert.match(html, /if\(!sample\.cloudId\)[\s\S]*?clinicalLocalDeletedSampleIds=Array\.from\(new Set/);
   assert.match(clinicalCloudSync, /!locallyDeleted\.has\(String\(x\.id\)\)/);
-  assert.match(html, /No se modificó Supabase/);
+  assert.match(html, /clinicalLocalDeletedSampleIds:Array\.isArray\(parsed\.clinicalLocalDeletedSampleIds\)/);
+  assert.match(clinicalCloudSync, /!locallyDeleted\.has\(String\(x\.id\)\)/);
 });
 
 
@@ -585,7 +586,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v243'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v246'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -859,7 +860,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v243/);
+  assert.match(serviceWorker, /fleboreport-shell-v246/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
