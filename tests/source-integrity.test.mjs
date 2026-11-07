@@ -1016,6 +1016,7 @@ test('Domicilios y Estudios Clínicos aplican deltas y conservan el cursor junto
   assert.match(clinicalCloudSync, /async function latestClinicalSyncCursor\(\)/);
   assert.match(clinicalCloudSync, /\.from\('sync_change_log'\)/);
   assert.match(clinicalCloudSync, /_clinicalCloudSyncCursor:nextCursor/);
+  assert.doesNotMatch(clinicalCloudSync, /cached\._clinicalCloudSyncCursor/, 'una sesión nueva debe descargar una instantánea completa antes de usar deltas');
   assert.match(clinicalCloudSync, /clinicalSyncCursor=Number\(changes\[changes\.length-1\]\.seq\)/);
   assert.match(clinicalCloudSync, /scheduleClinicalIncrementalRefresh/);
   assert.match(clinicalCloudSync, /document\.addEventListener\('visibilitychange',[\s\S]*?scheduleClinicalIncrementalRefresh\(\)/);
