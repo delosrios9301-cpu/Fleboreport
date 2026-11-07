@@ -585,7 +585,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v242'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v243'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -859,7 +859,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v242/);
+  assert.match(serviceWorker, /fleboreport-shell-v243/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1051,4 +1051,13 @@ test('el texto permanece horizontal y el procesamiento conserva alícuotas desde
   assert.match(clinicalProcessing, /var aliquotInfo=/);
   assert.match(aliquotPersistenceMigration, /primary_aliquots=case when p_next_status='PROCESANDO'/);
   assert.match(aliquotPersistenceMigration, /backup_aliquots=case when p_next_status='PROCESANDO'/);
+});
+
+test('Push detecta suscripciones revocadas y renueva el endpoint antes de probar', () => {
+  assert.match(domicilios, /action:'subscription-status'/);
+  assert.match(domicilios, /Reactivar notificaciones/);
+  assert.match(domicilios, /if\(!server\?\.active\)\{[\s\S]*?await sub\.unsubscribe\(\)/);
+  assert.match(domicilios, /const activated=await registerPushIfPermitted\(\)/);
+  assert.match(domiciliosNotificationsFunction, /if \(action === "subscription-status"\)/);
+  assert.match(domiciliosNotificationsFunction, /active: !!subscription\?\.active/);
 });
