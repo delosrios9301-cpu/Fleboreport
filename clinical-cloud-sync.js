@@ -56,12 +56,9 @@ async function connect(){
   if(userId!==nextUserId||workspaceId!==nextWorkspaceId||role!==nextRole)clinicalSyncCursor=null;
   userId=nextUserId;workspaceId=nextWorkspaceId;role=nextRole;
   ready=['admin','clinician','technician','reception'].includes(role);
-  if(clinicalSyncCursor===null){
-   const cached=app()||{};
-   if(cached._clinicalCloudSyncWorkspace===workspaceId&&cached._clinicalCloudSyncUser===userId&&cached._clinicalCloudSyncRole===role&&cached._clinicalCloudSyncCursor!=null&&Number.isFinite(Number(cached._clinicalCloudSyncCursor))){
-    clinicalSyncCursor=Number(cached._clinicalCloudSyncCursor);
-   }
-  }
+  // Una sesión nueva siempre descarga una instantánea completa. No reutilizar
+  // cursores persistidos sin verificar que el estado local contenga la instantánea
+  // completa: un cursor antiguo podía omitir todas las muestras al entrar como admin.
   if(clinicalRealtimeChannel)client.removeChannel(clinicalRealtimeChannel);
   clinicalRealtimeChannel=null;
   if(ready){
