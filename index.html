@@ -2699,4 +2699,94 @@ html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!imp
 @media(prefers-reduced-motion:reduce){#view-home *{transition:none!important}}
 </style>
 
+
+<style id="inicio-analytics-dashboard-v4">
+/* Dashboard analítico: jerarquía visual y gráficas protagonistas. Solo CSS; conserva datos, IDs y acciones existentes. */
+#view-home.active{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:18px!important;background:#f3f7fa!important}
+#view-home>.op-hero{grid-column:1/-1!important;min-height:210px!important;padding:34px 40px!important;border-radius:22px!important;background:linear-gradient(115deg,#102e4b 0%,#145879 58%,#087f83 100%)!important;box-shadow:0 16px 36px #153f5b20!important}
+#view-home>#operationalKpis.op-kpis{grid-column:1/-1!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important}
+#view-home>.clinical-dash-panel{grid-column:1/-1!important}
+#view-home>.op-grid{display:contents!important}
+#view-home .op-grid:has(#dashPatientTrend)>.op-panel:first-child{grid-column:span 8!important}
+#view-home .op-grid:has(#dashPatientTrend)>.op-panel:last-child{grid-column:span 4!important}
+#view-home .op-grid:has(#dashServiceMix)>.op-panel{grid-column:span 3!important}
+#view-home .op-grid:has(#dashTopServices)>.op-panel:first-child{grid-column:span 7!important}
+#view-home .op-grid:has(#dashTopServices)>.op-panel:last-child{grid-column:span 5!important}
+#view-home .op-grid:has(#dashFinance)>.op-panel{grid-column:span 6!important}
+#view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:span 4!important}
+#view-home>section.op-panel{grid-column:1/-1!important}
+#view-home .op-panel{border:1px solid #dce7ee!important;border-radius:19px!important;background:#fff!important;box-shadow:0 7px 22px #153d570c!important;overflow:hidden}
+#view-home .op-panel>.panel-head{min-height:72px!important;padding:17px 21px!important;background:linear-gradient(110deg,#f5f9fb,#fff)!important;border-bottom:1px solid #eaf0f4!important}
+#view-home .op-panel>.panel-head h2{font-size:14px!important;font-weight:850!important;color:#153e59!important}
+#view-home .op-panel>.panel-head p{font-size:10px!important;color:#718797!important}
+#view-home .op-panel>.panel-body{padding:20px 21px!important}
+#view-home #dashPatientTrend .op-trend-svg{min-height:220px!important;max-height:270px!important;overflow:visible}
+#view-home #dashPatientTrend .op-chart-labels{font-size:10px!important;color:#6d8392!important;margin-top:8px}
+#view-home #dashServiceMix .op-donut-wrap,#view-home #dashRetention .op-donut-wrap{grid-template-columns:minmax(135px,175px) 1fr!important;gap:18px!important;min-height:190px}
+#view-home #dashServiceMix .op-donut,#view-home #dashRetention .op-donut{width:min(100%,172px)!important;box-shadow:0 8px 22px #173d5012}
+#view-home .op-donut:after{inset:23%!important;background:#fff!important}
+#view-home .op-donut-center{font-size:23px!important;color:#123c56!important}
+#view-home .op-donut-center small{font-size:10px!important}
+#view-home .op-legend{gap:10px!important;margin:0!important}
+#view-home .op-legend-row{font-size:11px!important;color:#496579!important}
+#view-home .op-legend-row b{padding:3px 7px;border-radius:7px;background:#eff5f7;color:#17435d!important;font-size:10px}
+#view-home .op-bars{gap:13px!important}
+#view-home .op-bar-row{grid-template-columns:minmax(90px,145px) minmax(60px,1fr) 34px!important;gap:10px!important;font-size:11px!important}
+#view-home .op-bar-track{height:11px!important;background:#edf3f6!important;border-radius:99px!important}
+#view-home .op-bar-fill{border-radius:99px!important;box-shadow:0 2px 5px #123c5520}
+#view-home .op-bar-label{font-size:10px!important;font-weight:650!important;color:#456477!important}
+#view-home .op-bar-value{font-size:11px!important;color:#143f59!important}
+#view-home #dashFinance .op-finance-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+#view-home #dashFinance .op-finance-card{padding:13px!important;border:1px solid #e3edf2!important;border-radius:13px!important;background:linear-gradient(145deg,#f8fbfc,#eff6f8)!important}
+#view-home #dashFinance .op-finance-card b{font-size:19px!important;color:#12445e!important}
+#view-home #dashFinance .op-finance-bars{height:155px!important;margin-top:14px!important;border-bottom:1px solid #e5edf1}
+#view-home #dashFinance .op-finance-bar i{max-width:36px!important;min-height:3px;border-radius:7px 7px 2px 2px!important}
+#view-home .op-active-stats{gap:9px!important}
+#view-home .op-active-stat{padding:14px 9px!important;border:1px solid #e3edf2!important;border-radius:13px!important;background:#f6fafb!important}
+#view-home .op-active-stat b{font-size:23px!important;color:#12445e!important}
+#view-home .op-alert{padding:13px 14px!important;border:1px solid #e8edf0!important;border-radius:12px!important;font-size:11px!important}
+#view-home .op-funnel{gap:7px!important}
+#view-home .op-funnel-step{min-height:42px!important;padding:11px 14px!important;border:1px solid #e0ebf0!important;border-radius:11px!important;background:linear-gradient(90deg,#eaf5f7,#f7fafb)!important;font-size:11px!important}
+#view-home .op-medical-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+#view-home .op-medical-card{padding:13px!important;border-radius:12px!important;background:#f8fbfc!important}
+#view-home .op-medical-card b{font-size:21px!important}
+#view-home .clinical-dash-kpi{border-radius:14px!important}
+#view-home .clinical-dash-columns>section{min-width:0}
+#view-home .op-table{min-width:620px!important}
+#view-home .op-quick{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:12px!important}
+#view-home .op-quick button{min-height:105px!important;border-radius:14px!important}
+#view-home,#view-home *{writing-mode:horizontal-tb!important;text-orientation:mixed!important}
+@media(max-width:1050px){
+ #view-home.active{gap:13px!important}
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel:first-child{grid-column:span 7!important}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel:last-child{grid-column:span 5!important}
+ #view-home .op-grid:has(#dashServiceMix)>.op-panel{grid-column:span 6!important}
+ #view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:span 6!important}
+ #view-home .op-quick{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+ #view-home.active{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+ #view-home>.op-hero,#view-home>#operationalKpis,#view-home>.clinical-dash-panel,#view-home>.op-grid,#view-home>section.op-panel,#view-home>.op-footer{grid-column:1/-1!important}
+ #view-home>.op-hero{padding:21px!important;min-height:0!important}
+ #view-home>#operationalKpis.op-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #view-home .op-grid:has(#dashPatientTrend)>.op-panel,
+ #view-home .op-grid:has(#dashServiceMix)>.op-panel,
+ #view-home .op-grid:has(#dashTopServices)>.op-panel,
+ #view-home .op-grid:has(#dashFinance)>.op-panel,
+ #view-home .op-grid:has(#dashFunnel)>.op-panel{grid-column:1/-1!important}
+ #view-home .op-panel>.panel-head{padding:14px 15px!important}
+ #view-home .op-panel>.panel-body{padding:14px!important}
+ #view-home #dashPatientTrend .op-trend-svg{min-height:165px!important}
+ #view-home #dashServiceMix .op-donut-wrap,#view-home #dashRetention .op-donut-wrap{grid-template-columns:minmax(112px,135px) 1fr!important;gap:12px!important;min-height:150px}
+ #view-home #dashServiceMix .op-donut,#view-home #dashRetention .op-donut{width:min(100%,132px)!important}
+ #view-home .op-bar-row{grid-template-columns:minmax(76px,110px) minmax(45px,1fr) 28px!important;gap:7px!important}
+ #view-home .op-quick{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:370px){
+ #view-home #dashServiceMix .op-donut-wrap,#view-home #dashRetention .op-donut-wrap{grid-template-columns:1fr!important}
+ #view-home #dashServiceMix .op-donut,#view-home #dashRetention .op-donut{width:140px!important}
+}
+</style>
+
 </body></html>
