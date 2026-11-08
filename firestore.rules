@@ -1,0 +1,11 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fail closed during migration preparation.
+    // No client access is enabled until Firebase Auth, workspace membership,
+    // role checks, and security tests have been implemented and reviewed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
