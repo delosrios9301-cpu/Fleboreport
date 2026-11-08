@@ -15,6 +15,7 @@ function status(message,error){
  el.style.color=error?'#b42318':'#176b45';
  const dot=el.querySelector('.status-dot');if(dot)dot.style.background=error?'#dc5555':'#20a477';
 }
+function announceReady(){if(document.body)document.body.classList.add('flebo-cloud-ready');announceReady()}
 function app(){return window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null}
 function stripLegacyAudit(s){const out=Object.assign({},s||{});delete out.auditLog;return out}
 function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch(_){return{}}}
@@ -205,12 +206,12 @@ async function connect(){
   if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
   if(remote&&remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote()}else remote=Object.assign({},remote,{state:cleaned})}
   const localHash=await hashState(local);
-  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
+  if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;announceReady();status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
   if(!remote){
-   if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
+   if(!meaningful(local)||!writable){revision=0;lastHash=localHash;ready=true;announceReady();status(writable?'Nube conectada · esperando registros para sincronizar':'Cuenta de solo lectura · esperando datos de la nube');subscribe();return}
    const result=await writeRemote(local,0);
    if(!result.saved){remote=await fetchRemote();if(!remote)throw new Error('No se pudo inicializar el espacio de datos en la nube.')}
-   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Datos locales migrados a la nube');subscribe();return}
+   else{revision=result.revision;lastHash=localHash;saveMeta(localHash,revision,remote&&remote.reset_epoch||null);ready=true;announceReady();status('Datos locales migrados a la nube');subscribe();return}
   }
   if(remote){
    const sameSession=m.workspaceId===workspaceId&&m.userId===userId;
@@ -229,8 +230,8 @@ async function connect(){
     applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
    }
   }
-  ready=true;window.dispatchEvent(new Event('flebo:cloud-sync-ready'));status('Sincronizado con la nube · versión '+revision);subscribe();
- }catch(e){ready=false;console.error('[FleboReport Sync]',e);status('Error de sincronización: '+(e.message||'No se pudo conectar'),true)}
+  ready=true;announceReady();status('Sincronizado con la nube · versión '+revision);subscribe();
+ }catch(e){ready=false;if(document.body)document.body.classList.add('flebo-cloud-ready');console.error('[FleboReport Sync]',e);status('Error de sincronización: '+(e.message||'No se pudo conectar'),true)}
  finally{busy=false;runPending()}
 }
 function subscribe(){
@@ -324,7 +325,7 @@ async function syncLocal(){
 }
 function schedule(){if(!ready||!writable)return;status('Guardando cambios en la nube…');clearTimeout(timer);timer=setTimeout(syncLocal,1000)}
 window.addEventListener('flebo:local-state-saved',schedule);
-window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user;if(!user){ready=false;if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}connect()});
+window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
 window.addEventListener('online',()=>{if(ready)syncLocal()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}});
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},30000);

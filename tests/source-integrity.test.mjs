@@ -1060,3 +1060,24 @@ test('Push detecta suscripciones revocadas y renueva el endpoint antes de probar
   assert.match(domiciliosNotificationsFunction, /if \(action === "subscription-status"\)/);
   assert.match(domiciliosNotificationsFunction, /active: !!subscription\?\.active/);
 });
+
+
+test('el arranque no muestra la interfaz antes de validar sesión y cargar el estado oficial', () => {
+  assert.match(html, /body:not\(\.flebo-authenticated\) \.app-shell/);
+  assert.match(html, /body\.flebo-authenticated:not\(\.flebo-cloud-ready\) \.app-shell/);
+  assert.match(cloudSync, /function announceReady\(\)/);
+  assert.match(cloudSync, /flebo-cloud-ready/);
+});
+
+test('las muestras clínicas se cargan de forma serializada para evitar sobrescrituras entre refrescos', () => {
+  assert.match(clinicalCloudSync, /sampleLoadPromise=null/);
+  assert.match(clinicalCloudSync, /if\(sampleLoadPromise\)return sampleLoadPromise/);
+  assert.match(clinicalCloudSync, /async function loadRemoteSamplesInternal\(\)/);
+  assert.match(clinicalCloudSync, /return await loadRemoteSamplesInternal\(\)/);
+});
+
+test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
+  assert.match(serviceWorker, /fleboreport-shell-v247/);
+  assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
+  assert.match(serviceWorker, /cache:'no-cache'/);
+});
