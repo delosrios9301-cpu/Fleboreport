@@ -15,7 +15,7 @@ function status(message,error){
  el.style.color=error?'#b42318':'#176b45';
  const dot=el.querySelector('.status-dot');if(dot)dot.style.background=error?'#dc5555':'#20a477';
 }
-function announceReady(){if(document.body)document.body.classList.add('flebo-cloud-ready');announceReady()}
+function announceReady(){if(document.body)document.body.classList.add('flebo-cloud-ready');window.dispatchEvent(new Event('flebo:cloud-sync-ready'))}
 function app(){return window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():null}
 function stripLegacyAudit(s){const out=Object.assign({},s||{});delete out.auditLog;return out}
 function meta(){try{return JSON.parse(localStorage.getItem(META_KEY)||'{}')}catch(_){return{}}}
