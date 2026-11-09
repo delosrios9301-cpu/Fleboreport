@@ -37,7 +37,7 @@ begin
           e.value,
           e.ordinality::bigint as ord,
           case when v_key='patients' then
-            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(e.value->>'id',''),nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),e.value::text)
+            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(e.value->>'id',''),e.value::text)
           else
             coalesce(nullif(e.value->>'id',''),nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),e.value::text)
           end
@@ -50,7 +50,7 @@ begin
           e.value,
           1000000000::bigint+e.ordinality::bigint as ord,
           case when v_key='patients' then
-            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(e.value->>'id',''),nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),e.value::text)
+            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(e.value->>'id',''),e.value::text)
           else
             coalesce(nullif(e.value->>'id',''),nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),e.value::text)
           end
