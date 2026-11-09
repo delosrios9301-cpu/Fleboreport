@@ -196,3 +196,52 @@ revoke all on function public.save_workspace_shared_app_state(uuid,jsonb,integer
 grant execute on function public.get_workspace_shared_app_state(uuid) to authenticated;
 grant execute on function public.get_workspace_shared_app_state_meta(uuid) to authenticated;
 grant execute on function public.save_workspace_shared_app_state(uuid,jsonb,integer) to authenticated;
+
+-- Los reinicios protegidos existentes eliminan las tablas operativas por workspace_id.
+-- Se recrea el snapshot compartido vacío al terminar y se propaga el reset_epoch a todas las sesiones.
+create or replace function public.reset_workspace_completely(p_workspace_id uuid,p_confirmation text)
+returns table(deleted_tables integer,deleted_rows bigint,reset_epoch uuid)
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_result record; v_uid uuid:=auth.uid();
+begin
+  select * into v_result from private.reset_workspace_completely(p_workspace_id,p_confirmation);
+  insert into public.workspace_shared_app_state(workspace_id,state,revision,updated_by,updated_at,reset_epoch)
+  values(p_workspace_id,'{}'::jsonb,1,v_uid,now(),v_result.reset_epoch)
+  on conflict(workspace_id) do update
+    set state='{}'::jsonb,
+        revision=public.workspace_shared_app_state.revision+1,
+        updated_by=excluded.updated_by,
+        updated_at=excluded.updated_at,
+        reset_epoch=excluded.reset_epoch;
+  return query select v_result.deleted_tables,v_result.deleted_rows,v_result.reset_epoch;
+end;
+$$;
+
+create or replace function public.reset_workspace_operational_data(p_workspace_id uuid,p_confirmation text)
+returns table(backup_id uuid,deleted_tables integer,deleted_rows bigint,reset_epoch uuid)
+language plpgsql
+security definer
+set search_path=''
+as $$
+declare v_result record; v_uid uuid:=auth.uid();
+begin
+  select * into v_result from private.reset_workspace_operational_data(p_workspace_id,p_confirmation);
+  insert into public.workspace_shared_app_state(workspace_id,state,revision,updated_by,updated_at,reset_epoch)
+  values(p_workspace_id,'{}'::jsonb,1,v_uid,now(),v_result.reset_epoch)
+  on conflict(workspace_id) do update
+    set state='{}'::jsonb,
+        revision=public.workspace_shared_app_state.revision+1,
+        updated_by=excluded.updated_by,
+        updated_at=excluded.updated_at,
+        reset_epoch=excluded.reset_epoch;
+  return query select v_result.backup_id,v_result.deleted_tables,v_result.deleted_rows,v_result.reset_epoch;
+end;
+$$;
+
+revoke all on function public.reset_workspace_completely(uuid,text) from public,anon;
+revoke all on function public.reset_workspace_operational_data(uuid,text) from public,anon;
+grant execute on function public.reset_workspace_completely(uuid,text) to authenticated;
+grant execute on function public.reset_workspace_operational_data(uuid,text) to authenticated;
