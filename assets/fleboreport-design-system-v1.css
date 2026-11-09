@@ -15,3 +15,94 @@ table{border-collapse:separate;border-spacing:0}th{background:#f4f8fa;color:#496
 @media(max-width:760px){.content{padding:14px 12px 34px}.page-heading{align-items:flex-start;flex-direction:column;gap:12px;margin-bottom:16px}.page-heading h1{font-size:25px}.heading-actions{width:100%}.heading-actions .btn{flex:1}.panel,.form-panel,.op-panel{border-radius:15px}.form-panel{padding:16px}.panel-head{padding:14px 15px}.panel-body{padding:14px 15px}.fields{gap:12px}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat-card{min-height:78px;padding:11px;gap:9px}.stat-card strong{font-size:20px}.module-grid,.dashboard-grid{grid-template-columns:minmax(0,1fr)}.sidebar{width:min(520px,calc(100vw - 20px));max-height:calc(100dvh - 24px);padding:16px;border-radius:20px}.nav-group-items button{min-height:44px}}
 @media(max-width:390px){.stats-grid{grid-template-columns:minmax(0,1fr)}.content{padding-inline:10px}.form-panel{padding:13px}.heading-actions .btn{font-size:10px;padding-inline:9px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* FleboReport · refinamiento de navegación y módulos v1.1
+   Capa de presentación: conserva IDs, handlers, datos y estados de cada módulo. */
+:root{
+  --fr-surface:#fff;
+  --fr-surface-soft:#f6fafb;
+  --fr-border-strong:#d6e4ea;
+  --fr-focus:rgba(8,135,127,.16);
+}
+body{background:linear-gradient(180deg,#f6f9fb 0%,#f1f6f8 100%)}
+.topbar{z-index:40;min-height:64px}
+.topbar .local-status{display:none!important}
+.content>.view{animation:fr-view-enter .22s ease both}
+@keyframes fr-view-enter{from{opacity:.72;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.view .page-heading{scroll-margin-top:84px}
+.view .panel-head h2,.view .form-panel h2{letter-spacing:-.25px}
+.view .panel-head p{margin:5px 0 0;color:#728797;font-size:11px;line-height:1.5}
+.view .panel-body{min-width:0}
+.view .panel,.view .form-panel,.view .report-card,.view .clinical-history-disclosure{
+  border-color:var(--fr-line);
+  box-shadow:0 5px 20px rgba(16,47,74,.045);
+}
+.view .panel:hover,.view .form-panel:hover{border-color:#d5e4e9}
+.view .field input:not([type=checkbox]):not([type=radio]),
+.view .field select,.view .field textarea{
+  transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease;
+}
+.view .data-table thead th{position:sticky;top:0;z-index:1}
+.view .data-table tbody tr:nth-child(even) td{background:#fbfdfe}
+.view .data-table tbody tr:hover td{background:#f0f8f7}
+.view .list-row{border-color:#e6eef2;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+.view .list-row:hover{border-color:#c4dedb;box-shadow:0 4px 12px rgba(16,47,74,.05);transform:translateY(-1px)}
+.view .badge{white-space:nowrap}
+.view .form-actions .btn,.view .heading-actions .btn{white-space:normal}
+.view .empty-state{border:1px dashed #d7e5ea;border-radius:13px;background:#f9fcfd}
+.view .clinical-history-summary{background:linear-gradient(110deg,#f5fafb,#fff)}
+.view .clinical-history-disclosure[open]{border-color:#c9e0df;box-shadow:0 7px 22px rgba(16,47,74,.06)}
+.view .report-card{border-radius:17px}
+.view .report-toolbar{background:#fbfdfe}
+.view .report-paper{background:#fff}
+.view .op-panel .panel-head{background:linear-gradient(110deg,#f7fafb,#fff)}
+.view .op-grid{min-width:0}
+.view .op-grid>.op-panel{min-width:0}
+.view .op-kpi,.view .clinical-dash-kpi{transition:transform .16s ease,box-shadow .16s ease}
+.view .op-kpi:hover,.view .clinical-dash-kpi:hover{transform:translateY(-2px);box-shadow:0 9px 22px rgba(16,47,74,.09)}
+/* Menú lateral real: panel deslizante, no ventana centrada. */
+.sidebar{
+  position:fixed!important;left:0!important;top:0!important;bottom:0!important;
+  width:min(360px,88vw)!important;height:100dvh!important;max-height:100dvh!important;
+  border-radius:0 22px 22px 0!important;
+  transform:translateX(-105%)!important;opacity:0!important;visibility:hidden!important;
+  pointer-events:none!important;overflow-y:auto!important;
+  padding:22px 18px max(20px,env(safe-area-inset-bottom))!important;
+  transition:transform .24s cubic-bezier(.2,.8,.2,1),opacity .2s ease,visibility .2s ease!important;
+}
+.sidebar.open{
+  transform:translateX(0)!important;opacity:1!important;visibility:visible!important;
+  pointer-events:auto!important;
+}
+.sidebar .nav-group{margin-bottom:9px}
+.sidebar .nav-group-items button{min-height:48px}
+.sidebar .nav-group-items button:focus-visible{outline:2px solid #83e3d8;outline-offset:2px}
+.drawer-overlay{z-index:89}
+.module-fab,.home-fab{z-index:45}
+@media(min-width:761px){
+  .content{padding-top:27px}
+  .view>.module-grid{align-items:start}
+  .view>.module-grid>.panel{min-width:0}
+}
+@media(max-width:760px){
+  .topbar{height:56px;min-height:56px;padding-inline:12px}
+  .content{padding:14px 12px calc(88px + env(safe-area-inset-bottom))}
+  .view .page-heading{padding-bottom:10px}
+  .view .page-heading h1{font-size:clamp(20px,5.5vw,25px);line-height:1.18}
+  .view .page-heading p{font-size:11px;line-height:1.45}
+  .view .panel-head{align-items:flex-start;flex-wrap:wrap}
+  .view .panel-head>button{flex:0 0 auto}
+  .view .panel-body{padding:13px}
+  .view .data-table th,.view .data-table td{padding:10px 9px}
+  .view .form-actions .btn{min-height:42px}
+  .sidebar{width:min(340px,88vw)!important}
+}
+@media(max-width:390px){
+  .content{padding-inline:9px}
+  .view .panel-body{padding:11px}
+  .view .page-heading h1{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .content>.view{animation:none}
+  .view .list-row,.view .op-kpi,.view .clinical-dash-kpi{transition:none}
+}
