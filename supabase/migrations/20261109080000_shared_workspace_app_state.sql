@@ -32,39 +32,54 @@ begin
     v_left:=coalesce(p_left->v_key,'null'::jsonb);
     v_right:=coalesce(p_right->v_key,'null'::jsonb);
     if jsonb_typeof(v_left)='array' and jsonb_typeof(v_right)='array' then
-      select coalesce(jsonb_agg(value order by ord), '[]'::jsonb)
+      with all_items as (
+        select
+          e.value,
+          e.ordinality::bigint as ord,
+          coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),
+                   nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),
+                   nullif(e.value->>'id',''),
+                   nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),
+                   e.value::text)
+            || '|' || coalesce(e.value->>'studyId',e.value->>'study_id','')
+            || '|' || coalesce(e.value->>'companyId',e.value->>'company_id','')
+            || '|' || coalesce(e.value->>'siteId',e.value->>'site_id','') as identity_key
+        from jsonb_array_elements(v_left) with ordinality e(value,ordinality)
+        union all
+        select
+          e.value,
+          1000000000::bigint+e.ordinality::bigint as ord,
+          coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),
+                   nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),
+                   nullif(e.value->>'id',''),
+                   nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),
+                   e.value::text)
+            || '|' || coalesce(e.value->>'studyId',e.value->>'study_id','')
+            || '|' || coalesce(e.value->>'companyId',e.value->>'company_id','')
+            || '|' || coalesce(e.value->>'siteId',e.value->>'site_id','') as identity_key
+        from jsonb_array_elements(v_right) with ordinality e(value,ordinality)
+      ),
+      grouped as (
+        select identity_key,min(ord) as first_ord,(array_agg(value order by ord desc))[1] as latest_value
+        from all_items group by identity_key
+      )
+      select coalesce(jsonb_agg(
+        case when jsonb_typeof(g.latest_value)='object' then
+          coalesce((
+            select jsonb_object_agg(fields.key,fields.value order by fields.ord)
+            from (
+              select ai.ord,j.key,j.value
+              from all_items ai
+              cross join lateral jsonb_each(ai.value) j
+              where ai.identity_key=g.identity_key
+              order by ai.ord
+            ) fields
+          ),g.latest_value)
+        else g.latest_value end
+        order by g.first_ord
+      ),'[]'::jsonb)
       into v_value
-      from (
-        select distinct on (identity_key) value, ord
-        from (
-          select
-            e.value,
-            e.ordinality::bigint as ord,
-            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),
-                     nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),
-                     nullif(e.value->>'id',''),
-                     nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),
-                     e.value::text)
-              || '|' || coalesce(e.value->>'studyId',e.value->>'study_id','')
-              || '|' || coalesce(e.value->>'companyId',e.value->>'company_id','')
-              || '|' || coalesce(e.value->>'siteId',e.value->>'site_id','') as identity_key
-          from jsonb_array_elements(v_left) with ordinality e(value,ordinality)
-          union all
-          select
-            e.value,
-            1000000000::bigint+e.ordinality::bigint as ord,
-            coalesce(nullif(lower(regexp_replace(btrim(coalesce(e.value->>'document',e.value->>'cedula','')),'[^a-z0-9]','','g')),''),
-                     nullif(lower(btrim(coalesce(e.value->>'code',e.value->>'protocol',e.value->>'protocolCode',''))),''),
-                     nullif(e.value->>'id',''),
-                     nullif(lower(btrim(coalesce(e.value->>'name',e.value->>'fullName',''))),''),
-                     e.value::text)
-              || '|' || coalesce(e.value->>'studyId',e.value->>'study_id','')
-              || '|' || coalesce(e.value->>'companyId',e.value->>'company_id','')
-              || '|' || coalesce(e.value->>'siteId',e.value->>'site_id','') as identity_key
-          from jsonb_array_elements(v_right) with ordinality e(value,ordinality)
-        ) all_items
-        order by identity_key,ord desc
-      ) deduplicated;
+      from grouped g;
     elsif jsonb_typeof(v_left)='object' and jsonb_typeof(v_right)='object' then
       v_value:=v_left||v_right;
     elsif v_right<>'null'::jsonb then
@@ -104,7 +119,8 @@ begin
       select s.state,s.reset_epoch,s.updated_at
       from public.workspace_app_state s
       join public.workspace_members wm on wm.workspace_id=s.workspace_id and wm.user_id=s.user_id and wm.active
-      where s.workspace_id=p_workspace_id and wm.role in ('admin','clinician','reception')
+      where s.workspace_id=p_workspace_id
+        and private.member_has_workspace_role(p_workspace_id,s.user_id,array['admin','clinician','reception']::text[])
       order by s.updated_at asc,s.user_id
     loop
       v_state:=private.merge_workspace_app_state_jsonb(v_state,coalesce(v_legacy.state,'{}'::jsonb));
