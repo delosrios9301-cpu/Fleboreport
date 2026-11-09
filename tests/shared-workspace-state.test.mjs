@@ -37,6 +37,6 @@ test('la consolidación usa la cédula solo como identidad primaria de pacientes
 });
 
 test('la migración no vuelve a habilitar el reinicio total deshabilitado', () => {
-  assert.match(migration, /revoke all on function public\\.reset_workspace_completely\\(uuid,text\\) from public,anon,authenticated,service_role/i);
-  assert.match(migration, /revoke all on function private\\.reset_workspace_completely\\(uuid,text\\) from public,anon,authenticated,service_role/i);
+  assert.ok(migration.includes('revoke all on function public.reset_workspace_completely(uuid,text) from public,anon,authenticated,service_role;'));
+  assert.ok(migration.includes('revoke all on function private.reset_workspace_completely(uuid,text) from public,anon,authenticated,service_role;'));
 });
