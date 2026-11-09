@@ -957,7 +957,29 @@ function renderJourneyPatients(){const records=patientsForJourney(),host=$('jour
 
 function normalizePatientDocument(value){return String(value||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'')}
 function registerJourneyPatient(){const name=$('journeyPatientName').value.trim(),documentId=$('journeyPatientId').value.trim(),docKey=normalizePatientDocument(documentId),requested=Array.from(document.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value});if(!name){toast('Escribe el nombre y apellido.');$('journeyPatientName').focus();return}if(!documentId){toast('Escribe la cédula del paciente.');$('journeyPatientId').focus();return}if(!requested.length){toast('Selecciona al menos una prueba para este paciente.');return}var patient=state.patients.find(function(p){return normalizePatientDocument(p.document||p.cedula)===docKey});if(!patient){patient={id:'p-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),module:'journey',name:name,fullName:name,document:documentId,cedula:documentId,createdAt:new Date().toISOString()};state.patients.push(patient)}else{if(!patient.name)patient.name=name;if(!patient.document)patient.document=documentId}state.journeyEntries=Array.isArray(state.journeyEntries)?state.journeyEntries:[];var entry=state.journeyEntries.find(function(e){return e.journeyId===state.journey.id&&e.patientId===patient.id}),added=requested.filter(function(id){return !entry||(entry.testIds||[]).indexOf(id)<0});if(entry){entry.testIds=entry.testIds||[];entry.testStatuses=entry.testStatuses||{};added.forEach(function(id){entry.testIds.push(id);entry.testStatuses[id]='pendiente'})}else{var statuses={};requested.forEach(function(id){statuses[id]='pendiente'});state.journeyEntries.push({id:'je-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),journeyId:state.journey.id,journeyDate:state.journey.date,patientId:patient.id,testIds:requested.slice(),testStatuses:statuses})}added.forEach(function(testId){var row=state.selected.find(function(x){return x.testId===testId});if(row)row.count+=1;else state.selected.push({testId:testId,count:1})});$('journeyPatientName').value='';$('journeyPatientId').value='';document.querySelectorAll('input[name="journeyPatientTest"]:checked').forEach(function(el){el.checked=false});if(!save())return;renderAll();toast(entry?(added.length?'Pruebas añadidas al paciente de esta jornada.':'Este paciente y sus pruebas ya están en la jornada.'):'Paciente registrado en la jornada.')}
-function renderAll(){renderCatalog();renderJourneyPatientChoices();renderJourneyPatients();renderJourney();renderReport();renderPatients();renderCompanies();refreshDashboard()}
+function renderAll(){
+ // Renderizar primero la vista visible y posponer los módulos ocultos hasta que el navegador esté libre.
+ const activeId=(document.querySelector('.view.active')||{}).id||'view-home';
+ if(activeId==='view-journey'){renderCatalog();renderJourneyPatientChoices();renderJourneyPatients();renderJourney()}
+ else if(activeId==='view-reports')renderReport();
+ else if(activeId==='view-patients')renderPatients();
+ else if(activeId==='view-companies')renderCompanies();
+ else if(activeId==='view-home')refreshDashboard();
+ if(window.__fleboIdleRenderPending)return;
+ window.__fleboIdleRenderPending=true;
+ const renderDeferred=function(){
+  window.__fleboIdleRenderPending=false;
+  const currentId=(document.querySelector('.view.active')||{}).id||'';
+  if(currentId!=='view-catalog')renderCatalog();
+  if(currentId!=='view-journey'){renderJourneyPatientChoices();renderJourneyPatients();renderJourney()}
+  if(currentId!=='view-reports')renderReport();
+  if(currentId!=='view-patients')renderPatients();
+  if(currentId!=='view-companies')renderCompanies();
+  if(currentId!=='view-home')refreshDashboard();
+ };
+ if('requestIdleCallback'in window)window.requestIdleCallback(renderDeferred,{timeout:1200});
+ else window.setTimeout(renderDeferred,80);
+}
 function prepareExportLogo(){if(!state.company.logo){exportLogoSource='';exportLogoImage=null;return}if(state.company.logo===exportLogoSource)return;exportLogoSource=state.company.logo;exportLogoImage=null;const image=new Image();image.onload=function(){exportLogoImage=image};image.src=exportLogoSource}
 function pathRoundRect(ctx,x,y,w,h,r){const radius=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+radius,y);ctx.lineTo(x+w-radius,y);ctx.quadraticCurveTo(x+w,y,x+w,y+radius);ctx.lineTo(x+w,y+h-radius);ctx.quadraticCurveTo(x+w,y+h,x+w-radius,y+h);ctx.lineTo(x+radius,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-radius);ctx.lineTo(x,y+radius);ctx.quadraticCurveTo(x,y,x+radius,y);ctx.closePath()}
 function drawVesselCanvas(ctx,x,y,test){const color=test.color||'#199ab1';ctx.save();ctx.lineWidth=3;ctx.strokeStyle=color;ctx.fillStyle=color;if((test.shape||'tube')==='jar'){pathRoundRect(ctx,x+8,y+12,30,39,7);ctx.globalAlpha=.18;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.fillStyle=color;pathRoundRect(ctx,x+9,y+3,28,10,3);ctx.fill();ctx.globalAlpha=.7;ctx.fillRect(x+10,y+35,26,12);ctx.globalAlpha=1;ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x+15,y+24);ctx.lineTo(x+31,y+24);ctx.moveTo(x+15,y+29);ctx.lineTo(x+31,y+29);ctx.stroke()}else{pathRoundRect(ctx,x+12,y+12,23,41,9);ctx.globalAlpha=.16;ctx.fill();ctx.globalAlpha=1;ctx.stroke();ctx.fillStyle=color;pathRoundRect(ctx,x+10,y+5,27,10,3);ctx.fill();ctx.globalAlpha=.68;ctx.fillRect(x+14,y+35,19,11);ctx.globalAlpha=1;ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x+17,y+23);ctx.lineTo(x+30,y+23);ctx.moveTo(x+17,y+28);ctx.lineTo(x+30,y+28);ctx.stroke()}ctx.restore()}
