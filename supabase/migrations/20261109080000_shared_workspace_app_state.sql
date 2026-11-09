@@ -70,8 +70,8 @@ begin
             from (
               select ai.ord,j.key,j.value
               from all_items ai
-              cross join lateral jsonb_each(ai.value) j
-              where ai.identity_key=g.identity_key and jsonb_typeof(ai.value)='object'
+              cross join lateral jsonb_each(case when jsonb_typeof(ai.value)='object' then ai.value else '{}'::jsonb end) j
+              where ai.identity_key=g.identity_key
               order by ai.ord
             ) fields
           ),g.latest_value)
@@ -148,7 +148,9 @@ begin
   if not private.member_has_workspace_role(p_workspace_id,v_uid,array['admin','clinician','reception','viewer']::text[]) then
     raise exception 'No tienes permiso para consultar el estado compartido';
   end if;
-  perform * from public.get_workspace_shared_app_state(p_workspace_id);
+  if not exists(select 1 from public.workspace_shared_app_state s where s.workspace_id=p_workspace_id) then
+    perform * from public.get_workspace_shared_app_state(p_workspace_id);
+  end if;
   return query select s.revision,s.updated_at,s.reset_epoch
     from public.workspace_shared_app_state s where s.workspace_id=p_workspace_id;
 end;
@@ -173,7 +175,9 @@ begin
   if p_state is null or jsonb_typeof(p_state)<>'object' then
     raise exception 'El estado de la aplicación debe ser un objeto JSON';
   end if;
-  perform * from public.get_workspace_shared_app_state(p_workspace_id);
+  if not exists(select 1 from public.workspace_shared_app_state s where s.workspace_id=p_workspace_id) then
+    perform * from public.get_workspace_shared_app_state(p_workspace_id);
+  end if;
   select s.revision into v_revision from public.workspace_shared_app_state s
     where s.workspace_id=p_workspace_id for update;
   if p_expected_revision is distinct from v_revision then
