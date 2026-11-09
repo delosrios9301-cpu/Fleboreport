@@ -25,8 +25,13 @@ test('la migración consolida snapshots antiguos sin eliminarlos y restringe esc
   assert.match(migration, /create or replace function public\.reset_workspace_operational_data/i);
 });
 
-test('la consolidación prioriza identificadores únicos antes de códigos reutilizables', () => {
-  const idPosition = migration.indexOf("nullif(e.value->>'id','')");
-  const codePosition = migration.indexOf("nullif(lower(btrim(coalesce(e.value->>'code'");
-  assert.ok(idPosition >= 0 && codePosition > idPosition);
+test('la consolidación usa la cédula solo como identidad primaria de pacientes', () => {
+  assert.equal((migration.match(/case when v_key='patients' then/g) || []).length, 2);
+  assert.equal((migration.match(/nullif\(e\.value->>'id',''\)/g) || []).length >= 4, true);
+  const patientBranch = migration.indexOf("case when v_key='patients' then");
+  const otherBranch = migration.indexOf("else", patientBranch);
+  const genericId = migration.indexOf("nullif(e.value->>'id','')", otherBranch);
+  const genericDocument = migration.indexOf("regexp_replace", otherBranch);
+  assert.ok(patientBranch >= 0 && otherBranch > patientBranch);
+  assert.ok(genericId >= 0 && genericDocument > genericId);
 });
