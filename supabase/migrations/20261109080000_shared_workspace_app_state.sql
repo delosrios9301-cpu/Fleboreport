@@ -71,7 +71,7 @@ begin
               select ai.ord,j.key,j.value
               from all_items ai
               cross join lateral jsonb_each(ai.value) j
-              where ai.identity_key=g.identity_key
+              where ai.identity_key=g.identity_key and jsonb_typeof(ai.value)='object'
               order by ai.ord
             ) fields
           ),g.latest_value)
