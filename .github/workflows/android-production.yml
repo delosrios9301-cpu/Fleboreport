@@ -1,0 +1,82 @@
+name: FleboReport Android Production Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Validate protected release secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.FLEBO_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.FLEBO_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FLEBO_ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.FLEBO_ANDROID_KEY_PASSWORD }}
+          GOOGLE_SERVICES_B64: ${{ secrets.FLEBO_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD GOOGLE_SERVICES_B64; do
+            if [ -z "${!name}" ]; then echo "::error::Falta el secreto requerido: $name"; exit 1; fi
+          done
+      - name: Install pinned Capacitor Android and native push packages
+        run: |
+          npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capacitor/push-notifications@7.0.3
+      - name: Prepare bundled web application
+        run: node scripts/prepare-android-web.mjs
+      - name: Add Android platform
+        run: npx cap add android
+      - name: Configure Firebase Android client
+        env:
+          GOOGLE_SERVICES_B64: ${{ secrets.FLEBO_GOOGLE_SERVICES_JSON_BASE64 }}
+        run: |
+          mkdir -p android/app
+          printf '%s' "$GOOGLE_SERVICES_B64" | base64 --decode > android/app/google-services.json
+          node -e "const f=require('./android/app/google-services.json'); const a=f.client?.[0]?.client_info?.android_client_info?.package_name; if(a!=='com.fleboreport.app') throw new Error('google-services.json no corresponde a com.fleboreport.app')"
+      - name: Sync Capacitor native plugins
+        run: npx cap sync android
+      - name: Build unsigned release APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+      - name: Sign APK with permanent app key
+        env:
+          KEYSTORE_B64: ${{ secrets.FLEBO_ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.FLEBO_ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.FLEBO_ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.FLEBO_ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/fleboreport-release.jks"
+          APK="android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" sign \
+            --ks "$RUNNER_TEMP/fleboreport-release.jks" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --out FleboReport-production.apk "$APK"
+          "$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner" verify --verbose FleboReport-production.apk
+          rm -f "$RUNNER_TEMP/fleboreport-release.jks" android/app/google-services.json
+      - name: Publish signed production APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: FleboReport-Android-Production
+          path: FleboReport-production.apk
+          if-no-files-found: error
+          retention-days: 90
