@@ -26,7 +26,7 @@ test('la migración consolida snapshots antiguos sin eliminarlos y restringe esc
 });
 
 test('la identidad de pacientes nunca fusiona registros distintos por nombre o código reutilizable', () => {
-  const patientBranches = [...migration.matchAll(/case when v_key='patients' then([\\s\\S]*?)\\n\\s*else/g)];
+  const patientBranches = [...migration.matchAll(/case when v_key='patients' then([\s\S]*?)\n\s*else/g)];
   assert.equal(patientBranches.length, 2);
   for (const match of patientBranches) {
     const identity = match[1];
