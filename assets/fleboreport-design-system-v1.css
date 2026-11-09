@@ -482,3 +482,54 @@ body.module-menu-open{overflow:hidden}
   .view.active{animation:none}
   .btn,.quick-card,.list-row,.journey-patient-card,.catalog-card{transition:none}
 }
+
+
+/* Atención extramuros: estilos del módulo montado dinámicamente por domicilios.js. */
+#view-domicilios{min-width:0}
+#view-domicilios>.page-heading{align-items:center}
+#view-domicilios .hv-notice,#view-domicilios .hv-push-panel{border:1px solid #dcebe8;border-radius:13px;background:#f0f8f6;color:#315f62;padding:12px 15px;font-size:11px;line-height:1.5}
+#view-domicilios .hv-module-tabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:14px 0;padding:5px;border:1px solid #e2ebef;border-radius:13px;background:#f6fafb}
+#view-domicilios .hv-module-tabs .hv-module-tab{min-height:40px;border:1px solid transparent;border-radius:9px;background:transparent;color:#607a8b;padding:8px 12px;font-size:10px;font-weight:760}
+#view-domicilios .hv-module-tabs .hv-module-tab.active{border-color:#d3e8e4;background:#fff;color:#08766f;box-shadow:0 2px 7px rgba(16,47,74,.05)}
+#view-domicilios #hvKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin:12px 0}
+#view-domicilios .hv-kpi{min-width:0;padding:14px;border:1px solid #e1ebef;border-radius:14px;background:linear-gradient(145deg,#fff,#f8fbfc);box-shadow:var(--fr-shadow-sm)}
+#view-domicilios .hv-kpi small{display:block;color:#718696;font-size:9px;font-weight:720}
+#view-domicilios .hv-kpi b{display:block;margin-top:6px;color:#173f58;font-size:22px}
+#view-domicilios .hv-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:15px;align-items:start}
+#view-domicilios .hv-layout>.panel{min-width:0;border:1px solid var(--fr-border);border-radius:16px;box-shadow:var(--fr-shadow-sm)}
+#view-domicilios .hv-layout .hv-visit{width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;border:1px solid #e4edf1;border-radius:12px;background:#fff;color:#24475d;text-align:left}
+#view-domicilios .hv-layout .hv-visit.selected{border-color:#8dc9c0;background:#f2faf8;box-shadow:inset 3px 0 #0c8980}
+#view-domicilios .hv-layout .hv-visit>span{display:grid;gap:5px;min-width:0}
+#view-domicilios .hv-layout .hv-visit small{color:#718696;font-size:10px;overflow-wrap:anywhere}
+#view-domicilios .hv-layout .hv-visit b{font-size:11px;color:#23475d}
+#view-domicilios .hv-layout .hv-visit .hv-status{flex:none}
+#view-domicilios .hv-calendar-panel{border:1px solid var(--fr-border);border-radius:16px;background:#fff;box-shadow:var(--fr-shadow-sm)}
+#view-domicilios .hv-cal-day{min-width:0;border-color:#e2ebef;border-radius:10px}
+#view-domicilios .hv-cal-day.today{border-color:#7dbfb5;background:#f0f9f7}
+#view-domicilios .hv-cal-day.selected{border-color:#12847b;background:#eaf7f4}
+#view-domicilios .hv-detail-dialog,#view-domicilios .hv-assignment-modal{color:#183d55;font-family:inherit}
+#view-domicilios .hv-detail-dialog .hv-info>div,#view-domicilios .hv-detail-dialog .hv-detail-grid>div{border:1px solid #e4edf1;border-radius:11px;background:#f8fbfc}
+#view-domicilios .hv-detail-dialog .hv-actions{gap:8px}
+#view-domicilios .hv-detail-dialog .hv-actions .btn{min-height:40px}
+@media (min-width:761px) and (max-width:1100px){#view-domicilios .hv-layout{grid-template-columns:minmax(0,1fr)}#view-domicilios #hvKpis{grid-template-columns:repeat(4,minmax(0,1fr))}#view-domicilios .hv-calendar-panel{padding:13px}}
+@media (max-width:760px){
+#view-domicilios>.page-heading{align-items:flex-start}
+#view-domicilios .hv-module-tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
+#view-domicilios .hv-module-tabs .hv-module-tab{flex:0 0 auto;white-space:nowrap}
+#view-domicilios #hvKpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#view-domicilios .hv-kpi{padding:11px;border-radius:12px}
+#view-domicilios .hv-kpi b{font-size:20px}
+#view-domicilios .hv-layout{grid-template-columns:minmax(0,1fr);gap:11px}
+#view-domicilios .hv-layout>.panel{padding:13px}
+#view-domicilios .hv-layout .hv-visit{align-items:flex-start;gap:8px;padding:11px}
+#view-domicilios .hv-layout .hv-visit .hv-status{white-space:normal;text-align:right}
+#view-domicilios .hv-calendar-panel{padding:10px}
+#view-domicilios .hv-cal-grid{gap:3px}
+#view-domicilios .hv-cal-day{min-height:52px;padding:5px 4px}
+#view-domicilios .hv-cal-day small{font-size:8px}
+#view-domicilios .hv-cal-nav{width:100%;justify-content:space-between}
+#view-domicilios .hv-detail-dialog{width:100%;max-height:94dvh;max-height:94vh;padding:17px 13px calc(20px + env(safe-area-inset-bottom));border-radius:20px 20px 0 0}
+#view-domicilios .hv-detail-dialog .hv-info,#view-domicilios .hv-detail-dialog .hv-detail-grid{grid-template-columns:minmax(0,1fr)}
+#view-domicilios .hv-detail-dialog .hv-info .wide,#view-domicilios .hv-detail-dialog .hv-detail-grid .wide{grid-column:auto}
+}
+@media (max-width:390px){#view-domicilios #hvKpis{gap:7px}#view-domicilios .hv-kpi{padding:9px}#view-domicilios .hv-kpi b{font-size:18px}#view-domicilios .hv-layout>.panel{padding:10px}#view-domicilios .hv-module-tabs .hv-module-tab{padding:8px 10px}}
