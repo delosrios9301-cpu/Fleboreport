@@ -24,3 +24,9 @@ test('la migración consolida snapshots antiguos sin eliminarlos y restringe esc
   assert.match(migration, /create or replace function public\.reset_workspace_completely/i);
   assert.match(migration, /create or replace function public\.reset_workspace_operational_data/i);
 });
+
+test('la consolidación prioriza identificadores únicos antes de códigos reutilizables', () => {
+  const idPosition = migration.indexOf("nullif(e.value->>'id','')");
+  const codePosition = migration.indexOf("nullif(lower(btrim(coalesce(e.value->>'code'");
+  assert.ok(idPosition >= 0 && codePosition > idPosition);
+});
