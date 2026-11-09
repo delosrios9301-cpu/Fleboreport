@@ -25,15 +25,17 @@ test('la migración consolida snapshots antiguos sin eliminarlos y restringe esc
   assert.match(migration, /create or replace function public\.reset_workspace_operational_data/i);
 });
 
-test('la consolidación usa la cédula solo como identidad primaria de pacientes', () => {
-  assert.equal((migration.match(/case when v_key='patients' then/g) || []).length, 2);
-  assert.equal((migration.match(/nullif\(e\.value->>'id',''\)/g) || []).length >= 4, true);
-  const patientBranch = migration.indexOf("case when v_key='patients' then");
-  const otherBranch = migration.indexOf("else", patientBranch);
-  const genericId = migration.indexOf("nullif(e.value->>'id','')", otherBranch);
-  const genericDocument = migration.indexOf("regexp_replace", otherBranch);
-  assert.ok(patientBranch >= 0 && otherBranch > patientBranch);
-  assert.ok(genericId >= 0 && genericDocument > genericId);
+test('la identidad de pacientes nunca fusiona registros distintos por nombre o código reutilizable', () => {
+  const patientBranches = [...migration.matchAll(/case when v_key='patients' then([\\s\\S]*?)\\n\\s*else/g)];
+  assert.equal(patientBranches.length, 2);
+  for (const match of patientBranches) {
+    const identity = match[1];
+    assert.match(identity, /e\.value->>'document'/);
+    assert.match(identity, /e\.value->>'id'/);
+    assert.match(identity, /e\.value::text/);
+    assert.doesNotMatch(identity, /e\.value->>'code'/);
+    assert.doesNotMatch(identity, /e\.value->>'name'/);
+  }
 });
 
 test('la migración no vuelve a habilitar el reinicio total deshabilitado', () => {
