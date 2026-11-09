@@ -9,6 +9,7 @@ const notificationSettings = await readFile(new URL('../notification-settings.js
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
+const fleboEngine = await readFile(new URL('../flebo-engine.js', import.meta.url), 'utf8');
 const sharedWorkspaceStateMigration = await readFile(new URL('../supabase/migrations/20261109080000_shared_workspace_app_state.sql', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103015842_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
@@ -182,7 +183,11 @@ test('el guardado de permisos individuales usa el RPC protegido por la base de d
 
 test('la sincronización general comparte el estado por espacio y conserva permisos por rol', () => {
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/flebo-engine\.js(?:\?[^\"]*)?"/);
+  assert.doesNotThrow(() => new Function(fleboEngine), 'flebo-engine.js debe tener sintaxis válida');
+  assert.match(cloudSync, /engine\.measure\('cloud\\.download'/);
+  assert.match(cloudSync, /engine\.schedule\('cloud-save'/);
+  assert.match(cloudSync, /function schedulePoll\(/);
   assert.match(html, /flebo:local-state-saved/);
   assert.match(sharedWorkspaceStateMigration, /primary key/i);
   assert.match(sharedWorkspaceStateMigration, /private\.member_has_workspace_role/);
@@ -320,7 +325,7 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
 
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/clinical-processing-simple\.js(?:\?[^\"]*)?"/);
   const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
   for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
@@ -437,7 +442,7 @@ test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RP
 
 test('cada función llamada desde un botón HTML tiene un manejador definido', async () => {
   const scriptPaths = [
-    'supabase-auth.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
+    'supabase-auth.js', 'flebo-engine.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
     'clinical-cloud-sync.js', 'domicilios.js', 'notifications-center.js',
     'configuracion.js', 'audit-history.js', 'notification-settings.js',
     'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
