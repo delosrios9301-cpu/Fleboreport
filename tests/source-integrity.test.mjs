@@ -185,7 +185,7 @@ test('la sincronización general comparte el estado por espacio y conserva permi
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
   assert.match(html, /src="\.\/flebo-engine\.js(?:\?[^\"]*)?"/);
   assert.doesNotThrow(() => new Function(fleboEngine), 'flebo-engine.js debe tener sintaxis válida');
-  assert.match(cloudSync, /engine\.measure\('cloud\\.download'/);
+  assert.match(cloudSync, /engine\.measure\('cloud\.download'/);
   assert.match(cloudSync, /engine\.schedule\('cloud-save'/);
   assert.match(cloudSync, /function schedulePoll\(/);
   assert.match(html, /flebo:local-state-saved/);
