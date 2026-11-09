@@ -16,11 +16,11 @@ test('la sincronización general usa un único estado por espacio de trabajo', (
 test('la migración consolida snapshots antiguos sin eliminarlos y restringe escrituras', () => {
   assert.match(migration, /workspace_shared_app_state/);
   assert.match(migration, /workspace_app_state s/);
-  assert.match(migration, /wm\.role in \('admin','clinician','reception'\)/);
+  assert.match(migration, /member_has_workspace_role\(p_workspace_id,s\.user_id/);
   assert.match(migration, /private\.member_has_workspace_role/);
   assert.match(migration, /array\['admin','clinician','reception'\]/);
   assert.match(migration, /revoke all on public\.workspace_shared_app_state from anon, authenticated/i);
   assert.match(migration, /save_workspace_shared_app_state/);
-  assert.match(migration, /create or replace function public\\.reset_workspace_completely/i);
-  assert.match(migration, /create or replace function public\\.reset_workspace_operational_data/i);
+  assert.match(migration, /create or replace function public\.reset_workspace_completely/i);
+  assert.match(migration, /create or replace function public\.reset_workspace_operational_data/i);
 });
