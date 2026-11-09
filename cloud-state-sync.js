@@ -138,13 +138,16 @@ async function recordAppActivity(event){
  if(r.error)throw r.error;
  return true;
 }
+async function rpcRow(name,args){
+ const r=await client.rpc(name,args);
+ if(r.error)throw r.error;
+ return Array.isArray(r.data)?(r.data[0]||null):(r.data||null);
+}
 async function fetchRemoteMeta(){
- const r=await client.from('workspace_app_state').select('revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
- if(r.error)throw r.error;return r.data||null;
+ return await rpcRow('get_workspace_shared_app_state_meta',{p_workspace_id:workspaceId});
 }
 async function fetchRemote(){
- const r=await client.from('workspace_app_state').select('state,revision,updated_at,reset_epoch').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
- if(r.error)throw r.error;return r.data||null;
+ return await rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId});
 }
 async function writeRemote(state,expected){
  const payload=stripLegacyAudit(state);
@@ -155,7 +158,7 @@ async function writeRemote(state,expected){
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{delete payload[k]});
  const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
- const r=await client.rpc('save_workspace_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
+ const r=await client.rpc('save_workspace_shared_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
  if(r.error)throw r.error;
  const row=Array.isArray(r.data)?r.data[0]:r.data;
  return row||{saved:false,revision:expected};
