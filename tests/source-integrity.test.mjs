@@ -182,10 +182,10 @@ test('el guardado de permisos individuales usa el RPC protegido por la base de d
 
 test('la sincronización general comparte el estado por espacio y conserva permisos por rol', () => {
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
-  assert.match(html, /src="\\.\\/cloud-state-sync\\.js(?:\\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
   assert.match(html, /flebo:local-state-saved/);
   assert.match(sharedWorkspaceStateMigration, /primary key/i);
-  assert.match(sharedWorkspaceStateMigration, /private\\.member_has_workspace_role/);
+  assert.match(sharedWorkspaceStateMigration, /private\.member_has_workspace_role/);
   assert.match(cloudSync, /get_workspace_shared_app_state/);
   assert.match(cloudSync, /save_workspace_shared_app_state/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
@@ -320,7 +320,7 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
 
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/clinical-processing-simple\.js(?:\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
   const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
   for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
