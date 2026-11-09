@@ -21,4 +21,6 @@ test('la migración consolida snapshots antiguos sin eliminarlos y restringe esc
   assert.match(migration, /array\['admin','clinician','reception'\]/);
   assert.match(migration, /revoke all on public\.workspace_shared_app_state from anon, authenticated/i);
   assert.match(migration, /save_workspace_shared_app_state/);
+  assert.match(migration, /create or replace function public\\.reset_workspace_completely/i);
+  assert.match(migration, /create or replace function public\\.reset_workspace_operational_data/i);
 });
