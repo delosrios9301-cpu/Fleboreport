@@ -73,7 +73,7 @@ select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001'
 select * from public.get_workspace_shared_app_state('10000000-0000-0000-0000-000000000001');
 reset role;
 
-do $
+do $assert$
 declare v_state jsonb; v_count integer; v_result record;
 begin
   select state into v_state from public.workspace_shared_app_state
@@ -96,7 +96,7 @@ begin
   if has_function_privilege('authenticated','private.reset_workspace_completely(uuid,text)','execute') then
     raise exception 'La función privada de reinicio total quedó habilitada';
   end if;
-end $;
+end $assert$;
 set role authenticated;
 
 -- Dos cuentas autorizadas leen el mismo estado; el control optimista acepta solo la primera escritura.
