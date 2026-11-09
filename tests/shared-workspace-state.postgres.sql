@@ -55,7 +55,7 @@ as $rolecheck$
         )
       )
   )
-$;
+$rolecheck$;
 create or replace function private.reset_workspace_completely(p_workspace_id uuid,p_confirmation text)
 returns table(deleted_tables integer,deleted_rows bigint,reset_epoch uuid)
 language sql security definer set search_path=''
