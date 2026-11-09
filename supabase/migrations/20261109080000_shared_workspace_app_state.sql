@@ -243,5 +243,8 @@ $$;
 
 revoke all on function public.reset_workspace_completely(uuid,text) from public,anon;
 revoke all on function public.reset_workspace_operational_data(uuid,text) from public,anon;
-grant execute on function public.reset_workspace_completely(uuid,text) to authenticated;
+-- El reinicio total fue deshabilitado intencionalmente para preservar la auditoría.
+-- Esta migración no debe volver a habilitar una operación destructiva.
+revoke all on function public.reset_workspace_completely(uuid,text) from public,anon,authenticated,service_role;
+revoke all on function private.reset_workspace_completely(uuid,text) from public,anon,authenticated,service_role;
 grant execute on function public.reset_workspace_operational_data(uuid,text) to authenticated;
