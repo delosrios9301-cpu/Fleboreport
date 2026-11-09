@@ -201,6 +201,11 @@ async function connect(){
   }
   if(!stateSyncAllowed){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
   let local=app()||{},m=meta();
+  // Inicio rápido seguro: solo mostrar la caché cuando pertenece exactamente a esta cuenta y espacio.
+  // La descarga remota y la reconciliación continúan inmediatamente en segundo plano.
+  if(m.workspaceId===workspaceId&&m.userId===userId&&m.hash){
+   ready=true;announceReady();status('Mostrando datos guardados · actualizando en segundo plano…');
+  }
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   if(m.workspaceId&&(m.workspaceId!==workspaceId||m.userId!==userId)&&meaningful(local)){
    try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){throw new Error('No se pudo respaldar el estado local del espacio anterior. No se modificaron tus datos; libera espacio del navegador e inténtalo de nuevo.')}
