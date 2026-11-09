@@ -38,7 +38,7 @@ create table public.workspace_app_state(
 );
 create or replace function private.member_has_workspace_role(p_workspace_id uuid,p_user_id uuid,p_roles text[])
 returns boolean language sql stable security definer set search_path=''
-as $
+as $rolecheck$
   select exists(
     select 1 from public.workspace_members wm
     where wm.workspace_id=p_workspace_id and wm.user_id=p_user_id and wm.active
