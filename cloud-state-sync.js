@@ -8,7 +8,7 @@ const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampl
 const CLINICAL_DB_RECORD_KEYS=['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'];
 // El cursor clínico pertenece a la caché local de cada dispositivo y nunca se comparte entre sesiones.
 const CLINICAL_DB_SYNC_KEYS=['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'];
-let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,busy=false,dirtyAgain=false,timer=null,started=false;
+let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,stateSyncAllowed=false,busy=false,dirtyAgain=false,timer=null,started=false;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
  const el=statusEl();if(!el)return;el.textContent=message;el.dataset.error=error?'true':'false';
@@ -192,9 +192,14 @@ async function connect(){
   if(!window.FleboAuth||!window.FleboAppState){status('Preparando sincronización…');return}
   client=await window.FleboAuth.init();
   const user=window.FleboAuth.user,membership=window.FleboAuth.membership;
-  if(!user||!membership||membership.active!==true){ready=false;workspaceId=null;status('Inicia sesión para sincronizar los datos.');return}
-  if(!['admin','clinician','reception','viewer'].includes(membership.role)){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
-  userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);
+  if(!user||!membership||membership.active!==true){ready=false;stateSyncAllowed=false;workspaceId=null;status('Inicia sesión para sincronizar los datos.');return}
+  userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);stateSyncAllowed=['admin','clinician','reception','viewer'].includes(role);
+  // Los flebotomistas trabajan con módulos y tablas relacionales asignadas; no usan el estado JSON legado por usuario.
+  // La interfaz debe quedar lista aunque no exista una fila workspace_app_state para esta cuenta.
+  if(role==='technician'){
+   ready=true;announceReady();status('Sesión activa · módulos habilitados por permisos');subscribe();return;
+  }
+  if(!stateSyncAllowed){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
   let local=app()||{},m=meta();
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   if(m.workspaceId&&(m.workspaceId!==workspaceId||m.userId!==userId)&&meaningful(local)){
@@ -242,7 +247,7 @@ function subscribe(){
  channel=null;
 }
 async function receiveRemote(){
- if(!ready)return;
+ if(!ready||!stateSyncAllowed)return;
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
@@ -325,7 +330,7 @@ async function syncLocal(){
 }
 function schedule(){if(!ready||!writable)return;status('Guardando cambios en la nube…');clearTimeout(timer);timer=setTimeout(syncLocal,1000)}
 window.addEventListener('flebo:local-state-saved',schedule);
-window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
+window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
 window.addEventListener('online',()=>{if(ready)syncLocal()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}});
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},30000);
