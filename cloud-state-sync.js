@@ -8,7 +8,8 @@ const CLINICAL_DB_CONFIG_KEYS=['clinicalStudies','clinicalVisits','clinicalSampl
 const CLINICAL_DB_RECORD_KEYS=['clinicalSamples','clinicalSampleHistory','clinicalLocalDeletedSampleIds'];
 // El cursor clínico pertenece a la caché local de cada dispositivo y nunca se comparte entre sesiones.
 const CLINICAL_DB_SYNC_KEYS=['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'];
-let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,stateSyncAllowed=false,busy=false,dirtyAgain=false,timer=null,started=false;
+let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,stateSyncAllowed=false,busy=false,dirtyAgain=false,timer=null,pollTimer=null,started=false;
+const engine=window.FleboEngine;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
  const el=statusEl();if(!el)return;el.textContent=message;el.dataset.error=error?'true':'false';
@@ -144,10 +145,10 @@ async function rpcRow(name,args){
  return Array.isArray(r.data)?(r.data[0]||null):(r.data||null);
 }
 async function fetchRemoteMeta(){
- return await rpcRow('get_workspace_shared_app_state_meta',{p_workspace_id:workspaceId});
+ return await engine.measure('cloud.meta',()=>rpcRow('get_workspace_shared_app_state_meta',{p_workspace_id:workspaceId}));
 }
 async function fetchRemote(){
- return await rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId});
+ return await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
 }
 async function writeRemote(state,expected){
  const payload=stripLegacyAudit(state);
@@ -158,7 +159,7 @@ async function writeRemote(state,expected){
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{delete payload[k]});
  const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
- const r=await client.rpc('save_workspace_shared_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected});
+ const r=await engine.measure('cloud.upload',()=>client.rpc('save_workspace_shared_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected}));
  if(r.error)throw r.error;
  const row=Array.isArray(r.data)?r.data[0]:r.data;
  return row||{saved:false,revision:expected};
@@ -251,6 +252,7 @@ function subscribe(){
 }
 async function receiveRemote(){
  if(!ready||!stateSyncAllowed)return;
+ let pollFailed=false;
  if(busy){dirtyAgain=true;return}
  busy=true;
  try{
@@ -286,8 +288,8 @@ async function receiveRemote(){
    await publishMerged(local,remote,remote.revision);
    status('Cambios de otros dispositivos integrados · versión '+revision);
   }
- }catch(e){console.error('[FleboReport Sync] Realtime:',e);status('No se pudo actualizar desde la nube: '+(e.message||'error'),true)}
- finally{busy=false;runPending()}
+ }catch(e){pollFailed=true;engine.pollFailure();console.error('[FleboReport Sync] Realtime:',e);status('No se pudo actualizar desde la nube: '+(e.message||'error'),true)}
+ finally{if(!pollFailed)engine.pollSuccess();busy=false;runPending()}
 }
 async function syncLocal(){
  if(!ready||!writable||!client||!workspaceId)return;
@@ -331,13 +333,25 @@ async function syncLocal(){
  }catch(e){console.error('[FleboReport Sync] Guardado:',e);status('Pendiente de sincronizar: '+(e.message||'error'),true)}
  finally{busy=false;runPending()}
 }
-function schedule(){if(!ready||!writable)return;status('Guardando cambios en la nube…');clearTimeout(timer);timer=setTimeout(syncLocal,1000)}
+function schedule(){if(!ready||!writable)return;status('Guardando cambios en la nube…');engine.schedule('cloud-save',syncLocal,700)}
 window.addEventListener('flebo:local-state-saved',schedule);
 window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
-window.addEventListener('online',()=>{if(ready)syncLocal()});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}});
-setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect()}},30000);
-window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}}};
+window.addEventListener('online',()=>{if(ready)syncLocal();schedulePoll(250)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect();schedulePoll(500)}else if(pollTimer){clearTimeout(pollTimer);pollTimer=null}});
+function schedulePoll(delay){
+ if(pollTimer)clearTimeout(pollTimer);
+ pollTimer=setTimeout(async()=>{
+  pollTimer=null;
+  if(document.visibilityState==='visible'&&navigator.onLine){if(ready)await receiveRemote();else await connect()}
+  schedulePoll(engine.nextPollDelay());
+ },delay===undefined?engine.nextPollDelay():delay);
+}
+const rawConnect=connect,rawReceiveRemote=receiveRemote,rawSyncLocal=syncLocal;
+connect=()=>engine.measure('sync.connect',rawConnect);
+receiveRemote=()=>engine.measure('sync.refresh',rawReceiveRemote);
+syncLocal=()=>engine.measure('sync.save',rawSyncLocal);
+schedulePoll();
+window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return engine.diagnostics()}};
 window.FleboCloudAudit={record:recordAppActivity,importLegacy:persistLegacyAuditEvents,get ready(){return !!(ready&&client&&workspaceId&&userId)},get workspaceId(){return workspaceId}};
 function boot(){if(started)return;started=true;status('Conectando con la nube…');if(window.FleboAuth&&window.FleboAuth.user)connect()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
