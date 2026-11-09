@@ -320,7 +320,7 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
 
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/clinical-processing-simple\.js(?:\?[^\"]*)?"/);
   const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
   for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
