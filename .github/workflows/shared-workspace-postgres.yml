@@ -1,0 +1,44 @@
+name: Shared workspace PostgreSQL integration
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261109080000_shared_workspace_app_state.sql'
+      - 'tests/shared-workspace-state*'
+      - '.github/workflows/shared-workspace-postgres.yml'
+  push:
+    branches:
+      - 'fix/shared-workspace-state-20261109'
+    paths:
+      - 'supabase/migrations/20261109080000_shared_workspace_app_state.sql'
+      - 'tests/shared-workspace-state*'
+      - '.github/workflows/shared-workspace-postgres.yml'
+
+jobs:
+  postgres-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ejecutar pruebas de código
+        run: |
+          node --version
+          npm test
+      - name: Validar migración y permisos en PostgreSQL 17 aislado
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql --host 127.0.0.1 --username postgres --dbname postgres --set ON_ERROR_STOP=1 --file tests/shared-workspace-state.postgres.sql

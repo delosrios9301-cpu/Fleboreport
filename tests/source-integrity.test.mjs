@@ -9,6 +9,7 @@ const notificationSettings = await readFile(new URL('../notification-settings.js
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
+const sharedWorkspaceStateMigration = await readFile(new URL('../supabase/migrations/20261109080000_shared_workspace_app_state.sql', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103015842_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
 const patientDocumentMatchMigration = await readFile(new URL('../supabase/migrations/20261103020920_normalize_patient_document_matching.sql', import.meta.url), 'utf8');
@@ -179,13 +180,14 @@ test('el guardado de permisos individuales usa el RPC protegido por la base de d
   assert.match(permissionSaveMigration, /create or replace function public\.save_member_permissions/i);
 });
 
-test('la sincronización de datos está conectada, aislada por usuario y tiene sintaxis válida', () => {
+test('la sincronización general comparte el estado por espacio y conserva permisos por rol', () => {
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
   assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
   assert.match(html, /flebo:local-state-saved/);
-  assert.match(workspaceStateIsolationMigration, /primary key \(workspace_id,user_id\)/i);
-  assert.match(workspaceStateIsolationMigration, /user_id = auth\.uid\(\)/i);
-  assert.match(cloudSync, /\.eq\('user_id',userId\)/);
+  assert.match(sharedWorkspaceStateMigration, /primary key/i);
+  assert.match(sharedWorkspaceStateMigration, /private\.member_has_workspace_role/);
+  assert.match(cloudSync, /get_workspace_shared_app_state/);
+  assert.match(cloudSync, /save_workspace_shared_app_state/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
 });
 
@@ -833,7 +835,7 @@ test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vi
 
 test('la sincronización consulta primero la revisión y solo descarga el estado completo si hay cambios o conflicto', () => {
   assert.ok(cloudSync.includes("async function fetchRemoteMeta(){"));
-  assert.ok(cloudSync.includes("select('revision,updated_at,reset_epoch')"));
+  assert.ok(cloudSync.includes("get_workspace_shared_app_state_meta"));
   const receiveStart=cloudSync.indexOf('async function receiveRemote(){');
   const receiveEnd=cloudSync.indexOf('async function syncLocal(){',receiveStart);
   const receive=cloudSync.slice(receiveStart,receiveEnd);
