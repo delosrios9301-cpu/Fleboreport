@@ -9,6 +9,7 @@ const notificationSettings = await readFile(new URL('../notification-settings.js
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
+const fleboEngine = await readFile(new URL('../flebo-engine.js', import.meta.url), 'utf8');
 const sharedWorkspaceStateMigration = await readFile(new URL('../supabase/migrations/20261109080000_shared_workspace_app_state.sql', import.meta.url), 'utf8');
 const patientCloudSync = await readFile(new URL('../patient-cloud-sync.js', import.meta.url), 'utf8');
 const patientCloudMigration = await readFile(new URL('../supabase/migrations/20261103015842_workspace_patient_cloud_records.sql', import.meta.url), 'utf8');
@@ -182,7 +183,11 @@ test('el guardado de permisos individuales usa el RPC protegido por la base de d
 
 test('la sincronización general comparte el estado por espacio y conserva permisos por rol', () => {
   assert.doesNotThrow(() => new Function(cloudSync), 'cloud-state-sync.js debe tener sintaxis válida');
-  assert.match(html, /src="\.\/cloud-state-sync\.js(?:\?[^\"]*)?"/);
+  assert.match(html, /src="\.\/flebo-engine\.js(?:\?[^\"]*)?"/);
+  assert.doesNotThrow(() => new Function(fleboEngine), 'flebo-engine.js debe tener sintaxis válida');
+  assert.match(cloudSync, /engine\.measure\('cloud\.download'/);
+  assert.match(cloudSync, /engine\.schedule\('cloud-save'/);
+  assert.match(cloudSync, /function schedulePoll\(/);
   assert.match(html, /flebo:local-state-saved/);
   assert.match(sharedWorkspaceStateMigration, /primary key/i);
   assert.match(sharedWorkspaceStateMigration, /private\.member_has_workspace_role/);
@@ -437,7 +442,7 @@ test('las funciones SECURITY DEFINER de disparadores no quedan expuestas como RP
 
 test('cada función llamada desde un botón HTML tiene un manejador definido', async () => {
   const scriptPaths = [
-    'supabase-auth.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
+    'supabase-auth.js', 'flebo-engine.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
     'clinical-cloud-sync.js', 'domicilios.js', 'notifications-center.js',
     'configuracion.js', 'audit-history.js', 'notification-settings.js',
     'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
@@ -587,7 +592,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v247'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v248'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -860,7 +865,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v247/);
+  assert.match(serviceWorker, /fleboreport-shell-v248/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1079,7 +1084,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v247/);
+  assert.match(serviceWorker, /fleboreport-shell-v248/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
