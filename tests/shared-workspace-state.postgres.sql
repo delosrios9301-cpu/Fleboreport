@@ -17,6 +17,17 @@ create table public.workspace_members(
   role text not null,
   active boolean not null default true
 );
+create table public.workspace_roles(
+  workspace_id uuid not null,
+  role_key text not null,
+  active boolean not null default true,
+  primary key(workspace_id,role_key)
+);
+create table public.workspace_member_roles(
+  workspace_id uuid not null,
+  user_id uuid not null,
+  role_key text not null
+);
 create table public.workspace_app_state(
   workspace_id uuid not null,
   user_id uuid not null,
@@ -27,13 +38,24 @@ create table public.workspace_app_state(
 );
 create or replace function private.member_has_workspace_role(p_workspace_id uuid,p_user_id uuid,p_roles text[])
 returns boolean language sql stable security definer set search_path=''
-as $$
+as $
   select exists(
     select 1 from public.workspace_members wm
-    where wm.workspace_id=p_workspace_id and wm.user_id=p_user_id
-      and wm.active and wm.role=any(p_roles)
+    where wm.workspace_id=p_workspace_id and wm.user_id=p_user_id and wm.active
+      and (
+        exists(select 1 from public.workspace_roles wr
+          where wr.workspace_id=wm.workspace_id and wr.role_key=wm.role
+            and wr.active and wr.role_key=any(p_roles))
+        or exists(
+          select 1 from public.workspace_member_roles wmr
+          join public.workspace_roles wr
+            on wr.workspace_id=wmr.workspace_id and wr.role_key=wmr.role_key and wr.active
+          where wmr.workspace_id=wm.workspace_id and wmr.user_id=wm.user_id
+            and wmr.role_key=any(p_roles)
+        )
+      )
   )
-$$;
+$;
 create or replace function private.reset_workspace_completely(p_workspace_id uuid,p_confirmation text)
 returns table(deleted_tables integer,deleted_rows bigint,reset_epoch uuid)
 language sql security definer set search_path=''
@@ -51,6 +73,11 @@ insert into auth.users(id) values
 insert into public.workspaces(id) values
 ('10000000-0000-0000-0000-000000000001'),
 ('10000000-0000-0000-0000-000000000002');
+insert into public.workspace_roles(workspace_id,role_key) values
+('10000000-0000-0000-0000-000000000001','admin'),
+('10000000-0000-0000-0000-000000000001','reception'),
+('10000000-0000-0000-0000-000000000001','viewer'),
+('10000000-0000-0000-0000-000000000001','technician');
 insert into public.workspace_members(workspace_id,user_id,role) values
 ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','admin'),
 ('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','reception'),
