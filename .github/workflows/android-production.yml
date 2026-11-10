@@ -35,7 +35,7 @@ jobs:
           done
       - name: Install pinned Capacitor Android and native push packages
         run: |
-          npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capacitor/push-notifications@7.0.3
+          npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capacitor/push-notifications@7.0.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
       - name: Prepare bundled web application
         run: node scripts/prepare-android-web.mjs
       - name: Add Android platform
