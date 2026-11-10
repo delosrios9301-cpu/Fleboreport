@@ -193,6 +193,10 @@ test('la sincronización general comparte el estado por espacio y conserva permi
   assert.match(sharedWorkspaceStateMigration, /private\.member_has_workspace_role/);
   assert.match(cloudSync, /get_workspace_shared_app_state/);
   assert.match(cloudSync, /save_workspace_shared_app_state/);
+  assert.match(cloudSync, /if\(!ready\)\{pendingLocalChanges=true;/);
+  assert.match(cloudSync, /if\(dirtyAgain\|\|pendingLocalChanges\)/);
+  assert.match(cloudSync, /Guardado confirmado en la nube/);
+  assert.match(cloudSync, /flebo:cloud-save-failed/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
 });
 
