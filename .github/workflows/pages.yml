@@ -1,4 +1,4 @@
-name: Publicar FleboReport en GitHub Pages
+name: Publicar FleboReport y paquete OTA en GitHub Pages
 
 on:
   push:
@@ -22,13 +22,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Obtener archivos
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar herramientas de empaquetado y actualizador
+        run: npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
+      - name: Ejecutar pruebas
+        run: node --test
+      - name: Preparar recursos web
+        run: node scripts/prepare-android-web.mjs
+      - name: Crear paquete OTA y manifiesto verificado
+        env:
+          BUILD_VERSION: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p www/updates
+          (cd www && zip -X -q -r ../fleboreport-ota.zip . -x 'updates/*')
+          CHECKSUM="$(sha256sum fleboreport-ota.zip | cut -d' ' -f1)"
+          mv fleboreport-ota.zip "www/updates/${BUILD_VERSION}.zip"
+          cat > www/updates/latest.json <<EOF
+          {
+            "version": "${BUILD_VERSION}",
+            "url": "https://delosrios9301-cpu.github.io/Fleboreport/updates/${BUILD_VERSION}.zip",
+            "checksum": "${CHECKSUM}"
+          }
+          EOF
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preparar sitio estático
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: www
       - name: Publicar sitio
         id: deployment
         uses: actions/deploy-pages@v4
