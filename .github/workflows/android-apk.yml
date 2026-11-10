@@ -3,6 +3,7 @@ name: Build FleboReport Android APK
 on:
   push:
     branches:
+      - main
       - android/fleboreport-apk-20261109
   pull_request:
     paths:
