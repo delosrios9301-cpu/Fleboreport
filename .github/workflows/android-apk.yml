@@ -34,8 +34,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Instalar Capacitor
-        run: npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/android@7
+      - name: Instalar Capacitor y dependencias de empaquetado OTA
+        run: npm install --no-save @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
       - name: Preparar recursos web
         run: node scripts/prepare-android-web.mjs
       - name: Crear proyecto Android

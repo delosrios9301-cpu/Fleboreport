@@ -363,7 +363,7 @@ async function resolveSampleMasterRecords(sample){
  return {study,visit,type};
 }
 async function registerSample(sample){
- requireReady(['admin','clinician','reception']);
+ requireReady(['admin','clinician','technician','reception']);
  if(!sample)throw new Error('No se recibió la muestra.');
  let stage='vinculación de estudio, visita y tipo de muestra';
  try{
