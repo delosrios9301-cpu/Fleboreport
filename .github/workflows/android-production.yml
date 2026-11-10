@@ -1,6 +1,8 @@
 name: FleboReport Android Production Release
 
 on:
+  push:
+    branches: [rebuild/firebase-clean-2026-11-09]
   workflow_dispatch:
 
 permissions:
