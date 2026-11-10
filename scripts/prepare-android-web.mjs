@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -31,4 +31,21 @@ for (const file of files) {
 if (files.length === 0 || !files.includes('index.html')) {
   throw new Error('No se encontró index.html en los recursos Android.');
 }
-console.log(`Recursos web empaquetados: ${files.length} archivos.`);
+
+// Compile the native-only OTA bootstrap as a browser bundle. The website build
+// also includes it, but the script exits immediately outside a native runtime.
+execFileSync('npx', [
+  'esbuild', 'scripts/ota-bootstrap.mjs',
+  '--bundle', '--format=iife', '--platform=browser', '--target=es2020',
+  '--outfile=www/ota-bootstrap.js'
+], { stdio: 'inherit' });
+
+const indexPath = path.join(output, 'index.html');
+let html = await readFile(indexPath, 'utf8');
+if (!html.includes('ota-bootstrap.js')) {
+  const tag = '\n<script src="./ota-bootstrap.js"></script>\n';
+  if (html.includes('</body>')) html = html.replace('</body>', tag + '</body>');
+  else html += tag;
+  await writeFile(indexPath, html, 'utf8');
+}
+console.log(`Recursos web empaquetados: ${files.length} archivos + actualizador OTA.`);
