@@ -9,9 +9,12 @@ async function startFleboLiveUpdates() {
   if (!capacitor?.isNativePlatform?.()) return;
 
   // Must be acknowledged immediately on every launch to preserve rollback.
-  void CapacitorUpdater.notifyAppReady().catch(error => {
+  try {
+    await CapacitorUpdater.notifyAppReady();
+  } catch (error) {
     console.warn('[FleboReport OTA] No se pudo confirmar el bundle activo:', error);
-  });
+    return;
+  }
 
   try {
     const response = await fetch(MANIFEST_URL, { cache: 'no-store' });
