@@ -593,7 +593,7 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
 test('la sincronización de fondo evita el repintado global y protege formularios y selecciones', () => {
   assert.match(html, /refresh:function\(\)[\s\S]*?replace:function\(next,options\)[\s\S]*?if\(!options\.deferRender\)this\.refresh\(\)/);
   assert.match(html, /if\(view==='patients'\)renderPatients\(\)/);
-  assert.match(html, /if\(view==='journey'\)renderJourneyPatients\(\)/);
+  assert.match(html, /if\(view==='journey'\)\{syncJourneyFormFromState\(\);renderJourneyPatients\(\)\}/);
   assert.doesNotMatch(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
   assert.match(cloudSync, /replace\(safe,\{silent:true,deferRender:true\}\)/);
   assert.doesNotMatch(cloudSync, /FleboAppState\.refresh\(\)/);
@@ -618,7 +618,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v255'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v256'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -896,7 +896,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v255/);
+  assert.match(serviceWorker, /fleboreport-shell-v256/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1115,7 +1115,18 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v255/);
+  assert.match(serviceWorker, /fleboreport-shell-v256/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
+});
+
+test('la jornada actual se conserva al exportar y permite agregar pruebas desde el catálogo', () => {
+  assert.match(html, /function completeJourneyAfterExport\(\)\{\/\* Exportar archiva una copia del reporte, pero no cierra ni reinicia la jornada/);
+  assert.doesNotMatch(html, /function completeJourneyAfterExport\(\)[^\n]*p\.journeyId='';/);
+  assert.match(html, /id="catalogJourneyCompany"/);
+  assert.match(html, /function setCatalogJourneyCompany\(id\)/);
+  assert.match(html, /function addCatalogTestToJourney\(id\)/);
+  assert.match(html, /onclick="addCatalogTestToJourney/);
+  assert.match(html, /function syncJourneyFormFromState\(\)/);
+  assert.match(html, /Continuar jornada actual/);
 });
