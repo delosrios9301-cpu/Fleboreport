@@ -32,7 +32,7 @@
  function updateAuthLayout(){
   const auth=window.FleboAuth||{};
   const ok=!!(auth.user&&auth.membership&&auth.membership.active===true);
-  document.body.classList.toggle('fr2-app-authorized',ok);
+  document.body.classList.toggle('fr2-app-authorized',ok); const sidebar=$('sidebar'); if(sidebar&&ok&&window.innerWidth>760)sidebar.setAttribute('aria-hidden','false');
   const role=document.querySelector('.fr2-brand-copy small');
   if(role&&ok){const roleName=roleNames[auth.membership.role]||'Espacio de trabajo';role.textContent='GESTIÓN CLÍNICA · '+roleName.toUpperCase();}
   const signout=$('fleboGlobalSignOut');
