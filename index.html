@@ -630,7 +630,7 @@ body.module-menu-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){#view-home .op-kpi,#view-home .op-quick button{transition:none}}
 </style>
 <style id="fleboreport-stable-startup">body:not(.flebo-authenticated) .app-shell,body.flebo-authenticated:not(.flebo-cloud-ready) .app-shell{visibility:hidden!important}body.flebo-authenticated.flebo-cloud-ready .app-shell{visibility:visible!important}</style>
-<link rel="stylesheet" href="./fleboreport-v2.css?v=20261111-jornada3">
+<link rel="stylesheet" href="./fleboreport-v2.css?v=20261111-jornada4">
 
 <style id="fr-dashboard-header-fix">
 /* Cabecera limpia: marca visible, sin solapamientos ni estado técnico de nube. */
@@ -809,10 +809,9 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
     <div class="field"><label for="journeyPatientId">Cédula / identificación *</label><input id="journeyPatientId" autocomplete="off" placeholder="Número de identificación"></div>
     <div class="field full journey-test-field">
      <label for="journeyPatientTestSearch">Buscar pruebas del catálogo</label>
-     <input id="journeyPatientTestSearch" type="search" placeholder="Escribe el nombre o código de la prueba…" autocomplete="off" oninput="filterJourneyPatientTests(this.value)" aria-controls="journeyPatientTestChoices">
-     <div class="journey-test-results" id="journeyTestPicker">
-      <div class="journey-test-results-heading"><strong>Pruebas disponibles</strong><span id="journeyPatientTestSummary">0 pruebas disponibles</span></div>
-      <div id="journeyPatientTestChoices" class="test-choice-list" role="group" aria-label="Resultados de búsqueda de pruebas"></div>
+     <input id="journeyPatientTestSearch" type="search" placeholder="Escribe el nombre de la prueba que buscas…" autocomplete="off" oninput="filterJourneyPatientTests(this.value)" aria-controls="journeyPatientTestChoices">
+     <div class="journey-test-results" id="journeyTestPicker" hidden>
+      <div id="journeyPatientTestChoices" class="test-choice-list" role="group" aria-label="Pruebas que coinciden con la búsqueda"></div>
      </div>
      <div id="journeySelectedTestChips" class="journey-selected-tests" aria-live="polite"><span class="journey-no-tests">Todavía no has seleccionado pruebas.</span></div>
      <small class="field-help">Cada prueba muestra el recipiente configurado en el catálogo. Puedes seleccionar varias.</small>
@@ -1172,53 +1171,54 @@ function deleteCompany(id){const c=state.companies.find(function(x){return x.id=
 function renderCompanies(){const host=$('companyList');if(!host)return;$('companyCount').textContent=state.companies.length;host.innerHTML=state.companies.length?state.companies.map(function(c){return '<div class="list-row"><span><strong>'+esc(c.name)+'</strong><small>'+esc([c.city,c.contact].filter(Boolean).join(' · ')||'Sin detalles adicionales')+'</small></span><button class="btn danger" data-company-delete="'+esc(c.id)+'">Eliminar</button></div>'}).join(''):'<div class="empty-state">Aún no agregas empresas.</div>';host.querySelectorAll('[data-company-delete]').forEach(function(b){b.onclick=function(){deleteCompany(b.dataset.companyDelete)}});populateCompanyOptions()}
 function populateCompanyOptions(){const select=$('journeyCompany');if(!select)return;const selected=state.journey.companyId||'';select.innerHTML='<option value="">Sin especificar</option>'+state.companies.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');select.value=selected}
 function saveJourneyCompany(){const name=$('journeyNewCompany').value.trim();if(!name){toast('Escribe el nombre de la empresa.');$('journeyNewCompany').focus();return}let company=state.companies.find(function(c){return c.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es')});if(!company){company={id:'c-'+Date.now(),name:name,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}state.journey.companyId=company.id;touchJourney();$('journeyNewCompany').value='';save();renderCompanies();$('journeyCompany').value=company.id;renderReport();toast('Empresa guardada y seleccionada.')}
+function normalizeJourneyPatientTestSearch(value){
+ return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/\s+/g,' ').trim();
+}
 function updateJourneyPatientTestSummary(){
- const selected=Array.from(document.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value});
- const count=selected.length,label=$('journeyPatientTestSummary'),host=$('journeySelectedTestChips');
- if(label)label.textContent=count?count+' prueba'+(count===1?'':'s')+' seleccionada'+(count===1?'':'s'):'Seleccionar pruebas del catálogo';
+ const draft=readJourneyDraft(),selectedIds=Array.isArray(draft.selectedTestIds)?draft.selectedTestIds.map(String):[];
+ const host=$('journeySelectedTestChips');
  if(host){
   const catalog=Array.isArray(state.catalog)?state.catalog:[];
-  const chips=selected.map(function(id){return catalog.find(function(t){return String(t.id)===String(id)})}).filter(Boolean);
+  const chips=selectedIds.map(function(id){return catalog.find(function(t){return String(t.id)===id})}).filter(Boolean);
   host.innerHTML=chips.length?chips.map(function(t){return '<span class="journey-test-chip"><span class="journey-test-chip-icon">'+vesselSvg(t)+'</span><strong>'+esc(t.name||'Prueba')+'</strong></span>'}).join(''):'<span class="journey-no-tests">Todavía no has seleccionado pruebas.</span>';
  }
 }
 function renderJourneyPatientChoices(){
- const host=$('journeyPatientTestChoices');if(!host)return;
- const draft=readJourneyDraft(),selected=new Set(draft.selectedTestIds);
- const activeTests=(Array.isArray(state.catalog)?state.catalog:[]).filter(function(t){return t&&t.active!==false&&t.id});
+ const host=$('journeyPatientTestChoices'),panel=$('journeyTestPicker'),search=$('journeyPatientTestSearch');
+ if(!host||!panel)return;
+ const term=normalizeJourneyPatientTestSearch(search&&search.value||'');
+ const draft=readJourneyDraft(),selected=new Set((Array.isArray(draft.selectedTestIds)?draft.selectedTestIds:[]).map(String));
+ if(!term){
+  panel.hidden=true;
+  host.innerHTML='';
+  updateJourneyPatientTestSummary();
+  return;
+ }
+ const tokens=term.split(' ').filter(Boolean);
+ const activeTests=(Array.isArray(state.catalog)?state.catalog:[]).filter(function(t){
+  if(!t||t.active===false||!t.id)return false;
+  const searchable=normalizeJourneyPatientTestSearch([t.name,t.code,t.testCode,t.abbreviation,t.sample,t.vessel].filter(Boolean).join(' '));
+  return tokens.every(function(token){return searchable.includes(token)});
+ });
+ panel.hidden=false;
  host.innerHTML=activeTests.length?activeTests.map(function(t){
-  const searchText=[t.name,t.sample,t.vessel,t.volume,t.method,t.fasting,t.conditions,t.instructions].filter(Boolean).join(' ').toLocaleLowerCase('es');
-  return '<label class="test-choice" data-test-search="'+esc(searchText)+'"><input type="checkbox" name="journeyPatientTest" value="'+esc(t.id)+'" '+(selected.has(String(t.id))?'checked':'')+'><span class="test-choice-icon">'+vesselSvg(t)+'</span><span class="test-choice-copy"><span class="choice-name">'+esc(t.name||'Prueba sin nombre')+'</span><small>'+esc(t.vessel||t.sample||'Recipiente según catálogo')+'</small></span><span class="choice-selected">Seleccionada</span></label>';
- }).join(''):'<div class="empty-state journey-test-empty">No hay pruebas activas disponibles en el catálogo.</div>';
+  return '<label class="test-choice '+(selected.has(String(t.id))?'selected':'')+'" data-test-search="'+esc(normalizeJourneyPatientTestSearch([t.name,t.code,t.testCode,t.abbreviation,t.sample,t.vessel].filter(Boolean).join(' ')))+'"><input type="checkbox" name="journeyPatientTest" value="'+esc(t.id)+'" '+(selected.has(String(t.id))?'checked':'')+'><span class="test-choice-icon">'+vesselSvg(t)+'</span><span class="test-choice-copy"><span class="choice-name">'+esc(t.name||'Prueba sin nombre')+'</span><small>'+esc(t.vessel||t.sample||'Recipiente según catálogo')+'</small></span><span class="choice-selected">Seleccionada</span></label>';
+ }).join(''):'<div class="empty-state journey-filter-empty" role="status">No se encontraron pruebas que coincidan con tu búsqueda.</div>';
  host.querySelectorAll('input[name="journeyPatientTest"]').forEach(function(input){
   input.onchange=function(){
+   const current=readJourneyDraft(),ids=new Set((Array.isArray(current.selectedTestIds)?current.selectedTestIds:[]).map(String));
+   if(input.checked)ids.add(String(input.value));else ids.delete(String(input.value));
+   persistJourneyDraft({selectedTestIds:Array.from(ids)});
    input.closest('.test-choice').classList.toggle('selected',input.checked);
-   persistJourneyDraft({selectedTestIds:Array.from(host.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value})});
    updateJourneyPatientTestSummary();
   };
-  if(input.checked)input.closest('.test-choice').classList.add('selected');
  });
- filterJourneyPatientTests($('journeyPatientTestSearch')&&$('journeyPatientTestSearch').value||'');
  updateJourneyPatientTestSummary();
 }
 function filterJourneyPatientTests(value){
- const term=String(value||'').trim().toLocaleLowerCase('es');
- const host=$('journeyPatientTestChoices');if(!host)return;
- let visible=0;
- host.querySelectorAll('.test-choice').forEach(function(item){
-  const match=!term||String(item.dataset.testSearch||'').includes(term);
-  item.hidden=!match;
-  item.style.display=match?'grid':'none';
-  if(match)visible++;
- });
- let empty=host.querySelector('.journey-filter-empty');
- if(!visible){
-  if(!empty){empty=document.createElement('div');empty.className='empty-state journey-filter-empty';host.appendChild(empty)}
-  empty.textContent=term?'No se encontraron pruebas con ese nombre o código.':'No hay pruebas activas disponibles en el catálogo.';
-  empty.hidden=false;
- }else if(empty){empty.hidden=true}
- const heading=$('journeyPatientTestSummary');
- if(heading)heading.textContent=term?visible+' resultado'+(visible===1?'':'s')+' encontrado'+(visible===1?'':'s'):visible+' prueba'+(visible===1?'':'s')+' disponible'+(visible===1?'':'s');
+ const search=$('journeyPatientTestSearch');
+ if(search&&search.value!==String(value||''))search.value=String(value||'');
+ renderJourneyPatientChoices();
 }
 
 function renderJourneyPatients(){
