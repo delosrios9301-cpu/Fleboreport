@@ -94,10 +94,11 @@ function mergeState(remote,local){
  out.company=Object.assign({},local&&local.company||{},remote&&remote.company||{});
  if(local&&local.company)Object.keys(local.company).forEach(k=>{if((out.company[k]===''||out.company[k]==null)&&local.company[k])out.company[k]=local.company[k]});
  const remoteJourney=remote&&remote.journey||{},localJourney=local&&local.journey||{};
- const remoteJourneyHas=!!(remoteJourney.start||remoteJourney.end||remoteJourney.responsible||remoteJourney.companyId);
- const localJourneyHas=!!(localJourney.start||localJourney.end||localJourney.responsible||localJourney.companyId);
- out.journey=localJourneyHas&&!remoteJourneyHas?Object.assign({},remoteJourney,localJourney):Object.assign({},localJourney,remoteJourney);
- out.selected=Array.isArray(remote&&remote.selected)?remote.selected:(local&&local.selected||[]);
+ const localJourneyNewer=stamp(localJourney)>stamp(remoteJourney);
+ out.journey=localJourneyNewer?Object.assign({},remoteJourney,localJourney):Object.assign({},localJourney,remoteJourney);
+ // El contador de pruebas pertenece a la jornada activa. Si la jornada local es más reciente,
+ // conservar su selección junto con sus pacientes y entradas en lugar de restaurar un snapshot viejo.
+ out.selected=localJourneyNewer&&Array.isArray(local&&local.selected)?local.selected:(Array.isArray(remote&&remote.selected)?remote.selected:(local&&local.selected||[]));
  return out;
 }
 async function hashState(s){
@@ -176,6 +177,7 @@ function applyCloudState(s,clearClinical){
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(!clearClinical&&Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
  window.FleboAppState.replace(safe,{silent:true,deferRender:true});
+ window.dispatchEvent(new Event('flebo:cloud-state-applied'));
  if(clearClinical)window.dispatchEvent(new Event('flebo:clinical-cache-reset'));
 }
 async function publishMerged(local,remote,expected){
