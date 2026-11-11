@@ -1166,3 +1166,17 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
   assert.match(serviceWorker, /fleboreport-shell-v262/);
 });
+
+
+test('Jornada conserva borradores y reconstruye el selector tras sincronizar o volver al módulo', () => {
+  assert.match(html, /function journeyDraftKey\(\)/);
+  assert.match(html, /localStorage\.setItem\(journeyDraftKey\(\),JSON\.stringify\(value\)\)/);
+  assert.match(html, /function syncJourneyFormFromState\(\)[\s\S]*?renderJourneyPatientChoices\(\)/);
+  assert.match(html, /function renderJourneyPatientChoices\(\)[\s\S]*?readJourneyDraft\(\)/);
+  assert.match(html, /window\.addEventListener\('flebo:cloud-state-applied'/);
+  assert.match(html, /function registerJourneyPatient\(\)[\s\S]*?createdAt:now,updatedAt:now/);
+  assert.match(html, /entry\.updatedAt=now/);
+  assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
+  assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
+  assert.match(serviceWorker, /fleboreport-shell-v262/);
+});
