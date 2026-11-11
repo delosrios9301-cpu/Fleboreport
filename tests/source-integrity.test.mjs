@@ -1204,7 +1204,10 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(html, /onclick="openJourneyReportSetup\(\)">Generar reporte/);
   assert.match(html, /id="journeyReportSetup" class="journey-report-setup" hidden/);
   assert.match(html, /id="journeyReportCompanyInput" required/);
-  assert.match(html, /<select id="journeyReportCompanyInput" required>/);
+  assert.match(html, /id="journeyReportCompanyTrigger"/);
+  assert.match(html, /id="journeyReportCompanyOptions"/);
+  assert.match(html, /function toggleJourneyReportCompanyOptions\(\)/);
+  assert.match(html, /function selectJourneyReportCompany\(id\)/);
   assert.match(html, /state\.companies\|\|\[\]/);
   assert.match(html, /function confirmJourneyReportSetup\(event\)[\s\S]*?find\(function\(x\)\{return x\.id===companyId\}\)/);
   assert.doesNotMatch(html, /if\(!company\)\{company=\{id:'c-'/);
@@ -1258,4 +1261,13 @@ test('Jornada muestra primero al paciente agregado más recientemente y conserva
   assert.match(source, /lastAddedAt\|\|a\.createdAt/);
   assert.match(html, /if\(added\.length\)entry\.lastAddedAt=now/);
   assert.match(html, /testStatuses:statuses,createdAt:now,lastAddedAt:now,updatedAt:now/);
+});
+
+test('el cierre de PNG y PDF archiva el reporte y deja una jornada nueva vacía sin borrar empresas ni expedientes', () => {
+  assert.match(html, /function completeJourneyAfterExport\(\)[\s\S]*?state\.selected=\[\]/);
+  assert.match(html, /state\.includeJourneyPatients=false/);
+  assert.match(html, /function generateReportPDF\(\)[\s\S]*?window\.addEventListener\('afterprint',finish/);
+  assert.doesNotMatch(html, /window\.print\(\);setTimeout\(finish,1200\)/);
+  assert.match(html, /function downloadPNG\(\)[\s\S]*?archiveCurrentReport\('png'\)[\s\S]*?setTimeout\(completeJourneyAfterExport,350\)/);
+  assert.match(html, /state\.journey=\{id:'j-'\+Date\.now\(\)/);
 });
