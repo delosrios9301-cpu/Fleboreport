@@ -83,8 +83,9 @@ async function syncNow(options){
     pendingKeys.clear();initialized=true;
     return;
    }
-   if(saveList(remote))refreshPatientViews();
-   lastContent=new Map(remote.map(p=>[keyOf(p),contentOf(p)]));
+   const combined=merge(local,remote);
+   if(saveList(combined))refreshPatientViews();
+   lastContent=new Map(combined.map(p=>[keyOf(p),contentOf(p)]));
    pendingKeys.clear();initialized=true;
    return;
   }
@@ -105,8 +106,9 @@ async function syncNow(options){
    lastContent=new Map(currentPatients.map(p=>[keyOf(p),contentOf(p)]));
    return;
   }
-  if(saveList(latest))refreshPatientViews();
-  lastContent=new Map(latest.map(p=>[keyOf(p),contentOf(p)]));
+  const combined=merge(currentPatients,latest);
+  if(saveList(combined))refreshPatientViews();
+  lastContent=new Map(combined.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{busy=false;if(dirty)schedule(300)}
 }
