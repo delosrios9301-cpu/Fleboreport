@@ -835,7 +835,7 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 </div>
 
 <section class="panel journey-report-footer">
- <div><div class="eyebrow">CIERRE Y REPORTE</div><h2>Reporte de la jornada</h2><p id="journeyReportSummary">0 pacientes · 0 pruebas acumuladas</p><small>La vista previa permite revisar el reporte y descargarlo como PDF o PNG. Generarlo no elimina los datos ni cierra la jornada.</small></div>
+ <div><div class="eyebrow">CIERRE Y REPORTE</div><h2>Reporte de la jornada</h2><p id="journeyReportSummary">0 pacientes · 0 pruebas acumuladas</p><small>Revisa el reporte y descárgalo como PNG o imprímelo en PDF. Al completar la exportación, la jornada se cierra y queda lista una nueva.</small></div>
  <button class="btn primary journey-report-button" type="button" onclick="openJourneyReportSetup()">Generar reporte <span aria-hidden="true">→</span></button>
 </section>
 <div id="journeyReportSetup" class="journey-report-setup" hidden>
@@ -845,7 +845,7 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
   <p>Confirma estos datos. Se guardarán en la jornada y aparecerán en el reporte.</p>
   <form id="journeyReportSetupForm" onsubmit="confirmJourneyReportSetup(event)">
    <div class="fields">
-    <div class="field full"><label for="journeyReportCompanyInput">Empresa</label><input id="journeyReportCompanyInput" type="text" list="journeyReportCompanyOptions" placeholder="Nombre de la empresa" autocomplete="organization" required><datalist id="journeyReportCompanyOptions"></datalist></div>
+    <div class="field full"><label>Empresa registrada</label><input id="journeyReportCompanyInput" type="hidden" required><div class="journey-report-company-picker"><button id="journeyReportCompanyTrigger" class="journey-report-company-trigger" type="button" aria-haspopup="listbox" aria-expanded="false" onclick="toggleJourneyReportCompanyOptions()">Selecciona una empresa registrada <span aria-hidden="true">▾</span></button><div id="journeyReportCompanyOptions" class="journey-report-company-options" role="listbox" aria-label="Empresas registradas" hidden></div></div></div>
     <div class="field full"><label for="journeyReportResponsibleInput">Responsable de la jornada</label><input id="journeyReportResponsibleInput" type="text" placeholder="Nombre del responsable" autocomplete="name" required></div>
     <div class="field full"><label for="journeyReportDateInput">Fecha de la jornada</label><input id="journeyReportDateInput" type="date" required></div>
     <div class="field"><label for="journeyReportStartInput">Hora de inicio</label><input id="journeyReportStartInput" type="time" required></div>
@@ -1189,7 +1189,18 @@ function renderPatients(){const host=$('patientList'),term=$('patientSearch').va
 function deletePatient(id){var entry=state.journeyEntries.find(function(e){return e.id===id&&e.journeyId===state.journey.id});if(entry){(entry.testIds||[]).forEach(function(testId){var item=state.selected.find(function(x){return x.testId===testId});if(item)item.count-=1});state.journeyEntries=state.journeyEntries.filter(function(e){return e.id!==id})}else{var patient=state.patients.find(function(p){return p.id===id});if(patient&&patient.journeyId===state.journey.id){(patient.testIds||[]).forEach(function(testId){var item=state.selected.find(function(x){return x.testId===testId});if(item)item.count-=1});patient.journeyId='';patient.testIds=[];patient.testStatuses={}}else{state.patients=state.patients.filter(function(p){return p.id!==id})}}state.selected=state.selected.filter(function(x){return x.count>0});save();renderAll()}
 function setStyle(style){state.style=style;$('reportCard').classList.toggle('formal',style==='formal');$('reportCard').classList.toggle('infographic',style==='infographic');document.querySelectorAll('[data-style]').forEach(function(b){b.classList.toggle('active',b.dataset.style===style)});save()}
 function newJourney(){var hasWork=!!(totalTests()||patientsForJourney().length),hasReport=(state.reportHistory||[]).some(function(r){return r&&r.snapshot&&String(r.snapshot.journeyId||'')===String(state.journey.id||'')});if(hasWork&&!hasReport){toast('Antes de iniciar otra jornada, genera y guarda el reporte de la jornada actual. Sus datos permanecerán aquí.');return}if(hasWork&&!confirm('¿Iniciar una jornada nueva? El reporte de la jornada actual ya está guardado y los datos históricos se conservarán.'))return;clearJourneyDraft();state.journey={id:'j-'+Date.now(),date:new Date().toISOString().slice(0,10),start:'',end:'',responsible:'',companyId:'',updatedAt:new Date().toISOString()};state.selected=[];$('journeyDate').value=state.journey.date;$('journeyStart').value='';$('journeyEnd').value='';$('journeyResponsible').value='';$('journeyPatientName').value='';$('journeyPatientId').value='';$('journeyPatientTestSearch').value='';save();renderAll();navigate('journey')}
-function completeJourneyAfterExport(){/* Exportar archiva una copia del reporte, pero no cierra ni reinicia la jornada. Los datos permanecen disponibles para continuar agregando muestras. */save();renderAll();toast('Reporte guardado en el historial. La jornada sigue abierta y puedes continuar agregando muestras.')}
+function completeJourneyAfterExport(){
+ var finishedJourneyId=state.journey&&state.journey.id||'';
+ clearJourneyDraft();
+ state.journey={id:'j-'+Date.now(),date:new Date().toISOString().slice(0,10),start:'',end:'',responsible:'',companyId:'',updatedAt:new Date().toISOString()};
+ state.selected=[];
+ state.includeJourneyPatients=false;
+ $('journeyDate').value=state.journey.date;$('journeyStart').value='';$('journeyEnd').value='';$('journeyResponsible').value='';
+ $('journeyPatientName').value='';$('journeyPatientId').value='';$('journeyPatientTestSearch').value='';$('includePatientList').checked=false;
+ if(!save()){toast('El reporte quedó archivado, pero no se pudo guardar el inicio limpio de la nueva jornada.');return}
+ renderAll();populateCompanyOptions();navigate('journey');
+ toast('Reporte archivado. La jornada '+finishedJourneyId+' quedó cerrada y ya puedes comenzar una nueva.');
+}
 function exportLocalBackup(){try{var payload={format:'FleboReport-local-backup',version:1,exportedAt:new Date().toISOString(),appState:state},blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FleboReport-respaldo-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},1000);auditAdd('Datos locales','Descargó respaldo completo');toast('Respaldo descargado. Guárdalo en un lugar privado.')}catch(e){toast('No se pudo generar el respaldo.')} }
 function restoreLocalBackup(input){var file=input&&input.files&&input.files[0];if(!file)return;if(file.size>25*1024*1024){input.value='';toast('El respaldo supera 25 MB. El almacenamiento local del navegador puede no admitirlo.');return}var reader=new FileReader();reader.onload=function(){try{var parsed=JSON.parse(String(reader.result||'')),incoming=parsed&&parsed.format==='FleboReport-local-backup'?parsed.appState:parsed;if(!incoming||typeof incoming!=='object'||!incoming.company||!Array.isArray(incoming.catalog)||!incoming.journey||!Array.isArray(incoming.patients)||!Array.isArray(incoming.companies)||!Array.isArray(incoming.clinicalSamples)){throw new Error('invalid backup')}if(!confirm('Se reemplazarán los datos actuales de este navegador. Asegúrate de haber descargado un respaldo actual. ¿Restaurar ahora?')){input.value='';return}var previous=state;try{state=incoming;localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch(e){state=previous;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(previous))}catch(ignore){}throw e}renderAll();if(typeof renderClinicalStudies==='function')renderClinicalStudies();if(typeof renderAuditLog==='function')renderAuditLog();if(typeof populateCompanyOptions==='function')populateCompanyOptions();if(typeof updateCompanyPreview==='function')updateCompanyPreview();auditAdd('Datos locales','Restauró respaldo local de '+(parsed.exportedAt||'fecha no indicada'));toast('Respaldo restaurado correctamente en este dispositivo.')}catch(e){toast('El archivo no es un respaldo FleboReport válido o no cabe en el almacenamiento local.')}finally{input.value=''}};reader.onerror=function(){input.value='';toast('No se pudo leer el archivo de respaldo.')};reader.readAsText(file)}
 function clearWorkspace(){if(!confirm('Se borrarán el catálogo, empresas, datos del laboratorio, pacientes y jornada de esta versión. ¿Continuar?'))return;state=EMPTY_STATE();localStorage.removeItem(STORAGE_KEY);$('companyName').value='';$('companyContact').value='';$('journeyDate').value=state.journey.date;$('journeyStart').value='';$('journeyEnd').value='';$('journeyResponsible').value='';$('companyLogo').value='';$('logoStatus').textContent='Aún no hay logotipo cargado.';renderAll();populateCompanyOptions();updateCompanyPreview();toast('Datos de esta versión borrados.');}
@@ -1413,30 +1424,51 @@ document.addEventListener('DOMContentLoaded',function(){indNormPatients();render
 var activeArchivedReportId=null;
 function openJourneyReportSetup(){
  if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}
- var company=(state.companies.find(function(x){return x.id===state.journey.companyId})||{}).name||'';
- $('journeyReportCompanyInput').value=company;
+ renderCompanies();
+ var companies=(state.companies||[]).filter(function(x){return x&&x.id&&String(x.name||'').trim()});
+ var selectedCompany=companies.find(function(x){return x.id===state.journey.companyId});
+ $('journeyReportCompanyInput').value=selectedCompany?selectedCompany.id:'';
+ $('journeyReportCompanyTrigger').innerHTML=(selectedCompany?esc(selectedCompany.name):'Selecciona una empresa registrada')+' <span aria-hidden="true">▾</span>';
+ $('journeyReportCompanyOptions').innerHTML=companies.length?companies.map(function(x){return '<button class="journey-report-company-option" type="button" role="option" aria-selected="'+(selectedCompany&&selectedCompany.id===x.id?'true':'false')+'" data-report-company="'+esc(x.id)+'" onclick="selectJourneyReportCompany(\''+esc(x.id)+'\')">'+esc(x.name)+'</button>'}).join(''):'<div class="journey-report-company-empty">No hay empresas registradas. Registra una en el módulo Empresas.</div>';
+ $('journeyReportCompanyOptions').hidden=true;
+ $('journeyReportCompanyTrigger').setAttribute('aria-expanded','false');
  $('journeyReportResponsibleInput').value=state.journey.responsible||'';
  $('journeyReportDateInput').value=state.journey.date||new Date().toLocaleDateString('en-CA');
  $('journeyReportStartInput').value=state.journey.start||'';
  $('journeyReportEndInput').value=state.journey.end||'';
- $('journeyReportCompanyOptions').innerHTML=(state.companies||[]).map(function(x){return '<option value="'+esc(x.name)+'"></option>'}).join('');
  $('journeyReportSetup').hidden=false;
  setTimeout(function(){$('journeyReportCompanyInput').focus()},40);
+}
+function toggleJourneyReportCompanyOptions(){
+ var list=$('journeyReportCompanyOptions'),trigger=$('journeyReportCompanyTrigger');
+ if(!list||!trigger)return;
+ var opening=list.hidden;
+ list.hidden=!opening;
+ trigger.setAttribute('aria-expanded',opening?'true':'false');
+}
+function selectJourneyReportCompany(id){
+ var company=(state.companies||[]).find(function(x){return x&&x.id===id});
+ if(!company)return;
+ $('journeyReportCompanyInput').value=company.id;
+ $('journeyReportCompanyTrigger').innerHTML=esc(company.name)+' <span aria-hidden="true">▾</span>';
+ $('journeyReportCompanyOptions').hidden=true;
+ $('journeyReportCompanyTrigger').setAttribute('aria-expanded','false');
+ $('journeyReportCompanyOptions').querySelectorAll('[data-report-company]').forEach(function(option){option.setAttribute('aria-selected',option.dataset.reportCompany===id?'true':'false')});
 }
 function closeJourneyReportSetup(){$('journeyReportSetup').hidden=true}
 function confirmJourneyReportSetup(event){
  if(event)event.preventDefault();
- var companyName=$('journeyReportCompanyInput').value.trim(),responsible=$('journeyReportResponsibleInput').value.trim(),date=$('journeyReportDateInput').value,start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
- if(!companyName||!responsible||!date||!start||!end){toast('Completa la empresa, el responsable, la fecha y las dos horas.');return}
+ var companyId=$('journeyReportCompanyInput').value,responsible=$('journeyReportResponsibleInput').value.trim(),date=$('journeyReportDateInput').value,start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
+ if(!companyId||!responsible||!date||!start||!end){toast('Selecciona una empresa registrada y completa el responsable, la fecha y las dos horas.');return}
  if(end<=start){toast('La hora de finalización debe ser posterior a la hora de inicio.');$('journeyReportEndInput').focus();return}
- var company=(state.companies||[]).find(function(x){return String(x.name||'').trim().toLocaleLowerCase('es')===companyName.toLocaleLowerCase('es')});
- if(!company){company={id:'c-'+Date.now(),name:companyName,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}
+ var company=(state.companies||[]).find(function(x){return x.id===companyId});
+ if(!company){toast('La empresa seleccionada ya no está disponible. Actualiza la lista e inténtalo nuevamente.');openJourneyReportSetup();return}
  state.journey.companyId=company.id;state.journey.responsible=responsible;state.journey.date=date;state.journey.start=start;state.journey.end=end;touchJourney();
  $('journeyCompany').value=company.id;$('journeyResponsible').value=responsible;$('journeyDate').value=date;$('journeyStart').value=start;$('journeyEnd').value=end;
  if(!save()){toast('No se pudieron guardar los datos. Inténtalo nuevamente.');return}
  closeJourneyReportSetup();renderReport();renderCompanies();navigate('reports');
 }
-function generateReportPDF(){if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}if(!archiveCurrentReport('pdf'))return;var completed=false;function finish(){if(completed)return;completed=true;window.removeEventListener('afterprint',finish);completeJourneyAfterExport()}window.addEventListener('afterprint',finish,{once:true});window.print();setTimeout(finish,1200)}
+function generateReportPDF(){if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}if(!archiveCurrentReport('pdf'))return;var completed=false;function finish(){if(completed)return;completed=true;window.removeEventListener('afterprint',finish);completeJourneyAfterExport()}window.addEventListener('afterprint',finish,{once:true});window.print()}
 function archiveLogoId(data){if(!data)return'';var hash=2166136261;for(var i=0;i<data.length;i++)hash=Math.imul(hash^data.charCodeAt(i),16777619);return'logo-'+(hash>>>0).toString(16)+'-'+data.length}
 function archiveCurrentReport(format){
  if(!totalTests())return null;
@@ -3397,6 +3429,6 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 
 
 <style>
-.journey-report-setup[hidden]{display:none!important}.journey-report-setup{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px}.journey-report-setup-backdrop{position:absolute;inset:0;background:rgba(8,25,40,.66);backdrop-filter:blur(5px)}.journey-report-setup-card{position:relative;width:min(100%,560px);max-height:min(92dvh,760px);overflow:auto;background:var(--panel,#fff);color:var(--text,#17364b);border:1px solid var(--border,#dce6ec);border-radius:22px;padding:clamp(20px,4vw,30px);box-shadow:0 24px 80px rgba(0,0,0,.28)}.journey-report-setup-card h2{margin:7px 0 8px}.journey-report-setup-card>p{margin:0 0 20px;color:var(--muted,#647989)}.journey-report-setup-card .form-actions{justify-content:flex-end;margin-top:22px}@media(max-width:520px){.journey-report-setup{padding:10px;align-items:end}.journey-report-setup-card{border-radius:20px 20px 12px 12px;padding:20px 16px}.journey-report-setup-card .fields{grid-template-columns:1fr 1fr}.journey-report-setup-card .field.full{grid-column:1/-1}.journey-report-setup-card .form-actions{display:grid;grid-template-columns:1fr 1fr}}
+.journey-report-setup[hidden]{display:none!important}.journey-report-company-picker{position:relative}.journey-report-company-trigger{width:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid var(--border,#dce6ec);border-radius:12px;background:var(--field,#fff);color:var(--text,#17364b);font:inherit;text-align:left;cursor:pointer}.journey-report-company-trigger:focus-visible,.journey-report-company-option:focus-visible{outline:3px solid rgba(12,139,131,.3);outline-offset:2px}.journey-report-company-options{display:grid;gap:4px;max-height:230px;overflow-y:auto;margin-top:6px;padding:6px;border:1px solid var(--border,#dce6ec);border-radius:12px;background:var(--panel,#fff);box-shadow:0 10px 28px rgba(10,35,52,.14)}.journey-report-company-options[hidden]{display:none!important}.journey-report-company-option{width:100%;padding:11px 12px;border:0;border-radius:8px;background:transparent;color:var(--text,#17364b);font:inherit;text-align:left;cursor:pointer}.journey-report-company-option:hover,.journey-report-company-option[aria-selected="true"]{background:rgba(12,139,131,.11);color:var(--text,#17364b)}.journey-report-company-empty{padding:12px;color:var(--muted,#647989);font-size:13px}.journey-report-setup{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px}.journey-report-setup-backdrop{position:absolute;inset:0;background:rgba(8,25,40,.66);backdrop-filter:blur(5px)}.journey-report-setup-card{position:relative;width:min(100%,560px);max-height:min(92dvh,760px);overflow:auto;background:var(--panel,#fff);color:var(--text,#17364b);border:1px solid var(--border,#dce6ec);border-radius:22px;padding:clamp(20px,4vw,30px);box-shadow:0 24px 80px rgba(0,0,0,.28)}.journey-report-setup-card h2{margin:7px 0 8px}.journey-report-setup-card>p{margin:0 0 20px;color:var(--muted,#647989)}.journey-report-setup-card .form-actions{justify-content:flex-end;margin-top:22px}@media(max-width:520px){.journey-report-setup{padding:10px;align-items:end}.journey-report-setup-card{border-radius:20px 20px 12px 12px;padding:20px 16px}.journey-report-setup-card .fields{grid-template-columns:1fr 1fr}.journey-report-setup-card .field.full{grid-column:1/-1}.journey-report-setup-card .form-actions{display:grid;grid-template-columns:1fr 1fr}}
 </style>
 </body></html>

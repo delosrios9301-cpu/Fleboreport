@@ -625,7 +625,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v266'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v268'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -903,7 +903,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1122,13 +1122,13 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
 
 test('el catálogo es maestro y las pruebas se agregan desde Jornada al registrar cada paciente', () => {
-  assert.match(html, /function completeJourneyAfterExport\(\)\{\/\* Exportar archiva una copia del reporte, pero no cierra ni reinicia la jornada/);
+  assert.match(html, /function completeJourneyAfterExport\(\)[\s\S]*?state\.selected=\[\]/);
   assert.doesNotMatch(html, /function completeJourneyAfterExport\(\)[^\n]*p\.journeyId='';/);
   assert.doesNotMatch(html, /Jornada actual<\/button>/);
   assert.doesNotMatch(html, /addCatalogTestToJourney|catalogJourneyCompany|Continuar jornada actual/);
@@ -1174,7 +1174,7 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
   assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
 });
 
 
@@ -1190,7 +1190,7 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
 });
 
 
@@ -1203,7 +1203,15 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(html, /id="journeyTests"/);
   assert.match(html, /onclick="openJourneyReportSetup\(\)">Generar reporte/);
   assert.match(html, /id="journeyReportSetup" class="journey-report-setup" hidden/);
-  assert.match(html, /id="journeyReportCompanyInput"/);
+  assert.match(html, /id="journeyReportCompanyInput" type="hidden" required/);
+  assert.match(html, /id="journeyReportCompanyTrigger"/);
+  assert.match(html, /id="journeyReportCompanyOptions"/);
+  assert.match(html, /function toggleJourneyReportCompanyOptions\(\)/);
+  assert.match(html, /function selectJourneyReportCompany\(id\)/);
+  assert.match(html, /state\.companies\|\|\[\]/);
+  assert.match(html, /function confirmJourneyReportSetup\(event\)[\s\S]*?find\(function\(x\)\{return x\.id===companyId\}\)/);
+  const reportSetupConfirm = html.slice(html.indexOf('function confirmJourneyReportSetup'), html.indexOf('function generateReportPDF'));
+  assert.doesNotMatch(reportSetupConfirm, /if\(!company\)\{company=\{id:'c-'/);
   assert.match(html, /id="journeyReportResponsibleInput"/);
   assert.match(html, /id="journeyReportDateInput"/);
   assert.match(html, /id="journeyReportStartInput"/);
@@ -1216,7 +1224,7 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(journeyStyles, /#view-journey \.journey-layout/);
   assert.match(journeyStyles, /#view-journey \.journey-patient-progress-track/);
   assert.match(journeyStyles, /@media\(max-width:980px\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
 });
 
 
@@ -1233,7 +1241,7 @@ test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsque
   assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
 });
 
 test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación horizontal y ancho útil', () => {
@@ -1241,7 +1249,7 @@ test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación hor
   assert.match(journeyStyles, /label\.test-choice>span\.test-choice-copy\{\s*display:block!important/);
   assert.match(journeyStyles, /grid-template-columns:18px 38px minmax\(0,1fr\)!important/);
   assert.match(journeyStyles, /test-choice-copy \.choice-name,\s*#view-journey #journeyTestPicker/);
-  assert.match(serviceWorker, /fleboreport-shell-v266/);
+  assert.match(serviceWorker, /fleboreport-shell-v268/);
 });
 
 
@@ -1254,4 +1262,13 @@ test('Jornada muestra primero al paciente agregado más recientemente y conserva
   assert.match(source, /lastAddedAt\|\|a\.createdAt/);
   assert.match(html, /if\(added\.length\)entry\.lastAddedAt=now/);
   assert.match(html, /testStatuses:statuses,createdAt:now,lastAddedAt:now,updatedAt:now/);
+});
+
+test('el cierre de PNG y PDF archiva el reporte y deja una jornada nueva vacía sin borrar empresas ni expedientes', () => {
+  assert.match(html, /function completeJourneyAfterExport\(\)[\s\S]*?state\.selected=\[\]/);
+  assert.match(html, /state\.includeJourneyPatients=false/);
+  assert.match(html, /function generateReportPDF\(\)[\s\S]*?window\.addEventListener\('afterprint',finish/);
+  assert.doesNotMatch(html, /window\.print\(\);setTimeout\(finish,1200\)/);
+  assert.match(html, /function downloadPNG\(\)[\s\S]*?archiveCurrentReport\('png'\)[\s\S]*?setTimeout\(completeJourneyAfterExport,350\)/);
+  assert.match(html, /state\.journey=\{id:'j-'\+Date\.now\(\)/);
 });
