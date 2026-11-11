@@ -40,7 +40,7 @@ const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.me
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
-  assert.match(html, /fleboreport-v2\.css\?v=20261111-jornada3/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-jornada4/);
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
@@ -1203,15 +1203,18 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
 });
 
 
-test('el selector de pruebas de Jornada utiliza una sola búsqueda con resultados horizontales visibles', () => {
+test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsqueda', () => {
   assert.match(html, /id="journeyPatientTestSearch"[^>]*aria-controls="journeyPatientTestChoices"/);
-  assert.match(html, /id="journeyTestPicker"[\s\S]*?id="journeyPatientTestChoices"/);
+  assert.match(html, /id="journeyTestPicker" hidden/);
+  assert.doesNotMatch(html, /Pruebas disponibles/);
   assert.doesNotMatch(html, /<details[^>]+id="journeyTestPicker"/);
-  assert.match(html, /data-test-search=/);
-  assert.match(html, /function filterJourneyPatientTests\(value\)/);
-  assert.match(html, /item\.style\.display=match\?'grid':'none'/);
+  assert.match(html, /function normalizeJourneyPatientTestSearch\(value\)/);
+  assert.match(html, /if\(!term\)\{\s*panel\.hidden=true/);
+  assert.match(html, /return tokens\.every\(function\(token\)\{return searchable\.includes\(token\)\}\)/);
+  assert.match(html, /No se encontraron pruebas que coincidan con tu búsqueda/);
+  assert.match(html, /persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\)\}\)/);
+  assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
-  assert.match(journeyStyles, /grid-template-columns:17px 33px minmax\(0,1fr\) auto!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
 });
