@@ -189,8 +189,8 @@ async function loadServiceCatalog(){
   existingRows=await readExisting();
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
   if(cloud.role==='admin'){
-   // El catálogo del administrador es la fuente maestra. Nunca importar elementos inactivos ni conservar activos eliminados del catálogo.
-   const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name&&x.active!==false);
+   // El catálogo del administrador es la fuente maestra. Los elementos archivados se sincronizan como inactivos de forma explícita.
+   const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name);
    const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
     if(row.catalog_source_id)return String(row.catalog_source_id)===sourceId;
