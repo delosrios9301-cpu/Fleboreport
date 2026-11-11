@@ -663,6 +663,13 @@ body.module-menu-open{overflow:hidden}
  .topbar .top-actions{display:flex!important;max-width:none!important}
 }
 </style>
+
+<style id="fr-hide-sync-ui">
+/* La sincronización sigue activa; solo se retira su representación visual del panel. */
+.app-shell .topbar .fr2-sync-holder,
+.app-shell .topbar #fleboSyncStatus,
+#dashSystemFooter{display:none!important;visibility:hidden!important}
+</style>
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
