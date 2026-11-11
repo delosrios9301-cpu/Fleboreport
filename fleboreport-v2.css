@@ -483,3 +483,35 @@ body.fr2-app-authorized #view-settings .clinical-config-tabs button.active{borde
  body.fr2-app-authorized #view-clinical-studies .clinical-kpi,body.fr2-app-authorized #view-clinical-processing .clinical-kpi{min-height:74px!important;padding:10px!important}
  body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{font-size:20px!important}
 }
+
+
+/* Precedencia final: el nuevo shell prevalece sobre las hojas heredadas embebidas */
+body.fr2-app-authorized #view-home>.fr2-home-hero{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 195px!important;flex-direction:initial!important;
+ align-items:stretch!important;gap:24px!important;min-height:245px!important;margin-bottom:17px!important;
+ padding:clamp(23px,3.5vw,38px)!important;border:1px solid #ffffff20!important;border-radius:24px!important;
+ background:radial-gradient(circle at 67% 4%,#46d9c64a,transparent 28%),radial-gradient(circle at 100% 100%,#24a9b443,transparent 34%),linear-gradient(120deg,#122b45 0%,#17445f 55%,#0e6970 100%)!important;
+ box-shadow:0 18px 44px #123c551b!important
+}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;min-width:0!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy .eyebrow{color:#74d8cc!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy h1{margin:9px 0 8px!important;color:#fff!important;font-size:clamp(26px,3vw,37px)!important;font-weight:900!important;letter-spacing:-1.25px!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy>p{max-width:620px!important;margin:0!important;color:#c4dbe2!important;font-size:12px!important;line-height:1.65!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-actions{display:flex!important;flex-wrap:wrap!important;gap:9px!important;margin-top:23px!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;min-height:48px!important;padding:7px 12px!important;border:1px solid #ffffff35!important;border-radius:12px!important;background:#ffffff12!important;color:#f1fbfc!important;box-shadow:none!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action.primary{border-color:#54d2c3!important;background:linear-gradient(120deg,#20b9a9,#108f91)!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action b{color:#f7ffff!important;font-size:10px!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action small{color:#c0d9df!important;font-size:8px!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;width:auto!important;min-width:0!important;flex:initial!important;padding:19px!important;border:1px solid #ffffff30!important;border-radius:18px!important;background:#ffffff13!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>small{color:#b9d8df!important;font-size:8px!important;letter-spacing:1.2px!important}
+body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!important;color:#fff!important;font-size:23px!important}
+@media(max-width:760px){
+ body.fr2-app-authorized #view-home>.fr2-home-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;flex-direction:initial!important;gap:17px!important;min-height:0!important;padding:22px 18px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy h1{font-size:26px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;margin-top:18px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action{min-height:54px!important;padding:7px 8px!important;gap:7px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-action b{font-size:9px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date{display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:12px!important;width:100%!important;flex:initial!important;padding:12px 14px!important;border-radius:14px!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date-mark{grid-row:1/4!important;margin:0!important}
+ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:2px 0!important;font-size:18px!important}
+}
