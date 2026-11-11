@@ -1,0 +1,257 @@
+/* FleboReport · Sistema visual 2.0
+   Capa de presentación independiente: no contiene escrituras ni reglas de negocio. */
+:root{
+  --navy:#142b45!important;
+  --navy2:#1c3d5b!important;
+  --blue:#2675c8!important;
+  --teal:#12a89e!important;
+  --mint:#e7f7f4!important;
+  --ink:#182f43!important;
+  --muted:#718497!important;
+  --line:#e5edf2!important;
+  --bg:#f3f6fa!important;
+  --white:#fff!important;
+  --green:#168765!important;
+  --red:#c6535b!important;
+  --shadow:0 8px 28px rgba(20,43,69,.065)!important;
+  color-scheme:light;
+}
+html,body{background:#f3f6fa!important;color:#182f43!important;font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif!important}
+body{min-width:320px}
+button,input,select,textarea{font-family:inherit!important}
+button{transition:background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+::selection{background:#c7f0eb;color:#12384b}
+
+/* Navegación lateral persistente para escritorio */
+@media(min-width:761px){
+ body.fr2-app-authorized #sidebar{
+  position:fixed!important;inset:0 auto 0 0!important;z-index:91!important;
+  display:flex!important;flex-direction:column!important;width:270px!important;height:100dvh!important;max-height:100dvh!important;
+  overflow:hidden!important;padding:22px 16px 16px!important;margin:0!important;border:0!important;border-right:1px solid #ffffff16!important;
+  border-radius:0!important;background:linear-gradient(165deg,#142b45 0%,#163c58 55%,#0f5965 100%)!important;
+  box-shadow:12px 0 36px rgba(11,35,55,.09)!important;
+  transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ }
+ body.fr2-app-authorized #sidebar .module-menu-close{display:none!important}
+ body.fr2-app-authorized #sidebar .module-menu-head{padding:2px 5px 20px!important;margin:0 0 16px!important;border-bottom:1px solid #ffffff20!important}
+ body.fr2-app-authorized #sidebar .drawer-brand{gap:12px!important}
+ body.fr2-app-authorized #sidebar .drawer-brand-mark{width:44px!important;height:44px!important;border-radius:15px!important;background:linear-gradient(145deg,#22c5b2,#087e87)!important;box-shadow:0 8px 20px #071d2c44!important}
+ body.fr2-app-authorized #sidebar .drawer-brand-mark svg{width:25px!important;height:25px!important}
+ body.fr2-app-authorized #sidebar .drawer-brand-copy strong{font-size:17px!important;letter-spacing:-.45px!important;color:#fff!important}
+ body.fr2-app-authorized #sidebar .drawer-brand-copy small{font-size:9px!important;letter-spacing:.45px!important;color:#a9c4d2!important}
+ body.fr2-app-authorized #sidebar .nav-list{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;gap:5px!important;overflow-y:auto!important;overflow-x:hidden!important;padding:0 2px 12px!important;overscroll-behavior:contain!important}
+ body.fr2-app-authorized #sidebar .nav-group{padding:0 0 9px!important;margin:0 0 4px!important;border-bottom:1px solid #ffffff18!important}
+ body.fr2-app-authorized #sidebar .nav-group>summary{min-height:32px!important;padding:2px 9px!important;color:#91b3c2!important;font-size:9px!important;letter-spacing:1.25px!important}
+ body.fr2-app-authorized #sidebar .nav-group>summary svg{width:14px!important;height:14px!important;color:#8eb9c5!important}
+ body.fr2-app-authorized #sidebar .nav-group-items{gap:4px!important;padding:3px 0!important}
+ body.fr2-app-authorized #sidebar .nav-list button{min-height:45px!important;padding:6px 9px!important;border:1px solid transparent!important;border-radius:12px!important;background:transparent!important;color:#dceaf0!important;font-size:12px!important;font-weight:650!important;box-shadow:none!important}
+ body.fr2-app-authorized #sidebar .nav-list button .nav-icon{width:33px!important;height:33px!important;border:1px solid #ffffff18!important;border-radius:10px!important;background:#ffffff0d!important;color:#79ddd2!important}
+ body.fr2-app-authorized #sidebar .nav-list button .nav-icon svg{width:18px!important;height:18px!important}
+ body.fr2-app-authorized #sidebar .nav-list button .nav-copy{color:inherit!important;font-size:12px!important;font-weight:650!important}
+ body.fr2-app-authorized #sidebar .nav-list button:hover{transform:translateX(2px)!important;border-color:#ffffff18!important;background:#ffffff10!important;color:#fff!important}
+ body.fr2-app-authorized #sidebar .nav-list button.active{border-color:#54cabe44!important;background:linear-gradient(100deg,#1ab3a52e,#ffffff0d)!important;color:#fff!important;box-shadow:inset 3px 0 #58d8cb!important}
+ body.fr2-app-authorized #sidebar .nav-list button.active .nav-icon{border-color:#5bd8cb55!important;background:#22b9aa25!important;color:#9cf0e5!important}
+ body.fr2-app-authorized #sidebar .drawer-footer{display:flex!important;align-items:center;gap:8px!important;flex-wrap:wrap!important;margin-top:auto!important;padding:14px 4px 2px!important;border-top:1px solid #ffffff20!important;color:#b3c9d3!important;font-size:10px!important}
+ body.fr2-app-authorized #sidebar .drawer-footer-dot{width:7px!important;height:7px!important;border-radius:50%!important;background:#35d1a3!important;box-shadow:0 0 0 4px #35d1a31e!important}
+ body.fr2-app-authorized #sidebar #fleboGlobalSignOut{width:100%!important;min-height:40px!important;margin-top:7px!important;border:1px solid #ffffff25!important;border-radius:10px!important;background:#ffffff0d!important;color:#f2fbfc!important;font-weight:750!important}
+ body.fr2-app-authorized #sidebar #fleboGlobalSignOut:hover{background:#ffffff18!important}
+ body.fr2-app-authorized .app-shell .main{width:calc(100% - 270px)!important;max-width:none!important;margin-left:270px!important}
+ body.fr2-app-authorized .module-fab,body.fr2-app-authorized .home-fab{display:none!important}
+}
+
+/* Cabecera superior */
+.fr2-topbar-inner{width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.fr2-topbar-left,.fr2-topbar-right{display:flex;align-items:center;gap:14px;min-width:0}
+.fr2-brand-link{display:flex;align-items:center;gap:11px;color:#162f46;text-decoration:none;min-width:0}
+.fr2-brand-mark{display:grid;place-items:center;width:39px;height:39px;flex:none;border-radius:13px;background:linear-gradient(145deg,#18b8aa,#087b87);color:#fff;box-shadow:0 6px 15px #087b8728}
+.fr2-brand-mark svg{width:23px;height:23px}
+.fr2-brand-copy{display:grid;gap:2px;line-height:1.15}
+.fr2-brand-copy strong{font-size:15px;font-weight:850;letter-spacing:-.35px;color:#16334b}
+.fr2-brand-copy small{font-size:9px;color:#8092a1;font-weight:650;letter-spacing:.35px}
+.fr2-current-area{padding-left:14px;border-left:1px solid #e4ebf0;color:#668092;font-size:11px;font-weight:750;white-space:nowrap}
+.fr2-menu-toggle{display:none;width:40px;height:40px;flex:none;place-items:center;border:1px solid #e3ebf0;border-radius:12px;background:#fff;color:#294b62}
+.fr2-menu-toggle svg{width:20px;height:20px}
+.fr2-topbar-right{justify-content:flex-end}
+.fr2-catalog-shortcut{display:inline-flex;align-items:center;gap:8px;min-height:39px;padding:8px 12px;border:1px solid #dce9ed;border-radius:11px;background:#f7fbfc;color:#1c5961;font-size:10px;font-weight:800}
+.fr2-catalog-shortcut svg{width:16px;height:16px}
+.fr2-catalog-shortcut:hover{border-color:#9ed8d0;background:#effaf7}
+.fr2-sync-holder{display:flex;align-items:center;gap:8px;padding:8px 11px;border:1px solid #e0ece9;border-radius:99px;background:#f4faf8}
+.fr2-sync-holder #fleboSyncStatus{font-size:10px!important;color:#527568!important;white-space:nowrap}
+.fr2-sync-holder #fleboSyncStatus .status-dot{width:7px!important;height:7px!important;background:#1da77b!important;box-shadow:0 0 0 3px #1da77b1c!important}
+body.fr2-app-authorized .topbar{height:76px!important;justify-content:stretch!important;text-align:left!important;padding:0 clamp(18px,3vw,42px)!important;background:rgba(255,255,255,.93)!important;border-bottom:1px solid #e6edf2!important;box-shadow:0 4px 20px #142b4507!important;backdrop-filter:blur(16px)!important}
+body.fr2-app-authorized .top-left{position:static!important;justify-content:flex-start!important;width:auto!important}
+body.fr2-app-authorized .topbar-title{display:none!important}
+body.fr2-app-authorized .top-actions{position:static!important;display:none!important}
+
+/* Lien entre navegación y contenido */
+body.fr2-app-authorized .content{width:100%!important;max-width:1680px!important;margin:0 auto!important;padding:30px clamp(18px,3vw,46px) 54px!important}
+body.fr2-app-authorized .view.active{animation:fr2-view-in .24s ease both}
+@keyframes fr2-view-in{from{opacity:.7;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.page-heading{align-items:flex-start!important;margin:0 0 23px!important}
+.page-heading h1{font-size:clamp(23px,2vw,30px)!important;line-height:1.14!important;letter-spacing:-.8px!important;color:#172f45!important;font-weight:850!important}
+.page-heading p{font-size:12px!important;color:#75889a!important;line-height:1.55!important}
+.eyebrow{font-size:9px!important;letter-spacing:1.35px!important;color:#0a9189!important}
+.op-hero{border-radius:22px!important;background:radial-gradient(circle at 88% 18%,#3ed7c75a,transparent 24%),linear-gradient(115deg,#142b45 0%,#174a67 58%,#087e80 100%)!important;box-shadow:0 17px 42px #153e591c!important}
+.op-hero h1{font-weight:850!important;letter-spacing:-1px!important}
+.op-date{border:1px solid #ffffff32!important;border-radius:16px!important;background:#ffffff12!important;backdrop-filter:blur(8px)!important}
+
+/* Superficies y tarjetas de todos los módulos */
+.panel,.report-card,.stat-card,.catalog-card,.journey-patient-card,.patient-test-status,.form-panel,.op-panel{
+ border:1px solid #e2eaf0!important;border-radius:17px!important;background:#fff!important;
+ box-shadow:0 7px 25px rgba(20,43,69,.045)!important;
+}
+.panel{overflow:hidden!important}
+.panel-head{min-height:58px!important;padding:15px 18px!important;background:linear-gradient(105deg,#f8fafc,#fff)!important;border-bottom:1px solid #edf2f5!important}
+.panel-head h2,.form-panel h2{font-size:13px!important;font-weight:850!important;color:#18384f!important;letter-spacing:-.15px!important}
+.panel-head p,.section-description{font-size:10px!important;color:#7a8c9b!important;line-height:1.55!important}
+.panel-body{padding:17px 18px!important}
+.form-panel{padding:19px!important}
+.stat-card{min-height:90px!important;border-radius:15px!important}
+.stat-card strong{color:#17374f!important;font-weight:850!important}
+.stat-icon{border-radius:13px!important}
+.catalog-card{grid-template-columns:46px minmax(0,1fr) auto!important;padding:13px!important;border-radius:13px!important;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease!important}
+.catalog-card:hover{transform:translateY(-1px)!important;border-color:#c7dfdf!important;box-shadow:0 10px 24px #173d5010!important}
+.catalog-icon{border-radius:13px!important;background:#edf7f7!important}
+
+/* Controles y formularios */
+.btn{min-height:41px!important;padding:9px 14px!important;border:1px solid #dfe8ee!important;border-radius:11px!important;background:#fff!important;color:#315167!important;font-size:10px!important;font-weight:800!important;box-shadow:0 2px 5px #173d5008!important}
+.btn:hover{transform:translateY(-1px)!important;border-color:#b9d0d9!important;box-shadow:0 5px 13px #173d5010!important}
+.btn.primary,.btn.blue{border-color:#108f87!important;background:linear-gradient(135deg,#15a99d,#087e83)!important;color:#fff!important;box-shadow:0 5px 13px #07988a2b!important}
+.btn.danger{border-color:#f0d6d8!important;background:#fff7f7!important;color:#bd4f58!important}
+.icon-button{width:38px!important;height:38px!important;border-radius:11px!important;border-color:#e2eaf0!important;background:#fff!important}
+.field label{font-size:10px!important;color:#526f82!important;font-weight:800!important}
+.field input,.field select,.field textarea,.fr-config-field input,.fr-config-field select,.fr-config-field textarea{
+ min-height:43px!important;padding:10px 12px!important;border:1px solid #dce6ec!important;border-radius:11px!important;background:#fff!important;color:#19374d!important;font-size:11px!important;box-shadow:inset 0 1px 2px #18384f05!important
+}
+.field input:focus,.field select:focus,.field textarea:focus,.fr-config-field input:focus,.fr-config-field select:focus,.fr-config-field textarea:focus{
+ border-color:#35b7ad!important;outline:3px solid #24b8aa18!important;box-shadow:0 0 0 1px #35b7ad!important
+}
+.field-help{font-size:9px!important;color:#8091a0!important}
+.form-actions{gap:9px!important}
+.divider{background:#eaf0f3!important}
+.settings-tabs{gap:7px!important;margin-bottom:17px!important;padding:4px!important;border:1px solid #e6edf1!important;border-radius:13px!important;background:#f5f8fa!important}
+.settings-tabs button{min-height:37px!important;padding:8px 13px!important;border-radius:9px!important;border-color:transparent!important;background:transparent!important;color:#6d8291!important;font-weight:800!important}
+.settings-tabs button.active{border-color:#c8e8e2!important;background:#fff!important;color:#117d76!important;box-shadow:0 2px 8px #123e500d!important}
+
+/* Tablas y listas */
+.table-wrap{border:1px solid #e8eef2!important;border-radius:13px!important;background:#fff!important}
+.data-table th{padding:12px 13px!important;background:#f4f8fa!important;color:#6d8494!important;font-size:9px!important;letter-spacing:.7px!important}
+.data-table td{padding:13px!important;border-top:1px solid #edf2f5!important;color:#345268!important;font-size:10px!important}
+.data-table tbody tr:hover td{background:#f8fcfc!important}
+.list-row{padding:12px 13px!important;border:1px solid #e6edf1!important;border-radius:12px!important;background:#fff!important}
+.list-row strong{font-size:11px!important;color:#203f55!important}
+.badge{padding:5px 9px!important;border-radius:99px!important;font-size:9px!important;font-weight:850!important}
+.empty-state{padding:27px 16px!important;color:#8294a2!important}
+.test-picker{border-color:#dce7ed!important;border-radius:12px!important}
+.test-picker>summary{min-height:44px!important;padding:10px 12px!important;font-size:11px!important}
+.test-choice{border-radius:10px!important;padding:8px 10px!important}
+.test-choice.selected{border-color:#8ccfc3!important;background:#f0faf7!important}
+.report-card{border-radius:18px!important}
+.report-toolbar{padding:14px 17px!important}
+.report-paper{border-radius:0!important}
+
+/* Catálogo y configuración clínica */
+.catalog-card strong{font-size:12px!important;color:#1e3c52!important}
+.catalog-card small{font-size:9px!important;color:#7c8f9d!important}
+.clinical-config-row{border:1px solid #e4edf1!important;border-radius:12px!important;background:#f8fafb!important;padding:13px!important}
+.clinical-study-sample-spec{border:1px solid #e4edf1!important;border-radius:12px!important;background:#f8fafb!important}
+.clinical-config-tabs button{min-height:40px!important;border-radius:10px!important;font-weight:800!important}
+
+/* Inicio: jerarquía visual, manteniendo sus indicadores y gráficos actuales */
+#view-home.active{background:transparent!important;padding:0!important}
+#view-home .op-panel{border:1px solid #e1eaf0!important;border-radius:18px!important;box-shadow:0 7px 25px #142b4508!important}
+#view-home .op-panel>.panel-head{background:linear-gradient(110deg,#f7fafc,#fff)!important;border-bottom:1px solid #eaf0f4!important}
+#view-home .op-panel>.panel-head h2{color:#18394f!important;font-size:13px!important;font-weight:850!important}
+#view-home .op-quick button{border:1px solid #e2eaf0!important;border-radius:15px!important;background:#fff!important;box-shadow:0 4px 14px #153d570a!important;color:#284b62!important}
+#view-home .op-quick button:hover{transform:translateY(-2px)!important;border-color:#b9dcd6!important;box-shadow:0 9px 20px #153d5712!important}
+#view-home .op-quick button>span{color:#0d968d!important}
+#view-home .op-kpi{border:1px solid #e1eaf0!important;border-radius:16px!important;background:linear-gradient(145deg,#fff,#f8fbfc)!important;box-shadow:0 6px 18px #143d5509!important}
+#view-home .op-kpi-value{color:#17384f!important}
+
+/* Acceso: misma identidad visual, presentación renovada */
+#fleboAuthGate:not([hidden]){position:fixed!important;inset:0!important;z-index:200!important;display:grid!important;place-items:center!important;overflow:auto!important;padding:26px!important;background:radial-gradient(circle at 14% 12%,#c7f0e9 0,transparent 30%),radial-gradient(circle at 90% 85%,#d9e9f7 0,transparent 34%),linear-gradient(135deg,#f4f8fb,#eaf1f6)!important}
+#fleboAuthPanel{display:grid!important;grid-template-columns:minmax(220px,.85fr) minmax(320px,1fr)!important;align-items:stretch!important;gap:0!important;width:min(880px,100%)!important;min-height:500px!important;overflow:hidden!important;border:1px solid #ffffff!important;border-radius:28px!important;background:#fff!important;box-shadow:0 30px 90px #193c5526!important}
+.flebo-login-art{position:relative!important;display:grid!important;place-items:center!important;overflow:hidden!important;min-height:500px!important;background:radial-gradient(circle at 72% 25%,#39d7c16e,transparent 24%),linear-gradient(155deg,#142b45,#18516b 65%,#0b827f)!important}
+.flebo-art-word{position:relative!important;color:#f4ffff!important;font-size:29px!important;font-weight:900!important;letter-spacing:-1.2px!important;text-shadow:0 10px 30px #071d2c66!important}
+.flebo-orbit{border-color:#b8f1e83d!important}
+.flebo-login-card{display:flex!important;flex-direction:column!important;justify-content:center!important;width:100%!important;max-width:none!important;padding:clamp(25px,4vw,52px)!important;border:0!important;border-radius:0!important;background:#fff!important;box-shadow:none!important}
+.flebo-avatar{display:none!important}
+.flebo-login-heading span{color:#0b9389!important;font-size:9px!important;letter-spacing:1.5px!important;font-weight:900!important}
+.flebo-login-heading h1{margin:8px 0!important;color:#16354d!important;font-size:30px!important;font-weight:900!important;letter-spacing:-1px!important}
+.flebo-login-heading p{color:#74899a!important;font-size:12px!important}
+.flebo-auth-badge{align-self:flex-start!important;border:1px solid #dcebe8!important;border-radius:99px!important;background:#f2faf8!important;color:#52776f!important;font-size:9px!important;font-weight:800!important}
+.flebo-input-row{min-height:48px!important;border:1px solid #dce6ec!important;border-radius:12px!important;background:#fbfdfe!important}
+.flebo-input-row:focus-within{border-color:#2bb5a9!important;box-shadow:0 0 0 3px #2bb5a91b!important}
+.flebo-input-row input{font-size:12px!important;color:#17374e!important}
+#fleboAuthSubmit,.flebo-auth-submit{min-height:47px!important;border:0!important;border-radius:12px!important;background:linear-gradient(130deg,#14a99c,#087e83)!important;color:#fff!important;font-weight:850!important;box-shadow:0 8px 18px #07988a29!important}
+.flebo-login-foot{color:#8294a2!important;font-size:9px!important}
+
+/* Accesibilidad y movimiento */
+:focus-visible{outline-color:#2db5aa!important}
+@media(max-width:1050px) and (min-width:761px){
+ body.fr2-app-authorized #sidebar{width:238px!important}
+ body.fr2-app-authorized .app-shell .main{width:calc(100% - 238px)!important;margin-left:238px!important}
+ body.fr2-app-authorized .content{padding:25px 22px 48px!important}
+ .fr2-current-area{display:none}
+}
+@media(max-width:760px){
+ body.fr2-app-authorized #sidebar{
+  position:fixed!important;z-index:96!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;
+  width:min(330px,88vw)!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;
+  padding:18px 14px 14px!important;border:0!important;border-right:1px solid #ffffff20!important;
+  border-radius:0 23px 23px 0!important;background:linear-gradient(165deg,#142b45,#163d59 58%,#0e5964)!important;
+  transform:translateX(-105%)!important;opacity:1!important;visibility:hidden!important;pointer-events:none!important;
+  box-shadow:18px 0 55px #061c2d45!important;
+ }
+ body.fr2-app-authorized #sidebar.open{transform:translateX(0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+ body.fr2-app-authorized #sidebar .module-menu-close{display:grid!important;place-items:center!important;width:35px!important;height:35px!important;border:1px solid #ffffff24!important;border-radius:11px!important;background:#ffffff12!important;color:#fff!important}
+ body.fr2-app-authorized #sidebar .nav-list{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;overflow:auto!important;gap:4px!important}
+ body.fr2-app-authorized #sidebar .nav-list button{min-height:46px!important}
+ body.fr2-app-authorized .app-shell .main{width:100%!important;margin-left:0!important}
+ body.fr2-app-authorized .topbar{height:64px!important;padding:0 12px!important}
+ .fr2-topbar-inner{gap:8px}
+ .fr2-topbar-left{gap:9px}
+ .fr2-menu-toggle{display:grid!important;width:37px;height:37px}
+ .fr2-brand-mark{width:34px;height:34px;border-radius:11px}
+ .fr2-brand-copy strong{font-size:13px}
+ .fr2-brand-copy small{display:none}
+ .fr2-current-area{display:none}
+ .fr2-topbar-right{gap:7px}
+ .fr2-catalog-shortcut{width:37px;height:37px;min-height:37px;justify-content:center;padding:0}
+ .fr2-catalog-shortcut span{display:none}
+ .fr2-sync-holder{padding:8px}
+ .fr2-sync-holder #fleboSyncStatus{font-size:0!important}
+ .fr2-sync-holder #fleboSyncStatus .status-dot{width:8px!important;height:8px!important}
+ body.fr2-app-authorized .content{padding:18px 13px 28px!important}
+ .page-heading{display:block!important;margin-bottom:17px!important}
+ .page-heading h1{font-size:24px!important}
+ .heading-actions{margin-top:12px!important}
+ .fields{grid-template-columns:minmax(0,1fr)!important}
+ .field.full{grid-column:auto!important}
+ .module-grid{grid-template-columns:minmax(0,1fr)!important}
+ .dashboard-grid{grid-template-columns:minmax(0,1fr)!important}
+ .panel-head{padding:13px 14px!important}
+ .panel-body{padding:14px!important}
+ .form-panel{padding:15px!important}
+ .settings-tabs{overflow-x:auto!important;flex-wrap:nowrap!important;white-space:nowrap!important}
+ .settings-tabs button{flex:none!important}
+ .report-paper{padding:18px 13px!important}
+ body.module-menu-open::after{content:"";position:fixed;inset:0;z-index:94;background:rgba(9,25,40,.54);backdrop-filter:blur(3px)}
+ #moduleFab,#homeFab{display:none!important}
+ #fleboAuthGate:not([hidden]){padding:14px!important}
+ #fleboAuthPanel{grid-template-columns:minmax(0,1fr)!important;min-height:0!important;width:min(470px,100%)!important;border-radius:22px!important}
+ .flebo-login-art{display:none!important}
+ .flebo-login-card{padding:30px 23px!important}
+ .flebo-login-heading h1{font-size:27px!important}
+}
+@media(max-width:380px){
+ .fr2-brand-copy strong{font-size:12px}
+ .fr2-topbar-right{gap:5px}
+ .fr2-sync-holder{padding:7px}
+ .fr2-menu-toggle{width:34px;height:34px}
+ .fr2-catalog-shortcut{width:34px;height:34px}
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized .view.active{animation:none!important}
+ *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
