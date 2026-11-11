@@ -386,3 +386,15 @@ body.fr2-app-authorized .view.active{animation:fr2-view-in .24s ease both}
  overflow:visible!important;clip:auto!important;white-space:nowrap!important;border:0!important;
  font-size:10px!important;color:#527568!important
 }
+
+/* El centro de notificaciones conserva su acción original en la nueva cabecera */
+body.fr2-app-authorized .topbar #frNotifBell{
+ position:static!important;top:auto!important;right:auto!important;z-index:27!important;
+ width:39px!important;height:39px!important;flex:none!important;margin:0!important;
+ border:1px solid #dce8ee!important;border-radius:11px!important;background:#fff!important;color:#174c68!important;
+ box-shadow:0 3px 12px #153e570d!important
+}
+body.fr2-app-authorized .topbar #frNotifBell svg{width:18px!important;height:18px!important}
+@media(max-width:760px){
+ body.fr2-app-authorized .topbar #frNotifBell{width:35px!important;height:35px!important}
+}
