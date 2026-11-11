@@ -1066,7 +1066,32 @@ function removeFromJourney(id){state.selected=state.selected.filter(function(x){
 function grouped(){return state.selected.map(function(entry){const test=state.catalog.find(function(t){return t.id===entry.testId});return test?{test:test,count:entry.count}:null}).filter(Boolean)}
 function totalTests(){return state.selected.reduce(function(sum,x){return sum+x.count},0)}
 function renderJourney(){const list=$('journeyTests'),groups=grouped();$('journeyTotal').textContent=totalTests();list.innerHTML=groups.length?groups.map(function(g){return '<div class="catalog-card"><span class="catalog-icon">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>'+esc(g.test.vessel||'Recipiente sin configurar')+' · '+g.count+' realizada'+(g.count===1?'':'s')+'</small></span><span class="list-actions"><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',-1)" aria-label="Restar">−</button><b>'+g.count+'</b><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',1)" aria-label="Sumar">+</button><button class="icon-button" onclick="removeFromJourney(\''+esc(g.test.id)+'\')" aria-label="Quitar">×</button></span></div>'}).join(''):'<div class="empty-state">Todavía no agregas pruebas.</div>'}
-function patientsForJourney(){var entries=Array.isArray(state.journeyEntries)?state.journeyEntries:[],joined=entries.filter(function(e){return e.journeyId===state.journey.id}).map(function(e){var p=state.patients.find(function(x){return x.id===e.patientId})||{};return Object.assign({},p,{journeyId:e.journeyId,journeyDate:e.journeyDate,testIds:e.testIds||[],testStatuses:e.testStatuses||{},participantId:e.id,patientId:e.patientId})}),seen=new Set(joined.map(function(p){return p.patientId})),legacy=state.patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(p.id)});return joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}))}
+function patientsForJourney(){
+ var patients=Array.isArray(state.patients)?state.patients:[],entries=Array.isArray(state.journeyEntries)?state.journeyEntries:[],history=[];
+ patients.forEach(function(p){
+  (Array.isArray(p.journeyHistory)?p.journeyHistory:[]).forEach(function(entry){
+   if(entry&&String(entry.journeyId||'')===String(state.journey.id||'')){
+    history.push(Object.assign({},entry,{patientId:entry.patientId||p.id,patientRecordId:p.id}));
+   }
+  });
+ });
+ var unique=new Map();
+ entries.filter(function(e){return e&&e.journeyId===state.journey.id}).forEach(function(e){
+  var key=String(e.id||String(e.journeyId)+'|'+String(e.patientId||e.participantId||''));
+  unique.set(key,e);
+ });
+ history.forEach(function(e){
+  var key=String(e.id||String(e.journeyId)+'|'+String(e.patientRecordId||e.patientId||''));
+  if(!unique.has(key))unique.set(key,e);
+ });
+ var joined=Array.from(unique.values()).map(function(e){
+  var p=patients.find(function(x){return x.id===e.patientRecordId})||patients.find(function(x){return x.id===e.patientId})||{};
+  return Object.assign({},p,{journeyId:e.journeyId,journeyDate:e.journeyDate,testIds:Array.isArray(e.testIds)?e.testIds:[],testStatuses:e.testStatuses||{},participantId:e.id||('je-history-'+String(e.journeyId)+'-'+String(p.id||e.patientId||'')),patientId:p.id||e.patientId||e.patientRecordId||''});
+ });
+ var seen=new Set(joined.map(function(p){return String(p.patientId)}));
+ var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
+ return joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
+}
 function journeyPatientRoster(){return patientsForJourney().map(function(p){return{name:p.name||'Paciente',tests:(p.testIds||[]).map(function(id){var t=state.catalog.find(function(x){return x.id===id});return t&&t.name}).filter(Boolean)}})}
 function toggleJourneyPatientList(){state.includeJourneyPatients=!!$('includePatientList').checked;save();renderReport()}
 function renderReport(){const groups=grouped(),total=totalTests(),patients=journeyPatientRoster(),include=!!state.includeJourneyPatients;$('reportPatientTotal').textContent=patientsForJourney().length;$('reportCompany').textContent=state.company.name||'';const clientName=(state.companies.find(function(c){return c.id===state.journey.companyId})||{}).name;$('reportContact').textContent=[state.company.contact,clientName].filter(Boolean).join(' · ');$('reportDate').textContent=formatDate(state.journey.date);$('reportHours').textContent='Horario: '+(state.journey.start||'—')+' a '+(state.journey.end||'—');$('reportResponsible').textContent='Responsable: '+(state.journey.responsible||'Sin especificar');$('reportTestTotal').textContent=total;$('reportTypeTotal').textContent=groups.length;const vesselSum=groups.reduce(function(n,g){return n+g.count},0);$('reportVesselTotal').textContent=vesselSum;$('reportGrandTotal').textContent=total+' pruebas';$('reportTests').innerHTML=groups.length?groups.map(function(g){return '<div class="report-test"><span class="report-vessel">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>Prueba registrada en jornada</small></span><b>'+g.count+'</b></div>'}).join(''):'<div class="report-empty">Agrega pruebas a la jornada para crear el reporte.</div>';var section=$('reportPatientListSection');section.hidden=!include;var list=$('reportPatientList');list.innerHTML=include?(patients.length?'<div class="table-wrap"><table class="data-table"><thead><tr><th>Paciente</th><th>Pruebas solicitadas</th></tr></thead><tbody>'+patients.map(function(p){return'<tr><td>'+esc(p.name)+'</td><td>'+esc(p.tests.join(', ')||'—')+'</td></tr>'}).join('')+'</tbody></table></div>':'<p class="muted">No hay pacientes registrados para esta jornada.</p>'):'';updateCompanyPreview()}
