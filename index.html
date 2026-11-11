@@ -669,6 +669,28 @@ body.module-menu-open{overflow:hidden}
 .app-shell .topbar .fr2-sync-holder,
 .app-shell .topbar #fleboSyncStatus,
 #dashSystemFooter{display:none!important;visibility:hidden!important}
+
+/* Cabecera: separar marca y acciones para impedir superposiciones en cualquier ancho. */
+body.fr2-app-authorized .topbar .fr2-topbar-inner{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-width:0!important;width:100%!important}
+body.fr2-app-authorized .topbar .fr2-topbar-left{display:flex!important;align-items:center!important;flex:1 1 auto!important;min-width:0!important;gap:10px!important}
+body.fr2-app-authorized .topbar .fr2-brand-link{display:flex!important;align-items:center!important;flex:0 1 auto!important;min-width:0!important;gap:9px!important;white-space:nowrap!important}
+body.fr2-app-authorized .topbar .fr2-brand-mark{position:relative!important;display:grid!important;flex:0 0 39px!important;width:39px!important;height:39px!important}
+body.fr2-app-authorized .topbar .fr2-brand-copy{display:grid!important;flex:0 1 auto!important;min-width:0!important;white-space:nowrap!important;line-height:1.15!important}
+body.fr2-app-authorized .topbar .fr2-brand-copy strong{display:block!important;white-space:nowrap!important;line-height:1.15!important;font-size:15px!important}
+body.fr2-app-authorized .topbar .fr2-topbar-right{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;min-width:0!important;gap:8px!important}
+body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
+@media(max-width:760px){
+ body.fr2-app-authorized .topbar{padding:0 10px!important}
+ body.fr2-app-authorized .topbar .fr2-topbar-inner{gap:6px!important}
+ body.fr2-app-authorized .topbar .fr2-topbar-left{gap:8px!important}
+ body.fr2-app-authorized .topbar .fr2-brand-link{gap:7px!important}
+ body.fr2-app-authorized .topbar .fr2-brand-mark{flex-basis:34px!important;width:34px!important;height:34px!important}
+ body.fr2-app-authorized .topbar .fr2-brand-copy strong{font-size:13px!important;letter-spacing:-.3px!important}
+ body.fr2-app-authorized .topbar .fr2-topbar-right{gap:6px!important}
+ body.fr2-app-authorized .topbar .fr2-catalog-shortcut{flex:0 0 36px!important;width:36px!important;height:36px!important}
+ body.fr2-app-authorized .topbar .fr2-menu-toggle{flex:0 0 36px!important;width:36px!important;height:36px!important}
+}
+
 </style>
 </head>
 <body>
