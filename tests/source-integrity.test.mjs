@@ -693,13 +693,14 @@ test('el alta de domicilios solo usa pruebas UUID del catálogo central', () => 
   assert.match(domicilios, /catch\(e\)[\s\S]*?No se pudo guardar el domicilio/);
 });
 
-test('el catálogo maestro evita duplicados por origen, código o nombre y reconcilia las pruebas activas', () => {
+test('el catálogo maestro identifica por origen y no desactiva pruebas por cargas parciales', () => {
   assert.match(domicilios, /const matchesMaster=/);
-  assert.match(domicilios, /row\.catalog_source_id===sourceId/);
+  assert.match(domicilios, /if\(row\.catalog_source_id\)return String\(row\.catalog_source_id\)===sourceId/);
   assert.match(domicilios, /saved\.error\.code==='23505'/);
   assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
-  assert.match(domicilios, /const obsolete=existingRows\.filter/);
-  assert.match(domicilios, /\.update\(\{active:false\}\)/);
+  assert.match(domicilios, /\.update\(payload\)/);
+  assert.match(domicilios, /active:item\.active!==false/);
+  assert.doesNotMatch(domicilios, /const obsolete=existingRows\.filter/);
 });
 
 
@@ -829,12 +830,15 @@ test('la aceptación del flebotomista se confirma sin depender del guardado secu
 });
 
 
-test('el catálogo de domicilios se sincroniza con el catálogo maestro del administrador y desactiva pruebas obsoletas sin borrarlas', () => {
-  assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name&&x\.active!==false\)/);
-  assert.match(domicilios, /const obsolete=existingRows\.filter\(row=>row\.active!==false&&!masterCatalog\.some\(item=>matchesMaster\(row,item\)\)\)/);
-  assert.match(domicilios, /\.update\(\{active:false\}\)/);
+test('el catálogo de domicilios aplica archivados explícitos y actualiza servicios sin desactivar ausentes', () => {
+  assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name\)/);
+  assert.match(domicilios, /const payload=\{/);
+  assert.match(domicilios, /catalog_source_id:String\(item\.id\)/);
+  assert.match(domicilios, /\.update\(payload\)/);
+  assert.match(domicilios, /active:item\.active!==false/);
+  assert.match(domicilios, /if\(!payload\.active\)continue/);
   assert.match(domicilios, /\.eq\('active',true\)/);
-  assert.match(domicilios, /const matchesMaster=/);
+  assert.doesNotMatch(domicilios, /const obsolete=existingRows\.filter/);
 });
 
 test('la revisión de muestras permite corregir pruebas desde el catálogo central antes de confirmar', () => {
