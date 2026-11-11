@@ -71,16 +71,118 @@ function itemKey(x,collection){
  return'json:'+JSON.stringify(x);
 }
 function stamp(x){const v=x&&(x.updatedAt||x.updated_at||x.modifiedAt||x.createdAt||x.created_at);const n=v?Date.parse(v):0;return Number.isFinite(n)?n:0}
+function patientDocumentKey(patient){
+ const value=patient&&(patient.document||patient.cedula||patient.document_number);
+ return String(value||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
+}
+function patientNestedKey(value,index,collection){
+ if(value&&typeof value==='object'){
+  if(value.id!=null&&String(value.id))return'id:'+value.id;
+  if(collection==='journeyHistory'&&value.journeyId)return'journey:'+value.journeyId;
+  return'json:'+JSON.stringify(value);
+ }
+ return'value:'+String(value);
+}
+function mergePatientArray(first,second,collection){
+ const map=new Map();
+ [...(Array.isArray(first)?first:[]),...(Array.isArray(second)?second:[])].forEach((value,index)=>{
+  const key=patientNestedKey(value,index,collection),old=map.get(key);
+  if(!old){map.set(key,value);return}
+  if(value&&typeof value==='object'&&old&&typeof old==='object'){const newer=stamp(value)>=stamp(old)?value:old,older=newer===value?old:value,merged=Object.assign({},older,newer);if(Array.isArray(old.testIds)||Array.isArray(value.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(value.testIds)?value.testIds:[])]));if(old.testStatuses||value.testStatuses)merged.testStatuses=Object.assign({},older.testStatuses||{},newer.testStatuses||{});if(Array.isArray(old.tests)||Array.isArray(value.tests))merged.tests=mergePatientArray(old.tests,value.tests,'tests');map.set(key,merged)}
+ });
+ return Array.from(map.values());
+}
+function mergePatientRecords(first,second){
+ const firstNewer=stamp(first)>stamp(second),older=firstNewer?second:first,newer=firstNewer?first:second;
+ const merged=Object.assign({},older||{},newer||{});
+ merged.id=(first&&first.id)||(second&&second.id)||merged.id;
+ ['attentions','journeyHistory'].forEach(key=>{merged[key]=mergePatientArray(older&&older[key],newer&&newer[key],key)});
+ if(Array.isArray(first&&first.testIds)||Array.isArray(second&&second.testIds))merged.testIds=Array.from(new Set([...(first&&Array.isArray(first.testIds)?first.testIds:[]),...(second&&Array.isArray(second.testIds)?second.testIds:[])]));
+ if(first&&first.testStatuses||second&&second.testStatuses)merged.testStatuses=Object.assign({},older&&older.testStatuses||{},newer&&newer.testStatuses||{});
+ if(!merged.document)merged.document=(first&&first.document)||(second&&second.document)||(first&&first.cedula)||(second&&second.cedula)||'';
+ if(!merged.cedula)merged.cedula=(first&&first.cedula)||(second&&second.cedula)||merged.document;
+ return merged;
+}
+function dedupePatients(items){
+ const map=new Map(),aliases={};
+ (Array.isArray(items)?items:[]).forEach(patient=>{
+  if(!patient||typeof patient!=='object')return;
+  const docKey=patientDocumentKey(patient),id=String(patient.id||'').trim();
+  const key=docKey?'document:'+docKey:(id?'id:'+id:'unidentified:'+JSON.stringify(patient));
+  const old=map.get(key);
+  if(!old){map.set(key,Object.assign({},patient));return}
+  const canonicalId=String(old.id||patient.id||'');
+  if(patient.id&&canonicalId&&String(patient.id)!==canonicalId)aliases[String(patient.id)]=canonicalId;
+  const merged=mergePatientRecords(old,patient);
+  if(canonicalId)merged.id=canonicalId;
+  map.set(key,merged);
+ });
+ Object.keys(aliases).forEach(id=>{
+  let target=aliases[id],guard=0;
+  while(aliases[target]&&guard++<20)target=aliases[target];
+  aliases[id]=target;
+ });
+ return{items:Array.from(map.values()),aliases};
+}
+function dedupeJourneyEntries(items){
+ const map=new Map();
+ (Array.isArray(items)?items:[]).forEach(entry=>{
+  if(!entry||typeof entry!=='object')return;
+  const patientId=String(entry.patientId||entry.patientRecordId||entry.participantId||'');
+  const key=entry.journeyId&&patientId?'journey:'+String(entry.journeyId)+'|patient:'+patientId:(entry.id?'id:'+entry.id:'json:'+JSON.stringify(entry));
+  const old=map.get(key);
+  if(!old){map.set(key,Object.assign({},entry));return}
+  const newer=stamp(entry)>=stamp(old)?entry:old,older=newer===entry?old:entry;
+  const merged=Object.assign({},older,newer);
+  if(Array.isArray(old.testIds)||Array.isArray(entry.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(entry.testIds)?entry.testIds:[])]));
+  if(old.testStatuses||entry.testStatuses)merged.testStatuses=Object.assign({},older.testStatuses||{},newer.testStatuses||{});
+  map.set(key,merged);
+ });
+ return Array.from(map.values());
+}
+function normalizePatientState(state){
+ const out=Object.assign({},state||{}),result=dedupePatients(out.patients);
+ out.patients=result.items;
+ if(Object.keys(result.aliases).length){
+  const remap=value=>result.aliases[String(value||'')]||value;
+  out.journeyEntries=(Array.isArray(out.journeyEntries)?out.journeyEntries:[]).map(entry=>{
+   if(!entry||typeof entry!=='object')return entry;
+   const next=Object.assign({},entry);
+   if(next.patientId)next.patientId=remap(next.patientId);
+   if(next.patientRecordId)next.patientRecordId=remap(next.patientRecordId);
+   return next;
+  });
+  out.patients=out.patients.map(patient=>Object.assign({},patient,{
+   journeyHistory:(Array.isArray(patient.journeyHistory)?patient.journeyHistory:[]).map(entry=>{
+    if(!entry||typeof entry!=='object')return entry;
+    const next=Object.assign({},entry);
+    if(next.patientId)next.patientId=remap(next.patientId);
+    if(next.patientRecordId)next.patientRecordId=remap(next.patientRecordId);
+    return next;
+   })
+  }));
+ }
+ out.journeyEntries=dedupeJourneyEntries(out.journeyEntries);
+ return out;
+}
 function mergeState(remote,local){
- const out=Object.assign({},local||{},remote||{});
+ const out=Object.assign({},local||{},remote||{});let patientAliases={};
  delete out.auditLog;
  for(const key of ARRAY_KEYS){
   const a=Array.isArray(remote&&remote[key])?remote[key]:[];
   const b=Array.isArray(local&&local[key])?local[key]:[];
+  if(key==='patients'){
+   const result=dedupePatients(a.concat(b));out[key]=result.items;patientAliases=result.aliases;continue;
+  }
+  if(key==='journeyEntries'){out[key]=dedupeJourneyEntries(a.concat(b));continue}
   const map=new Map();
   a.forEach(x=>map.set(itemKey(x,key),x));
   b.forEach(x=>{const k=itemKey(x,key),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
   out[key]=key==='catalog'?dedupeCatalog(Array.from(map.values())):Array.from(map.values());
+ }
+ if(Object.keys(patientAliases).length){
+  const remap=value=>patientAliases[String(value||'')]||value;
+  out.journeyEntries=(out.journeyEntries||[]).map(entry=>entry&&typeof entry==='object'?Object.assign({},entry,{patientId:remap(entry.patientId),patientRecordId:remap(entry.patientRecordId)}):entry);
  }
  const deletedClinicalSampleIds=new Set((out.clinicalLocalDeletedSampleIds||[]).map(String));
  out.clinicalSamples=(out.clinicalSamples||[]).filter(x=>!deletedClinicalSampleIds.has(String(x.id)));
@@ -99,7 +201,7 @@ function mergeState(remote,local){
  // El contador de pruebas pertenece a la jornada activa. Si la jornada local es más reciente,
  // conservar su selección junto con sus pacientes y entradas en lugar de restaurar un snapshot viejo.
  out.selected=localJourneyNewer&&Array.isArray(local&&local.selected)?local.selected:(Array.isArray(remote&&remote.selected)?remote.selected:(local&&local.selected||[]));
- return out;
+ return normalizePatientState(out);
 }
 async function hashState(s){
  const raw=JSON.stringify(stripLegacyAudit(s));
@@ -156,7 +258,7 @@ async function fetchRemote(){
  return await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
 }
 async function writeRemote(state,expected){
- const payload=stripLegacyAudit(state);
+ const payload=normalizePatientState(stripLegacyAudit(state));
  if(Array.isArray(payload.catalog))payload.catalog=dedupeCatalog(payload.catalog);
  // No guardar catálogos clínicos duplicados en workspace_app_state: clinical_* es la fuente oficial.
  CLINICAL_DB_CONFIG_KEYS.forEach(k=>{payload[k]=[]});
@@ -171,13 +273,14 @@ async function writeRemote(state,expected){
 }
 function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
- const current=app()||{},safe=stripLegacyAudit(s);safe.auditLog=[];
+ const current=app()||{},rawPatients=JSON.stringify({patients:(s&&s.patients)||[],journeyEntries:(s&&s.journeyEntries)||[]});let safe=normalizePatientState(stripLegacyAudit(s));const patientDuplicatesRemoved=rawPatients!==JSON.stringify({patients:safe.patients||[],journeyEntries:safe.journeyEntries||[]});safe.auditLog=[];
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(!clearClinical&&Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
  window.FleboAppState.replace(safe,{silent:true,deferRender:true});
  window.dispatchEvent(new Event('flebo:cloud-state-applied'));
+ if(patientDuplicatesRemoved)window.dispatchEvent(new Event('flebo:local-state-saved'));
  if(clearClinical)window.dispatchEvent(new Event('flebo:clinical-cache-reset'));
 }
 async function publishMerged(local,remote,expected){
@@ -211,6 +314,8 @@ async function connect(){
   }
   if(!stateSyncAllowed){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
   let local=app()||{},m=meta();
+  const normalizedLocal=normalizePatientState(local);
+  if(JSON.stringify(normalizedLocal.patients||[])!==JSON.stringify(local.patients||[])||JSON.stringify(normalizedLocal.journeyEntries||[])!==JSON.stringify(local.journeyEntries||[])){local=normalizedLocal;applyCloudState(local);local=app()||local}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   if(m.workspaceId&&(m.workspaceId!==workspaceId||m.userId!==userId)&&meaningful(local)){
    try{localStorage.setItem('fleboReport.localBackup.'+m.workspaceId,JSON.stringify({savedAt:new Date().toISOString(),state:local}))}catch(backupError){throw new Error('No se pudo respaldar el estado local del espacio anterior. No se modificaron tus datos; libera espacio del navegador e inténtalo de nuevo.')}
@@ -316,7 +421,7 @@ async function syncLocal(options){
  pendingLocalChanges=false;
  busy=true;
  try{
-  let local=app()||{};
+  let local=normalizePatientState(app()||{});
   if(Array.isArray(local.auditLog)&&local.auditLog.length){await persistLegacyAuditEvents(local.auditLog);local=stripLegacyAudit(local);applyCloudState(local)}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local),m=meta();
