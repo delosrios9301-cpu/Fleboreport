@@ -79,7 +79,7 @@ function patientNestedKey(value,index,collection){
  if(value&&typeof value==='object'){
   if(value.id!=null&&String(value.id))return'id:'+value.id;
   if(collection==='journeyHistory'&&value.journeyId)return'journey:'+value.journeyId;
-  if(collection==='attentions')return'attention:'+[value.date||value.createdAt||'',value.serviceType||value.type||'',value.companyId||''].join('|')+'|'+JSON.stringify(value.tests||[]);
+  return'json:'+JSON.stringify(value);
  }
  return'value:'+String(value);
 }
@@ -124,6 +124,22 @@ function dedupePatients(items){
  });
  return{items:Array.from(map.values()),aliases};
 }
+function dedupeJourneyEntries(items){
+ const map=new Map();
+ (Array.isArray(items)?items:[]).forEach(entry=>{
+  if(!entry||typeof entry!=='object')return;
+  const patientId=String(entry.patientId||entry.patientRecordId||entry.participantId||'');
+  const key=entry.journeyId&&patientId?'journey:'+String(entry.journeyId)+'|patient:'+patientId:(entry.id?'id:'+entry.id:'json:'+JSON.stringify(entry));
+  const old=map.get(key);
+  if(!old){map.set(key,Object.assign({},entry));return}
+  const newer=stamp(entry)>=stamp(old)?entry:old,older=newer===entry?old:entry;
+  const merged=Object.assign({},older,newer);
+  if(Array.isArray(old.testIds)||Array.isArray(entry.testIds))merged.testIds=Array.from(new Set([...(old.testIds||[]),...(entry.testIds||[])]));
+  if(old.testStatuses||entry.testStatuses)merged.testStatuses=Object.assign({},older.testStatuses||{},newer.testStatuses||{});
+  map.set(key,merged);
+ });
+ return Array.from(map.values());
+}
 function normalizePatientState(state){
  const out=Object.assign({},state||{}),result=dedupePatients(out.patients);
  out.patients=result.items;
@@ -136,6 +152,7 @@ function normalizePatientState(state){
    if(next.patientRecordId)next.patientRecordId=remap(next.patientRecordId);
    return next;
   });
+  out.journeyEntries=dedupeJourneyEntries(out.journeyEntries);
   out.patients=out.patients.map(patient=>Object.assign({},patient,{
    journeyHistory:(Array.isArray(patient.journeyHistory)?patient.journeyHistory:[]).map(entry=>{
     if(!entry||typeof entry!=='object')return entry;
