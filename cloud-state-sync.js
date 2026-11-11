@@ -33,8 +33,11 @@ function meaningful(s){
 }
 function catalogIdentity(x){
  const norm=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
- const code=norm(x&&x.code);if(code)return'code:'+code;
- return'name:'+norm(x&&x.name);
+ // La identidad estable siempre es el ID. Nombre/código solo sirven para registros heredados sin ID.
+ const id=String(x&&x.id||'').trim();if(id)return'id:'+id;
+ const code=norm(x&&x.code);
+ if(code)return'legacy-code:'+code+'|'+norm(x&&x.sample)+'|'+norm(x&&x.vessel);
+ return'legacy-name:'+norm(x&&x.name)+'|'+norm(x&&x.sample)+'|'+norm(x&&x.vessel);
 }
 function catalogRichness(x){
  return Object.entries(x||{}).reduce((n,[k,v])=>n+(v!=null&&String(v).trim()!==''?1:0),0);
@@ -45,11 +48,12 @@ function dedupeCatalog(items){
   if(!item||typeof item!=='object')return;
   const key=catalogIdentity(item),old=map.get(key);
   if(!old){map.set(key,Object.assign({},item));return}
-  const preferred=catalogRichness(item)>catalogRichness(old)?item:old;
+  const oldStamp=stamp(old),itemStamp=stamp(item);
+  const preferred=itemStamp>oldStamp?item:oldStamp>itemStamp?old:(catalogRichness(item)>catalogRichness(old)?item:old);
   const secondary=preferred===item?old:item;
-  const merged=Object.assign({},secondary);
-  Object.entries(preferred).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')merged[k]=v});
-  merged.id=old.id||item.id;merged.name=old.name||item.name;
+  // La versión más reciente manda, incluso cuando un campo fue limpiado intencionalmente.
+  const merged=Object.assign({},secondary,preferred);
+  merged.id=old.id||item.id;
   map.set(key,merged);
  });
  return Array.from(map.values());
