@@ -1201,7 +1201,7 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(html, /id="journeySelectedTestChips"/);
   assert.match(html, /id="journeyPatients"/);
   assert.match(html, /id="journeyTests"/);
-  assert.match(html, /onclick="navigate\('reports'\)">Generar reporte/);
+  assert.match(html, /onclick="openJourneyReportSetup\(\)">Generar reporte/);\n  assert.match(html, /id="journeyReportSetup" class="journey-report-setup" hidden/);\n  assert.match(html, /id="journeyReportCompanyInput"/);\n  assert.match(html, /id="journeyReportResponsibleInput"/);\n  assert.match(html, /id="journeyReportStartInput"/);\n  assert.match(html, /id="journeyReportEndInput"/);\n  assert.match(html, /journey-details-panel" hidden style="display:none"/);\n  assert.match(html, /function confirmJourneyReportSetup\(event\)/);
   assert.match(html, /function updateJourneySummary\(\)/);
   assert.match(html, /function renderJourneyPatients\(\)/);
   assert.match(html, /data-patient-status=/);
