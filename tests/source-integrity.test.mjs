@@ -1176,6 +1176,8 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /window\.addEventListener\('flebo:cloud-state-applied'/);
   assert.match(html, /function registerJourneyPatient\(\)[\s\S]*?createdAt:now,updatedAt:now/);
   assert.match(html, /entry\.updatedAt=now/);
+  assert.match(html, /var snap=\{journeyId:state\.journey\.id/);
+  assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
   assert.match(serviceWorker, /fleboreport-shell-v262/);
