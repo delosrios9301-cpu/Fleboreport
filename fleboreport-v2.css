@@ -255,3 +255,71 @@ body.fr2-app-authorized .view.active{animation:fr2-view-in .24s ease both}
  body.fr2-app-authorized .view.active{animation:none!important}
  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+
+/* Catálogo de pruebas 2.0 — espacio de trabajo independiente y operativo */
+.fr2-catalog-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;margin:0 0 20px;padding:clamp(20px,3vw,30px);border:1px solid #dce9ee;border-radius:21px;background:radial-gradient(circle at 88% 5%,#55d9c82c,transparent 25%),linear-gradient(115deg,#fff,#f5fafb);box-shadow:0 10px 28px #143b5309}
+.fr2-catalog-intro{max-width:760px}
+.fr2-catalog-intro h1{margin:8px 0 7px;color:#18374e;font-size:clamp(24px,2.8vw,34px);font-weight:900;letter-spacing:-1.1px}
+.fr2-catalog-intro p{max-width:650px;margin:0;color:#74899a;font-size:12px;line-height:1.65}
+.fr2-catalog-new{flex:none;min-height:46px!important;padding:10px 17px!important;border-radius:12px!important;font-size:11px!important}
+.fr2-catalog-new span{font-size:18px;line-height:10px;margin-right:4px}
+.fr2-catalog-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:16px}
+.fr2-catalog-stat{display:flex;align-items:center;gap:13px;min-height:88px;padding:15px 17px;border:1px solid #e0e9ef;border-radius:16px;background:#fff;box-shadow:0 6px 19px #173d5008}
+.fr2-catalog-stat-icon{display:grid;place-items:center;flex:none;width:42px;height:42px;border-radius:13px;background:#e9f7f4;color:#0d9288;font-size:22px}
+.fr2-catalog-stat-icon.pending{background:#fff5e6;color:#b47b25}
+.fr2-catalog-stat-icon.tube{background:#edf4fb;color:#3b78b5}
+.fr2-catalog-stat div{display:grid;gap:4px}
+.fr2-catalog-stat small{color:#788c9a;font-size:10px;font-weight:700}
+.fr2-catalog-stat strong{color:#17384f;font-size:24px;font-weight:900;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+.fr2-catalog-toolbar{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 14px!important;margin-bottom:15px!important;overflow:visible!important}
+.fr2-catalog-search{display:flex;align-items:center;gap:10px;flex:1;min-width:0;height:43px;padding:0 12px;border:1px solid #e0e9ee;border-radius:11px;background:#f9fbfc;color:#8295a2}
+.fr2-catalog-search>span{font-size:21px;line-height:1}
+.fr2-catalog-search input{flex:1;min-width:0;height:100%;border:0!important;outline:0!important;background:transparent!important;color:#1a3b52!important;font-size:11px!important;box-shadow:none!important}
+.fr2-catalog-search kbd{padding:4px 7px;border:1px solid #e2e9ee;border-radius:6px;background:#fff;color:#8293a0;font-size:8px;font-family:inherit}
+.fr2-catalog-toolbar-note{display:flex;align-items:center;gap:8px;flex:none;color:#708a91;font-size:9px;font-weight:750}
+.fr2-online-dot{width:7px;height:7px;border-radius:50%;background:#22b184;box-shadow:0 0 0 4px #22b18419}
+.fr2-catalog-list-panel{margin:0!important}
+.fr2-catalog-list-panel>.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.fr2-catalog-list-panel>.panel-head>div{display:grid;gap:4px}
+.fr2-catalog-list-panel>.panel-head p{margin:0;color:#7d909d;font-size:10px}
+.fr2-catalog-list{display:grid;gap:9px}
+.fr2-catalog-item{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:14px;padding:14px;border:1px solid #e5edf1;border-radius:14px;background:#fff;transition:border-color .18s,box-shadow .18s,transform .18s}
+.fr2-catalog-item:hover{transform:translateY(-1px);border-color:#c4dfda;box-shadow:0 8px 20px #173d500b}
+.fr2-catalog-item .catalog-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:13px;background:#f0f7f8}
+.fr2-catalog-item .catalog-icon svg{width:28px;height:34px}
+.fr2-catalog-item-copy{display:grid;gap:5px;min-width:0}
+.fr2-catalog-item-copy>strong{overflow-wrap:anywhere;color:#1c3c52;font-size:12px;font-weight:850}
+.fr2-catalog-item-copy>small{color:#7b8e9c;font-size:9px;line-height:1.5}
+.fr2-catalog-item-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fr2-catalog-item-tags .badge{font-size:8px!important}
+.fr2-catalog-tag{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 7px;border-radius:99px;background:#f2f6f8;color:#748796;font-size:8px}
+.fr2-catalog-archive{margin-top:15px;border:1px solid #e1e9ee;border-radius:15px;background:#f9fbfc;overflow:hidden}
+.fr2-catalog-archive[hidden]{display:none!important}
+.fr2-catalog-archive>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;color:#526c7e;font-size:11px;font-weight:850;cursor:pointer;list-style:none}
+.fr2-catalog-archive>summary::-webkit-details-marker{display:none}
+.fr2-catalog-archive-list{display:grid;gap:8px;padding:0 13px 13px}
+.fr2-catalog-archive-item{display:flex;align-items:center;justify-content:space-between;gap:13px;padding:12px 13px;border:1px solid #e7edf1;border-radius:12px;background:#fff}
+.fr2-catalog-archive-item>div{display:grid;gap:4px;min-width:0}
+.fr2-catalog-archive-item strong{color:#5d7180;font-size:10px}
+.fr2-catalog-archive-item small{color:#90a0ab;font-size:9px}
+.fr2-archived-row{background:#f8fafb!important;opacity:.78}
+@media(max-width:760px){
+ .fr2-catalog-hero{align-items:stretch;flex-direction:column;gap:16px;padding:20px 17px;border-radius:17px}
+ .fr2-catalog-new{align-self:flex-start}
+ .fr2-catalog-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+ .fr2-catalog-stat{min-height:77px;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;padding:10px;border-radius:13px}
+ .fr2-catalog-stat-icon{width:29px;height:29px;border-radius:9px;font-size:16px}
+ .fr2-catalog-stat small{font-size:8px;line-height:1.2}
+ .fr2-catalog-stat strong{font-size:19px}
+ .fr2-catalog-toolbar{display:grid;gap:9px;padding:10px!important}
+ .fr2-catalog-toolbar-note{font-size:8px}
+ .fr2-catalog-search{height:41px}
+ .fr2-catalog-search kbd{display:none}
+ .fr2-catalog-item{grid-template-columns:39px minmax(0,1fr);gap:10px;padding:11px}
+ .fr2-catalog-item .catalog-icon{width:38px;height:40px}
+ .fr2-catalog-item .catalog-icon svg{width:25px;height:30px}
+ .fr2-catalog-item>.btn{grid-column:2;justify-self:start;min-height:34px!important}
+ .fr2-catalog-item-copy>strong{font-size:11px}
+ .fr2-catalog-archive-item{align-items:flex-start;flex-direction:column}
+}
