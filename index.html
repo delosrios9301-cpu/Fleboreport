@@ -630,7 +630,7 @@ body.module-menu-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){#view-home .op-kpi,#view-home .op-quick button{transition:none}}
 </style>
 <style id="fleboreport-stable-startup">body:not(.flebo-authenticated) .app-shell,body.flebo-authenticated:not(.flebo-cloud-ready) .app-shell{visibility:hidden!important}body.flebo-authenticated.flebo-cloud-ready .app-shell{visibility:visible!important}</style>
-<link rel="stylesheet" href="./fleboreport-v2.css?v=20261111-redesign6">
+<link rel="stylesheet" href="./fleboreport-v2.css?v=20261111-jornada2">
 
 <style id="fr-dashboard-header-fix">
 /* Cabecera limpia: marca visible, sin solapamientos ni estado técnico de nube. */
@@ -780,18 +780,66 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 </section>
 
 <section class="view" id="view-journey">
-<div class="page-heading"><div><div class="eyebrow">OPERACIÓN</div><h1>Jornada actual</h1><p>Registra el horario y suma las pruebas realizadas durante el período.</p></div><div class="heading-actions"><button class="btn" onclick="newJourney()">＋ Nueva jornada</button><button class="btn primary" onclick="navigate('reports')">Ver resumen →</button></div></div>
+<div class="page-heading"><div><div class="eyebrow">OPERACIÓN</div><h1>Jornada actual</h1><p>Registra pacientes, selecciona pruebas del catálogo y controla cada muestra en la jornada activa.</p></div><div class="heading-actions"><button class="btn" onclick="newJourney()">＋ Nueva jornada</button><button class="btn primary" onclick="navigate('reports')">Ver resumen →</button></div></div>
 
-<div class="module-grid">
-<section class="panel form-panel"><h2>Datos de la jornada</h2><div class="fields">
-<div class="field"><label for="journeyCompany">Empresa de la jornada</label><select id="journeyCompany"><option value="">Sin especificar</option></select><div class="field-help">Si no aparece, agrégala aquí para guardarla y seleccionarla.</div><details style="margin-top:8px"><summary style="cursor:pointer;color:#0c8179;font-size:10px;font-weight:800">＋ Registrar empresa nueva</summary><div style="display:flex;gap:7px;margin-top:8px"><input id="journeyNewCompany" placeholder="Nombre de la empresa"><button type="button" class="btn" onclick="saveJourneyCompany()">Guardar</button></div></details></div>
-<div class="field"><label for="journeyDate">Fecha</label><input id="journeyDate" type="date"></div>
-<div class="field"><label for="journeyStart">Hora de inicio</label><input id="journeyStart" type="time"></div>
-<div class="field"><label for="journeyEnd">Hora de fin</label><input id="journeyEnd" type="time"></div>
-<div class="field full"><label for="journeyResponsible">Responsable (opcional)</label><input id="journeyResponsible" placeholder="Responsable de la jornada"></div>
-</div><div class="divider"></div><h2>Registrar paciente de esta jornada</h2><p class="section-description">Asocia cada persona con sus pruebas. El reporte suma las cantidades y no muestra nombres ni cédulas.</p><div class="fields"><div class="field"><label for="journeyPatientName">Nombre y apellido *</label><input id="journeyPatientName" autocomplete="off" placeholder="Nombre completo"></div><div class="field"><label for="journeyPatientId">Cédula *</label><input id="journeyPatientId" autocomplete="off" placeholder="Número de cédula"></div><div class="field full"><label>Pruebas que realizará *</label><details class="test-picker" id="journeyTestPicker"><summary><span id="journeyPatientTestSummary">Seleccionar pruebas del catálogo</span><span class="picker-chevron">⌄</span></summary><div class="field" style="padding:10px 10px 0"><input id="journeyPatientTestSearch" type="search" placeholder="Buscar prueba por nombre…" autocomplete="off" oninput="filterJourneyPatientTests(this.value)"></div><div id="journeyPatientTestChoices" class="test-choice-list"></div></details><small class="field-help">Puedes elegir una o varias pruebas.</small></div></div><div class="form-actions"><button class="btn primary" onclick="registerJourneyPatient()">Guardar paciente y sumar pruebas</button></div><div class="divider"></div><div class="panel-head" style="padding:0 0 11px;border:0"><h2>Pacientes de esta jornada</h2><span id="journeyPatientCount" class="badge">0</span></div><div id="journeyPatients" class="list-stack"></div><div class="divider"></div><div class="panel-head" style="padding:0 0 12px;border:0"><h2>Pruebas acumuladas de la jornada</h2></div><div id="journeyTests" class="list-stack"><div class="empty-state">Todavía no agregas pruebas.</div></div></section>
- 
-</div></section>
+<div class="journey-kpis" aria-live="polite">
+ <article class="journey-kpi"><span class="journey-kpi-icon patients">♙</span><span class="journey-kpi-copy"><small>Pacientes</small><strong id="journeyKpiPatients">0</strong><em>registrados</em></span></article>
+ <article class="journey-kpi"><span class="journey-kpi-icon tests">⚗</span><span class="journey-kpi-copy"><small>Pruebas</small><strong id="journeyKpiTests">0</strong><em>acumuladas</em></span></article>
+ <article class="journey-kpi"><span class="journey-kpi-icon complete">✓</span><span class="journey-kpi-copy"><small>Completados</small><strong id="journeyKpiCompleted">0</strong><em>pacientes con todas sus muestras</em></span></article>
+</div>
+
+<div class="journey-layout">
+ <div class="journey-main-column">
+  <section class="panel form-panel journey-details-panel">
+   <div class="journey-panel-heading"><div><div class="eyebrow">JORNADA ACTIVA</div><h2>Información de la jornada</h2><p>Los cambios se guardan automáticamente.</p></div><span class="badge journey-active-badge" id="journeyStatusBadge">En curso</span></div>
+   <div class="fields journey-detail-fields">
+    <div class="field full"><label for="journeyCompany">Empresa de la jornada</label><select id="journeyCompany"><option value="">Sin especificar</option></select></div>
+    <div class="field"><label for="journeyDate">Fecha</label><input id="journeyDate" type="date"></div>
+    <div class="field"><label for="journeyResponsible">Responsable</label><input id="journeyResponsible" placeholder="Nombre del responsable"></div>
+    <div class="field"><label for="journeyStart">Hora de inicio</label><input id="journeyStart" type="time"></div>
+    <div class="field"><label for="journeyEnd">Hora de finalización</label><input id="journeyEnd" type="time"></div>
+   </div>
+   <details class="journey-company-create"><summary>＋ Registrar una empresa nueva</summary><div class="journey-company-create-row"><input id="journeyNewCompany" placeholder="Nombre de la empresa" aria-label="Nombre de la empresa nueva"><button type="button" class="btn" onclick="saveJourneyCompany()">Guardar empresa</button></div></details>
+  </section>
+
+  <section class="panel form-panel journey-entry-panel">
+   <div class="journey-panel-heading"><div><div class="eyebrow">REGISTRO DE ATENCIÓN</div><h2>Registrar paciente</h2><p>Asocia una o varias pruebas del catálogo central a cada paciente.</p></div><span class="journey-step-number">01</span></div>
+   <div class="fields journey-patient-fields">
+    <div class="field"><label for="journeyPatientName">Nombre completo *</label><input id="journeyPatientName" autocomplete="off" placeholder="Nombre y apellidos"></div>
+    <div class="field"><label for="journeyPatientId">Cédula / identificación *</label><input id="journeyPatientId" autocomplete="off" placeholder="Número de identificación"></div>
+    <div class="field full journey-test-field">
+     <label for="journeyPatientTestSearch">Buscar pruebas del catálogo</label>
+     <input id="journeyPatientTestSearch" type="search" placeholder="Buscar por nombre o código…" autocomplete="off" oninput="filterJourneyPatientTests(this.value)">
+     <details class="test-picker journey-test-picker" id="journeyTestPicker">
+      <summary><span id="journeyPatientTestSummary">Seleccionar pruebas del catálogo</span><span class="picker-chevron">⌄</span></summary>
+      <div id="journeyPatientTestChoices" class="test-choice-list"></div>
+     </details>
+     <div id="journeySelectedTestChips" class="journey-selected-tests" aria-live="polite"><span class="journey-no-tests">Todavía no has seleccionado pruebas.</span></div>
+     <small class="field-help">Cada prueba muestra el recipiente configurado en el catálogo. Puedes seleccionar varias.</small>
+    </div>
+   </div>
+   <div class="form-actions journey-submit-actions"><button class="btn primary journey-register-button" onclick="registerJourneyPatient()">＋ Guardar paciente y agregar pruebas</button></div>
+  </section>
+ </div>
+
+ <div class="journey-side-column">
+  <section class="panel journey-list-panel">
+   <div class="journey-panel-heading"><div><div class="eyebrow">SEGUIMIENTO</div><h2>Pacientes de esta jornada</h2><p>Controla individualmente el estado de cada muestra.</p></div><span id="journeyPatientCount" class="badge">0</span></div>
+   <div id="journeyPatients" class="list-stack"><div class="empty-state">Todavía no se han agregado pacientes a esta jornada.</div></div>
+  </section>
+
+  <section class="panel form-panel journey-tests-panel">
+   <div class="journey-panel-heading"><div><div class="eyebrow">CONSOLIDADO</div><h2>Pruebas acumuladas</h2><p>Totales de la jornada activa.</p></div><strong id="journeyTotal" class="journey-total-count">0</strong></div>
+   <div id="journeyTests" class="list-stack"><div class="empty-state">Todavía no agregas pruebas.</div></div>
+  </section>
+ </div>
+</div>
+
+<section class="panel journey-report-footer">
+ <div><div class="eyebrow">CIERRE Y REPORTE</div><h2>Reporte de la jornada</h2><p id="journeyReportSummary">0 pacientes · 0 pruebas acumuladas</p><small>La vista previa permite revisar el reporte y descargarlo como PDF o PNG. Generarlo no elimina los datos ni cierra la jornada.</small></div>
+ <button class="btn primary journey-report-button" type="button" onclick="navigate('reports')">Generar reporte <span aria-hidden="true">→</span></button>
+</section>
+</section>
 
 <section class="view" id="view-companies"><div class="page-heading"><div><div class="eyebrow">CLIENTES</div><h1>Empresas</h1><p>Organiza las empresas para asociarlas a cada jornada.</p></div></div><div class="module-grid"><section class="panel form-panel"><h2>Registrar empresa</h2><div class="fields"><div class="field"><label for="clientName">Nombre de la empresa *</label><input id="clientName" placeholder="Nombre comercial"></div><div class="field"><label for="clientCity">Ciudad o ubicación</label><input id="clientCity" placeholder="Ubicación"></div><div class="field full"><label for="clientContact">Contacto (opcional)</label><input id="clientContact" placeholder="Teléfono o correo"></div></div><div class="form-actions"><button class="btn primary" onclick="addCompany()">Guardar empresa</button></div></section><section class="panel form-panel"><div class="panel-head" style="padding:0 0 14px;border:0"><h2>Empresas registradas</h2><span id="companyCount" class="badge">0</span></div><div id="companyList" class="list-stack"><div class="empty-state">Aún no agregas empresas.</div></div></section></div></section>
 <section class="view" id="view-patients">
@@ -1071,7 +1119,7 @@ function changeCount(id,delta){const item=state.selected.find(function(x){return
 function removeFromJourney(id){state.selected=state.selected.filter(function(x){return x.testId!==id});touchJourney();save();renderAll()}
 function grouped(){return state.selected.map(function(entry){const test=state.catalog.find(function(t){return t.id===entry.testId});return test?{test:test,count:entry.count}:null}).filter(Boolean)}
 function totalTests(){return state.selected.reduce(function(sum,x){return sum+x.count},0)}
-function renderJourney(){const list=$('journeyTests'),groups=grouped();$('journeyTotal').textContent=totalTests();list.innerHTML=groups.length?groups.map(function(g){return '<div class="catalog-card"><span class="catalog-icon">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>'+esc(g.test.vessel||'Recipiente sin configurar')+' · '+g.count+' realizada'+(g.count===1?'':'s')+'</small></span><span class="list-actions"><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',-1)" aria-label="Restar">−</button><b>'+g.count+'</b><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',1)" aria-label="Sumar">+</button><button class="icon-button" onclick="removeFromJourney(\''+esc(g.test.id)+'\')" aria-label="Quitar">×</button></span></div>'}).join(''):'<div class="empty-state">Todavía no agregas pruebas.</div>'}
+function renderJourney(){const list=$('journeyTests'),groups=grouped();$('journeyTotal').textContent=totalTests();list.innerHTML=groups.length?groups.map(function(g){return '<div class="catalog-card"><span class="catalog-icon">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>'+esc(g.test.vessel||'Recipiente sin configurar')+' · '+g.count+' realizada'+(g.count===1?'':'s')+'</small></span><span class="list-actions"><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',-1)" aria-label="Restar">−</button><b>'+g.count+'</b><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',1)" aria-label="Sumar">+</button><button class="icon-button" onclick="removeFromJourney(\''+esc(g.test.id)+'\')" aria-label="Quitar">×</button></span></div>'}).join(''):'<div class="empty-state">Todavía no agregas pruebas.</div>'};updateJourneySummary()
 function patientsForJourney(){
  var patients=Array.isArray(state.patients)?state.patients:[],entries=Array.isArray(state.journeyEntries)?state.journeyEntries:[],history=[];
  patients.forEach(function(p){
@@ -1098,6 +1146,14 @@ function patientsForJourney(){
  var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
  return joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
 }
+function updateJourneySummary(){
+ const patients=patientsForJourney();
+ const completed=patients.filter(function(p){const ids=Array.isArray(p.testIds)?p.testIds:[];return ids.length>0&&ids.every(function(id){return p.testStatuses&&p.testStatuses[id]==='tomada'})}).length;
+ const values={journeyKpiPatients:patients.length,journeyKpiTests:totalTests(),journeyKpiCompleted:completed};
+ Object.keys(values).forEach(function(id){const node=$(id);if(node)node.textContent=String(values[id])});
+ const summary=$('journeyReportSummary');
+ if(summary)summary.textContent=patients.length+' paciente'+(patients.length===1?'':'s')+' · '+totalTests()+' prueba'+(totalTests()===1?'':'s')+' acumulada'+(totalTests()===1?'':'s');
+}
 function journeyPatientRoster(){return patientsForJourney().map(function(p){return{name:p.name||'Paciente',tests:(p.testIds||[]).map(function(id){var t=state.catalog.find(function(x){return x.id===id});return t&&t.name}).filter(Boolean)}})}
 function toggleJourneyPatientList(){state.includeJourneyPatients=!!$('includePatientList').checked;save();renderReport()}
 function renderReport(){const groups=grouped(),total=totalTests(),patients=journeyPatientRoster(),include=!!state.includeJourneyPatients;$('reportPatientTotal').textContent=patientsForJourney().length;$('reportCompany').textContent=state.company.name||'';const clientName=(state.companies.find(function(c){return c.id===state.journey.companyId})||{}).name;$('reportContact').textContent=[state.company.contact,clientName].filter(Boolean).join(' · ');$('reportDate').textContent=formatDate(state.journey.date);$('reportHours').textContent='Horario: '+(state.journey.start||'—')+' a '+(state.journey.end||'—');$('reportResponsible').textContent='Responsable: '+(state.journey.responsible||'Sin especificar');$('reportTestTotal').textContent=total;$('reportTypeTotal').textContent=groups.length;const vesselSum=groups.reduce(function(n,g){return n+g.count},0);$('reportVesselTotal').textContent=vesselSum;$('reportGrandTotal').textContent=total+' pruebas';$('reportTests').innerHTML=groups.length?groups.map(function(g){return '<div class="report-test"><span class="report-vessel">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>Prueba registrada en jornada</small></span><b>'+g.count+'</b></div>'}).join(''):'<div class="report-empty">Agrega pruebas a la jornada para crear el reporte.</div>';var section=$('reportPatientListSection');section.hidden=!include;var list=$('reportPatientList');list.innerHTML=include?(patients.length?'<div class="table-wrap"><table class="data-table"><thead><tr><th>Paciente</th><th>Pruebas solicitadas</th></tr></thead><tbody>'+patients.map(function(p){return'<tr><td>'+esc(p.name)+'</td><td>'+esc(p.tests.join(', ')||'—')+'</td></tr>'}).join('')+'</tbody></table></div>':'<p class="muted">No hay pacientes registrados para esta jornada.</p>'):'';updateCompanyPreview()}
@@ -1116,26 +1172,45 @@ function deleteCompany(id){const c=state.companies.find(function(x){return x.id=
 function renderCompanies(){const host=$('companyList');if(!host)return;$('companyCount').textContent=state.companies.length;host.innerHTML=state.companies.length?state.companies.map(function(c){return '<div class="list-row"><span><strong>'+esc(c.name)+'</strong><small>'+esc([c.city,c.contact].filter(Boolean).join(' · ')||'Sin detalles adicionales')+'</small></span><button class="btn danger" data-company-delete="'+esc(c.id)+'">Eliminar</button></div>'}).join(''):'<div class="empty-state">Aún no agregas empresas.</div>';host.querySelectorAll('[data-company-delete]').forEach(function(b){b.onclick=function(){deleteCompany(b.dataset.companyDelete)}});populateCompanyOptions()}
 function populateCompanyOptions(){const select=$('journeyCompany');if(!select)return;const selected=state.journey.companyId||'';select.innerHTML='<option value="">Sin especificar</option>'+state.companies.map(function(c){return '<option value="'+esc(c.id)+'">'+esc(c.name)+'</option>'}).join('');select.value=selected}
 function saveJourneyCompany(){const name=$('journeyNewCompany').value.trim();if(!name){toast('Escribe el nombre de la empresa.');$('journeyNewCompany').focus();return}let company=state.companies.find(function(c){return c.name.toLocaleLowerCase('es')===name.toLocaleLowerCase('es')});if(!company){company={id:'c-'+Date.now(),name:name,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}state.journey.companyId=company.id;touchJourney();$('journeyNewCompany').value='';save();renderCompanies();$('journeyCompany').value=company.id;renderReport();toast('Empresa guardada y seleccionada.')}
-function updateJourneyPatientTestSummary(){const count=document.querySelectorAll('input[name="journeyPatientTest"]:checked').length,label=$('journeyPatientTestSummary');if(label)label.textContent=count?count+' prueba'+(count===1?'':'s')+' seleccionada'+(count===1?'':'s') :'Seleccionar pruebas del catálogo'}function renderJourneyPatientChoices(){
+function updateJourneyPatientTestSummary(){
+ const selected=Array.from(document.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value});
+ const count=selected.length,label=$('journeyPatientTestSummary'),host=$('journeySelectedTestChips');
+ if(label)label.textContent=count?count+' prueba'+(count===1?'':'s')+' seleccionada'+(count===1?'':'s'):'Seleccionar pruebas del catálogo';
+ if(host){
+  const catalog=Array.isArray(state.catalog)?state.catalog:[];
+  const chips=selected.map(function(id){return catalog.find(function(t){return String(t.id)===String(id)})}).filter(Boolean);
+  host.innerHTML=chips.length?chips.map(function(t){return '<span class="journey-test-chip"><span class="journey-test-chip-icon">'+vesselSvg(t)+'</span><strong>'+esc(t.name||'Prueba')+'</strong></span>'}).join(''):'<span class="journey-no-tests">Todavía no has seleccionado pruebas.</span>';
+ }
+}
+function renderJourneyPatientChoices(){
  const host=$('journeyPatientTestChoices');if(!host)return;
  const draft=readJourneyDraft(),selected=new Set(draft.selectedTestIds);
  const activeTests=(Array.isArray(state.catalog)?state.catalog:[]).filter(function(t){return t&&t.active!==false&&t.id});
- host.innerHTML=activeTests.length?activeTests.map(function(t){return '<label class="test-choice" data-test-name="'+esc(String(t.name||'').toLocaleLowerCase('es'))+'"><input type="checkbox" name="journeyPatientTest" value="'+esc(t.id)+'" '+(selected.has(String(t.id))?'checked':'')+'><span class="choice-name">'+esc(t.name||'Prueba sin nombre')+'</span><span class="choice-selected">Seleccionada</span></label>'}).join(''):'<div class="empty-state">El catálogo compartido todavía no está disponible. Se volverá a cargar al sincronizar.</div>';
+ host.innerHTML=activeTests.length?activeTests.map(function(t){return '<label class="test-choice" data-test-name="'+esc(String(t.name||'').toLocaleLowerCase('es'))+'"><input type="checkbox" name="journeyPatientTest" value="'+esc(t.id)+'" '+(selected.has(String(t.id))?'checked':'')+'><span class="test-choice-icon">'+vesselSvg(t)+'</span><span class="test-choice-copy"><span class="choice-name">'+esc(t.name||'Prueba sin nombre')+'</span><small>'+esc(t.vessel||'Recipiente según catálogo')+'</small></span><span class="choice-selected">Seleccionada</span></label>'}).join(''):'<div class="empty-state">El catálogo compartido todavía no está disponible. Se volverá a cargar al sincronizar.</div>';
  host.querySelectorAll('input[name="journeyPatientTest"]').forEach(function(input){input.onchange=function(){input.closest('.test-choice').classList.toggle('selected',input.checked);persistJourneyDraft({selectedTestIds:Array.from(host.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value})});updateJourneyPatientTestSummary();const picker=$('journeyTestPicker');if(picker){picker.open=false;picker.querySelector('summary').focus()}};if(input.checked)input.closest('.test-choice').classList.add('selected')});
  updateJourneyPatientTestSummary();
 }
 function filterJourneyPatientTests(value){var term=String(value||'').trim().toLocaleLowerCase('es');document.querySelectorAll('#journeyPatientTestChoices .test-choice').forEach(function(item){item.style.display=!!term&&!String(item.dataset.testName||'').includes(term)?'none':''})}
 function renderJourneyPatients(){
- const records=patientsForJourney(),host=$('journeyPatients');if(!host)return;
- $('journeyPatientCount').textContent=records.length;
+ const records=patientsForJourney(),host=$('journeyPatients');
+ if(!host)return;
+ const countNode=$('journeyPatientCount');
+ if(countNode)countNode.textContent=records.length;
+ const catalog=Array.isArray(state.catalog)?state.catalog:[];
  host.innerHTML=records.length?records.map(function(p){
-  const rows=(p.testIds||[]).map(function(id){
-   const t=state.catalog.find(function(x){return x.id===id});if(!t)return'';
-   const taken=p.testStatuses&&p.testStatuses[id]==='tomada';
-   return '<div class="patient-test-status"><span class="patient-test-status-icon">'+vesselSvg(t)+'</span><span><span class="patient-test-status-name">'+esc(t.name)+'</span><small class="patient-test-status-label '+(taken?'taken':'')+'">'+(taken?'Muestra tomada':'Pendiente por tomar')+'</small></span><button type="button" class="sample-toggle '+(taken?'taken':'')+'" data-patient-status="'+esc(p.participantId)+'" data-patient-id="'+esc(p.patientId||p.id||'')+'" data-test-status="'+esc(id)+'" aria-label="'+(taken?'Volver a pendiente':'Marcar muestra tomada')+'">'+(taken?'✓ Tomada':'Marcar tomada')+'</button></div>'
+  const ids=Array.isArray(p.testIds)?p.testIds:[];
+  const statuses=p.testStatuses||{};
+  const completed=ids.filter(function(id){return statuses[id]==='tomada'}).length;
+  const progress=ids.length?Math.round(completed/ids.length*100):0;
+  const isComplete=ids.length>0&&completed===ids.length;
+  const rows=ids.map(function(id){
+   const t=catalog.find(function(x){return String(x.id)===String(id)});
+   if(!t)return'';
+   const taken=statuses[id]==='tomada';
+   return '<div class="patient-test-status"><span class="patient-test-status-icon">'+vesselSvg(t)+'</span><span class="patient-test-status-copy"><strong class="patient-test-status-name">'+esc(t.name)+'</strong><small class="patient-test-status-label '+(taken?'taken':'')+'">'+(taken?'Muestra tomada':'Pendiente por tomar')+'</small></span><button type="button" class="sample-toggle '+(taken?'taken':'')+'" data-patient-status="'+esc(p.participantId)+'" data-patient-id="'+esc(p.patientId||p.id||'')+'" data-test-status="'+esc(id)+'" aria-label="'+(taken?'Volver a pendiente':'Marcar muestra tomada')+'">'+(taken?'✓ Tomada':'Marcar tomada')+'</button></div>';
   }).join('');
-  return '<article class="journey-patient-card"><div class="journey-patient-head"><span><strong>'+esc(p.name)+'</strong><small>Cédula: '+esc(p.document||'—')+'</small></span><button type="button" class="btn danger" data-journey-patient-delete="'+esc(p.participantId)+'">Quitar</button></div><div class="patient-test-status-list">'+rows+'</div></article>'
- }).join(''):'<div class="empty-state">Todavía no se han agregado pacientes a esta jornada.</div>';
+  return '<article class="journey-patient-card"><div class="journey-patient-head"><span class="journey-patient-identity"><strong>'+esc(p.name||p.fullName||'Paciente')+'</strong><small>Cédula: '+esc(p.document||p.cedula||'—')+'</small></span><span class="journey-patient-state '+(isComplete?'complete':'pending')+'">'+(isComplete?'Completado':'Pendiente')+'</span><button type="button" class="btn danger journey-remove-patient" data-journey-patient-delete="'+esc(p.participantId)+'" aria-label="Quitar paciente de esta jornada">Quitar</button></div><div class="journey-patient-progress"><div class="journey-patient-progress-label"><span>'+completed+' de '+ids.length+' muestras tomadas</span><strong>'+progress+'%</strong></div><div class="journey-patient-progress-track"><span style="width:'+progress+'%"></span></div></div><div class="patient-test-status-list">'+(rows||'<div class="journey-no-tests">No hay detalles de pruebas disponibles en el catálogo.</div>')+'</div></article>';
+ }).join(''):'<div class="empty-state journey-empty-state"><span class="journey-empty-icon">♙</span><strong>La jornada todavía no tiene pacientes</strong><small>Registra el primer paciente y selecciona sus pruebas para comenzar.</small></div>';
  host.querySelectorAll('[data-journey-patient-delete]').forEach(function(b){b.onclick=function(){deletePatient(b.dataset.journeyPatientDelete)}});
  host.querySelectorAll('[data-patient-status]').forEach(function(b){b.onclick=function(){
   const patientId=b.dataset.patientId||'',now=new Date().toISOString();
@@ -1149,6 +1224,7 @@ function renderJourneyPatients(){
   }
   touchJourney();if(!save()){restoreJourneySnapshot(previous);renderJourneyPatients();return}renderJourneyPatients()
  }});
+ updateJourneySummary();
 }
 function journeySnapshot(){return JSON.stringify({journey:state.journey,selected:state.selected,patients:state.patients,journeyEntries:state.journeyEntries})}
 function restoreJourneySnapshot(snapshot){try{const old=JSON.parse(snapshot);state.journey=old.journey;state.selected=old.selected;state.patients=old.patients;state.journeyEntries=old.journeyEntries;save()}catch(error){console.error('[FleboReport Jornada] No se pudo restaurar el estado previo:',error)}}
