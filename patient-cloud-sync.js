@@ -10,7 +10,10 @@ function contentOf(p){const x={...p};delete x.id;delete x.legacyId;delete x.clou
 function payloadOf(p){
  const data={...p};delete data.cloudPatientId;delete data.cloudDataPresent;
  data.legacyId=String(p.legacyId||p.id||'');data.updatedAt=p.updatedAt||new Date().toISOString();
- const state=app(),docKey=norm(docOf(p));const journeyHistory=(state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey));if(journeyHistory.length)data.journeyHistory=journeyHistory;else delete data.journeyHistory;
+ const state=app(),docKey=norm(docOf(p)),historyMap=new Map();
+ (Array.isArray(p.journeyHistory)?p.journeyHistory:[]).forEach(e=>{if(!e)return;const key=String(e.id||String(e.journeyId)+'|'+String(e.patientId||e.participantId||p.id||''));historyMap.set(key,e)});
+ (state?.journeyEntries||[]).filter(e=>String(e.patientId||e.participantId||'')===String(p.id||'')||(docKey&&norm(e.document||e.cedula)===docKey)).forEach(e=>{const key=String(e.id||String(e.journeyId)+'|'+String(e.patientId||e.participantId||p.id||''));historyMap.set(key,e)});
+ const journeyHistory=Array.from(historyMap.values());if(journeyHistory.length)data.journeyHistory=journeyHistory;else delete data.journeyHistory;
  data.name=p.name||p.fullName||'';data.fullName=p.fullName||p.name||'';data.document=docOf(p);
  return data;
 }
