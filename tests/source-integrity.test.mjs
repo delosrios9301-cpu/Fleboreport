@@ -1203,7 +1203,11 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(html, /id="journeyTests"/);
   assert.match(html, /onclick="openJourneyReportSetup\(\)">Generar reporte/);
   assert.match(html, /id="journeyReportSetup" class="journey-report-setup" hidden/);
-  assert.match(html, /id="journeyReportCompanyInput"/);
+  assert.match(html, /id="journeyReportCompanyInput" required/);
+  assert.match(html, /<select id="journeyReportCompanyInput" required>/);
+  assert.match(html, /state\.companies\|\|\[\]/);
+  assert.match(html, /function confirmJourneyReportSetup\(event\)[\s\S]*?find\(function\(x\)\{return x\.id===companyId\}\)/);
+  assert.doesNotMatch(html, /if\(!company\)\{company=\{id:'c-'/);
   assert.match(html, /id="journeyReportResponsibleInput"/);
   assert.match(html, /id="journeyReportDateInput"/);
   assert.match(html, /id="journeyReportStartInput"/);
