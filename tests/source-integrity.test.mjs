@@ -34,6 +34,18 @@ const permissionUpsertMigration = await readFile(new URL('../supabase/migrations
 const permissionSaveMigration = await readFile(new URL('../supabase/migrations/20261103001739_fix_member_permission_save.sql', import.meta.url), 'utf8');
 const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrations/20261105195850_complete_admin_role_permissions.sql', import.meta.url), 'utf8');
 const dataRetentionGuardMigration = await readFile(new URL('../supabase/migrations/20261106220000_admin_only_deletion_and_audit_retention.sql', import.meta.url), 'utf8');
+const redesignShell = await readFile(new URL('../fleboreport-v2-shell.js', import.meta.url), 'utf8');
+const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.meta.url), 'utf8');
+
+test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
+  assert.doesNotThrow(() => new Function(redesignShell));
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-redesign2/);
+  assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign2/);
+  assert.match(serviceWorker, /fleboreport-v2\.css/);
+  assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
+  assert.match(redesignStyles, /\.fr2-catalog-hero/);
+  assert.match(redesignStyles, /\.fr2-catalog-item/);
+});
 
 test('los scripts incrustados tienen sintaxis JavaScript válida', () => {
   const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
@@ -526,12 +538,20 @@ test('la base de datos bloquea duplicados por código y permite códigos distint
 });
 
 
-test('el catálogo de pruebas elimina duplicados por nombre normalizado y conserva datos', () => {
+test('el catálogo conserva cada prueba por ID y prioriza la versión editada', () => {
   assert.match(cloudSync, /function catalogIdentity/);
-  assert.match(cloudSync, /function dedupeCatalog/);
-  assert.match(cloudSync, /collection==='catalog'/);
+  assert.match(cloudSync, /if\(id\)return'id:'\+id/);
+  assert.match(cloudSync, /legacy-name:/);
+  assert.match(cloudSync, /itemStamp>oldStamp/);
   assert.match(cloudSync, /payload\.catalog=dedupeCatalog/);
   assert.match(cloudSync, /safe\.catalog=dedupeCatalog/);
+  assert.match(html, /updatedAt:now,active:previous\?previous\.active!==false:true/);
+  assert.match(html, /function restoreTest\(id\)/);
+  assert.match(html, /active:false,updatedAt/);
+  assert.match(html, /catalogArchivedList/);
+  assert.match(html, /catalogMetricPending/);
+  assert.match(domicilios, /catalog_source_id:String\(item\.id\)/);
+  assert.doesNotMatch(domicilios, /const obsolete=existingRows\.filter/);
 });
 
 
@@ -596,7 +616,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v249'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v250'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -870,7 +890,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v249/);
+  assert.match(serviceWorker, /fleboreport-shell-v250/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1089,7 +1109,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v249/);
+  assert.match(serviceWorker, /fleboreport-shell-v250/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
