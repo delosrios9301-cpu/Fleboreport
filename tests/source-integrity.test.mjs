@@ -43,6 +43,8 @@ test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separado
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
+  assert.match(redesignShell, /const notificationBell=\$\('frNotifBell'\)/);
+  assert.match(redesignShell, /id=\"todayChip\" hidden/);
   assert.match(redesignStyles, /\.fr2-catalog-hero/);
   assert.match(redesignStyles, /\.fr2-catalog-item/);
 });
