@@ -152,7 +152,6 @@ function normalizePatientState(state){
    if(next.patientRecordId)next.patientRecordId=remap(next.patientRecordId);
    return next;
   });
-  out.journeyEntries=dedupeJourneyEntries(out.journeyEntries);
   out.patients=out.patients.map(patient=>Object.assign({},patient,{
    journeyHistory:(Array.isArray(patient.journeyHistory)?patient.journeyHistory:[]).map(entry=>{
     if(!entry||typeof entry!=='object')return entry;
@@ -163,6 +162,7 @@ function normalizePatientState(state){
    })
   }));
  }
+ out.journeyEntries=dedupeJourneyEntries(out.journeyEntries);
  return out;
 }
 function mergeState(remote,local){
@@ -174,6 +174,7 @@ function mergeState(remote,local){
   if(key==='patients'){
    const result=dedupePatients(a.concat(b));out[key]=result.items;patientAliases=result.aliases;continue;
   }
+  if(key==='journeyEntries'){out[key]=dedupeJourneyEntries(a.concat(b));continue}
   const map=new Map();
   a.forEach(x=>map.set(itemKey(x,key),x));
   b.forEach(x=>{const k=itemKey(x,key),old=map.get(k);if(!old||stamp(x)>stamp(old))map.set(k,x)});
