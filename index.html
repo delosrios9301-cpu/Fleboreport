@@ -692,6 +692,35 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 }
 
 </style>
+
+<style id="fr-sidebar-touch-scroll">
+/* Menú lateral móvil: permitir desplazamiento vertical táctil en todo el panel. */
+@media(max-width:760px){
+  .sidebar,.sidebar.open{
+    top:12px!important;
+    bottom:max(86px,calc(env(safe-area-inset-bottom) + 86px))!important;
+    left:auto!important;
+    right:max(14px,env(safe-area-inset-right))!important;
+    width:min(300px,calc(100vw - 28px))!important;
+    max-height:none!important;
+    height:auto!important;
+    min-height:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-y:contain!important;
+    touch-action:pan-y!important;
+    align-items:stretch!important;
+  }
+  .sidebar .nav-list{
+    min-height:0!important;
+    overflow:visible!important;
+    touch-action:pan-y!important;
+  }
+  .sidebar .nav-list button{touch-action:pan-y!important}
+}
+</style>
+
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
