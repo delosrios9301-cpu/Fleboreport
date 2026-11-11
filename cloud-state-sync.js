@@ -291,7 +291,8 @@ async function receiveRemote(){
  }catch(e){pollFailed=true;engine.pollFailure();console.error('[FleboReport Sync] Realtime:',e);status('No se pudo actualizar desde la nube: '+(e.message||'error'),true)}
  finally{if(!pollFailed)engine.pollSuccess();busy=false;runPending()}
 }
-async function syncLocal(){
+async function syncLocal(options){
+ const forceVerify=!!(options&&options.verify);
  if(!ready){pendingLocalChanges=true;return false}
  if(!writable||!client||!workspaceId)return false;
  if(busy){dirtyAgain=true;pendingLocalChanges=true;return false}
@@ -302,7 +303,7 @@ async function syncLocal(){
   if(Array.isArray(local.auditLog)&&local.auditLog.length){await persistLegacyAuditEvents(local.auditLog);local=stripLegacyAudit(local);applyCloudState(local)}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local),m=meta();
-  if(m.workspaceId===workspaceId&&m.userId===userId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return true}
+  if(!forceVerify&&m.workspaceId===workspaceId&&m.userId===userId&&m.hash===localHash){status('Sincronizado con la nube · versión '+revision);return true}
   // La consulta ligera evita descargar el estado completo antes de cada guardado.
   const remoteMeta=await fetchRemoteMeta();
   if(remoteMeta&&remoteMeta.reset_epoch&&(remoteMeta.reset_epoch!==(m.resetEpoch||null))){
