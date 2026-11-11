@@ -846,13 +846,14 @@ test('la sincronización consulta primero la revisión y solo descarga el estado
   assert.ok(cloudSync.includes("async function fetchRemoteMeta(){"));
   assert.ok(cloudSync.includes("get_workspace_shared_app_state_meta"));
   const receiveStart=cloudSync.indexOf('async function receiveRemote(){');
-  const receiveEnd=cloudSync.indexOf('async function syncLocal(){',receiveStart);
+  const receiveEnd=cloudSync.indexOf('async function syncLocal(options){',receiveStart);
   const receive=cloudSync.slice(receiveStart,receiveEnd);
   assert.match(receive,/if\(remoteMeta\.revision<=revision\)return;[\s\S]*?let remote=await fetchRemote\(\)/);
   assert.ok(cloudSync.includes('Solo ante un conflicto se descarga el estado completo'));
-  const syncStart=cloudSync.indexOf('async function syncLocal(){');
+  const syncStart=cloudSync.indexOf('async function syncLocal(options){');
   const syncEnd=cloudSync.indexOf('function schedule(){',syncStart);
   assert.ok(cloudSync.slice(syncStart,syncEnd).includes('const remoteMeta=await fetchRemoteMeta()'));
+  assert.ok(cloudSync.includes("syncLocal=(options)=>engine.measure('sync.save',()=>rawSyncLocal(options));"));
 });
 
 test('rechazar una invitación no intenta registrar un evento de domicilio aceptado', () => {
