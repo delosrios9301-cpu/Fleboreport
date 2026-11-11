@@ -26,13 +26,38 @@ function fromRow(r){
   birthDate:d.birthDate||r.birth_date||'',sex:d.sex||r.sex||'',phone:d.phone||r.phone||'',
   email:d.email||r.email||'',address:d.address||r.address||'',updatedAt:r.updated_at||d.updatedAt||''};
 }
+function mergePatientDetails(local,remote){
+ const mergeRows=(a,b,keyName)=>{
+  const map=new Map();
+  [...(Array.isArray(a)?a:[]),...(Array.isArray(b)?b:[])].forEach(row=>{
+   if(!row)return;
+   const key=row&&typeof row==='object'?(row.id!=null?'id:'+row.id:(keyName==='journeyHistory'&&row.journeyId?'journey:'+row.journeyId:'json:'+JSON.stringify(row))):'value:'+String(row);
+   const old=map.get(key);
+   if(!old){map.set(key,row);return}
+   if(row&&typeof row==='object'&&old&&typeof old==='object'){
+    const oldTime=Date.parse(old.updatedAt||old.updated_at||old.createdAt||old.created_at||0)||0,rowTime=Date.parse(row.updatedAt||row.updated_at||row.createdAt||row.created_at||0)||0;
+    const newer=rowTime>=oldTime?row:old,older=newer===row?old:row,merged={...older,...newer};
+    if(Array.isArray(old.testIds)||Array.isArray(row.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(row.testIds)?row.testIds:[])]));
+    if(old.testStatuses||row.testStatuses)merged.testStatuses={...(older.testStatuses||{}),...(newer.testStatuses||{})};
+    map.set(key,merged);
+   }
+  });
+  return Array.from(map.values());
+ };
+ const oldTime=Date.parse(local.updatedAt||local.createdAt||0)||0,newTime=Date.parse(remote.updatedAt||remote.createdAt||0)||0;
+ const winner=newTime>oldTime?remote:local,other=winner===remote?local:remote,merged={...other,...winner,id:local.id||winner.id,cloudPatientId:remote.cloudPatientId||local.cloudPatientId};
+ ['attentions','journeyHistory'].forEach(key=>{merged[key]=mergeRows(local[key],remote[key],key)});
+ if(Array.isArray(local.testIds)||Array.isArray(remote.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(local.testIds)?local.testIds:[]),...(Array.isArray(remote.testIds)?remote.testIds:[])]));
+ if(local.testStatuses||remote.testStatuses)merged.testStatuses={...(other.testStatuses||{}),...(winner.testStatuses||{})};
+ return merged;
+}
 function merge(local,remote){
  const map=new Map();(local||[]).forEach(p=>map.set(keyOf(p),p));
  (remote||[]).forEach(r=>{const k=keyOf(r),old=map.get(k);if(!old){map.set(k,r);return}
   const localTime=Date.parse(old.updatedAt||old.createdAt||0)||0,remoteTime=Date.parse(r.updatedAt||0)||0;
   const hasLocalClinicalData=['attentions','generalNotes','emergency','photo','company','companyId','journeyId','testIds','testStatuses','notes','module','journeyHistory'].some(k=>old[k]!=null);
   const winner=!r.cloudDataPresent&&hasLocalClinicalData?old:(remoteTime>localTime?r:old),other=winner===r?old:r;
-  map.set(k,{...other,...winner,id:old.id||winner.id,cloudPatientId:r.cloudPatientId||old.cloudPatientId});
+  map.set(k,mergePatientDetails(old,r));
  });
  return Array.from(map.values());
 }
