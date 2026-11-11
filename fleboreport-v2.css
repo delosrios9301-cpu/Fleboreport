@@ -515,3 +515,150 @@ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!
  body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date-mark{grid-row:1/4!important;margin:0!important}
  body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:2px 0!important;font-size:18px!important}
 }
+
+
+/* Jornada 2.0: interfaz de trabajo clínico, aislada del resto de los módulos. */
+#view-journey .journey-kpis{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;margin:0 0 17px!important;
+}
+#view-journey .journey-kpi{
+ display:flex!important;align-items:center!important;gap:12px!important;min-width:0!important;padding:15px 16px!important;
+ border:1px solid #e2eaf0!important;border-radius:16px!important;background:#fff!important;
+ box-shadow:0 6px 20px rgba(20,43,69,.045)!important;
+}
+#view-journey .journey-kpi-icon{
+ display:grid!important;place-items:center!important;flex:none!important;width:42px!important;height:42px!important;
+ border-radius:13px!important;font-size:20px!important;font-weight:850!important;
+}
+#view-journey .journey-kpi-icon.patients{background:#edf5ff!important;color:#2874b8!important}
+#view-journey .journey-kpi-icon.tests{background:#e9f8f5!important;color:#0d9488!important}
+#view-journey .journey-kpi-icon.complete{background:#edf8f0!important;color:#16885c!important}
+#view-journey .journey-kpi-copy{display:flex!important;flex-direction:column!important;min-width:0!important;gap:1px!important}
+#view-journey .journey-kpi-copy small{color:#718596!important;font-size:10px!important;font-weight:750!important}
+#view-journey .journey-kpi-copy strong{color:#173b60!important;font-size:25px!important;line-height:1.08!important;font-weight:900!important;font-variant-numeric:tabular-nums!important}
+#view-journey .journey-kpi-copy em{color:#91a0ac!important;font-size:9px!important;font-style:normal!important;line-height:1.3!important}
+#view-journey .journey-layout{display:grid!important;grid-template-columns:minmax(0,1.03fr) minmax(0,.97fr)!important;gap:17px!important;align-items:start!important}
+#view-journey .journey-main-column,#view-journey .journey-side-column{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:17px!important;min-width:0!important}
+#view-journey .journey-details-panel,#view-journey .journey-entry-panel,#view-journey .journey-tests-panel{padding:19px!important}
+#view-journey .journey-panel-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0 0 16px!important}
+#view-journey .journey-panel-heading h2{margin:2px 0 3px!important;color:#18384f!important;font-size:15px!important;font-weight:850!important;letter-spacing:-.25px!important}
+#view-journey .journey-panel-heading p{margin:0!important;color:#7c8e9c!important;font-size:10px!important;line-height:1.45!important}
+#view-journey .journey-panel-heading .eyebrow{font-size:8px!important;letter-spacing:1.15px!important}
+#view-journey .journey-active-badge{flex:none!important;background:#eaf8f0!important;color:#16885c!important}
+#view-journey .journey-step-number{display:grid!important;place-items:center!important;flex:none!important;width:34px!important;height:34px!important;border-radius:11px!important;background:#edf7f7!important;color:#0c8b83!important;font-size:14px!important;font-weight:900!important}
+#view-journey .journey-detail-fields{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+#view-journey .journey-detail-fields .field.full{grid-column:1/-1!important}
+#view-journey .journey-detail-fields label,#view-journey .journey-patient-fields label{margin-bottom:6px!important;color:#40596c!important;font-size:10px!important;font-weight:800!important}
+#view-journey .journey-detail-fields input,#view-journey .journey-detail-fields select,#view-journey .journey-patient-fields input{
+ width:100%!important;min-width:0!important;min-height:43px!important;padding:10px 12px!important;border:1px solid #dce6ec!important;border-radius:10px!important;
+ background:#fbfdfe!important;color:#1d3a50!important;font-size:12px!important;box-shadow:none!important;
+}
+#view-journey .journey-detail-fields input:focus,#view-journey .journey-detail-fields select:focus,#view-journey .journey-patient-fields input:focus{
+ border-color:#78bdb6!important;box-shadow:0 0 0 3px #0c8b8314!important;
+}
+#view-journey .journey-company-create{margin-top:13px!important;padding-top:12px!important;border-top:1px solid #edf1f4!important}
+#view-journey .journey-company-create>summary{color:#0c8179!important;font-size:10px!important;font-weight:800!important;cursor:pointer!important}
+#view-journey .journey-company-create-row{display:flex!important;gap:8px!important;margin-top:10px!important}
+#view-journey .journey-company-create-row input{flex:1 1 auto!important;min-width:0!important;min-height:40px!important;padding:9px 11px!important;border:1px solid #dce6ec!important;border-radius:10px!important;background:#fbfdfe!important}
+#view-journey .journey-company-create-row .btn{flex:none!important}
+#view-journey .journey-patient-fields{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+#view-journey .journey-patient-fields .field.full{grid-column:1/-1!important}
+#view-journey .journey-test-field{display:grid!important;gap:8px!important}
+#view-journey .journey-test-field>label{margin:0!important}
+#view-journey .journey-test-field>input[type=search]{background:#fbfdfe!important}
+#view-journey .journey-test-picker{overflow:hidden!important;border:1px solid #dce7ed!important;border-radius:11px!important;background:#fff!important}
+#view-journey .journey-test-picker>summary{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-height:43px!important;padding:10px 12px!important;color:#315167!important;font-size:11px!important;font-weight:800!important;cursor:pointer!important;list-style:none!important}
+#view-journey .journey-test-picker>summary::-webkit-details-marker{display:none!important}
+#view-journey .journey-test-picker[open]>summary{border-bottom:1px solid #edf1f4!important;background:#f8fbfc!important}
+#view-journey .journey-test-picker .test-choice-list{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:6px!important;max-height:260px!important;padding:9px!important;overflow:auto!important}
+#view-journey .journey-test-picker .test-choice{
+ display:grid!important;grid-template-columns:18px 34px minmax(0,1fr) auto!important;align-items:center!important;gap:9px!important;
+ min-width:0!important;padding:9px!important;border:1px solid #e6edf1!important;border-radius:10px!important;background:#fff!important;
+}
+#view-journey .journey-test-picker .test-choice input{width:16px!important;height:16px!important;margin:0!important;accent-color:#0c8b83!important}
+#view-journey .test-choice-icon{display:grid!important;place-items:center!important;width:32px!important;height:34px!important;border-radius:9px!important;background:#f0f7f8!important}
+#view-journey .test-choice-icon svg{width:20px!important;height:27px!important}
+#view-journey .test-choice-copy{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important}
+#view-journey .test-choice-copy .choice-name{overflow:hidden!important;color:#203f55!important;font-size:10px!important;font-weight:850!important;text-overflow:ellipsis!important}
+#view-journey .test-choice-copy small{color:#8193a0!important;font-size:8px!important;line-height:1.3!important}
+#view-journey .journey-test-picker .choice-selected{display:none!important;color:#0b887d!important;font-size:8px!important;font-weight:800!important}
+#view-journey .journey-test-picker .test-choice.selected{border-color:#8ccfc3!important;background:#f0faf7!important}
+#view-journey .journey-test-picker .test-choice.selected .choice-selected{display:block!important}
+#view-journey .journey-selected-tests{display:flex!important;flex-wrap:wrap!important;gap:7px!important;min-height:22px!important}
+#view-journey .journey-test-chip{display:inline-flex!important;align-items:center!important;gap:6px!important;max-width:100%!important;padding:5px 8px!important;border:1px solid #cfe8e2!important;border-radius:9px!important;background:#f0faf7!important;color:#176d66!important;font-size:9px!important}
+#view-journey .journey-test-chip-icon{display:grid!important;place-items:center!important;flex:none!important;width:17px!important;height:19px!important}
+#view-journey .journey-test-chip-icon svg{width:14px!important;height:18px!important}
+#view-journey .journey-test-chip strong{overflow:hidden!important;font-weight:800!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#view-journey .journey-no-tests{color:#94a3ad!important;font-size:9px!important}
+#view-journey .journey-submit-actions{margin-top:16px!important;padding-top:14px!important;border-top:1px solid #edf1f4!important}
+#view-journey .journey-register-button{width:100%!important;min-height:47px!important;border-radius:12px!important;font-size:11px!important}
+#view-journey .journey-list-panel{padding:18px!important}
+#view-journey .journey-list-panel>.journey-panel-heading{margin-bottom:13px!important}
+#view-journey .journey-list-panel>.list-stack{display:grid!important;gap:11px!important}
+#view-journey .journey-patient-card{padding:13px!important;border:1px solid #e3ebef!important;border-radius:13px!important;background:#fff!important;box-shadow:0 3px 12px #18384f08!important}
+#view-journey .journey-patient-head{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:8px!important}
+#view-journey .journey-patient-identity{display:flex!important;flex-direction:column!important;gap:4px!important;min-width:0!important}
+#view-journey .journey-patient-identity strong{overflow-wrap:anywhere!important;color:#1b3a50!important;font-size:11px!important;font-weight:850!important}
+#view-journey .journey-patient-identity small{color:#81919d!important;font-size:9px!important}
+#view-journey .journey-patient-state{padding:5px 8px!important;border-radius:99px!important;font-size:8px!important;font-weight:850!important;white-space:nowrap!important}
+#view-journey .journey-patient-state.complete{background:#eaf8ef!important;color:#16885c!important}
+#view-journey .journey-patient-state.pending{background:#fff6e7!important;color:#a36b13!important}
+#view-journey .journey-remove-patient{min-height:29px!important;padding:5px 8px!important;font-size:8px!important}
+#view-journey .journey-patient-progress{margin:11px 0 8px!important}
+#view-journey .journey-patient-progress-label{display:flex!important;justify-content:space-between!important;gap:8px!important;color:#718596!important;font-size:8px!important}
+#view-journey .journey-patient-progress-label strong{color:#38566a!important}
+#view-journey .journey-patient-progress-track{height:6px!important;margin-top:5px!important;overflow:hidden!important;border-radius:99px!important;background:#eaf0f3!important}
+#view-journey .journey-patient-progress-track>span{display:block!important;height:100%!important;border-radius:99px!important;background:linear-gradient(90deg,#14a99b,#16885c)!important;transition:width .2s ease!important}
+#view-journey .patient-test-status-list{display:grid!important;gap:7px!important;margin-top:10px!important}
+#view-journey .patient-test-status{display:grid!important;grid-template-columns:30px minmax(0,1fr) auto!important;align-items:center!important;gap:8px!important;padding:8px!important;border:1px solid #edf1f4!important;border-radius:10px!important;background:#fbfdfe!important;box-shadow:none!important}
+#view-journey .patient-test-status-icon{display:grid!important;place-items:center!important;width:28px!important;height:30px!important;border-radius:8px!important;background:#f0f7f8!important}
+#view-journey .patient-test-status-icon svg{width:18px!important;height:23px!important}
+#view-journey .patient-test-status-copy{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important}
+#view-journey .patient-test-status-name{overflow:hidden!important;color:#2b485c!important;font-size:9px!important;font-weight:800!important;text-overflow:ellipsis!important}
+#view-journey .patient-test-status-label{color:#a36b13!important;font-size:8px!important}
+#view-journey .patient-test-status-label.taken{color:#16885c!important}
+#view-journey .sample-toggle{min-height:30px!important;padding:5px 8px!important;border:1px solid #dce8e4!important;border-radius:8px!important;background:#fff!important;color:#367a70!important;font-size:8px!important;font-weight:800!important;white-space:nowrap!important}
+#view-journey .sample-toggle.taken{border-color:#bce5cb!important;background:#edf8f0!important;color:#16885c!important}
+#view-journey .journey-total-count{display:grid!important;place-items:center!important;min-width:34px!important;height:34px!important;padding:0 9px!important;border-radius:10px!important;background:#eaf8f5!important;color:#0c8179!important;font-size:17px!important;font-weight:900!important}
+#view-journey .journey-tests-panel .list-stack{display:grid!important;gap:8px!important}
+#view-journey .journey-tests-panel .catalog-card{grid-template-columns:42px minmax(0,1fr) auto!important;gap:10px!important;padding:10px!important;border:1px solid #e5edf1!important;border-radius:11px!important;background:#fbfdfe!important;box-shadow:none!important}
+#view-journey .journey-tests-panel .catalog-icon{display:grid!important;place-items:center!important;width:40px!important;height:42px!important}
+#view-journey .journey-tests-panel .catalog-icon svg{width:24px!important;height:31px!important}
+#view-journey .journey-tests-panel .catalog-card strong{font-size:10px!important}
+#view-journey .journey-tests-panel .catalog-card small{font-size:8px!important}
+#view-journey .journey-report-footer{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:18px!important;margin-top:17px!important;padding:18px 20px!important;border:1px solid #dce9ed!important;border-radius:16px!important;background:linear-gradient(110deg,#fff,#f7fbfc)!important;box-shadow:0 6px 20px #18384f08!important}
+#view-journey .journey-report-footer h2{margin:4px 0!important;color:#18384f!important;font-size:15px!important;font-weight:850!important}
+#view-journey .journey-report-footer p{margin:0 0 5px!important;color:#486276!important;font-size:10px!important;font-weight:750!important}
+#view-journey .journey-report-footer small{display:block!important;max-width:760px!important;color:#82919d!important;font-size:9px!important;line-height:1.5!important}
+#view-journey .journey-report-button{flex:none!important;min-height:42px!important;border-radius:11px!important;font-size:10px!important}
+#view-journey .journey-empty-state{display:grid!important;place-items:center!important;gap:6px!important;padding:28px 16px!important;text-align:center!important}
+#view-journey .journey-empty-icon{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;border-radius:13px!important;background:#edf7f7!important;color:#0c8b83!important;font-size:20px!important}
+#view-journey .journey-empty-state strong{color:#36566b!important;font-size:10px!important}
+#view-journey .journey-empty-state small{max-width:250px!important;color:#8a9aa5!important;font-size:9px!important;line-height:1.45!important}
+@media(max-width:980px){
+ #view-journey .journey-layout{grid-template-columns:minmax(0,1fr)!important}
+ #view-journey .journey-side-column{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:760px){
+ #view-journey .journey-kpis{gap:7px!important;margin-bottom:12px!important}
+ #view-journey .journey-kpi{gap:7px!important;padding:10px 8px!important;border-radius:12px!important}
+ #view-journey .journey-kpi-icon{width:30px!important;height:30px!important;border-radius:9px!important;font-size:15px!important}
+ #view-journey .journey-kpi-copy small{font-size:8px!important}
+ #view-journey .journey-kpi-copy strong{font-size:20px!important}
+ #view-journey .journey-kpi-copy em{font-size:7px!important;line-height:1.15!important}
+ #view-journey .journey-layout{gap:12px!important}
+ #view-journey .journey-main-column,#view-journey .journey-side-column{gap:12px!important}
+ #view-journey .journey-details-panel,#view-journey .journey-entry-panel,#view-journey .journey-list-panel,#view-journey .journey-tests-panel{padding:14px!important}
+ #view-journey .journey-panel-heading{margin-bottom:12px!important}
+ #view-journey .journey-detail-fields,#view-journey .journey-patient-fields{grid-template-columns:minmax(0,1fr)!important}
+ #view-journey .journey-detail-fields .field.full,#view-journey .journey-patient-fields .field.full{grid-column:auto!important}
+ #view-journey .journey-patient-head{grid-template-columns:minmax(0,1fr) auto!important}
+ #view-journey .journey-remove-patient{grid-column:2!important;grid-row:2!important}
+ #view-journey .journey-patient-state{grid-column:2!important;grid-row:1!important}
+ #view-journey .patient-test-status{grid-template-columns:25px minmax(0,1fr) auto!important;gap:6px!important;padding:7px!important}
+ #view-journey .patient-test-status-icon{width:24px!important;height:26px!important}
+ #view-journey .patient-test-status-icon svg{width:16px!important;height:20px!important}
+ #view-journey .sample-toggle{min-height:29px!important;padding:4px 6px!important;font-size:7px!important}
+ #view-journey .journey-report-footer{align-items:stretch!important;flex-direction:column!important;gap:12px!important;margin-top:12px!important;padding:15px!important}
+ #view-journey .journey-report-button{width:100%!important}
+}
