@@ -603,8 +603,8 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(patientCloudSync, /view\.id==='view-journey'[\s\S]*?renderJourneyPatients\(\)/);
   assert.match(patientCloudSync, /document\.addEventListener\('focusout'/);
   assert.doesNotMatch(patientCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?saveList\(remote\)/);
-  assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
+  assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?const combined=merge\(local,remote\)[\s\S]*?saveList\(combined\)/);
+  assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?const combined=merge\(currentPatients,latest\)[\s\S]*?saveList\(combined\)/);
   assert.match(clinicalCloudSync, /function clinicalUiIsBusy\(\)/);
   assert.match(clinicalCloudSync, /activeClinicalMutations>0/);
   assert.match(clinicalCloudSync, /function trackClinicalMutation\(fn\)/);
@@ -618,7 +618,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v258'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v259'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -896,7 +896,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v257/);
+  assert.match(serviceWorker, /fleboreport-shell-v259/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1115,7 +1115,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v257/);
+  assert.match(serviceWorker, /fleboreport-shell-v259/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1139,4 +1139,13 @@ test('la interfaz alinea verticalmente los nombres', async () => {
   assert.match(html, /\.data-table th,\.data-table td,table th,table td/);
   assert.match(html, /\.list-row,\.catalog-card,\.journey-patient-head,\.patient-test-status/);
   assert.match(html, /align-items:center!important/);
+});
+
+
+test('la sincronización conserva pacientes locales y recupera los vínculos de jornada del expediente', () => {
+  assert.match(patientCloudSync, /const combined=merge\(local,remote\)/);
+  assert.match(patientCloudSync, /const combined=merge\(currentPatients,latest\)/);
+  assert.match(html, /Array\.isArray\(p\.journeyHistory\)\?p\.journeyHistory:\[\]/);
+  assert.match(html, /patientRecordId:p\.id/);
+  assert.match(html, /entries\.filter\(function\(e\)\{return e&&e\.journeyId===state\.journey\.id\}\)/);
 });
