@@ -32,7 +32,7 @@ function meaningful(s){
  || !!(s.attentionTemplates&&Object.keys(s.attentionTemplates).length);
 }
 function catalogIdentity(x){
- const norm=v=>String(v||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+ const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
  // La identidad estable siempre es el ID. Nombre/código solo sirven para registros heredados sin ID.
  const id=String(x&&x.id||'').trim();if(id)return'id:'+id;
  const code=norm(x&&x.code);
