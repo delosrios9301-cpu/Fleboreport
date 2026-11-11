@@ -398,3 +398,21 @@ body.fr2-app-authorized .topbar #frNotifBell svg{width:18px!important;height:18p
 @media(max-width:760px){
  body.fr2-app-authorized .topbar #frNotifBell{width:35px!important;height:35px!important}
 }
+
+
+/* Prioridad del nuevo Inicio frente a reglas heredadas del dashboard anterior */
+#view-home>.fr2-home-hero{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 195px!important;flex-direction:initial!important;
+ align-items:stretch!important;gap:24px!important;min-height:245px!important;
+ padding:clamp(23px,3.5vw,38px)!important;border-radius:24px!important;
+ background:radial-gradient(circle at 67% 4%,#46d9c64a,transparent 28%),radial-gradient(circle at 100% 100%,#24a9b443,transparent 34%),linear-gradient(120deg,#122b45 0%,#17445f 55%,#0e6970 100%)!important
+}
+#view-home>.fr2-home-hero .fr2-home-copy{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;min-width:0!important}
+#view-home>.fr2-home-hero .fr2-home-copy h1{margin:9px 0 8px!important;color:#fff!important;font-size:clamp(26px,3vw,37px)!important;font-weight:900!important;letter-spacing:-1.25px!important}
+#view-home>.fr2-home-hero .fr2-home-copy>p{max-width:620px!important;margin:0!important;color:#c4dbe2!important;font-size:12px!important;line-height:1.65!important}
+#view-home>.fr2-home-hero .fr2-home-date{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;width:auto!important;min-width:0!important;flex:initial!important;padding:19px!important;border:1px solid #ffffff30!important;border-radius:18px!important;background:#ffffff13!important}
+@media(max-width:760px){
+ #view-home>.fr2-home-hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;flex-direction:initial!important;gap:17px!important;min-height:0!important;padding:22px 18px!important}
+ #view-home>.fr2-home-hero .fr2-home-copy h1{font-size:26px!important}
+ #view-home>.fr2-home-hero .fr2-home-date{display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:12px!important;width:100%!important;flex:initial!important;padding:12px 14px!important;border-radius:14px!important}
+}
