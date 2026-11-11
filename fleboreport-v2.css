@@ -662,3 +662,89 @@ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!
  #view-journey .journey-report-footer{align-items:stretch!important;flex-direction:column!important;gap:12px!important;margin-top:12px!important;padding:15px!important}
  #view-journey .journey-report-button{width:100%!important}
 }
+
+
+/* Corrección definitiva del selector de pruebas de Jornada: una búsqueda y una lista visible. */
+#view-journey .journey-test-field{display:grid!important;grid-template-columns:minmax(0,1fr)!important;width:100%!important;min-width:0!important}
+#view-journey .journey-test-field>*{min-width:0!important;max-width:100%!important}
+#view-journey #journeyPatientTestSearch{
+ display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+ min-height:46px!important;padding:12px 14px!important;border:1px solid #d7e3e9!important;border-radius:11px!important;
+ background:#fbfdfe!important;color:#18384f!important;font-size:13px!important;line-height:1.35!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;white-space:normal!important;
+}
+#view-journey .journey-test-results{
+ display:block!important;visibility:visible!important;width:100%!important;min-width:0!important;max-width:100%!important;
+ overflow:hidden!important;border:1px solid #dfe9ee!important;border-radius:12px!important;background:#fff!important;
+}
+#view-journey .journey-test-results-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;
+ min-height:39px!important;padding:9px 12px!important;border-bottom:1px solid #edf2f5!important;background:#f8fbfc!important;
+}
+#view-journey .journey-test-results-heading strong{
+ display:block!important;min-width:0!important;color:#315167!important;font-size:10px!important;font-weight:850!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;white-space:normal!important;word-break:normal!important;
+}
+#view-journey .journey-test-results-heading span{
+ display:block!important;flex:none!important;color:#82939e!important;font-size:9px!important;white-space:nowrap!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+}
+#view-journey #journeyPatientTestChoices{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row!important;gap:7px!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;max-height:310px!important;padding:9px!important;
+ overflow-x:hidden!important;overflow-y:auto!important;writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice{
+ display:grid!important;grid-template-columns:18px 38px minmax(0,1fr) auto!important;grid-auto-flow:row!important;
+ align-items:center!important;gap:9px!important;width:100%!important;min-width:0!important;max-width:100%!important;
+ min-height:61px!important;padding:9px 10px!important;margin:0!important;overflow:hidden!important;
+ border:1px solid #e6edf1!important;border-radius:10px!important;background:#fff!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;white-space:normal!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice[hidden]{display:none!important}
+#view-journey #journeyPatientTestChoices .test-choice input[type=checkbox]{
+ display:block!important;flex:none!important;width:17px!important;min-width:17px!important;height:17px!important;
+ margin:0!important;writing-mode:horizontal-tb!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice-icon{
+ display:grid!important;place-items:center!important;flex:none!important;width:36px!important;height:39px!important;
+ min-width:36px!important;border-radius:9px!important;background:#f0f7f8!important;writing-mode:horizontal-tb!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice-icon svg{display:block!important;width:23px!important;height:31px!important;max-width:100%!important}
+#view-journey #journeyPatientTestChoices .test-choice-copy{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
+ gap:3px!important;width:100%!important;min-width:0!important;max-width:100%!important;overflow:hidden!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;white-space:normal!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice-copy .choice-name{
+ display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important;
+ color:#203f55!important;font-size:12px!important;font-weight:850!important;line-height:1.35!important;
+ text-align:left!important;white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;letter-spacing:normal!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice-copy small{
+ display:block!important;width:100%!important;max-width:100%!important;overflow:visible!important;
+ color:#8193a0!important;font-size:9px!important;line-height:1.35!important;text-align:left!important;
+ white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;
+ writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+}
+#view-journey #journeyPatientTestChoices .choice-selected{
+ display:block!important;max-width:68px!important;color:#0b887d!important;font-size:8px!important;font-weight:800!important;
+ text-align:right!important;white-space:normal!important;writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+}
+#view-journey #journeyPatientTestChoices .test-choice.selected{border-color:#8ccfc3!important;background:#f0faf7!important}
+#view-journey .journey-filter-empty,#view-journey .journey-test-empty{
+ display:block!important;width:100%!important;padding:18px 12px!important;color:#8495a0!important;
+ font-size:10px!important;line-height:1.5!important;text-align:center!important;writing-mode:horizontal-tb!important;
+}
+@media(max-width:420px){
+ #view-journey #journeyPatientTestChoices{padding:7px!important;gap:6px!important}
+ #view-journey #journeyPatientTestChoices .test-choice{
+  grid-template-columns:17px 33px minmax(0,1fr) auto!important;gap:7px!important;min-height:58px!important;padding:8px!important;
+ }
+ #view-journey #journeyPatientTestChoices .test-choice-icon{width:31px!important;min-width:31px!important;height:34px!important}
+ #view-journey #journeyPatientTestChoices .test-choice-icon svg{width:20px!important;height:27px!important}
+ #view-journey #journeyPatientTestChoices .test-choice-copy .choice-name{font-size:11px!important}
+ #view-journey #journeyPatientTestChoices .test-choice-copy small{font-size:8px!important}
+ #view-journey #journeyPatientTestChoices .choice-selected{max-width:58px!important;font-size:7px!important}
+}
