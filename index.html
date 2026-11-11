@@ -836,8 +836,24 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 
 <section class="panel journey-report-footer">
  <div><div class="eyebrow">CIERRE Y REPORTE</div><h2>Reporte de la jornada</h2><p id="journeyReportSummary">0 pacientes · 0 pruebas acumuladas</p><small>La vista previa permite revisar el reporte y descargarlo como PDF o PNG. Generarlo no elimina los datos ni cierra la jornada.</small></div>
- <button class="btn primary journey-report-button" type="button" onclick="navigate('reports')">Generar reporte <span aria-hidden="true">→</span></button>
+ <button class="btn primary journey-report-button" type="button" onclick="openJourneyReportSetup()">Generar reporte <span aria-hidden="true">→</span></button>
 </section>
+<div id="journeyReportSetup" class="journey-report-setup" hidden>
+ <div class="journey-report-setup-backdrop" onclick="closeJourneyReportSetup()"></div>
+ <section class="journey-report-setup-card" role="dialog" aria-modal="true" aria-labelledby="journeyReportSetupTitle">
+  <div class="eyebrow">DATOS DEL REPORTE</div><h2 id="journeyReportSetupTitle">Completa la información de la jornada</h2>
+  <p>Confirma estos datos. Se guardarán en la jornada y aparecerán en el reporte.</p>
+  <form id="journeyReportSetupForm" onsubmit="confirmJourneyReportSetup(event)">
+   <div class="fields">
+    <div class="field full"><label for="journeyReportCompanyInput">Empresa</label><input id="journeyReportCompanyInput" type="text" list="journeyReportCompanyOptions" placeholder="Nombre de la empresa" autocomplete="organization" required><datalist id="journeyReportCompanyOptions"></datalist></div>
+    <div class="field full"><label for="journeyReportResponsibleInput">Responsable</label><input id="journeyReportResponsibleInput" type="text" placeholder="Nombre del responsable" autocomplete="name" required></div>
+    <div class="field"><label for="journeyReportStartInput">Hora de inicio</label><input id="journeyReportStartInput" type="time" required></div>
+    <div class="field"><label for="journeyReportEndInput">Hora de finalización</label><input id="journeyReportEndInput" type="time" required></div>
+   </div>
+   <div class="form-actions"><button class="btn" type="button" onclick="closeJourneyReportSetup()">Cancelar</button><button class="btn primary" type="submit">Continuar al reporte</button></div>
+  </form>
+ </section>
+</div>
 </section>
 
 <section class="view" id="view-companies"><div class="page-heading"><div><div class="eyebrow">CLIENTES</div><h1>Empresas</h1><p>Organiza las empresas para asociarlas a cada jornada.</p></div></div><div class="module-grid"><section class="panel form-panel"><h2>Registrar empresa</h2><div class="fields"><div class="field"><label for="clientName">Nombre de la empresa *</label><input id="clientName" placeholder="Nombre comercial"></div><div class="field"><label for="clientCity">Ciudad o ubicación</label><input id="clientCity" placeholder="Ubicación"></div><div class="field full"><label for="clientContact">Contacto (opcional)</label><input id="clientContact" placeholder="Teléfono o correo"></div></div><div class="form-actions"><button class="btn primary" onclick="addCompany()">Guardar empresa</button></div></section><section class="panel form-panel"><div class="panel-head" style="padding:0 0 14px;border:0"><h2>Empresas registradas</h2><span id="companyCount" class="badge">0</span></div><div id="companyList" class="list-stack"><div class="empty-state">Aún no agregas empresas.</div></div></section></div></section>
@@ -1394,6 +1410,30 @@ document.addEventListener('DOMContentLoaded',function(){indNormPatients();render
 
 <script>
 var activeArchivedReportId=null;
+function openJourneyReportSetup(){
+ if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}
+ var company=(state.companies.find(function(x){return x.id===state.journey.companyId})||{}).name||'';
+ $('journeyReportCompanyInput').value=company;
+ $('journeyReportResponsibleInput').value=state.journey.responsible||'';
+ $('journeyReportStartInput').value=state.journey.start||'';
+ $('journeyReportEndInput').value=state.journey.end||'';
+ $('journeyReportCompanyOptions').innerHTML=(state.companies||[]).map(function(x){return '<option value="'+esc(x.name)+'"></option>'}).join('');
+ $('journeyReportSetup').hidden=false;
+ setTimeout(function(){$('journeyReportCompanyInput').focus()},40);
+}
+function closeJourneyReportSetup(){$('journeyReportSetup').hidden=true}
+function confirmJourneyReportSetup(event){
+ if(event)event.preventDefault();
+ var companyName=$('journeyReportCompanyInput').value.trim(),responsible=$('journeyReportResponsibleInput').value.trim(),start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
+ if(!companyName||!responsible||!start||!end){toast('Completa la empresa, el responsable y las dos horas.');return}
+ if(end<=start){toast('La hora de finalización debe ser posterior a la hora de inicio.');$('journeyReportEndInput').focus();return}
+ var company=(state.companies||[]).find(function(x){return String(x.name||'').trim().toLocaleLowerCase('es')===companyName.toLocaleLowerCase('es')});
+ if(!company){company={id:'c-'+Date.now(),name:companyName,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}
+ state.journey.companyId=company.id;state.journey.responsible=responsible;state.journey.start=start;state.journey.end=end;touchJourney();
+ $('journeyCompany').value=company.id;$('journeyResponsible').value=responsible;$('journeyStart').value=start;$('journeyEnd').value=end;
+ if(!save()){toast('No se pudieron guardar los datos. Inténtalo nuevamente.');return}
+ closeJourneyReportSetup();renderReport();renderCompanies();navigate('reports');
+}
 function generateReportPDF(){if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}if(!archiveCurrentReport('pdf'))return;var completed=false;function finish(){if(completed)return;completed=true;window.removeEventListener('afterprint',finish);completeJourneyAfterExport()}window.addEventListener('afterprint',finish,{once:true});window.print();setTimeout(finish,1200)}
 function archiveLogoId(data){if(!data)return'';var hash=2166136261;for(var i=0;i<data.length;i++)hash=Math.imul(hash^data.charCodeAt(i),16777619);return'logo-'+(hash>>>0).toString(16)+'-'+data.length}
 function archiveCurrentReport(format){
@@ -3353,4 +3393,8 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 
 </style>
 
+
+<style>
+.journey-report-setup[hidden]{display:none!important}.journey-report-setup{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:18px}.journey-report-setup-backdrop{position:absolute;inset:0;background:rgba(8,25,40,.66);backdrop-filter:blur(5px)}.journey-report-setup-card{position:relative;width:min(100%,560px);max-height:min(92dvh,760px);overflow:auto;background:var(--panel,#fff);color:var(--text,#17364b);border:1px solid var(--border,#dce6ec);border-radius:22px;padding:clamp(20px,4vw,30px);box-shadow:0 24px 80px rgba(0,0,0,.28)}.journey-report-setup-card h2{margin:7px 0 8px}.journey-report-setup-card>p{margin:0 0 20px;color:var(--muted,#647989)}.journey-report-setup-card .form-actions{justify-content:flex-end;margin-top:22px}@media(max-width:520px){.journey-report-setup{padding:10px;align-items:end}.journey-report-setup-card{border-radius:20px 20px 12px 12px;padding:20px 16px}.journey-report-setup-card .fields{grid-template-columns:1fr 1fr}.journey-report-setup-card .field.full{grid-column:1/-1}.journey-report-setup-card .form-actions{display:grid;grid-template-columns:1fr 1fr}}
+</style>
 </body></html>
