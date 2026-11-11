@@ -748,3 +748,12 @@ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!
  #view-journey #journeyPatientTestChoices .test-choice-copy small{font-size:8px!important}
  #view-journey #journeyPatientTestChoices .choice-selected{max-width:58px!important;font-size:7px!important}
 }
+
+
+/* Jornada: mantener ocultas las coincidencias hasta que exista una búsqueda. */
+#view-journey .journey-test-results[hidden]{display:none!important}
+#view-journey .journey-test-results:not([hidden]){display:block!important;visibility:visible!important}
+#view-journey #journeyPatientTestChoices .journey-filter-empty{
+ display:block!important;width:100%!important;padding:15px 12px!important;color:#8495a0!important;
+ font-size:10px!important;line-height:1.5!important;text-align:center!important;writing-mode:horizontal-tb!important;
+}

@@ -40,7 +40,7 @@ const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.me
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
-  assert.match(html, /fleboreport-v2\.css\?v=20261111-jornada3/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-jornada4/);
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
@@ -619,7 +619,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v264'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v265'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -897,7 +897,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1116,7 +1116,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1165,7 +1165,7 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
   assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
 });
 
 
@@ -1181,7 +1181,7 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
 });
 
 
@@ -1199,19 +1199,22 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(journeyStyles, /#view-journey \.journey-layout/);
   assert.match(journeyStyles, /#view-journey \.journey-patient-progress-track/);
   assert.match(journeyStyles, /@media\(max-width:980px\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
 });
 
 
-test('el selector de pruebas de Jornada utiliza una sola búsqueda con resultados horizontales visibles', () => {
+test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsqueda', () => {
   assert.match(html, /id="journeyPatientTestSearch"[^>]*aria-controls="journeyPatientTestChoices"/);
-  assert.match(html, /id="journeyTestPicker"[\s\S]*?id="journeyPatientTestChoices"/);
+  assert.match(html, /id="journeyTestPicker" hidden/);
+  assert.doesNotMatch(html, /Pruebas disponibles/);
   assert.doesNotMatch(html, /<details[^>]+id="journeyTestPicker"/);
-  assert.match(html, /data-test-search=/);
-  assert.match(html, /function filterJourneyPatientTests\(value\)/);
-  assert.match(html, /item\.style\.display=match\?'grid':'none'/);
+  assert.match(html, /function normalizeJourneyPatientTestSearch\(value\)/);
+  assert.match(html, /if\(!term\)\{\s*panel\.hidden=true/);
+  assert.match(html, /return tokens\.every\(function\(token\)\{return searchable\.includes\(token\)\}\)/);
+  assert.match(html, /No se encontraron pruebas que coincidan con tu búsqueda/);
+  assert.match(html, /persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\)\}\)/);
+  assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
-  assert.match(journeyStyles, /grid-template-columns:17px 33px minmax\(0,1fr\) auto!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v264/);
+  assert.match(serviceWorker, /fleboreport-shell-v265/);
 });
