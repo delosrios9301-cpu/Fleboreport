@@ -1236,3 +1236,12 @@ test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación hor
   assert.match(serviceWorker, /fleboreport-shell-v266/);
 });
 
+
+
+test('Jornada muestra primero al paciente agregado más recientemente y conserva ese orden al marcar muestras', () => {
+  const source = html.slice(html.indexOf('function patientsForJourney'), html.indexOf('function updateJourneySummary'));
+  assert.match(source, /joined\.sort\(function\(a,b\)/);
+  assert.match(source, /lastAddedAt\|\|a\.createdAt/);
+  assert.match(html, /if\(added\.length\)entry\.lastAddedAt=now/);
+  assert.match(html, /testStatuses:statuses,createdAt:now,lastAddedAt:now,updatedAt:now/);
+});
