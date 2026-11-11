@@ -1143,7 +1143,17 @@ function patientsForJourney(){
  });
  var seen=new Set(joined.map(function(p){return String(p.patientId)}));
  var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
- return joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
+ var allPatients=joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
+ allPatients.sort(function(a,b){
+  var aIds=Array.isArray(a.testIds)?a.testIds:[],bIds=Array.isArray(b.testIds)?b.testIds:[];
+  var aPending=aIds.some(function(id){return !a.testStatuses||a.testStatuses[id]!=='tomada'});
+  var bPending=bIds.some(function(id){return !b.testStatuses||b.testStatuses[id]!=='tomada'});
+  if(aPending!==bPending)return aPending?-1:1;
+  var aDate=Date.parse(a.lastAddedAt||a.createdAt||a.updatedAt||'')||0;
+  var bDate=Date.parse(b.lastAddedAt||b.createdAt||b.updatedAt||'')||0;
+  return bDate-aDate;
+ });
+ return allPatients;
 }
 function updateJourneySummary(){
  const patients=patientsForJourney();
@@ -1271,8 +1281,8 @@ function registerJourneyPatient(){
  else{if(!patient.name)patient.name=name;if(!patient.document)patient.document=documentId;patient.updatedAt=now}
  state.journeyEntries=Array.isArray(state.journeyEntries)?state.journeyEntries:[];
  var entry=state.journeyEntries.find(function(e){return e.journeyId===state.journey.id&&e.patientId===patient.id}),added=requested.filter(function(id){return !entry||(entry.testIds||[]).indexOf(id)<0});
- if(entry){entry.testIds=entry.testIds||[];entry.testStatuses=entry.testStatuses||{};added.forEach(function(id){entry.testIds.push(id);entry.testStatuses[id]='pendiente'});entry.updatedAt=now}
- else{var statuses={};requested.forEach(function(id){statuses[id]='pendiente'});state.journeyEntries.push({id:'je-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),journeyId:state.journey.id,journeyDate:state.journey.date,patientId:patient.id,testIds:requested.slice(),testStatuses:statuses,createdAt:now,updatedAt:now})}
+ if(entry){entry.testIds=entry.testIds||[];entry.testStatuses=entry.testStatuses||{};added.forEach(function(id){entry.testIds.push(id);entry.testStatuses[id]='pendiente'});if(added.length)entry.lastAddedAt=now;entry.updatedAt=now}
+ else{var statuses={};requested.forEach(function(id){statuses[id]='pendiente'});state.journeyEntries.push({id:'je-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),journeyId:state.journey.id,journeyDate:state.journey.date,patientId:patient.id,testIds:requested.slice(),testStatuses:statuses,createdAt:now,lastAddedAt:now,updatedAt:now})}
  added.forEach(function(testId){var row=state.selected.find(function(x){return x.testId===testId});if(row)row.count+=1;else state.selected.push({testId:testId,count:1})});
  touchJourney();
  if(!save()){restoreJourneySnapshot(previous);return}
