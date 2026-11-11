@@ -3052,4 +3052,58 @@ html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!imp
 }
 </style>
 
+
+<style id="fr-system-wide-vertical-alignment-v1">
+/* Normalización transversal: textos y nombres centrados dentro de sus controles y contenedores. */
+button,.btn,.icon-button,.badge,.clinical-status,.hv-status,.settings-tabs button,
+.clinical-config-tabs button,.hv-module-tab,.sample-toggle,.style-picker button {
+  line-height:1.25!important;
+  vertical-align:middle!important;
+}
+button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op-quick button),
+.btn,.icon-button,.settings-tabs button,.clinical-config-tabs button,
+.hv-module-tab,.sample-toggle,.style-picker button {
+  align-items:center!important;
+}
+.list-row,.catalog-card,.journey-patient-head,.patient-test-status,.test-choice,
+.clinical-row,.hv-visit,.hv-status,.stat-card,.clinical-kpi,.clinical-dash-kpi,
+.op-kpi,.report-test,.report-metric,.report-total,.panel-head {
+  align-items:center!important;
+}
+.list-row>strong,.catalog-card>div,.journey-patient-head>div,
+.patient-test-status-name,.test-choice .choice-name,.clinical-row strong,
+.hv-visit strong,.stat-card small,.stat-card strong,.clinical-kpi small,
+.clinical-kpi strong,.op-kpi-label,.op-kpi-value,.report-test strong,
+.report-test small,.report-metric small,.report-metric strong {
+  min-width:0;
+  line-height:1.35!important;
+}
+.data-table th,.data-table td,table th,table td,
+.clinical-table th,.clinical-table td {
+  vertical-align:middle!important;
+  line-height:1.4!important;
+}
+.field label,.field-help,.section-description,.panel-head h2,
+.list-row small,.catalog-card small,.journey-patient-head small {
+  line-height:1.4!important;
+}
+.field input,.field select,.field textarea,input,select,textarea {
+  line-height:1.35!important;
+}
+.badge,.clinical-status,.hv-status {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+@media(max-width:760px){
+  .list-row,.catalog-card,.patient-test-status,.clinical-row,.hv-visit {
+    min-height:44px;
+  }
+  .list-row>strong,.catalog-card strong,.journey-patient-head strong,
+  .patient-test-status-name,.clinical-row strong,.hv-visit strong {
+    line-height:1.4!important;
+  }
+}
+</style>
+
 </body></html>
