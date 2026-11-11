@@ -618,7 +618,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v257'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v258'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -1131,4 +1131,12 @@ test('el catálogo es maestro y las pruebas se agregan desde Jornada al registra
   assert.match(html, /function renderJourneyPatientChoices\(\)/);
   assert.match(html, /function registerJourneyPatient\(\)/);
   assert.match(html, /function syncJourneyFormFromState\(\)/);
+});
+
+
+test('la interfaz alinea verticalmente los nombres', async () => {
+  assert.match(html, /fr-system-wide-vertical-alignment-v1/);
+  assert.match(html, /\.data-table th,\.data-table td,table th,table td/);
+  assert.match(html, /\.list-row,\.catalog-card,\.journey-patient-head,\.patient-test-status/);
+  assert.match(html, /align-items:center!important/);
 });
