@@ -846,7 +846,8 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
   <form id="journeyReportSetupForm" onsubmit="confirmJourneyReportSetup(event)">
    <div class="fields">
     <div class="field full"><label for="journeyReportCompanyInput">Empresa</label><input id="journeyReportCompanyInput" type="text" list="journeyReportCompanyOptions" placeholder="Nombre de la empresa" autocomplete="organization" required><datalist id="journeyReportCompanyOptions"></datalist></div>
-    <div class="field full"><label for="journeyReportResponsibleInput">Responsable</label><input id="journeyReportResponsibleInput" type="text" placeholder="Nombre del responsable" autocomplete="name" required></div>
+    <div class="field full"><label for="journeyReportResponsibleInput">Responsable de la jornada</label><input id="journeyReportResponsibleInput" type="text" placeholder="Nombre del responsable" autocomplete="name" required></div>
+    <div class="field full"><label for="journeyReportDateInput">Fecha de la jornada</label><input id="journeyReportDateInput" type="date" required></div>
     <div class="field"><label for="journeyReportStartInput">Hora de inicio</label><input id="journeyReportStartInput" type="time" required></div>
     <div class="field"><label for="journeyReportEndInput">Hora de finalización</label><input id="journeyReportEndInput" type="time" required></div>
    </div>
@@ -1415,6 +1416,7 @@ function openJourneyReportSetup(){
  var company=(state.companies.find(function(x){return x.id===state.journey.companyId})||{}).name||'';
  $('journeyReportCompanyInput').value=company;
  $('journeyReportResponsibleInput').value=state.journey.responsible||'';
+ $('journeyReportDateInput').value=state.journey.date||new Date().toLocaleDateString('en-CA');
  $('journeyReportStartInput').value=state.journey.start||'';
  $('journeyReportEndInput').value=state.journey.end||'';
  $('journeyReportCompanyOptions').innerHTML=(state.companies||[]).map(function(x){return '<option value="'+esc(x.name)+'"></option>'}).join('');
@@ -1424,13 +1426,13 @@ function openJourneyReportSetup(){
 function closeJourneyReportSetup(){$('journeyReportSetup').hidden=true}
 function confirmJourneyReportSetup(event){
  if(event)event.preventDefault();
- var companyName=$('journeyReportCompanyInput').value.trim(),responsible=$('journeyReportResponsibleInput').value.trim(),start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
- if(!companyName||!responsible||!start||!end){toast('Completa la empresa, el responsable y las dos horas.');return}
+ var companyName=$('journeyReportCompanyInput').value.trim(),responsible=$('journeyReportResponsibleInput').value.trim(),date=$('journeyReportDateInput').value,start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
+ if(!companyName||!responsible||!date||!start||!end){toast('Completa la empresa, el responsable, la fecha y las dos horas.');return}
  if(end<=start){toast('La hora de finalización debe ser posterior a la hora de inicio.');$('journeyReportEndInput').focus();return}
  var company=(state.companies||[]).find(function(x){return String(x.name||'').trim().toLocaleLowerCase('es')===companyName.toLocaleLowerCase('es')});
  if(!company){company={id:'c-'+Date.now(),name:companyName,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}
- state.journey.companyId=company.id;state.journey.responsible=responsible;state.journey.start=start;state.journey.end=end;touchJourney();
- $('journeyCompany').value=company.id;$('journeyResponsible').value=responsible;$('journeyStart').value=start;$('journeyEnd').value=end;
+ state.journey.companyId=company.id;state.journey.responsible=responsible;state.journey.date=date;state.journey.start=start;state.journey.end=end;touchJourney();
+ $('journeyCompany').value=company.id;$('journeyResponsible').value=responsible;$('journeyDate').value=date;$('journeyStart').value=start;$('journeyEnd').value=end;
  if(!save()){toast('No se pudieron guardar los datos. Inténtalo nuevamente.');return}
  closeJourneyReportSetup();renderReport();renderCompanies();navigate('reports');
 }
