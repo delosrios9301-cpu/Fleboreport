@@ -618,7 +618,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v260'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v261'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -896,7 +896,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v260/);
+  assert.match(serviceWorker, /fleboreport-shell-v261/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1115,7 +1115,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v260/);
+  assert.match(serviceWorker, /fleboreport-shell-v261/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1156,4 +1156,13 @@ test('el guardado de un paciente conserva el historial de jornadas previo y lo c
   assert.match(patientCloudSync, /const state=app\(\),docKey=norm\(docOf\(p\)\),historyMap=new Map\(\)/);
   assert.match(patientCloudSync, /const journeyHistory=Array\.from\(historyMap\.values\(\)\)/);
   assert.match(patientCloudSync, /if\(journeyHistory\.length\)data\.journeyHistory=journeyHistory/);
+});
+
+
+test('el botón de edición del catálogo permanece dentro de su tarjeta', () => {
+  assert.match(html, /catalog-edit-actions-contained-v1/);
+  assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
+  assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
+  assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
+  assert.match(serviceWorker, /fleboreport-shell-v261/);
 });
