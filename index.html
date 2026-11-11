@@ -688,7 +688,24 @@ body.module-menu-open{overflow:hidden}
 <header class="topbar no-print"><div class="top-left"><span class="topbar-title">💧 FleboReport · Centro de operaciones</span></div><div class="top-actions"><span class="local-status" id="fleboSyncStatus" aria-live="polite"><i class="status-dot"></i>Conectando con la nube…</span></div></header>
 <main class="content">
 <section class="view active" id="view-home">
-<header class="op-hero"><div><div class="eyebrow">CENTRO DE INTELIGENCIA OPERACIONAL</div><h1 id="dashGreeting">Hola, bienvenido</h1><p>Resumen de la operación con los registros sincronizados de tu cuenta.</p></div><div class="op-date"><span>FECHA DE HOY</span><b id="dashboardToday">—</b><small>Espacio seguro de trabajo</small></div></header>
+<header class="op-hero fr2-home-hero">
+ <div class="fr2-home-copy">
+  <div class="eyebrow">CENTRO DE OPERACIONES CLÍNICAS</div>
+  <h1 id="dashGreeting">Hola, bienvenido</h1>
+  <p>Tu laboratorio, organizado en un solo espacio. Consulta la actividad y continúa con la siguiente tarea.</p>
+  <div class="fr2-home-actions">
+   <button type="button" class="fr2-home-action primary" onclick="newJourney()"><span class="fr2-home-action-icon">＋</span><span><b>Nueva jornada</b><small>Iniciar registro</small></span></button>
+   <button type="button" class="fr2-home-action" onclick="navigate('catalog')"><span class="fr2-home-action-icon">⚗</span><span><b>Catálogo de pruebas</b><small>Consultar estudios</small></span></button>
+   <button type="button" class="fr2-home-action" onclick="navigate('patients')"><span class="fr2-home-action-icon">♙</span><span><b>Pacientes</b><small>Abrir expedientes</small></span></button>
+  </div>
+ </div>
+ <div class="fr2-home-date">
+  <span class="fr2-home-date-mark" aria-hidden="true">◷</span>
+  <small>FECHA DE HOY</small>
+  <b id="dashboardToday">—</b>
+  <span>Espacio de trabajo</span>
+ </div>
+</header>
 <div class="op-kpis" id="operationalKpis"></div>
  <section class="panel op-panel clinical-dash-panel"><div class="panel-head"><div><div class="eyebrow">TRAZABILIDAD EN TIEMPO REAL</div><h2>Registro de sujetos · procesamiento</h2><p>Resumen de muestras, alícuotas y almacenamiento registrado.</p></div><button class="btn small" onclick="navigate('clinical-processing')">Abrir procesamiento</button></div><div class="panel-body"><div id="dashClinicalKpis" class="clinical-dash-kpis"></div><div class="clinical-dash-columns"><section><h3>Estado de las muestras</h3><div id="dashClinicalStatuses"></div></section><section><h3>Tipos procesados</h3><div id="dashClinicalTypes"></div></section><section><h3>Almacenamiento y capacidad</h3><div id="dashClinicalStorage"></div></section></div><div class="clinical-dash-recent"><h3>Actividad reciente</h3><div id="dashClinicalRecent"></div></div></div></section>
 <div class="op-grid op-grid-wide"><section class="panel op-panel"><div class="panel-head"><div><h2>Pacientes atendidos por mes</h2><p>Actividad registrada durante los últimos 12 meses</p></div></div><div class="panel-body" id="dashPatientTrend"></div></section><section class="panel op-panel"><div class="panel-head"><div><h2>Jornada actual</h2><p>Avance de muestras de la jornada seleccionada</p></div><button class="btn small" onclick="navigate('journey')">Abrir jornada</button></div><div class="panel-body" id="dashActiveJourney"></div></section></div>
