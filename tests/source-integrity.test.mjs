@@ -603,8 +603,8 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(patientCloudSync, /view\.id==='view-journey'[\s\S]*?renderJourneyPatients\(\)/);
   assert.match(patientCloudSync, /document\.addEventListener\('focusout'/);
   assert.doesNotMatch(patientCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?saveList\(remote\)/);
-  assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?saveList\(latest\)/);
+  assert.match(patientCloudSync, /if\(local\.length&&!remote\.length\)[\s\S]*?return;[\s\S]*?const combined=merge\(local,remote\)[\s\S]*?saveList\(combined\)/);
+  assert.match(patientCloudSync, /if\(currentPatients\.length&&!latest\.length\)[\s\S]*?return;[\s\S]*?const combined=merge\(currentPatients,latest\)[\s\S]*?saveList\(combined\)/);
   assert.match(clinicalCloudSync, /function clinicalUiIsBusy\(\)/);
   assert.match(clinicalCloudSync, /activeClinicalMutations>0/);
   assert.match(clinicalCloudSync, /function trackClinicalMutation\(fn\)/);
