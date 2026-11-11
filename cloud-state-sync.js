@@ -255,13 +255,14 @@ async function writeRemote(state,expected){
 }
 function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
- const current=app()||{};let safe=normalizePatientState(stripLegacyAudit(s));safe.auditLog=[];
+ const current=app()||{},rawPatients=JSON.stringify({patients:(s&&s.patients)||[],journeyEntries:(s&&s.journeyEntries)||[]});let safe=normalizePatientState(stripLegacyAudit(s));const patientDuplicatesRemoved=rawPatients!==JSON.stringify({patients:safe.patients||[],journeyEntries:safe.journeyEntries||[]});safe.auditLog=[];
  if(Array.isArray(safe.catalog))safe.catalog=dedupeCatalog(safe.catalog);
  // En una restauración administrativa se vacían también los catálogos clínicos locales para impedir que resurjan.
  if(clearClinical){CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=[]})}else{CLINICAL_DB_CONFIG_KEYS.forEach(k=>{safe[k]=Array.isArray(current[k])?current[k]:[]})}
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{if(!clearClinical&&Object.prototype.hasOwnProperty.call(current,k))safe[k]=current[k];else delete safe[k]});
  window.FleboAppState.replace(safe,{silent:true,deferRender:true});
  window.dispatchEvent(new Event('flebo:cloud-state-applied'));
+ if(patientDuplicatesRemoved)window.dispatchEvent(new Event('flebo:local-state-saved'));
  if(clearClinical)window.dispatchEvent(new Event('flebo:clinical-cache-reset'));
 }
 async function publishMerged(local,remote,expected){
