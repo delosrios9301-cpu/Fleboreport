@@ -1056,7 +1056,7 @@ function renderCatalog(){
  if($('catalogMetricPending'))$('catalogMetricPending').textContent=active.filter(function(t){return !t.validated}).length;
  if($('catalogMetricVessels'))$('catalogMetricVessels').textContent=active.filter(function(t){return!!String(t.vessel||'').trim()}).length;
  const empty=term?'<div class="empty-state">No hay pruebas que coincidan con esa búsqueda.</div>':'<div class="empty-state">No hay pruebas activas. Crea la primera prueba para configurar el catálogo.</div>';
- list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+(t.validated?'<span class="badge">Protocolo confirmado</span>':'<span class="badge pending">Pendiente de validación</span>')+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn primary" type="button" onclick="addCatalogTestToJourney(\''+esc(t.id)+'\')">＋ Jornada actual</button><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button></span></article>'}).join(''):empty;
+ list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+(t.validated?'<span class="badge">Protocolo confirmado</span>':'<span class="badge pending">Pendiente de validación</span>')+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button></span></article>'}).join(''):empty;
  if(settings)settings.innerHTML=all.length?all.slice().sort(function(a,b){return(a.active===false)-(b.active===false)||String(a.name||'').localeCompare(String(b.name||''),'es')}).map(function(t){return '<div class="list-row'+(t.active===false?' fr2-archived-row':'')+'"><span><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+' · '+(t.active===false?'Archivada':t.validated?'Confirmada':'Pendiente de validación')+'</small></span><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button>'+(t.active===false?'<button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button>':'<button class="btn danger" type="button" onclick="deleteTest(\''+esc(t.id)+'\')">Archivar</button>')+'</span></div>'}).join(''):'<div class="empty-state">El catálogo está vacío. Añade tu primera prueba.</div>';
  if(archivePanel){archivePanel.hidden=archived.length===0;if($('catalogArchivedCount'))$('catalogArchivedCount').textContent=archived.length;if(archiveList)archiveList.innerHTML=archived.map(function(t){return '<article class="fr2-catalog-archive-item"><div><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+'</small></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button><button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button></span></article>'}).join('')}
  const quick=$('quickTest');if(quick)quick.innerHTML='<option value="">Seleccionar prueba…</option>'+active.map(function(t){return '<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>'}).join('');
@@ -3042,17 +3042,6 @@ html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!imp
  }
  body.fr2-app-authorized #sidebar .drawer-brand-mark{box-shadow:none!important}
 }
-.fr2-catalog-journey-context{
- display:flex!important;align-items:center!important;gap:14px!important;flex-wrap:wrap!important;
- margin:0 0 16px!important;padding:13px 16px!important;border:1px solid #dce8ed!important;
- border-radius:14px!important;background:#fff!important;box-shadow:none!important
-}
-.fr2-catalog-journey-copy{display:grid;gap:3px;flex:1 1 180px;min-width:0}
-.fr2-catalog-journey-copy strong{font-size:13px;color:#173b52}
-.fr2-catalog-journey-copy small{font-size:11px;color:#69808e}
-.fr2-catalog-journey-company{display:grid;gap:4px;flex:1 1 180px;min-width:0}
-.fr2-catalog-journey-company span{font-size:10px;font-weight:800;color:#607887}
-.fr2-catalog-journey-company select{width:100%;min-height:39px;padding:7px 10px;border:1px solid #d4e1e7;border-radius:9px;background:#fff;color:#183b51}
 #view-catalog .fr2-catalog-item .list-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 #view-catalog .fr2-catalog-item .list-actions .btn{white-space:nowrap}
 @media(max-width:600px){
