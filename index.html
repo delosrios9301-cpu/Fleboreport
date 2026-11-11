@@ -845,7 +845,7 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
   <p>Confirma estos datos. Se guardarán en la jornada y aparecerán en el reporte.</p>
   <form id="journeyReportSetupForm" onsubmit="confirmJourneyReportSetup(event)">
    <div class="fields">
-    <div class="field full"><label for="journeyReportCompanyInput">Empresa</label><input id="journeyReportCompanyInput" type="text" list="journeyReportCompanyOptions" placeholder="Nombre de la empresa" autocomplete="organization" required><datalist id="journeyReportCompanyOptions"></datalist></div>
+    <div class="field full"><label for="journeyReportCompanyInput">Empresa registrada</label><select id="journeyReportCompanyInput" required><option value="">Selecciona una empresa registrada</option></select></div>
     <div class="field full"><label for="journeyReportResponsibleInput">Responsable de la jornada</label><input id="journeyReportResponsibleInput" type="text" placeholder="Nombre del responsable" autocomplete="name" required></div>
     <div class="field full"><label for="journeyReportDateInput">Fecha de la jornada</label><input id="journeyReportDateInput" type="date" required></div>
     <div class="field"><label for="journeyReportStartInput">Hora de inicio</label><input id="journeyReportStartInput" type="time" required></div>
@@ -1413,24 +1413,24 @@ document.addEventListener('DOMContentLoaded',function(){indNormPatients();render
 var activeArchivedReportId=null;
 function openJourneyReportSetup(){
  if(!totalTests()){toast('Agrega pruebas a la jornada antes de generar el reporte.');return}
- var company=(state.companies.find(function(x){return x.id===state.journey.companyId})||{}).name||'';
- $('journeyReportCompanyInput').value=company;
+ var companies=(state.companies||[]).filter(function(x){return x&&x.id&&String(x.name||'').trim()});
+ $('journeyReportCompanyInput').innerHTML='<option value="">'+(companies.length?'Selecciona una empresa registrada':'No hay empresas registradas')+'</option>'+companies.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.name)+'</option>'}).join('');
+ $('journeyReportCompanyInput').value=companies.some(function(x){return x.id===state.journey.companyId})?state.journey.companyId:'';
  $('journeyReportResponsibleInput').value=state.journey.responsible||'';
  $('journeyReportDateInput').value=state.journey.date||new Date().toLocaleDateString('en-CA');
  $('journeyReportStartInput').value=state.journey.start||'';
  $('journeyReportEndInput').value=state.journey.end||'';
- $('journeyReportCompanyOptions').innerHTML=(state.companies||[]).map(function(x){return '<option value="'+esc(x.name)+'"></option>'}).join('');
  $('journeyReportSetup').hidden=false;
  setTimeout(function(){$('journeyReportCompanyInput').focus()},40);
 }
 function closeJourneyReportSetup(){$('journeyReportSetup').hidden=true}
 function confirmJourneyReportSetup(event){
  if(event)event.preventDefault();
- var companyName=$('journeyReportCompanyInput').value.trim(),responsible=$('journeyReportResponsibleInput').value.trim(),date=$('journeyReportDateInput').value,start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
- if(!companyName||!responsible||!date||!start||!end){toast('Completa la empresa, el responsable, la fecha y las dos horas.');return}
+ var companyId=$('journeyReportCompanyInput').value,responsible=$('journeyReportResponsibleInput').value.trim(),date=$('journeyReportDateInput').value,start=$('journeyReportStartInput').value,end=$('journeyReportEndInput').value;
+ if(!companyId||!responsible||!date||!start||!end){toast('Selecciona una empresa registrada y completa el responsable, la fecha y las dos horas.');return}
  if(end<=start){toast('La hora de finalización debe ser posterior a la hora de inicio.');$('journeyReportEndInput').focus();return}
- var company=(state.companies||[]).find(function(x){return String(x.name||'').trim().toLocaleLowerCase('es')===companyName.toLocaleLowerCase('es')});
- if(!company){company={id:'c-'+Date.now(),name:companyName,city:'',contact:'',createdAt:new Date().toISOString()};state.companies.push(company)}
+ var company=(state.companies||[]).find(function(x){return x.id===companyId});
+ if(!company){toast('La empresa seleccionada ya no está disponible. Actualiza la lista e inténtalo nuevamente.');openJourneyReportSetup();return}
  state.journey.companyId=company.id;state.journey.responsible=responsible;state.journey.date=date;state.journey.start=start;state.journey.end=end;touchJourney();
  $('journeyCompany').value=company.id;$('journeyResponsible').value=responsible;$('journeyDate').value=date;$('journeyStart').value=start;$('journeyEnd').value=end;
  if(!save()){toast('No se pudieron guardar los datos. Inténtalo nuevamente.');return}
