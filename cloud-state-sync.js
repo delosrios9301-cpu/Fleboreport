@@ -88,7 +88,7 @@ function mergePatientArray(first,second,collection){
  [...(Array.isArray(first)?first:[]),...(Array.isArray(second)?second:[])].forEach((value,index)=>{
   const key=patientNestedKey(value,index,collection),old=map.get(key);
   if(!old){map.set(key,value);return}
-  if(value&&typeof value==='object'&&old&&typeof old==='object')map.set(key,stamp(value)>=stamp(old)?Object.assign({},old,value):Object.assign({},value,old));
+  if(value&&typeof value==='object'&&old&&typeof old==='object'){const newer=stamp(value)>=stamp(old)?value:old,older=newer===value?old:value,merged=Object.assign({},older,newer);if(Array.isArray(old.testIds)||Array.isArray(value.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(value.testIds)?value.testIds:[])]));if(old.testStatuses||value.testStatuses)merged.testStatuses=Object.assign({},older.testStatuses||{},newer.testStatuses||{});if(Array.isArray(old.tests)||Array.isArray(value.tests))merged.tests=mergePatientArray(old.tests,value.tests,'tests');map.set(key,merged)}
  });
  return Array.from(map.values());
 }
@@ -134,7 +134,7 @@ function dedupeJourneyEntries(items){
   if(!old){map.set(key,Object.assign({},entry));return}
   const newer=stamp(entry)>=stamp(old)?entry:old,older=newer===entry?old:entry;
   const merged=Object.assign({},older,newer);
-  if(Array.isArray(old.testIds)||Array.isArray(entry.testIds))merged.testIds=Array.from(new Set([...(old.testIds||[]),...(entry.testIds||[])]));
+  if(Array.isArray(old.testIds)||Array.isArray(entry.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(entry.testIds)?entry.testIds:[])]));
   if(old.testStatuses||entry.testStatuses)merged.testStatuses=Object.assign({},older.testStatuses||{},newer.testStatuses||{});
   map.set(key,merged);
  });
