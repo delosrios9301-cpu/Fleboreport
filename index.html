@@ -693,34 +693,6 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 
 </style>
 
-<style id="fr-sidebar-touch-scroll">
-/* Menú lateral móvil: permitir desplazamiento vertical táctil en todo el panel. */
-@media(max-width:760px){
-  .sidebar,.sidebar.open{
-    top:12px!important;
-    bottom:max(86px,calc(env(safe-area-inset-bottom) + 86px))!important;
-    left:auto!important;
-    right:max(14px,env(safe-area-inset-right))!important;
-    width:min(300px,calc(100vw - 28px))!important;
-    max-height:none!important;
-    height:auto!important;
-    min-height:0!important;
-    overflow-x:hidden!important;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch!important;
-    overscroll-behavior-y:contain!important;
-    touch-action:pan-y!important;
-    align-items:stretch!important;
-  }
-  .sidebar .nav-list{
-    min-height:0!important;
-    overflow:visible!important;
-    touch-action:pan-y!important;
-  }
-  .sidebar .nav-list button{touch-action:pan-y!important}
-}
-</style>
-
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
@@ -2921,4 +2893,140 @@ html,body,body *{writing-mode:horizontal-tb!important;text-orientation:mixed!imp
 </style>
 
 <script src="./fleboreport-v2-shell.js?v=20261111-redesign4"></script>
+
+<style id="fr-mobile-menu-and-bell-final">
+/* FleboReport móvil: scroll de la navegación y pie de sesión siempre accesible.
+   Estas reglas se colocan al final para prevalecer sobre las capas visuales anteriores. */
+@media (max-width:760px){
+  body.fr2-app-authorized #sidebar,
+  body.fr2-app-authorized #sidebar.open{
+    position:fixed!important;
+    top:env(safe-area-inset-top,0px)!important;
+    bottom:env(safe-area-inset-bottom,0px)!important;
+    left:0!important;
+    right:auto!important;
+    width:min(330px,88vw)!important;
+    height:auto!important;
+    min-height:0!important;
+    max-height:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    padding:12px 12px 8px!important;
+    box-sizing:border-box!important;
+  }
+  body.fr2-app-authorized #sidebar .module-menu-head{
+    flex:0 0 auto!important;
+    min-height:42px!important;
+    margin:0 0 8px!important;
+    padding:2px 4px 9px!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-list{
+    display:flex!important;
+    flex:1 1 0%!important;
+    flex-direction:column!important;
+    min-height:0!important;
+    height:0!important;
+    max-height:none!important;
+    overflow-x:hidden!important;
+    overflow-y:scroll!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior-y:contain!important;
+    touch-action:pan-y!important;
+    padding:0 3px 12px!important;
+    gap:4px!important;
+    scrollbar-width:thin!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-group{
+    flex:0 0 auto!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-group-items,
+  body.fr2-app-authorized #sidebar .nav-list button{
+    touch-action:pan-y!important;
+  }
+  body.fr2-app-authorized #sidebar .drawer-footer{
+    display:flex!important;
+    flex:0 0 auto!important;
+    align-items:center!important;
+    flex-wrap:wrap!important;
+    gap:7px!important;
+    margin:0!important;
+    padding:9px 3px max(5px,env(safe-area-inset-bottom,0px))!important;
+    border-top:1px solid rgba(224,244,247,.2)!important;
+    background:linear-gradient(180deg,rgba(16,59,79,.97),rgba(13,48,70,.99))!important;
+  }
+  body.fr2-app-authorized #sidebar .drawer-footer #fleboGlobalSignOut{
+    position:static!important;
+    display:block!important;
+    flex:0 0 100%!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    min-height:46px!important;
+    margin:7px 0 1px!important;
+    padding:11px 14px!important;
+    border:1px solid rgba(255,255,255,.3)!important;
+    border-radius:11px!important;
+    background:linear-gradient(145deg,#ffffff,#e9f3f6)!important;
+    color:#8f303c!important;
+    font-size:13px!important;
+    font-weight:850!important;
+    text-align:center!important;
+    box-shadow:0 3px 0 rgba(4,27,43,.22)!important;
+  }
+
+  /* Campana y acceso al catálogo en la misma fila y centrados verticalmente. */
+  body.fr2-app-authorized .topbar .fr2-topbar-right{
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    align-self:stretch!important;
+    height:100%!important;
+    gap:7px!important;
+  }
+  body.fr2-app-authorized .topbar .fr2-catalog-shortcut,
+  body.fr2-app-authorized .topbar #frNotifBell{
+    position:relative!important;
+    inset:auto!important;
+    top:auto!important;
+    right:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    transform:none!important;
+    align-self:center!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 37px!important;
+    width:37px!important;
+    min-width:37px!important;
+    height:37px!important;
+    min-height:37px!important;
+    max-height:37px!important;
+    margin:0!important;
+    padding:0!important;
+    box-sizing:border-box!important;
+    vertical-align:middle!important;
+  }
+  body.fr2-app-authorized .topbar #frNotifBell svg{
+    display:block!important;
+    width:18px!important;
+    height:18px!important;
+    margin:0!important;
+  }
+  body.fr2-app-authorized .topbar #frNotifBell #frNotifCount{
+    position:absolute!important;
+    top:-5px!important;
+    right:-5px!important;
+    width:auto!important;
+    min-width:19px!important;
+    height:19px!important;
+    min-height:19px!important;
+    margin:0!important;
+    padding:0 5px!important;
+  }
+}
+</style>
+
 </body></html>
