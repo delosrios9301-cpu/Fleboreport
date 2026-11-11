@@ -757,3 +757,58 @@ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!
  display:block!important;width:100%!important;padding:15px 12px!important;color:#8495a0!important;
  font-size:10px!important;line-height:1.5!important;text-align:center!important;writing-mode:horizontal-tb!important;
 }
+
+
+/* Fuerza etiquetas de pruebas en una sola línea de escritura horizontal, incluso con estilos globales heredados. */
+#view-journey #journeyTestPicker #journeyPatientTestChoices,
+#view-journey #journeyTestPicker #journeyPatientTestChoices *{
+ writing-mode:horizontal-tb!important;
+ text-orientation:mixed!important;
+ direction:ltr!important;
+}
+#view-journey #journeyTestPicker #journeyPatientTestChoices label.test-choice{
+ display:grid!important;
+ grid-template-columns:18px 38px minmax(0,1fr)!important;
+ grid-auto-flow:row!important;
+ align-items:center!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+}
+#view-journey #journeyTestPicker #journeyPatientTestChoices label.test-choice>span.test-choice-copy{
+ display:block!important;
+ grid-column:3!important;
+ grid-row:1!important;
+ align-self:center!important;
+ justify-self:stretch!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ height:auto!important;
+ max-height:none!important;
+ overflow:visible!important;
+ white-space:normal!important;
+ word-break:normal!important;
+ overflow-wrap:anywhere!important;
+ transform:none!important;
+}
+#view-journey #journeyTestPicker #journeyPatientTestChoices .test-choice-copy .choice-name,
+#view-journey #journeyTestPicker #journeyPatientTestChoices .test-choice-copy small{
+ display:block!important;
+ width:100%!important;
+ min-width:0!important;
+ max-width:100%!important;
+ height:auto!important;
+ min-height:0!important;
+ max-height:none!important;
+ text-align:left!important;
+ white-space:normal!important;
+ word-break:normal!important;
+ overflow-wrap:anywhere!important;
+ line-height:1.4!important;
+ letter-spacing:normal!important;
+ transform:none!important;
+}
+#view-journey #journeyTestPicker #journeyPatientTestChoices label.test-choice>span.choice-selected{
+ display:none!important;
+}
