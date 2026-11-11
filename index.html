@@ -631,6 +631,38 @@ body.module-menu-open{overflow:hidden}
 </style>
 <style id="fleboreport-stable-startup">body:not(.flebo-authenticated) .app-shell,body.flebo-authenticated:not(.flebo-cloud-ready) .app-shell{visibility:hidden!important}body.flebo-authenticated.flebo-cloud-ready .app-shell{visibility:visible!important}</style>
 <link rel="stylesheet" href="./fleboreport-v2.css?v=20261111-redesign6">
+
+<style id="fr-dashboard-header-fix">
+/* Cabecera limpia: marca visible, sin solapamientos ni estado técnico de nube. */
+.topbar{
+ height:58px!important;min-height:58px!important;padding:0 18px!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;overflow:visible!important
+}
+.topbar .top-left{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:auto!important;min-width:0!important;flex:1 1 auto!important
+}
+.topbar .topbar-title{
+ display:block!important;position:static!important;left:auto!important;top:auto!important;
+ transform:none!important;max-width:100%!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;white-space:nowrap!important;
+ color:#23465d!important;font-size:13px!important;font-weight:850!important;
+ letter-spacing:-.2px!important;line-height:1.2!important
+}
+.topbar .top-actions{
+ display:flex!important;position:static!important;inset:auto!important;
+ transform:none!important;flex:0 0 auto!important;min-width:0!important;
+ max-width:none!important;margin-left:auto!important;gap:8px!important
+}
+#fleboSyncStatus,.topbar .local-status{display:none!important}
+#dashSystemFooter{display:none!important}
+@media(max-width:760px){
+ .topbar{height:56px!important;min-height:56px!important;padding:0 12px!important}
+ .topbar .topbar-title{font-size:12px!important;max-width:calc(100vw - 92px)!important}
+ .topbar .top-actions{display:flex!important;max-width:none!important}
+}
+</style>
 </head>
 <body>
 <aside class="sidebar no-print" id="sidebar" role="region" aria-label="Menú principal de navegación" aria-hidden="true">
@@ -685,7 +717,7 @@ body.module-menu-open{overflow:hidden}
   <div class="drawer-footer"><span class="drawer-footer-dot"></span>Acceso a los módulos de FleboReport</div>
 </aside><button type="button" class="module-fab no-print" id="moduleFab" onclick="toggleDrawer()" aria-label="Abrir menú de módulos" aria-controls="sidebar" aria-expanded="false"><span class="fab-grid-icon" aria-hidden="true">▦</span><span class="module-fab-label">Módulos</span></button><button type="button" class="home-fab no-print" id="homeFab" onclick="navigate('home')" aria-label="Volver a Inicio" title="Inicio" hidden><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 10.8 12 4l9 6.8v8.7a1.5 1.5 0 0 1-1.5 1.5h-5.3v-6.2H9.8V21H4.5A1.5 1.5 0 0 1 3 19.5z" fill="currentColor"/><path d="M1.8 11.4 12 3.6l10.2 7.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Inicio</span></button>
 <div class="app-shell"><div class="main">
-<header class="topbar no-print"><div class="top-left"><span class="topbar-title">💧 FleboReport · Centro de operaciones</span></div><div class="top-actions"><span class="local-status" id="fleboSyncStatus" aria-live="polite"><i class="status-dot"></i>Conectando con la nube…</span></div></header>
+<header class="topbar no-print"><div class="top-left"><span class="topbar-title">FleboReport</span></div><div class="top-actions"><span class="local-status" id="fleboSyncStatus" aria-live="polite"><i class="status-dot"></i>Conectando con la nube…</span></div></header>
 <main class="content">
 <section class="view active" id="view-home">
 <header class="op-hero fr2-home-hero">
