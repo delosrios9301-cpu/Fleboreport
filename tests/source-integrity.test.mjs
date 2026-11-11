@@ -39,7 +39,7 @@ const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.me
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
-  assert.match(html, /fleboreport-v2\.css\?v=20261111-redesign5/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-redesign6/);
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
@@ -618,7 +618,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v254'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v255'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -896,7 +896,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v254/);
+  assert.match(serviceWorker, /fleboreport-shell-v255/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1115,7 +1115,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v254/);
+  assert.match(serviceWorker, /fleboreport-shell-v255/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
