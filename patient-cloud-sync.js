@@ -45,7 +45,8 @@ function mergePatientDetails(local,remote){
   return Array.from(map.values());
  };
  const oldTime=Date.parse(local.updatedAt||local.createdAt||0)||0,newTime=Date.parse(remote.updatedAt||remote.createdAt||0)||0;
- const winner=newTime>oldTime?remote:local,other=winner===remote?local:remote,merged={...other,...winner,id:local.id||winner.id,cloudPatientId:remote.cloudPatientId||local.cloudPatientId};
+ const hasLocalClinicalData=['attentions','generalNotes','emergency','photo','company','companyId','journeyId','testIds','testStatuses','notes','module','journeyHistory'].some(key=>local[key]!=null);
+ const winner=!remote.cloudDataPresent&&hasLocalClinicalData?local:(newTime>oldTime?remote:local),other=winner===remote?local:remote,merged={...other,...winner,id:local.id||winner.id,cloudPatientId:remote.cloudPatientId||local.cloudPatientId};
  ['attentions','journeyHistory'].forEach(key=>{merged[key]=mergeRows(local[key],remote[key],key)});
  if(Array.isArray(local.testIds)||Array.isArray(remote.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(local.testIds)?local.testIds:[]),...(Array.isArray(remote.testIds)?remote.testIds:[])]));
  if(local.testStatuses||remote.testStatuses)merged.testStatuses={...(other.testStatuses||{}),...(winner.testStatuses||{})};
