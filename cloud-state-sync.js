@@ -368,7 +368,7 @@ function schedulePoll(delay){
 const rawConnect=connect,rawReceiveRemote=receiveRemote,rawSyncLocal=syncLocal;
 connect=()=>engine.measure('sync.connect',rawConnect);
 receiveRemote=()=>engine.measure('sync.refresh',rawReceiveRemote);
-syncLocal=()=>engine.measure('sync.save',rawSyncLocal);
+syncLocal=(options)=>engine.measure('sync.save',()=>rawSyncLocal(options));
 schedulePoll();
 window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return engine.diagnostics()}};
 window.FleboCloudAudit={record:recordAppActivity,importLegacy:persistLegacyAuditEvents,get ready(){return !!(ready&&client&&workspaceId&&userId)},get workspaceId(){return workspaceId}};
