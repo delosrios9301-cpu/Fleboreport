@@ -416,3 +416,70 @@ body.fr2-app-authorized .topbar #frNotifBell svg{width:18px!important;height:18p
  #view-home>.fr2-home-hero .fr2-home-copy h1{font-size:26px!important}
  #view-home>.fr2-home-hero .fr2-home-date{display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;grid-template-rows:auto auto!important;align-items:center!important;column-gap:12px!important;width:100%!important;flex:initial!important;padding:12px 14px!important;border-radius:14px!important}
 }
+
+
+/* Domicilios 2.0 — agenda y ficha visual, sin alterar sus transiciones */
+body.fr2-app-authorized #view-domicilios .page-heading{margin-bottom:18px!important}
+body.fr2-app-authorized #view-domicilios .page-heading h1{font-size:clamp(24px,2.4vw,31px)!important}
+body.fr2-app-authorized #hvWorkspace{display:grid!important;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;gap:14px!important;align-items:start!important}
+body.fr2-app-authorized #hvWorkspace>.hv-notice{padding:12px 15px!important;border:1px solid #d9eae7!important;border-radius:12px!important;background:#f1faf8!important;color:#3d716b!important;font-size:10px!important}
+body.fr2-app-authorized #hvWorkspace>.hv-module-tabs{display:flex!important;flex-wrap:wrap!important;gap:6px!important;padding:5px!important;border:1px solid #e1eaf0!important;border-radius:14px!important;background:#f4f8fa!important}
+body.fr2-app-authorized #hvWorkspace>.hv-module-tabs .hv-module-tab{min-height:40px!important;padding:8px 12px!important;border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;color:#526f83!important;font-size:10px!important;font-weight:850!important}
+body.fr2-app-authorized #hvWorkspace>.hv-module-tabs .hv-module-tab.active{border-color:#cbe4df!important;background:#fff!important;color:#10776f!important;box-shadow:0 2px 7px #193c500c!important}
+body.fr2-app-authorized #hvWorkspace>#hvKpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin:0!important}
+body.fr2-app-authorized #hvWorkspace .hv-kpi{min-width:0!important;padding:13px!important;border:1px solid #e2ebf0!important;border-radius:14px!important;background:#fff!important;box-shadow:0 5px 17px #183d5208!important}
+body.fr2-app-authorized #hvWorkspace .hv-kpi strong{font-size:21px!important;color:#163c53!important}
+body.fr2-app-authorized #hvWorkspace .hv-kpi small{font-size:9px!important;color:#8093a0!important}
+body.fr2-app-authorized #hvWorkspace>#hvCreatePanel,body.fr2-app-authorized #hvWorkspace>#hvAgendaPanel,body.fr2-app-authorized #hvWorkspace>.hv-history-panel,body.fr2-app-authorized #hvWorkspace>.hv-detail-panel,body.fr2-app-authorized #hvWorkspace>.hv-calendar-panel{border:1px solid #e1eaf0!important;border-radius:17px!important;background:#fff!important;box-shadow:0 7px 24px #173e5509!important}
+body.fr2-app-authorized #hvWorkspace>#hvCreatePanel,body.fr2-app-authorized #hvWorkspace>#hvAgendaPanel{padding:17px!important}
+body.fr2-app-authorized #hvWorkspace #hvCreatePanel h2,body.fr2-app-authorized #hvWorkspace #hvAgendaPanel h2,body.fr2-app-authorized #hvWorkspace .hv-section-heading h2{font-size:13px!important;font-weight:850!important;color:#18394f!important}
+body.fr2-app-authorized #hvWorkspace .hv-visit{display:flex!important;align-items:center!important;gap:11px!important;padding:12px!important;border:1px solid #e4edf1!important;border-radius:13px!important;background:#fff!important;box-shadow:0 3px 10px #153e5505!important}
+body.fr2-app-authorized #hvWorkspace .hv-visit:hover{border-color:#c5dedb!important;background:#fbfefd!important}
+body.fr2-app-authorized #hvWorkspace .hv-visit strong{color:#1f4057!important;font-size:11px!important}
+body.fr2-app-authorized #hvWorkspace .hv-visit small{color:#7b8f9d!important;font-size:9px!important}
+body.fr2-app-authorized #hvWorkspace .hv-status{border:1px solid #e0e9ee!important;border-radius:99px!important;padding:5px 9px!important;font-size:8px!important;font-weight:850!important}
+body.fr2-app-authorized #hvWorkspace .hv-calendar-panel{padding:17px!important;margin:0!important}
+body.fr2-app-authorized #hvWorkspace .hv-cal-head h2{color:#173b54!important;font-size:14px!important;font-weight:850!important}
+body.fr2-app-authorized #hvWorkspace .hv-cal-day{min-height:64px!important;border-radius:10px!important;border-color:#e3ebef!important}
+body.fr2-app-authorized #hvWorkspace .hv-cal-day.selected{border:2px solid #1aa498!important;background:#eefaf7!important}
+body.fr2-app-authorized #hvWorkspace .hv-history-panel{padding:18px!important}
+body.fr2-app-authorized #hvWorkspace .hv-detail-panel{padding:16px!important}
+body.fr2-app-authorized #hvWorkspace .hv-detail-panel .hv-info>div{padding:10px!important;border:1px solid #e8eef2!important;border-radius:11px!important;background:#f8fafb!important}
+body.fr2-app-authorized #hvWorkspace .hv-detail-panel .hv-info small{color:#82939e!important;font-size:8px!important}
+body.fr2-app-authorized #hvWorkspace .hv-detail-panel .hv-info b{color:#294a60!important;font-size:10px!important}
+body.fr2-app-authorized #hvWorkspace .hv-help,body.fr2-app-authorized #hvWorkspace .hv-professional-hint{color:#7d909e!important;font-size:9px!important;line-height:1.5!important}
+@media(max-width:900px){
+ body.fr2-app-authorized #hvWorkspace{grid-template-columns:minmax(0,1fr)!important}
+ body.fr2-app-authorized #hvWorkspace>#hvKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.fr2-app-authorized #hvWorkspace>.hv-detail-panel{position:static!important;max-height:none!important}
+}
+@media(max-width:600px){
+ body.fr2-app-authorized #hvWorkspace{gap:10px!important}
+ body.fr2-app-authorized #hvWorkspace>.hv-module-tabs{overflow-x:auto!important;flex-wrap:nowrap!important}
+ body.fr2-app-authorized #hvWorkspace>.hv-module-tabs .hv-module-tab{flex:none!important;white-space:nowrap!important}
+ body.fr2-app-authorized #hvWorkspace>#hvCreatePanel,body.fr2-app-authorized #hvWorkspace>#hvAgendaPanel,body.fr2-app-authorized #hvWorkspace>.hv-history-panel,body.fr2-app-authorized #hvWorkspace>.hv-detail-panel,body.fr2-app-authorized #hvWorkspace>.hv-calendar-panel{padding:12px!important}
+ body.fr2-app-authorized #hvWorkspace .hv-visit{align-items:flex-start!important;flex-direction:column!important}
+}
+
+/* Estudios clínicos y bandeja de procesamiento: capa visual compartida */
+body.fr2-app-authorized #view-clinical-studies>.page-heading,body.fr2-app-authorized #view-clinical-processing>.page-heading{margin-bottom:17px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpis,body.fr2-app-authorized #view-clinical-processing .clinical-kpis{gap:11px!important;margin:0 0 16px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi,body.fr2-app-authorized #view-clinical-processing .clinical-kpi{display:flex!important;flex-direction:column!important;justify-content:center!important;min-height:90px!important;padding:15px 16px!important;border:1px solid #e1eaf0!important;border-radius:15px!important;background:linear-gradient(145deg,#fff,#f7fafb)!important;box-shadow:0 5px 18px #173d5008!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi small,body.fr2-app-authorized #view-clinical-processing .clinical-kpi small{color:#73899a!important;font-size:9px!important;font-weight:800!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{margin-top:8px!important;color:#173a53!important;font-size:25px!important;font-weight:900!important;letter-spacing:-.6px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout,body.fr2-app-authorized #view-clinical-processing .clinical-layout{gap:13px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout>.panel,body.fr2-app-authorized #view-clinical-processing .clinical-layout>.panel{border:1px solid #e1eaf0!important;border-radius:17px!important;background:#fff!important;box-shadow:0 7px 24px #173e5508!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-row,body.fr2-app-authorized #view-clinical-processing .clinical-row{padding:13px!important;border:1px solid #e5edf1!important;border-radius:12px!important;background:#f9fbfc!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-row strong,body.fr2-app-authorized #view-clinical-processing .clinical-row strong{color:#23445a!important;font-size:11px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-table,body.fr2-app-authorized #view-clinical-processing .clinical-table{border-collapse:separate!important;border-spacing:0!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-table th,body.fr2-app-authorized #view-clinical-processing .clinical-table th{background:#f2f7f9!important;color:#627d8c!important;font-size:8px!important;letter-spacing:.55px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-table td,body.fr2-app-authorized #view-clinical-processing .clinical-table td{font-size:9px!important;color:#39596e!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-filter,body.fr2-app-authorized #view-clinical-processing .clinical-filter{gap:10px!important}
+body.fr2-app-authorized #view-clinical-studies .clinical-status,body.fr2-app-authorized #view-clinical-processing .clinical-status{border-radius:99px!important;font-size:8px!important;font-weight:850!important}
+body.fr2-app-authorized #view-settings .clinical-config-tabs button{border:1px solid #e2eaf0!important;border-radius:10px!important;background:#f6f9fa!important;color:#587487!important;font-size:10px!important}
+body.fr2-app-authorized #view-settings .clinical-config-tabs button.active{border-color:#bfe2dc!important;background:#eaf8f5!important;color:#0c7f78!important}
+@media(max-width:680px){
+ body.fr2-app-authorized #view-clinical-studies .clinical-kpis,body.fr2-app-authorized #view-clinical-processing .clinical-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ body.fr2-app-authorized #view-clinical-studies .clinical-kpi,body.fr2-app-authorized #view-clinical-processing .clinical-kpi{min-height:74px!important;padding:10px!important}
+ body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{font-size:20px!important}
+}
