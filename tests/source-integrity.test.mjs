@@ -1163,6 +1163,9 @@ test('el guardado de un paciente conserva el historial de jornadas previo y lo c
   assert.match(patientCloudSync, /const state=app\(\),docKey=norm\(docOf\(p\)\),historyMap=new Map\(\)/);
   assert.match(patientCloudSync, /const journeyHistory=Array\.from\(historyMap\.values\(\)\)/);
   assert.match(patientCloudSync, /if\(journeyHistory\.length\)data\.journeyHistory=journeyHistory/);
+  assert.match(patientCloudSync, /function mergePatientDetails\(/);
+  assert.match(patientCloudSync, /merged\[key\]=mergeRows\(local\[key\],remote\[key\],key\)/);
+  assert.match(patientCloudSync, /merged\.testIds=Array\.from\(new Set/);
 });
 
 
