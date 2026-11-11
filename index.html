@@ -1141,14 +1141,19 @@ function patientsForJourney(){
   var p=patients.find(function(x){return x.id===e.patientRecordId})||patients.find(function(x){return x.id===e.patientId})||{};
   return Object.assign({},p,{journeyId:e.journeyId,journeyDate:e.journeyDate,testIds:Array.isArray(e.testIds)?e.testIds:[],testStatuses:e.testStatuses||{},participantId:e.id||('je-history-'+String(e.journeyId)+'-'+String(p.id||e.patientId||'')),patientId:p.id||e.patientId||e.patientRecordId||''});
  });
- joined.sort(function(a,b){
+ var seen=new Set(joined.map(function(p){return String(p.patientId)}));
+ var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
+ var allPatients=joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
+ allPatients.sort(function(a,b){
+  var aIds=Array.isArray(a.testIds)?a.testIds:[],bIds=Array.isArray(b.testIds)?b.testIds:[];
+  var aPending=aIds.some(function(id){return !a.testStatuses||a.testStatuses[id]!=='tomada'});
+  var bPending=bIds.some(function(id){return !b.testStatuses||b.testStatuses[id]!=='tomada'});
+  if(aPending!==bPending)return aPending?-1:1;
   var aDate=Date.parse(a.lastAddedAt||a.createdAt||a.updatedAt||'')||0;
   var bDate=Date.parse(b.lastAddedAt||b.createdAt||b.updatedAt||'')||0;
   return bDate-aDate;
  });
- var seen=new Set(joined.map(function(p){return String(p.patientId)}));
- var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
- return joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
+ return allPatients;
 }
 function updateJourneySummary(){
  const patients=patientsForJourney();
