@@ -212,6 +212,11 @@ test('la sincronización general comparte el estado por espacio y conserva permi
   assert.match(cloudSync, /if\(dirtyAgain\|\|pendingLocalChanges\)/);
   assert.match(cloudSync, /Guardado confirmado en la nube/);
   assert.match(cloudSync, /flebo:cloud-save-failed/);
+  assert.match(cloudSync, /function patientDocumentKey\(/);
+  assert.match(cloudSync, /function dedupePatients\(/);
+  assert.match(cloudSync, /function normalizePatientState\(/);
+  assert.match(cloudSync, /mergePatientRecords\(old,patient\)/);
+  assert.match(cloudSync, /patientAliases/);
   assert.match(cloudSyncMigration, /supabase_realtime/i);
 });
 
