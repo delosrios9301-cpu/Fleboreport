@@ -293,9 +293,20 @@ async function receiveRemote(){
 }
 async function syncLocal(options){
  const forceVerify=!!(options&&options.verify);
- if(!ready){pendingLocalChanges=true;return false}
+ if(!ready){
+  pendingLocalChanges=true;
+  if(window.FleboAuth&&window.FleboAuth.user)await connect();
+  if(!ready)return false;
+ }
  if(!writable||!client||!workspaceId)return false;
- if(busy){dirtyAgain=true;pendingLocalChanges=true;return false}
+ // No descartar una verificación explícita si coincide con un guardado automático en curso.
+ // Esperar a que termine la operación activa y ejecutar después la verificación solicitada.
+ if(busy){
+  dirtyAgain=true;pendingLocalChanges=true;
+  for(let attempt=0;attempt<60&&busy;attempt++)await new Promise(resolve=>setTimeout(resolve,100));
+  if(busy)return false;
+  return syncLocal(options);
+ }
  pendingLocalChanges=false;
  busy=true;
  try{
@@ -331,6 +342,12 @@ async function syncLocal(options){
     if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
     const h=await hashState(merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);applyCloudState(merged);
    }else{revision=result.revision;saveMeta(localHash,revision,remoteMeta.reset_epoch||null)}
+  }
+  if(forceVerify){
+   const verifiedMeta=await fetchRemoteMeta();
+   if(!verifiedMeta||Number(verifiedMeta.revision)!==Number(revision)){
+    throw new Error('La escritura terminó, pero la revisión más reciente no pudo verificarse en la nube.');
+   }
   }
   saveRetryCount=0;pendingLocalChanges=false;
   status('Guardado confirmado en la nube · versión '+revision);
