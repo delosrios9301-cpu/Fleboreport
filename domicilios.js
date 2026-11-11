@@ -193,25 +193,44 @@ async function loadServiceCatalog(){
    const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name&&x.active!==false);
    const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
-    return row.catalog_source_id===sourceId||(code&&normalize(row.code)===code)||(!code&&normalize(row.name)===name);
+    if(row.catalog_source_id)return String(row.catalog_source_id)===sourceId;
+    return code?normalize(row.code)===code&&normalize(row.name)===name:normalize(row.name)===name;
    };
    for(const item of masterCatalog){
-    if(existingRows.some(x=>matchesMaster(x,item)))continue;
-    const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,catalog_source_id:String(item.id),code:item.code||item.codigo||null,name:String(item.name),category:item.category||null,price:Number(item.price)||0,description:item.description||item.desc||null,fields:serviceFields(item),active:true};
+    const matched=existingRows.find(x=>matchesMaster(x,item)),fields=serviceFields(item);
+    const payload={
+     catalog_source_id:String(item.id),
+     code:item.code||item.codigo||(matched&&matched.code)||null,
+     name:String(item.name),
+     category:item.category||(matched&&matched.category)||null,
+     description:item.description||item.desc||(matched&&matched.description)||null,
+     fields,
+     active:item.active!==false
+    };
+    if(matched){
+     const changed=String(matched.name||'')!==payload.name
+      ||String(matched.catalog_source_id||'')!==payload.catalog_source_id
+      ||String(matched.code||'')!==String(payload.code||'')
+      ||String(matched.category||'')!==String(payload.category||'')
+      ||String(matched.description||'')!==String(payload.description||'')
+      ||matched.active!==payload.active
+      ||JSON.stringify(matched.fields||{})!==JSON.stringify(fields||{});
+     if(changed){
+      const updated=await cloud.client.from('services').update(payload).eq('workspace_id',cloud.workspaceId).eq('id',matched.id).select(selectColumns).maybeSingle();
+      if(updated.error)throw updated.error;
+      if(updated.data){const at=existingRows.findIndex(x=>x.id===matched.id);if(at>=0)existingRows[at]=updated.data}
+     }
+     continue;
+    }
+    // No crear servicios desde elementos archivados.
+    if(!payload.active)continue;
+    const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,...payload,price:Number(item.price)||0};
     const saved=await cloud.client.from('services').insert(row).select(selectColumns).maybeSingle();
     if(saved.error){
      if(saved.error.code==='23505'){existingRows=await readExisting();continue}
      throw saved.error;
     }
     if(saved.data)existingRows.push(saved.data);
-   }
-   // Si el catálogo local todavía no terminó de hidratarse, no interpretar la lista vacía como una orden de borrar/desactivar el catálogo central.
-   if(masterCatalog.length){
-    const obsolete=existingRows.filter(row=>row.active!==false&&!masterCatalog.some(item=>matchesMaster(row,item)));
-    for(const row of obsolete){
-     const disabled=await cloud.client.from('services').update({active:false}).eq('workspace_id',cloud.workspaceId).eq('id',row.id);
-     if(disabled.error)throw disabled.error;
-    }
    }
   }
   const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);
