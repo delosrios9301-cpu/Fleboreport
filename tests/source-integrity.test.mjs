@@ -7,6 +7,7 @@ const migration = await readFile(new URL('../supabase/migrations/20261101195511_
 const domicilios = await readFile(new URL('../domicilios.js', import.meta.url), 'utf8');
 const notificationSettings = await readFile(new URL('../notification-settings.js', import.meta.url), 'utf8');
 const serviceWorker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
+const journeyStyles = await readFile(new URL('../fleboreport-v2.css', import.meta.url), 'utf8');
 const domiciliosNotificationsFunction = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url), 'utf8');
 const cloudSync = await readFile(new URL('../cloud-state-sync.js', import.meta.url), 'utf8');
 const fleboEngine = await readFile(new URL('../flebo-engine.js', import.meta.url), 'utf8');
@@ -618,7 +619,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v262'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v263'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -896,7 +897,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v262/);
+  assert.match(serviceWorker, /fleboreport-shell-v263/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1115,7 +1116,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v262/);
+  assert.match(serviceWorker, /fleboreport-shell-v263/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1164,7 +1165,7 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
   assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v262/);
+  assert.match(serviceWorker, /fleboreport-shell-v263/);
 });
 
 
@@ -1180,5 +1181,23 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v262/);
+  assert.match(serviceWorker, /fleboreport-shell-v263/);
+});
+
+
+test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestras y acceso al reporte', () => {
+  assert.match(html, /id="journeyKpiPatients"/);
+  assert.match(html, /id="journeyKpiTests"/);
+  assert.match(html, /id="journeyKpiCompleted"/);
+  assert.match(html, /id="journeySelectedTestChips"/);
+  assert.match(html, /id="journeyPatients"/);
+  assert.match(html, /id="journeyTests"/);
+  assert.match(html, /onclick="navigate\('reports'\)">Generar reporte/);
+  assert.match(html, /function updateJourneySummary\(\)/);
+  assert.match(html, /function renderJourneyPatients\(\)/);
+  assert.match(html, /data-patient-status=/);
+  assert.match(journeyStyles, /#view-journey \.journey-layout/);
+  assert.match(journeyStyles, /#view-journey \.journey-patient-progress-track/);
+  assert.match(journeyStyles, /@media\(max-width:980px\)/);
+  assert.match(serviceWorker, /fleboreport-shell-v263/);
 });
