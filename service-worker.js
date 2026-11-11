@@ -1,4 +1,4 @@
-const CACHE_NAME='fleboreport-shell-v267';
+const CACHE_NAME='fleboreport-shell-v268';
 const APP_SHELL=['./','./index.html','./fleboreport-v2.css','./fleboreport-v2-shell.js','./domicilios.js','./supabase-auth.js','./flebo-engine.js','./cloud-state-sync.js','./patient-cloud-sync.js','./clinical-cloud-sync.js','./clinical-processing-simple.js','./clinical-catalog-persistence.js','./notifications-center.js','./configuracion.js','./notification-settings.js','./audit-history.js','./app-activity-cloud.js','./manifest.webmanifest','./icons/fleboreport.svg','./icons/icon-192.png','./icons/icon-512.png'];
 const PUSH_DIAG_DB='fleboreport-push-diagnostics',PUSH_DIAG_STORE='events';
 function openDiagDB(){return new Promise((resolve,reject)=>{const request=indexedDB.open(PUSH_DIAG_DB,1);request.onupgradeneeded=()=>{const db=request.result;if(!db.objectStoreNames.contains(PUSH_DIAG_STORE))db.createObjectStore(PUSH_DIAG_STORE,{keyPath:'id',autoIncrement:true})};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
