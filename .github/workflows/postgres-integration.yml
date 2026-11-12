@@ -48,3 +48,11 @@ jobs:
         env:
           PGPASSWORD: test-only
         run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/technician-scope.postgres.sql
+      - name: Test atomic partial workspace updates and concurrent accounts
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/shared-state-atomic-patch.postgres.sql
+      - name: Test incremental section reads and private viewer projection
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/shared-state-incremental-delta.postgres.sql

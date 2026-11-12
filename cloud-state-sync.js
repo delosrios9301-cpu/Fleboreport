@@ -9,6 +9,8 @@ const CLINICAL_DB_RECORD_KEYS=['clinicalSamples','clinicalSampleHistory','clinic
 // El cursor clínico pertenece a la caché local de cada dispositivo y nunca se comparte entre sesiones.
 const CLINICAL_DB_SYNC_KEYS=['_clinicalCloudSyncCursor','_clinicalCloudSyncWorkspace','_clinicalCloudSyncUser','_clinicalCloudSyncRole'];
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,stateSyncAllowed=false,busy=false,dirtyAgain=false,pendingLocalChanges=false,saveRetryCount=0,timer=null,pollTimer=null,started=false;
+let baselineState=null,baselineRevision=null,baselineWorkspaceId=null;
+let partialWrites=0,fullWrites=0,unchangedWrites=0;
 const engine=window.FleboEngine;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -254,8 +256,26 @@ async function rpcRow(name,args){
 async function fetchRemoteMeta(){
  return await engine.measure('cloud.meta',()=>rpcRow('get_workspace_shared_app_state_meta',{p_workspace_id:workspaceId}));
 }
+function rememberRemoteBaseline(state,rev){
+ if(!state||typeof state!=='object')return;
+ baselineState=stripLegacyAudit(state);
+ baselineRevision=Number(rev);
+ baselineWorkspaceId=workspaceId;
+}
+// Se enviarán solo las claves que realmente cambiaron. Las ausentes se
+// conservan en el servidor, y el CAS global sigue bloqueando colisiones.
+function changedStateFields(payload,baseline){
+ return Object.fromEntries(Object.keys(payload||{}).filter(key=>JSON.stringify(payload[key])!==JSON.stringify(baseline&&baseline[key])).map(key=>[key,payload[key]]));
+}
 async function fetchRemote(){
- return await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
+ const remote=await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
+ if(remote&&remote.state)rememberRemoteBaseline(remote.state,remote.revision);
+ return remote;
+}
+async function fetchRemoteDelta(sinceRevision){
+ return await engine.measure('cloud.delta',()=>rpcRow('get_workspace_shared_app_state_delta',{
+  p_workspace_id:workspaceId,p_since_revision:sinceRevision
+ }));
 }
 async function writeRemote(state,expected){
  const payload=normalizePatientState(stripLegacyAudit(state));
@@ -266,10 +286,25 @@ async function writeRemote(state,expected){
  CLINICAL_DB_SYNC_KEYS.forEach(k=>{delete payload[k]});
  const raw=JSON.stringify(payload);
  if(raw.length>6500000)throw new Error('Los datos superan el tamaño seguro de sincronización. Se debe trasladar primero el contenido multimedia al almacenamiento seguro.');
- const r=await engine.measure('cloud.upload',()=>client.rpc('save_workspace_shared_app_state',{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected}));
+ const canPatch=baselineState&&baselineWorkspaceId===workspaceId&&Number(baselineRevision)===Number(expected);
+ const patch=canPatch?changedStateFields(payload,baselineState):null;
+ if(patch&&Object.keys(patch).length===0){
+  unchangedWrites++;
+  return {saved:true,revision:expected};
+ }
+ const partial=!!patch;
+ const procedure=partial?'save_workspace_shared_app_state_patch':'save_workspace_shared_app_state';
+ const args=partial
+  ?{p_workspace_id:workspaceId,p_patch:patch,p_expected_revision:expected}
+  :{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected};
+ const r=await engine.measure('cloud.upload',()=>client.rpc(procedure,args));
  if(r.error)throw r.error;
- const row=Array.isArray(r.data)?r.data[0]:r.data;
- return row||{saved:false,revision:expected};
+ const row=(Array.isArray(r.data)?r.data[0]:r.data)||{saved:false,revision:expected};
+ if(row.saved){
+  rememberRemoteBaseline(payload,row.revision);
+  if(partial)partialWrites++;else fullWrites++;
+ }
+ return row;
 }
 function applyCloudState(s,clearClinical){
  if(!window.FleboAppState||!window.FleboAppState.replace)throw new Error('La interfaz principal aún no está preparada para recibir datos.');
@@ -288,8 +323,8 @@ async function publishMerged(local,remote,expected){
  for(let attempt=0;attempt<3;attempt++){
   const result=await writeRemote(candidate,expected);
   if(result.saved){
-   const h=await hashState(candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
    applyCloudState(candidate);
+   const h=await hashState(app()||candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
    return true;
   }
   const latest=await fetchRemote();
@@ -306,6 +341,9 @@ async function connect(){
   client=await window.FleboAuth.init();
   const user=window.FleboAuth.user,membership=window.FleboAuth.membership;
   if(!user||!membership||membership.active!==true){ready=false;stateSyncAllowed=false;workspaceId=null;status('Inicia sesión para sincronizar los datos.');return}
+  if(user.id!==userId||membership.workspace_id!==workspaceId){
+   baselineState=null;baselineRevision=null;baselineWorkspaceId=null;
+  }
   userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);stateSyncAllowed=['admin','clinician','reception','viewer'].includes(role);
   // Los flebotomistas trabajan con módulos y tablas relacionales asignadas; no usan el estado JSON legado por usuario.
   // La interfaz debe quedar lista aunque no exista una fila workspace_app_state para esta cuenta.
@@ -340,18 +378,18 @@ async function connect(){
   if(remote){
    const sameSession=m.workspaceId===workspaceId&&m.userId===userId;
    if(sameSession&&m.hash===localHash){
-    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision,remote.reset_epoch||null)}
+    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision,remote.reset_epoch||null)}
     else{revision=remote.revision;lastHash=localHash}
    }else if(!sameSession){
     const backedUp=backupUnlinkedLocalState(local,workspaceId);
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
     status(backedUp?'Datos oficiales cargados desde la nube. El estado local previo quedó respaldado en este dispositivo.':'Datos oficiales cargados desde la nube.');
    }else if(!meaningful(local)){
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    }else if(writable){
     await publishMerged(local,remote,remote.revision);
    }else{
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    }
   }
   ready=true;announceReady();status('Sincronizado con la nube · versión '+revision);subscribe();
@@ -383,6 +421,35 @@ async function receiveRemote(){
    status('Restablecimiento recibido desde la nube · versión '+revision);return;
   }
   if(remoteMeta.revision<=revision)return;
+  // Solo aplicar una lectura incremental cuando el dispositivo no tiene
+  // cambios locales pendientes y conserva una base confirmada de esa revisión.
+  // Ante cualquier duda, usar la descarga completa anterior y el CAS.
+  const localBeforeDelta=app()||{};
+  const localHashBeforeDelta=await hashState(localBeforeDelta);
+  const canReadDelta=baselineState&&baselineWorkspaceId===workspaceId
+   &&Number(baselineRevision)===Number(revision)
+   &&m.workspaceId===workspaceId&&m.userId===userId
+   &&m.hash===localHashBeforeDelta
+   &&!pendingLocalChanges&&!dirtyAgain;
+  if(canReadDelta){
+   try{
+    const delta=await fetchRemoteDelta(revision);
+    if(delta&&!delta.full_required
+      &&Number(delta.revision)===Number(remoteMeta.revision)
+      &&String(delta.reset_epoch||'')===String(m.resetEpoch||'')){
+     const patched=Object.assign({},baselineState,delta.state||{});
+     (Array.isArray(delta.removed_keys)?delta.removed_keys:[]).forEach(key=>{delete patched[key]});
+     applyCloudState(patched);
+     const h=await hashState(app()||patched);
+     rememberRemoteBaseline(patched,delta.revision);
+     saveMeta(h,delta.revision,delta.reset_epoch||null);
+     status('Secciones actualizadas desde otro dispositivo · versión '+revision);
+     return;
+    }
+   }catch(deltaError){
+    console.warn('[FleboReport Sync] Delta no disponible; se usará lectura completa.',deltaError);
+   }
+  }
   let remote=await fetchRemote();if(!remote)return;
   let local=app()||{};
   await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
@@ -394,10 +461,10 @@ async function receiveRemote(){
   if(remote.revision<=revision)return;
   if(m.workspaceId!==workspaceId||m.userId!==userId){
    const backedUp=backupUnlinkedLocalState(local,workspaceId);
-   applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+   applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    status(backedUp?'Datos de la nube actualizados; el estado local anterior quedó respaldado.':'Datos de la nube actualizados.');
   }else if(!writable||m.hash===localHash){
-   applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+   applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    status('Actualizado desde otro dispositivo · versión '+revision);
   }else{
    await publishMerged(local,remote,remote.revision);
@@ -446,7 +513,7 @@ async function syncLocal(options){
    const merged=mergeState(remote.state,local);
    const result=await writeRemote(merged,remote.revision);
    if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
-   const h=await hashState(merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);applyCloudState(merged);
+   applyCloudState(merged);const h=await hashState(app()||merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);
   }else{
    const result=await writeRemote(local,revision);
    if(!result.saved){
@@ -455,7 +522,7 @@ async function syncLocal(options){
     if(latest.reset_epoch&&(latest.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,latest.reset_epoch);applyCloudState(latest.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,latest.revision,latest.reset_epoch);return;}
     const merged=mergeState(latest.state,local),retry=await writeRemote(merged,latest.revision);
     if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
-    const h=await hashState(merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);applyCloudState(merged);
+    applyCloudState(merged);const h=await hashState(app()||merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);
    }else{revision=result.revision;saveMeta(localHash,revision,remoteMeta.reset_epoch||null)}
   }
   if(forceVerify){
@@ -486,7 +553,7 @@ function schedule(){
  engine.schedule('cloud-save',syncLocal,700)
 }
 window.addEventListener('flebo:local-state-saved',schedule);
-window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
+window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;baselineState=null;baselineRevision=null;baselineWorkspaceId=null;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
 window.addEventListener('online',()=>{if(ready)syncLocal();schedulePoll(250)});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect();schedulePoll(500)}else if(pollTimer){clearTimeout(pollTimer);pollTimer=null}});
 function schedulePoll(delay){
@@ -502,7 +569,7 @@ connect=()=>engine.measure('sync.connect',rawConnect);
 receiveRemote=()=>engine.measure('sync.refresh',rawReceiveRemote);
 syncLocal=(options)=>engine.measure('sync.save',()=>rawSyncLocal(options));
 schedulePoll();
-window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return engine.diagnostics()}};
+window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return {...engine.diagnostics(),partialWrites,fullWrites,unchangedWrites}}};
 window.FleboCloudAudit={record:recordAppActivity,importLegacy:persistLegacyAuditEvents,get ready(){return !!(ready&&client&&workspaceId&&userId)},get workspaceId(){return workspaceId}};
 function boot(){if(started)return;started=true;status('Conectando con la nube…');if(window.FleboAuth&&window.FleboAuth.user)connect()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
