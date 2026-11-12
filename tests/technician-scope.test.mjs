@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20261112173000_technician_patient_clinical_read_scope.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112160713_technician_patient_clinical_read_scope.sql',import.meta.url),'utf8');
 test('patient access requires current accepted assignment for technician',()=>{
  assert.match(sql,/create or replace function private\.technician_has_accepted_patient/);
  assert.match(sql,/a\.assigned_user_id=\(select auth\.uid\(\)\) and a\.status='accepted'/);

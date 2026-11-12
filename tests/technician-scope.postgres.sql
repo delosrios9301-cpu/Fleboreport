@@ -23,7 +23,7 @@ create policy test_patients_workspace on public.patients for select to authentic
 create policy test_samples_workspace on public.clinical_samples for select to authenticated using (
  private.member_has_workspace_role(workspace_id,(select auth.uid()),array['admin','clinician','reception','technician']::text[])
 );
-\i supabase/migrations/20261112173000_technician_patient_clinical_read_scope.sql
+\i supabase/migrations/20261112160713_technician_patient_clinical_read_scope.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
 do $tech$

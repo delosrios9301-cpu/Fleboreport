@@ -8,7 +8,7 @@ as $allowed$
     where wm.workspace_id=p_workspace_id and wm.user_id=auth.uid() and wm.role='admin' and wm.active
  )) or (p_module_key='reports' and p_action_key='view');
 $allowed$;
-\i supabase/migrations/20261112172000_preserve_patient_identities_on_shared_sync.sql
+\i supabase/migrations/20261112160710_preserve_patient_identities_on_shared_sync.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false);
 do $guard$

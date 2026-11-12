@@ -13,7 +13,7 @@ $allowed$;
 update public.workspace_shared_app_state
 set state = state || '{"patients":[{"document":"synthetic-secret"}],"clinicalSamples":[{"id":"synthetic-secret"}],"reportHistory":[{"id":"safe-report"}],"reportHistoryLogos":{}}'::jsonb
 where workspace_id='10000000-0000-0000-0000-000000000001';
-\i supabase/migrations/20261112171000_viewer_state_projection.sql
+\i supabase/migrations/20261112160704_viewer_state_projection.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',false);
 do $viewer$

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20261112171000_viewer_state_projection.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112160704_viewer_state_projection.sql',import.meta.url),'utf8');
 const cloud=await readFile(new URL('../cloud-state-sync.js',import.meta.url),'utf8');
 test('viewer only receives authorized report history from shared state',()=>{
  assert.match(sql,/private\.member_has_workspace_role\(p_workspace_id,v_uid,array\['viewer'\]/);
