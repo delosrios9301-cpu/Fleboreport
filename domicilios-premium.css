@@ -1,0 +1,750 @@
+/* FleboReport Domicilios · Composición Premium C
+   Capa específica del módulo: no altera eventos, validaciones ni permisos. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios {
+  --hv-purple:#4826b5;--hv-ink:#261a53;--hv-muted:#6c7391;
+  --hv-border:#e3def5;--hv-aqua:#03b9c8;
+  --hv-shadow:0 8px 20px rgba(45,27,121,.08);
+  min-width:0!important;
+  color:var(--hv-ink)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero {
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:48px minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:13px!important;min-height:108px!important;
+  padding:17px 19px!important;margin-bottom:11px!important;
+  border:1px solid rgba(190,170,255,.25)!important;
+  border-radius:20px!important;
+  overflow:hidden!important;
+  background:linear-gradient(112deg,#21136e 0%,#4430aa 54%,#7136cb 100%)!important;
+  box-shadow:0 9px 22px rgba(39,24,121,.17)!important;
+  color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero::before {
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 78% 0%,rgba(183,118,255,.55),transparent 53%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero::after {
+  content:"";position:absolute;right:0;left:0;bottom:0;
+  height:22px;opacity:.72;pointer-events:none;z-index:0;
+  background:linear-gradient(90deg,#bba9ff 0%,#8d6df9 52%,#00cfdb 100%);
+  clip-path:polygon(0 85%,21% 48%,47% 80%,75% 8%,100% 52%,100% 100%,0 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero > * {
+  position:relative;z-index:1;min-width:0;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-emblem {
+  display:grid;place-items:center;
+  width:48px;height:48px;border:1px solid #ffffffa1;
+  border-radius:15px;
+  color:#5230c9;
+  background:linear-gradient(145deg,#fff 6%,#f2edff 70%,#c9faff);
+  box-shadow:0 4px 13px rgba(22,10,78,.2),inset 0 1px #fff;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-emblem svg{
+  width:31px;height:31px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero .eyebrow{
+  color:#d7c8ff!important;font-size:9px!important;letter-spacing:.95px!important;
+  line-height:1.2!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero h1{
+  color:#fff!important;margin:4px 0!important;
+  font-size:clamp(23px,2.7vw,31px)!important;
+  line-height:1.05!important;letter-spacing:-.9px!important;
+  text-shadow:0 2px 6px rgba(21,9,72,.15);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero p{
+  color:#eae5ff!important;font-size:11px!important;line-height:1.3!important;
+  margin:3px 0 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions{
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-end;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions .btn{
+  min-height:44px!important;padding:9px 12px!important;
+  border-radius:12px!important;white-space:normal!important;
+  font-size:11px!important;line-height:1.25!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions .btn.primary{
+  color:#4123a0!important;
+  background:linear-gradient(140deg,#fff,#f1eaff)!important;
+  border:1px solid #eee7ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions .hv-premium-export{
+  color:#fff!important;background:rgba(255,255,255,.11)!important;
+  border:1px solid rgba(255,255,255,.42)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions [hidden]{
+  display:none!important;
+}
+
+/* Un flujo de lectura nítido: título → pestañas → resumen → agenda. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  gap:9px!important;align-items:start!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > *{
+  grid-column:1/-1!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-module-tabs{
+  grid-row:auto!important;order:0!important;
+  display:flex!important;flex-wrap:nowrap!important;gap:6px!important;
+  margin:0!important;padding:5px!important;
+  overflow-x:auto!important;overscroll-behavior-x:contain;
+  scrollbar-width:none!important;
+  background:#ede9fb!important;border:1px solid #e0d9f5!important;
+  border-radius:15px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-module-tabs::-webkit-scrollbar{
+  display:none;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-module-tabs .hv-module-tab{
+  min-width:max-content!important;min-height:44px!important;
+  padding:9px 13px!important;white-space:nowrap!important;
+  border:1px solid transparent!important;
+  border-radius:11px!important;font-size:11px!important;font-weight:780!important;
+  color:#625a87!important;background:transparent!important;
+  box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-module-tabs .hv-module-tab.active{
+  color:#492abd!important;background:#fff!important;
+  border-color:#dcd2fa!important;
+  box-shadow:0 2px 8px rgba(61,38,139,.1)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-module-tabs .hv-history-count{
+  min-width:24px;height:24px;border:0;border-radius:8px;
+  color:#5a35bd;background:#eeeaff;font-size:10px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-intro {
+  order:1!important;display:flex;justify-content:space-between;
+  align-items:end;gap:10px;margin:4px 1px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-eyebrow{
+  display:block;font-size:9px;letter-spacing:1.2px;
+  font-weight:850;color:#7250ce;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-intro h2{
+  margin:4px 0 2px!important;font-size:19px!important;
+  letter-spacing:-.55px;font-weight:860;color:#221949!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-intro p{
+  margin:0;color:#7b7793;font-size:10.5px;line-height:1.3;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvKpis{
+  order:2!important;display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:8px!important;margin:0 0 3px!important;
+  padding:0!important;overflow:visible!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvKpis[hidden]{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi{
+  display:flex!important;flex-direction:column!important;justify-content:space-between!important;
+  position:relative;min-width:0!important;min-height:83px!important;
+  padding:11px 13px!important;overflow:hidden!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  border-radius:16px!important;color:#fff!important;
+  background:linear-gradient(130deg,#4b50df,#3f2ac6)!important;
+  box-shadow:0 4px 11px rgba(57,36,151,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(2){
+  background:linear-gradient(132deg,#15bbc8,#007f9d)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(3){
+  background:linear-gradient(132deg,#a653eb,#6a2bc8)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(4){
+  background:linear-gradient(132deg,#9656d9,#5b24b2)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi::after{
+  content:"";position:absolute;inset:auto 0 0;height:23px;
+  background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(86,242,246,.38));
+  clip-path:polygon(0 84%,28% 60%,56% 85%,84% 21%,100% 10%,100% 100%,0 100%);
+  pointer-events:none;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi-label{
+  font-size:10.5px;font-weight:650;color:#f1eeff;
+  line-height:1.2!important;white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi-bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:7px;position:relative;z-index:1;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi-bottom b{
+  font-size:27px!important;line-height:1!important;letter-spacing:-.8px;
+  color:#fff!important;font-weight:900;font-variant-numeric:tabular-nums;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi-symbol{
+  color:#f1f8ff;opacity:.9;font-size:22px;font-weight:750;
+}
+
+/* Agenda de visitas: barra de filtros, tarjetas originales reconstruidas. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvAgendaPanel{
+  order:3!important;display:block!important;grid-column:1/-1!important;
+  margin:0!important;padding:15px!important;
+  border:1px solid var(--hv-border)!important;
+  border-radius:18px!important;background:linear-gradient(180deg,#fff,#fcfbff)!important;
+  box-shadow:var(--hv-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvAgendaPanel[hidden]{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-panel-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:9px;
+  margin-bottom:10px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvAgendaPanel .hv-premium-panel-heading h2{
+  margin:0!important;color:#271d52!important;font-size:16px!important;
+  font-weight:840!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-agenda-count{
+  display:inline-flex;gap:5px;align-items:center;
+  font-size:10px;color:#613dc1;background:#f1edff;
+  border:1px solid #e7deff;border-radius:999px;
+  padding:7px 9px;white-space:nowrap;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters{
+  display:grid!important;grid-template-columns:minmax(0,1.6fr) minmax(130px,1fr) minmax(150px,1fr)!important;
+  align-items:end!important;gap:9px!important;
+  margin:0 0 13px!important;padding:10px!important;
+  background:linear-gradient(135deg,#f6f3ff,#eefaff)!important;
+  border:1px solid #e7e2f6!important;border-radius:13px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters .field{
+  min-width:0!important;grid-column:auto!important;gap:4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters .field label{
+  display:block;margin:0 0 4px;color:#6a608e;font-size:10px;font-weight:750;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters :is(input,select){
+  min-width:0!important;width:100%!important;max-width:100%!important;
+  min-height:44px!important;padding:9px 11px!important;
+  border-radius:10px!important;border:1px solid #e0daf2!important;
+  background:#fff!important;color:#2b244a!important;font-size:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows{
+  display:grid!important;grid-template-columns:repeat(auto-fill,minmax(min(100%,275px),1fr))!important;
+  align-content:start;gap:9px!important;
+  max-height:none!important;overflow:visible!important;
+  margin:0!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  align-content:start!important;align-items:start!important;gap:7px!important;
+  min-height:176px!important;max-height:none!important;
+  padding:12px!important;margin:0!important;text-align:left!important;
+  border:1px solid #e6e1f2!important;border-radius:16px!important;
+  background:linear-gradient(155deg,#fff 0%,#f8f6ff 100%)!important;
+  box-shadow:inset 0 1px #fff,0 4px 12px rgba(46,28,124,.075)!important;
+  color:#352856!important;white-space:normal!important;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit:nth-child(even){
+  background:linear-gradient(155deg,#fff,#effdff)!important;
+  border-color:#d2ebec!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit.selected{
+  border-color:#987fe9!important;box-shadow:0 0 0 2px #d8ceff,0 4px 15px #6551a820!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit:focus-visible{
+  outline:3px solid #23afca!important;outline-offset:2px;
+}
+@media(hover:hover){
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit:hover{
+    transform:translateY(-2px);border-color:#a88ced!important;
+    box-shadow:0 9px 21px rgba(68,41,157,.16)!important;
+  }
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-top{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-avatar{
+  display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;
+  border:1px solid #dcd2fa;border-radius:12px;
+  background:linear-gradient(145deg,#efe6ff,#dbf9ff);
+  color:#6340c6;font-weight:850;font-size:16px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-heading{
+  display:grid!important;gap:4px!important;flex:1;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-heading b{
+  font-size:13px!important;font-weight:830!important;line-height:1.25!important;
+  color:#2c2153!important;white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-heading small{
+  color:#7a7590!important;font-size:10px!important;line-height:1.25!important;
+  margin:0!important;white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-chevron{
+  align-self:center;display:grid;place-items:center;flex:0 0 23px;
+  font-size:26px;color:#7148db;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-meta{
+  display:flex;align-items:center;flex-wrap:wrap;gap:6px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-meta .hv-priority-label{
+  display:inline-flex!important;min-width:0;width:auto!important;
+  margin:0!important;padding:5px 8px!important;border-radius:999px!important;
+  font-size:10px!important;line-height:1.15!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-meta .hv-status{
+  display:inline-flex!important;min-width:0!important;
+  padding:5px 9px!important;min-height:25px!important;border-radius:999px!important;
+  font-size:10px!important;line-height:1.15!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-assignee,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-address,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-privacy{
+  display:block!important;min-width:0!important;
+  color:#666181!important;line-height:1.35!important;font-size:10.5px!important;
+  overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-privacy{
+  color:#7c5a25!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit-action{
+  display:flex;justify-content:flex-end;align-items:center;gap:5px;
+  min-height:23px;margin-top:auto;padding-top:6px;
+  border-top:1px solid #e9e5f7;color:#5130bb;
+  font-size:10.5px;font-weight:820;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-empty{
+  grid-column:1/-1!important;
+  padding:22px 14px!important;border:1px dashed #dcd3f5;
+  border-radius:14px!important;background:#fbfaff!important;
+  color:#706988!important;font-size:11px;
+}
+
+/* Crear domicilio: tres campos de trabajo verdaderamente agrupados. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvCreatePanel{
+  order:3!important;display:block!important;grid-column:1/-1!important;
+  margin:0!important;padding:15px!important;
+  background:#fff!important;border:1px solid var(--hv-border)!important;
+  border-radius:18px!important;box-shadow:var(--hv-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvCreatePanel[hidden]{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvCreatePanel > h2{
+  font-size:19px!important;font-weight:840;color:#2b2055!important;
+  margin:0 0 5px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-panel-subtitle{
+  color:#77728e!important;font-size:11px!important;
+  line-height:1.4!important;margin:0 0 13px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-create-groups{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  gap:12px!important;padding:0!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fieldset{
+  display:block!important;min-width:0!important;
+  margin:0!important;padding:13px 13px 14px!important;
+  border:1px solid #e6e1f7!important;
+  border-radius:15px!important;background:linear-gradient(155deg,#fff,#faf8ff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fieldset:nth-of-type(even){
+  background:linear-gradient(155deg,#fff,#f1fdff)!important;
+  border-color:#dbeff1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fieldset-legend{
+  padding:0 7px!important;color:#5733c1!important;
+  font-size:13px!important;line-height:1.25!important;font-weight:850!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fieldset-hint{
+  margin:0 0 11px!important;color:#7c7492!important;
+  font-size:10.5px!important;line-height:1.3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px 11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields > .field{
+  min-width:0!important;display:flex!important;flex-direction:column!important;
+  grid-column:auto!important;gap:4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields > .field.full{
+  grid-column:1/-1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields .field label{
+  color:#605877!important;font-size:10.5px!important;line-height:1.3!important;
+  margin:0!important;font-weight:730!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields :is(input:not([type="hidden"]),select,textarea){
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  min-height:44px!important;padding:9px 10px!important;
+  background:#fff!important;border:1px solid #ded9ef!important;
+  border-radius:10px!important;color:#2c254a!important;font-size:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields textarea{
+  min-height:76px!important;resize:vertical;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvCreatePanel .form-actions{
+  display:flex!important;flex-wrap:wrap;justify-content:flex-end!important;
+  gap:8px!important;margin-top:13px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvCreatePanel .form-actions button{
+  min-height:44px!important;padding:9px 14px!important;border-radius:11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-professional-results{
+  box-shadow:0 12px 24px rgba(40,23,113,.12)!important;border-radius:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-professional-option{
+  min-height:44px!important;
+}
+
+/* Calendario y eventos: una grilla respirable. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-calendar-panel,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvHistoryPanel{
+  order:3!important;display:block!important;
+  grid-column:1/-1!important;margin:0!important;
+  padding:14px!important;border:1px solid var(--hv-border)!important;
+  border-radius:18px!important;background:linear-gradient(160deg,#fff,#fbfaff)!important;
+  box-shadow:var(--hv-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-calendar-panel[hidden],
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvHistoryPanel[hidden]{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-head{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  gap:10px!important;margin:0 0 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-head h2,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-section-heading h2{
+  margin:0!important;font-size:16px!important;color:#2c2059!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-head p,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-section-heading p{
+  font-size:10.5px!important;color:#79748f!important;margin:5px 0 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-nav{
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:6px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-nav>b{
+  min-width:125px!important;color:#3d2b90!important;font-size:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-nav button{
+  min-width:39px!important;min-height:44px!important;
+  padding:8px 10px!important;border-radius:10px!important;
+  background:#f2edff!important;border:1px solid #e2d8fa!important;
+  color:#5431c3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-grid{
+  display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-weekday{
+  color:#79708d!important;font-size:10px!important;padding:5px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day{
+  display:flex!important;flex-direction:column!important;
+  min-height:63px!important;padding:7px 6px!important;gap:4px!important;
+  border:1px solid #e7e2f6!important;
+  background:#f8f6ff!important;border-radius:11px!important;color:#3a2b6f!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day.today{
+  border-color:#46d3d6!important;background:#e8fbff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day.selected{
+  border:2px solid #7045d6!important;background:#f0eaff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day small{
+  color:#008f9e!important;font-size:9px!important;
+  white-space:normal!important;line-height:1.15!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-agenda{
+  padding-top:12px!important;margin-top:13px!important;border-top:1px solid #eae5f7!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-event{
+  min-height:56px!important;padding:10px!important;margin:6px 0!important;
+  border:1px solid #e4def5!important;border-radius:12px!important;
+  background:linear-gradient(145deg,#fff,#f7f4ff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-event>span{
+  min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-event small{
+  white-space:normal!important;overflow-wrap:anywhere!important;
+  text-overflow:clip!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryPanel .hv-history-filters{
+  display:grid!important;grid-template-columns:minmax(0,2fr) minmax(150px,1fr)!important;gap:9px!important;
+  padding:9px!important;margin:10px 0!important;background:#f5f1ff!important;
+  border:1px solid #e8e2f7;border-radius:12px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryPanel .hv-history-filters :is(input,select){
+  min-height:44px!important;width:100%!important;min-width:0!important;
+}
+
+/* Ficha y seguimiento: encabezado + información + secciones separadas. */
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-backdrop{
+  background:rgba(23,15,66,.66)!important;backdrop-filter:blur(6px);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-backdrop .hv-detail-dialog{
+  width:min(875px,97vw)!important;max-height:min(92dvh,920px)!important;
+  padding:16px!important;border:1px solid #eee7ff!important;
+  border-radius:20px!important;background:linear-gradient(170deg,#fff,#faf9ff)!important;
+  box-shadow:0 24px 75px rgba(23,13,67,.34)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head{
+  display:flex!important;align-items:start!important;justify-content:space-between!important;
+  gap:12px!important;padding:14px 17px!important;margin:0 0 11px!important;
+  border-radius:15px!important;
+  color:#fff!important;background:linear-gradient(110deg,#392195,#6f36c9)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head .eyebrow{
+  color:#d8cfff!important;font-size:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head h2{
+  color:#fff!important;font-size:20px!important;line-height:1.2!important;
+  margin:4px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head small{
+  color:#eee9ff!important;font-size:10.5px!important;line-height:1.4!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head .hv-priority-label{
+  margin-top:7px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head .hv-status{
+  min-width:0!important;max-width:160px!important;white-space:normal!important;
+  background:#fff!important;color:#4f2db2!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;margin:0 0 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info>div{
+  min-width:0!important;min-height:58px!important;padding:9px 11px!important;
+  border:1px solid #ebe6f9!important;border-radius:12px!important;
+  background:#f4f0ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info>div.wide{
+  grid-column:1/-1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info small{
+  color:#726c91!important;font-size:10.5px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info b{
+  color:#2e235d!important;font-size:12px!important;line-height:1.45!important;
+  overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-premium-detail-section{
+  padding:13px!important;margin:10px 0!important;min-width:0!important;
+  border:1px solid #e5dff4!important;border-radius:14px!important;
+  background:linear-gradient(160deg,#fff,#faf9ff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-premium-detail-section:nth-of-type(even){
+  border-color:#d5ecf1!important;background:linear-gradient(160deg,#fff,#f4fcff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-premium-detail-section>h3{
+  font-size:14px!important;font-weight:820!important;
+  color:#4629ab!important;line-height:1.3!important;
+  margin:0 0 10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog :is(
+ .hv-test,.hv-doc-row,.hv-additional-row,.hv-review-test){
+  min-width:0!important;padding:10px!important;margin:6px 0!important;
+  border:1px solid #ebe5f7!important;border-radius:11px!important;
+  background:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin:12px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-actions button,
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-premium-detail-section button,
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-additional-panel button{
+  min-height:44px!important;border-radius:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog :is(.hv-more,.hv-doc-upload){
+  padding:10px!important;border-radius:12px!important;
+  background:#f2f0ff!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-additional-panel{
+  margin:12px 0 0;padding:13px!important;
+  border:1px solid #e7e0f6!important;border-radius:14px!important;
+  background:#fbfaff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-close{
+  z-index:10!important;min-width:44px!important;min-height:44px!important;
+  background:#fff!important;border:1px solid #e4dbf5!important;
+  color:#532fb9!important;box-shadow:0 3px 10px rgba(46,27,120,.1);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-assignment-modal,.hv-review-modal){
+  border:1px solid #e8e0f6!important;border-radius:18px!important;
+  background:linear-gradient(160deg,#fff,#fbf9ff)!important;
+  box-shadow:0 18px 50px rgba(25,17,80,.2)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-assignment-modal,.hv-review-modal) :is(.btn,button){
+  min-height:44px!important;
+}
+/* Technician field view: maintain actions and clinical fields, improve hierarchy. */
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog :is(
+ .hv-field-card,.hv-field-screen,.hv-review-grid>div,.hv-review-meta>span){
+  min-width:0!important;border:1px solid #e6dff6!important;
+  border-radius:12px!important;background:#f9f7ff!important;
+  padding:11px!important;
+}
+
+/* Touch / scrolling and cross-device layout */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ .hv-visit,.hv-cal-event,.hv-module-tab,.hv-premium-hero-actions button,
+ .hv-cal-day,.hv-cal-nav button){
+  touch-action:manipulation;
+}
+@media(max-width:900px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero{
+  grid-template-columns:44px minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions{
+  grid-column:1/-1!important;justify-content:flex-start!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvKpis{
+  display:flex!important;flex-flow:row nowrap!important;
+  gap:7px!important;overflow-x:auto!important;padding-bottom:4px!important;
+  scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi{
+  flex:0 0 114px!important;min-width:114px!important;
+  min-height:81px!important;scroll-snap-align:start;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters .field:first-child{
+  grid-column:1/-1!important;
+ }
+}
+@media(max-width:650px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero{
+  grid-template-columns:42px minmax(0,1fr)!important;
+  min-height:0!important;padding:13px 14px 17px!important;
+  gap:9px!important;border-radius:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-emblem{
+  width:42px!important;height:42px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-emblem svg{
+  width:28px!important;height:28px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero h1{
+  font-size:23px!important;margin:3px 0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero p{
+  font-size:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions .btn{
+  min-width:0!important;width:100%!important;
+  font-size:10.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace{
+  gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-intro h2{
+  font-size:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-section-intro p{
+  font-size:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi{
+  flex:0 0 107px!important;min-width:107px!important;
+  min-height:77px!important;padding:9px!important;border-radius:13px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi-bottom b{
+  font-size:23px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvAgendaPanel,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvCreatePanel,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > .hv-calendar-panel,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace > #hvHistoryPanel{
+  padding:11px!important;border-radius:15px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-filters{
+  padding:9px!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit{
+  min-height:162px!important;padding:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fieldset{
+  padding:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-head{
+  flex-direction:column!important;align-items:stretch!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-nav{
+  width:100%!important;justify-content:space-between!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-nav>b{
+  min-width:0!important;font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-grid{
+  gap:3px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day{
+  min-height:49px!important;padding:5px 3px!important;border-radius:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day small{
+  font-size:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryPanel .hv-history-filters{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-backdrop{
+  align-items:flex-end!important;padding:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-backdrop .hv-detail-dialog{
+  width:100%!important;max-width:100%!important;max-height:93dvh!important;
+  padding:13px!important;border-radius:20px 20px 0 0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-detail-head{
+  gap:8px!important;padding:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-info{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-premium-detail-section{
+  padding:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-actions{
+  flex-direction:column!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-detail-dialog .hv-actions button{
+  width:100%!important;
+ }
+}
+@media(max-width:370px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-fields{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit{
+  transition:none!important;
+ }
+}
+@media print{
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero{
+  box-shadow:none!important;
+ }
+}
