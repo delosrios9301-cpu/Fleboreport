@@ -1,0 +1,66 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+const dom=await readFile(new URL('../domicilios.js',import.meta.url),'utf8');
+const css=await readFile(new URL('../domicilios-premium.css',import.meta.url),'utf8');
+const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+const sw=await readFile(new URL('../service-worker.js',import.meta.url),'utf8');
+
+test('Domicilios conserva la navegación funcional, pero reconstruye la jerarquía de pantalla',()=>{
+ assert.match(dom,/hv-premium-hero/);
+ assert.match(dom,/hvPremiumCreate/);
+ assert.match(dom,/enhanceHomeVisitComposition\(\)/);
+ assert.match(dom,/hv-premium-section-intro/);
+ assert.match(dom,/hv-premium-panel-heading/);
+ assert.match(dom,/hv-premium-filters/);
+ assert.match(dom,/hv-premium-fieldset/);
+ assert.match(dom,/hv-premium-detail-section/);
+ assert.match(dom,/enhanceHomeVisitDetail\(premiumDialog\)/);
+ assert.doesNotThrow(()=>new Function(dom));
+});
+test('tarjetas de agenda presentan jerarquía visual nueva con estados y responsable',()=>{
+ for(const token of ['hv-premium-visit-avatar','hv-premium-visit-heading','hv-premium-visit-meta','hv-premium-visit-assignee','hv-premium-visit-action','hv-priority-label'])
+  assert.ok(dom.includes(token),token);
+ assert.match(dom,/const activeList=visits\.filter/);
+ assert.match(dom,/const historyList=visits\.filter/);
+ assert.match(dom,/statusBadge\(v\.status\)/);
+ assert.match(dom,/onclick="hvSelect\(/);
+});
+test('el diseño de invitaciones NO revela datos del paciente antes de aceptar',()=>{
+ assert.match(dom,/const privatePending=technician&&v\.assignmentStatus==='invited'&&v\.status==='Pendiente de aceptación'/);
+ assert.match(dom,/privatePending\?'Nuevo domicilio asignado':String\(v\.patientName/);
+ assert.match(dom,/const location=privatePending\?'':String\(v\.address/);
+ assert.match(dom,/privatePending\?'Esperando tu respuesta'/);
+ assert.match(dom,/Confirma la asignación para acceder a los datos del paciente/);
+ assert.match(dom,/list_home_visit_invitation_previews/);
+});
+test('agrupación del formulario no cambia IDs, botones clínicos ni acciones',()=>{
+ for(const id of ['hvPatientLookup','hvDate','hvAssignee','hvTests','hvCreatePanel','hvAgendaPanel','hvCalendar','hvHistoryRows'])
+  assert.ok(dom.includes(id),id);
+ assert.match(dom,/fieldset\.className='hv-premium-fieldset'/);
+ assert.match(dom,/body\.appendChild\(field\)/);
+ assert.match(dom,/onclick="hvCreate\(\)"/);
+ assert.match(dom,/onclick="hvStatus\(/);
+ assert.match(dom,/hvTestStatus\(/);
+ assert.match(dom,/hvOpenDocument\(/);
+ assert.match(dom,/hvCalendarMove\(/);
+});
+test('mismo diseño premium, sin ocultar información y usable en Android tablet y PC',()=>{
+ for(const key of [
+  '.hv-premium-hero','.hv-premium-kpi','.hv-premium-filters','.hv-premium-visit',
+  '.hv-premium-fieldset','.hv-cal-grid','.hv-premium-detail-section','.hv-detail-dialog',
+  '#hvHistoryPanel','.hv-assignment-modal','.hv-field-card'
+ ])assert.ok(css.includes(key),key);
+ assert.match(css,/@media\(max-width:900px\)/);
+ assert.match(css,/@media\(max-width:650px\)/);
+ assert.match(css,/@media\(max-width:370px\)/);
+ assert.match(css,/min-height:44px!important/);
+ assert.match(css,/\.hv-premium-hero-actions \[hidden\]/);
+ assert.doesNotMatch(css,/#hvCreatePanel[^{]*\{[^}]*display:none/);
+});
+test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
+ assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
+ assert.match(html,/domicilios\.js\?v=20261112-premium1/);
+ assert.match(sw,/fleboreport-shell-v288/);
+ assert.match(sw,/'\.\/domicilios-premium.css'/);
+});
