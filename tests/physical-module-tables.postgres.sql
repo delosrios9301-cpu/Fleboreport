@@ -73,4 +73,22 @@ begin
  or has_table_privilege('anon','private.fr_module_reports','select')
  then raise exception 'Raw module table exposed';end if;
 end $security$;
+
+-- A protected reset removes the compatibility row; its module tables must
+-- disappear in the same transaction and reappear only when state is rebuilt.
+begin;
+delete from public.workspace_shared_app_state
+ where workspace_id='10000000-0000-0000-0000-000000000001';
+do $reset_test$
+declare w uuid:='10000000-0000-0000-0000-000000000001';
+begin
+ if exists(select 1 from private.fr_module_patients where workspace_id=w)
+ or exists(select 1 from private.fr_module_journeys where workspace_id=w)
+ or exists(select 1 from private.fr_module_reports where workspace_id=w)
+ or exists(select 1 from private.fr_module_extras where workspace_id=w) then
+  raise exception 'Reset left orphaned physical modules';
+ end if;
+end $reset_test$;
+rollback;
+
 \echo 'OK: physical module backfill, legacy bridge and access checks'
