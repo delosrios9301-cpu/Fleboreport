@@ -233,3 +233,204 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit,body.fr2-app-aut
  body.fr2-app-authorized #view-catalog .fr2-catalog-stat{min-height:67px!important}
 }
 @media(prefers-reduced-motion:reduce){body.fr2-app-authorized .fr5-screen *,body.fr2-app-authorized .fr5-screen *:before,body.fr2-app-authorized .fr5-screen *:after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* CLINICAL PREMIUM 5.1 — normalización final de composición y cifras.
+   Esta capa se carga después de los estilos heredados para impedir que
+   reglas antiguas deshagan la distribución de los modelos nuevos. */
+body.fr2-app-authorized .fr5-screen,
+body.fr2-app-authorized .fr5-screen *{
+  box-sizing:border-box!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  min-width:0;
+}
+body.fr2-app-authorized .fr5-screen :is(h1,h2,h3,p,small,strong,b,label,span,em,td,th,button){
+  overflow-wrap:anywhere;
+  word-break:normal!important;
+}
+body.fr2-app-authorized .fr5-screen :is(.op-kpi,.journey-kpi,.stat-card,.clinical-kpi,.fr2-catalog-stat,.report-metric,.report-total,.hv-kpi,.audit-stat){
+  min-width:0!important;
+}
+body.fr2-app-authorized #view-home #operationalKpis>.op-kpi{
+  display:grid!important;
+  grid-template-columns:42px minmax(0,1fr)!important;
+  align-items:center!important;
+  justify-items:stretch!important;
+  gap:12px!important;
+}
+body.fr2-app-authorized #view-home #operationalKpis .op-kpi-body{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  width:100%!important;
+  text-align:center!important;
+  gap:4px!important;
+}
+body.fr2-app-authorized #view-home #operationalKpis .op-kpi-label,
+body.fr2-app-authorized #view-home #operationalKpis .op-kpi-value,
+body.fr2-app-authorized #view-home #operationalKpis .op-kpi-trend{
+  display:block!important;
+  width:100%!important;
+  max-width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi-copy{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  text-align:center!important;
+  gap:3px!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi-copy small,
+body.fr2-app-authorized #view-journey .journey-kpi-copy strong,
+body.fr2-app-authorized #view-journey .journey-kpi-copy em{
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome>[data-fr5-area="patient-kpis"] .stat-card,
+body.fr2-app-authorized #view-patients #patientsHome>[data-fr5-area="patient-finance"] .stat-card{
+  display:grid!important;
+  grid-template-columns:42px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome .stat-card>div{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  width:100%!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome .stat-card small,
+body.fr2-app-authorized #view-patients #patientsHome .stat-card strong{
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi,
+body.fr2-app-authorized #view-domicilios .hv-kpi,
+body.fr2-app-authorized #view-audit .audit-stat{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi small,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi small,
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong,
+body.fr2-app-authorized #view-domicilios .hv-kpi :is(small,strong,b,span),
+body.fr2-app-authorized #view-audit .audit-stat :is(small,strong,b,span){
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat{
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat>div{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-width:0!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat small,
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat strong{
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized #view-reports .report-metric,
+body.fr2-app-authorized #view-reports .report-total{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized #view-reports .report-metric small,
+body.fr2-app-authorized #view-reports .report-metric strong,
+body.fr2-app-authorized #view-reports .report-total>*{
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  line-height:1.3!important;
+  overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized .fr5-screen .data-table th,
+body.fr2-app-authorized .fr5-screen .data-table td,
+body.fr2-app-authorized .fr5-screen table th,
+body.fr2-app-authorized .fr5-screen table td{
+  vertical-align:middle!important;
+  line-height:1.4!important;
+  writing-mode:horizontal-tb!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-home #operationalKpis>.op-kpi,
+  body.fr2-app-authorized #view-patients #patientsHome>[data-fr5-area="patient-kpis"] .stat-card{
+    gap:7px!important;
+  }
+  body.fr2-app-authorized #view-home #operationalKpis .op-kpi-value,
+  body.fr2-app-authorized #view-journey .journey-kpi-copy strong,
+  body.fr2-app-authorized #view-patients #patientsHome .stat-card strong,
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{
+    font-size:clamp(18px,5vw,25px)!important;
+    letter-spacing:0!important;
+  }
+}
+@media(max-width:380px){
+  body.fr2-app-authorized #view-home #operationalKpis>.op-kpi,
+  body.fr2-app-authorized #view-patients #patientsHome>[data-fr5-area="patient-kpis"] .stat-card{
+    grid-template-columns:minmax(0,1fr)!important;
+    justify-items:center!important;
+    text-align:center!important;
+  }
+  body.fr2-app-authorized #view-home #operationalKpis .op-kpi-icon,
+  body.fr2-app-authorized #view-patients #patientsHome .stat-icon{
+    margin-inline:auto!important;
+  }
+}
