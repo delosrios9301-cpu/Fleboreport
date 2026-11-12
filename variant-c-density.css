@@ -188,11 +188,11 @@ body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .field>label{
   margin-bottom:4px!important;font-size:11px!important;line-height:1.2!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(
- .field input,.field select,.field textarea,input[type="search"],.btn){
+ .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),.field select,.field textarea,input[type="search"],.btn){
   min-height:44px!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(
- .field input,.field select,.field textarea,input[type="search"]){
+ .field input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]),.field select,.field textarea,input[type="search"]){
   padding:8px 10px!important;border-radius:10px!important;
   font-size:13px!important;
 }
