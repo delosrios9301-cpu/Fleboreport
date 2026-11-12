@@ -72,3 +72,7 @@ jobs:
         env:
           PGPASSWORD: test-only
         run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/private-function-execution.postgres.sql
+      - name: Deny visit detail when assigned user's workspace membership is inactive
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/active-member-visit-access.postgres.sql
