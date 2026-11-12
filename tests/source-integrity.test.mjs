@@ -1286,11 +1286,11 @@ test('la capa Clinical Premium renueva la interfaz sin alterar los puntos de ent
 
 
 test('Clinical Premium 2.2 renueva Jornada, Pacientes y Empresas sin cambiar sus controladores', () => {
-  assert.match(html, /fleboreport-v2\\.css\\?v=20261112-clinical-premium2/);
-  assert.match(moduleStyles, /CLINICAL PREMIUM 2\\.2 · FASE 2/);
-  assert.match(moduleStyles, /#view-journey \\.journey-kpis/);
-  assert.match(moduleStyles, /#view-patients #patientsHome/);
-  assert.match(moduleStyles, /#view-companies #companyList/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261112-clinical-premium2/);
+  assert.match(redesignStyles, /CLINICAL PREMIUM 2\.2 · FASE 2/);
+  assert.match(redesignStyles, /#view-journey \.journey-kpis/);
+  assert.match(redesignStyles, /#view-patients #patientsHome/);
+  assert.match(redesignStyles, /#view-companies #companyList/);
   assert.match(html, /onclick="registerJourneyPatient\(\)"/);
   assert.match(html, /onclick="openPatientForm\(\)"/);
   assert.match(html, /onclick="addCompany\(\)"/);
