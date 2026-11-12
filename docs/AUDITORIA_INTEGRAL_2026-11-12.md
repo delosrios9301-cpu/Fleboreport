@@ -14,8 +14,9 @@
 ## Correcciones de esta intervención
 1. **Seguridad (media):** revocar `EXECUTE` al rol anónimo en cinco RPC operativas que ya requieren sesión y rol: `save_workspace_app_state`, `search_workspace_patients`, `sync_workspace_patient`, `upsert_clinical_sample_type_config` y `upsert_clinical_visit_config`. Mantener explícitamente el acceso de `authenticated` y `service_role`. Migración `20261112152720_revoke_anonymous_operational_rpcs.sql`.
 2. **Auditoría/ruido de navegación (media):** `app-activity-cloud.js` deja de generar eventos nuevos por abrir el menú y enfocar campos «Usuario» o «Contraseña», sin filtrar registros clínicos ni cambios guardados. Historial ya existente permanece intacto.
-3. **Consistencia visual (baja):** `audit-history.js` integra la clase `fr5-screen` para heredar el lenguaje visual Clinical Modern sin cambiar su búsqueda, exportación ni permisos.
-4. **Pruebas:** cobertura estática para las tres modificaciones anteriores.
+3. **Notificaciones Push (media):** `domicilios-notifications` comprueba si la suscripción de usuario/dispositivo ya coincide antes de ejecutar el `upsert`, para reducir actualizaciones y auditoría redundantes sin modificar envíos Push ni identidad de destinatarios.
+4. **Consistencia visual (baja):** `audit-history.js` integra la clase `fr5-screen` para heredar el lenguaje visual Clinical Modern sin cambiar su búsqueda, exportación ni permisos.
+5. **Pruebas:** cobertura estática para las tres modificaciones anteriores.
 
 ## Hallazgos que requieren intervención aislada y pruebas de regresión de permisos
 - **Acceso a datos compartidos (alto, arquitectónico):** `get_workspace_shared_app_state` y `save_workspace_shared_app_state` autorizan por pertenencia a roles, pero el estado JSON incluye módulos con información clínica y de pacientes. No hay aislamiento granular por clave JSON. Diseñar separación por módulo (o proyección segura por rol) y escrituras con comprobación de claves antes de endurecer producción; cambiar hoy un permiso de lectura o reemplazar el JSON completo podría dejar sin datos operativos a roles autorizados.

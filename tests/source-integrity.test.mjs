@@ -1433,3 +1433,13 @@ test('auditoría 2026-11-12 minimiza RPC anónimos y ruido de navegación sin al
   assert.match(history,/section\.className='view fr5-screen'/);
   assert.match(migration,/to authenticated, service_role/);
 });
+
+test('Push de domicilios evita modificar suscripciones idénticas', async () => {
+  const source = await readFile(new URL('../supabase/functions/domicilios-notifications/index.ts', import.meta.url),'utf8');
+  assert.match(source,/const \{ data: known, error: knownError \}/);
+  assert.match(source,/known\.workspace_id === membership\.workspace_id/);
+  assert.match(source,/known\.p256dh === sub\.keys\.p256dh/);
+  assert.match(source,/known\.auth_secret === sub\.keys\.auth/);
+  assert.match(source,/return reply\(\{ ok: true, unchanged: true \}\)/);
+  assert.match(source,/onConflict: "user_id,endpoint"/);
+});

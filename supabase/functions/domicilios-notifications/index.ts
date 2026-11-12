@@ -119,10 +119,24 @@ Deno.serve(async (req: Request) => {
         .update({ active: false, updated_at: new Date().toISOString() })
         .eq("endpoint", sub.endpoint).neq("user_id", user.id).eq("active", true);
       if (previousOwnerError) throw previousOwnerError;
+      // Una reconexión idéntica ya está activa y no debe crear un UPDATE,
+      // un evento en la auditoría ni un nuevo cambio de estado.
+      const agent = String(body.user_agent || "").slice(0, 500);
+      const { data: known, error: knownError } = await admin.from("home_visit_push_subscriptions")
+        .select("workspace_id,p256dh,auth_secret,user_agent,active")
+        .eq("user_id", user.id).eq("endpoint", sub.endpoint).maybeSingle();
+      if (knownError) throw knownError;
+      if (known?.active === true
+        && known.workspace_id === membership.workspace_id
+        && known.p256dh === sub.keys.p256dh
+        && known.auth_secret === sub.keys.auth
+        && (known.user_agent || "") === agent) {
+        return reply({ ok: true, unchanged: true });
+      }
       const { error } = await admin.from("home_visit_push_subscriptions").upsert({
         workspace_id: membership.workspace_id, user_id: user.id, endpoint: sub.endpoint,
         p256dh: sub.keys.p256dh, auth_secret: sub.keys.auth,
-        user_agent: String(body.user_agent || "").slice(0, 500), active: true, updated_at: new Date().toISOString()
+        user_agent: agent, active: true, updated_at: new Date().toISOString()
       }, { onConflict: "user_id,endpoint" });
       if (error) throw error;
       return reply({ ok: true });
