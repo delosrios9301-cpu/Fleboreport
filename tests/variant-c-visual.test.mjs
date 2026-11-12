@@ -47,3 +47,15 @@ test('formularios clínicos y papel imprimible no se reescriben',()=>{
  assert.match(html,/id="reportPaper"/);
  assert.match(html,/id="view-settings"/);
 });
+
+test('las métricas compactas cubren Jornada, Pacientes, Domicilios, Clínica e Historial',()=>{
+ const {css}=files;
+ for(const fragment of [
+  '#view-journey .journey-kpis','#view-patients .stats-grid',
+  '#view-clinical-studies .clinical-kpis','#view-clinical-processing .clinical-kpis',
+  '#view-domicilios .hv-kpis','#view-audit .audit-stats']){
+  assert.ok(css.includes(fragment),'Falta estilo para '+fragment);
+ }
+ assert.match(css,/#view-settings \.fr-config-intro/);
+ assert.match(css,/#view-domicilios \.hv-status/);
+});
