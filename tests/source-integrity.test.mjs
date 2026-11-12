@@ -1359,7 +1359,7 @@ test('Clinical Premium 5.0 compone nuevos modelos de pantalla y conserva los IDs
     assert.match(html, new RegExp('id="' + id + '"'));
   }
   assert.match(screenModels, /Bento command center/);
-  assert.match(screenModels, /director first/);
-  assert.match(screenModels, /clinical-premium/i);
+  assert.match(screenModels, /directorio primero, analítica después/);
+  assert.match(screenModels, /CLINICAL PREMIUM 5\.0/);
   assert.match(html, /clinical-premium-screen-models\.css\?v=20261112-premium-models1/);
 });
