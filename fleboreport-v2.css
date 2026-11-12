@@ -2478,3 +2478,103 @@ body.fr2-app-authorized #view-settings .clinical-config-tabs button.active{
   }
 }
 
+
+
+/* CLINICAL PREMIUM 2.5 · navegación táctil segura y microinteracciones */
+@media (hover:hover) and (pointer:fine){
+  body.fr2-app-authorized .settings-tabs button:hover,
+  body.fr2-app-authorized .clinical-config-tabs button:hover,
+  body.fr2-app-authorized .hv-module-tabs button:hover,
+  body.fr2-app-authorized .patient-record-tabs button:hover{
+    transform:translateY(-1px)!important;
+    border-color:#b9dcd6!important;
+    box-shadow:0 5px 13px rgba(20,61,80,.09)!important;
+  }
+}
+body.fr2-app-authorized .settings-tabs,
+body.fr2-app-authorized .clinical-config-tabs,
+body.fr2-app-authorized .hv-module-tabs,
+body.fr2-app-authorized .patient-record-tabs{
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  scroll-behavior:smooth;
+  scrollbar-width:thin;
+  scrollbar-color:#bfd8d8 transparent;
+}
+body.fr2-app-authorized .settings-tabs button,
+body.fr2-app-authorized .clinical-config-tabs button,
+body.fr2-app-authorized .hv-module-tabs button,
+body.fr2-app-authorized .patient-record-tabs button{
+  flex:0 0 auto;
+  scroll-snap-align:center;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:pan-x pan-y;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized .settings-tabs,
+  body.fr2-app-authorized .clinical-config-tabs,
+  body.fr2-app-authorized .hv-module-tabs,
+  body.fr2-app-authorized .patient-record-tabs{
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scroll-snap-type:x proximity;
+    padding-bottom:7px!important;
+    touch-action:pan-x pan-y;
+  }
+  body.fr2-app-authorized .settings-tabs button,
+  body.fr2-app-authorized .clinical-config-tabs button,
+  body.fr2-app-authorized .hv-module-tabs button,
+  body.fr2-app-authorized .patient-record-tabs button{
+    white-space:nowrap!important;
+  }
+}
+body.fr2-app-authorized button,
+body.fr2-app-authorized .btn,
+body.fr2-app-authorized .icon-button,
+body.fr2-app-authorized .op-quick button,
+body.fr2-app-authorized .quick-card{
+  -webkit-tap-highlight-color:transparent;
+}
+@media(hover:none) and (pointer:coarse){
+  body.fr2-app-authorized button:not(:disabled):active,
+  body.fr2-app-authorized .btn:not(:disabled):active,
+  body.fr2-app-authorized .icon-button:not(:disabled):active{
+    transform:scale(.975)!important;
+    filter:brightness(.97);
+    box-shadow:0 1px 4px rgba(20,43,69,.12)!important;
+  }
+  body.fr2-app-authorized .catalog-card:active,
+  body.fr2-app-authorized .list-row:active,
+  body.fr2-app-authorized .journey-patient-card:active,
+  body.fr2-app-authorized .hv-visit:active{
+    border-color:#a9d8d1!important;
+    background:#f7fcfb!important;
+  }
+}
+body.fr2-app-authorized button:focus-visible,
+body.fr2-app-authorized a:focus-visible,
+body.fr2-app-authorized [role="button"]:focus-visible{
+  outline:3px solid rgba(35,174,162,.38)!important;
+  outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized .settings-tabs,
+  body.fr2-app-authorized .clinical-config-tabs,
+  body.fr2-app-authorized .hv-module-tabs,
+  body.fr2-app-authorized .patient-record-tabs{
+    scroll-behavior:auto!important;
+  }
+  body.fr2-app-authorized .settings-tabs button,
+  body.fr2-app-authorized .clinical-config-tabs button,
+  body.fr2-app-authorized .hv-module-tabs button,
+  body.fr2-app-authorized .patient-record-tabs button,
+  body.fr2-app-authorized button,
+  body.fr2-app-authorized .btn,
+  body.fr2-app-authorized .icon-button{
+    transition:none!important;
+    animation:none!important;
+  }
+  body.fr2-app-authorized .view.active{animation:none!important}
+}

@@ -10,6 +10,7 @@ const grant = await readFile(new URL('../supabase/migrations/20261105185251_gran
 const history = await readFile(new URL('../audit-history.js', import.meta.url), 'utf8');
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const sw = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
+const visual = await readFile(new URL('../fleboreport-v2.css', import.meta.url), 'utf8');
 
 test('legacy activity is backfilled to the central immutable audit ledger with idempotency keys', () => {
   assert.ok(migration.includes('source_event_key'));
@@ -40,6 +41,17 @@ test('unified audit history exposes the migrated application activity module', (
   assert.ok(history.includes('value="application"'));
   assert.ok(history.includes('r.details&&r.details.section'));
   assert.ok(html.includes('app-activity-cloud.js'));
-  assert.ok(sw.includes('fleboreport-shell-v271'));
+  assert.ok(sw.includes('fleboreport-shell-v272'));
+  assert.ok(html.includes('fleboreport-v2.css?v=20261112-clinical-premium5'));
   assert.ok(sw.includes('./app-activity-cloud.js'));
+});
+
+
+test('premium touch navigation is horizontal, accessible and non-destructive', () => {
+  assert.ok(visual.includes('scroll-snap-type:x proximity'));
+  assert.ok(visual.includes('overscroll-behavior-x:contain'));
+  assert.ok(visual.includes('prefers-reduced-motion:reduce'));
+  assert.ok(visual.includes('focus-visible'));
+  assert.ok(!visual.includes('touchstart'));
+  assert.ok(!visual.includes('pointerdown'));
 });
