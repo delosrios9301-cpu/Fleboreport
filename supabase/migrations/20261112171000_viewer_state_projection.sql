@@ -55,7 +55,7 @@ begin
   end if;
   return query select v_row.state,v_row.revision,v_row.updated_at,v_row.reset_epoch;
 end;
-$function$
+$function$;
 
 revoke execute on function public.get_workspace_shared_app_state(uuid) from public,anon;
 grant execute on function public.get_workspace_shared_app_state(uuid) to authenticated,service_role;
