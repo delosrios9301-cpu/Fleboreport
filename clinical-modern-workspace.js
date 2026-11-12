@@ -48,8 +48,8 @@
       window.toggleDrawer();
       return;
     }
-    const trigger = $('#fr2MenuToggle');
-    if (trigger) trigger.click();
+    // Fallback al controlador original; nunca se muestra un segundo abridor.
+    $('#moduleFab')?.click();
   }
   function mountDock() {
     if ($('#cmMobileDock')) return;
@@ -64,6 +64,10 @@
       button.dataset.cmNav = key;
       button.className = 'cm-dock-button';
       button.setAttribute('aria-label', key === 'more' ? 'Abrir todos los módulos' : 'Ir a ' + label);
+      if (key === 'more') {
+        button.setAttribute('aria-controls','sidebar');
+        button.setAttribute('aria-expanded','false');
+      }
       button.innerHTML = '<span class="cm-dock-icon">' + icon(key) + '</span><span class="cm-dock-label">' + label + '</span>';
       button.addEventListener('click', function (event) {
         event.preventDefault();
@@ -83,12 +87,7 @@
     bar.className = 'cm-context-bar no-print';
     bar.id = 'cmContextBar';
     bar.innerHTML = '<div class="cm-context-glyph" aria-hidden="true">✦</div>' +
-      '<div class="cm-context-titlebox"><span class="cm-context-eyebrow">FLEBOREPORT / ESPACIO CLÍNICO</span><strong id="cmContextTitle">Inicio</strong></div>' +
-      '<button type="button" id="cmContextMenu" class="cm-context-menu">Todos los módulos <span aria-hidden="true">↗</span></button>';
-    bar.querySelector('button').addEventListener('click', function (event) {
-      event.stopPropagation();
-      toggleMenu();
-    });
+      '<div class="cm-context-titlebox"><span class="cm-context-eyebrow">FLEBOREPORT / ESPACIO CLÍNICO</span><strong id="cmContextTitle">Inicio</strong></div>';
     content.insertBefore(bar, content.firstChild);
   }
   function mountHomeLaunchpad() {
@@ -133,8 +132,8 @@
     document.querySelectorAll('[data-cm-launch]').forEach(function(button){
       button.hidden = !isPermitted(button.dataset.cmLaunch);
     });
-    const menu = $('#cmContextMenu');
-    if (menu) menu.setAttribute('aria-expanded',String(!!$('#sidebar.open')));
+    const onlyMenuOpener = $('#cmMobileDock [data-cm-nav="more"]');
+    if (onlyMenuOpener) onlyMenuOpener.setAttribute('aria-expanded',String(!!$('#sidebar.open')));
   }
   let queued = false;
   function queueSync() {
@@ -144,6 +143,9 @@
   }
   function start() {
     if (!$('.app-shell .content') || !$('#sidebar')) return;
+    // El acceso al panel en móvil vive exclusivamente en «Más» (barra inferior).
+    // El botón del encabezado se elimina del DOM, no solo se esconde.
+    $('#fr2MenuToggle')?.remove();
     mountContext();
     mountDock();
     mountHomeLaunchpad();

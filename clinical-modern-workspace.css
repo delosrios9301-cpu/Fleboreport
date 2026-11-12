@@ -3,13 +3,13 @@
  * formularios, IDs, controladores, reportes impresos y listas dinámicas.
  */
 :root {
-  --cm-indigo:#2b266b;
-  --cm-ink:#18203d;
-  --cm-muted:#6b738d;
-  --cm-aqua:#00aaa1;
-  --cm-line:#dde5ef;
-  --cm-soft:#f1f5fa;
-  --cm-shadow:0 10px 28px rgba(30,43,78,.055);
+  --cm-indigo:#302089;
+  --cm-ink:#261957;
+  --cm-muted:#727795;
+  --cm-aqua:#10cfc9;
+  --cm-line:#dcdff2;
+  --cm-soft:#f0efff;
+  --cm-shadow:0 14px 32px rgba(44,35,132,.13);
 }
 body.fr2-app-authorized.cm-workspace,
 body.fr2-app-authorized.cm-workspace .app-shell,
@@ -811,4 +811,373 @@ body.fr2-app-authorized.cm-workspace #cmMobileDock [hidden]{display:none!importa
 }
 @media(prefers-reduced-motion:reduce){
   body.cm-workspace .cm-dock-button,body.cm-workspace .cm-launchpad *{transition:none!important;animation:none!important}
+}
+
+
+/* CLINICAL MODERN 6.1 — edición de la paleta 3D aprobada.
+   Únicamente superficies y navegación. No modifica formularios, datos,
+   controladores, permisos ni la hoja impresa del reporte. */
+body.fr2-app-authorized.cm-workspace{
+  --cm-brand:#302089;
+  --cm-violet:#7355f2;
+  --cm-lilac:#ebe8ff;
+  --cm-shine:#e9fffd;
+  --cm-shadow-deep:0 15px 26px rgba(58,37,153,.14),0 2px 5px rgba(44,36,125,.08);
+  --cm-shadow-light:0 8px 19px rgba(70,60,160,.10),inset 0 1px 0 rgba(255,255,255,.99);
+  color-scheme:light;
+  background:#efefff!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell,
+body.fr2-app-authorized.cm-workspace .main{
+  background:
+    radial-gradient(ellipse 450px 370px at 96% 2%,rgba(105,96,244,.17),transparent 80%),
+    radial-gradient(ellipse 450px 430px at 3% 64%,rgba(31,211,212,.11),transparent 84%),
+    linear-gradient(155deg,#f6f7ff 0%,#eceeff 56%,#f5f1ff 100%)!important;
+  background-repeat:no-repeat!important;
+}
+body.fr2-app-authorized.cm-workspace #fr2MenuToggle,
+body.fr2-app-authorized.cm-workspace #cmContextMenu,
+body.fr2-app-authorized.cm-workspace #moduleFab,
+body.fr2-app-authorized.cm-workspace #homeFab{
+  display:none!important;
+}
+
+/* Barra superior: marca de tinta índigo, esmalte suave y acento aqua */
+body.fr2-app-authorized.cm-workspace .topbar {
+  background:
+    radial-gradient(ellipse 190px 100px at 86% -5%,rgba(84,221,232,.24),transparent 80%),
+    radial-gradient(ellipse 250px 135px at 74% -50%,rgba(131,109,248,.27),transparent 85%),
+    linear-gradient(180deg,#ffffff 0%,#f6f6ff 100%)!important;
+  border-bottom:1px solid rgba(209,207,239,.75)!important;
+  box-shadow:0 6px 18px rgba(41,32,111,.06),inset 0 1px rgba(255,255,255,.95)!important;
+}
+body.fr2-app-authorized.cm-workspace .topbar .fr2-topbar-left {
+  gap:11px!important;
+}
+body.fr2-app-authorized.cm-workspace .topbar .fr2-brand-mark,
+body.fr2-app-authorized.cm-workspace #sidebar .drawer-brand-mark{
+  background:linear-gradient(145deg,#6846ec 0%,#352287 59%,#1b165e 100%)!important;
+  border:1px solid rgba(255,255,255,.34)!important;
+  box-shadow:inset 1px 2px 2px rgba(255,255,255,.34),inset -2px -2px 4px rgba(13,8,61,.23),0 6px 13px rgba(56,34,154,.21)!important;
+}
+body.fr2-app-authorized.cm-workspace .topbar .fr2-brand-mark svg {
+  color:#82fff1!important;filter:drop-shadow(0 1px 2px rgba(52,254,232,.35));
+}
+body.fr2-app-authorized.cm-workspace .topbar .fr2-brand-copy strong{
+  color:#29146c!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.9)!important;
+  letter-spacing:-.5px!important;
+}
+body.fr2-app-authorized.cm-workspace .topbar #frNotifBell {
+  background:linear-gradient(145deg,#fff,#eaeafc)!important;
+  color:#302089!important;
+  border:1px solid #dddff5!important;
+  box-shadow:0 4px 10px rgba(49,43,117,.10),inset 1px 2px 2px #fff!important;
+}
+body.fr2-app-authorized.cm-workspace .topbar #frNotifBell:focus-visible{
+  outline:3px solid rgba(16,207,201,.32)!important;outline-offset:2px!important;
+}
+body.fr2-app-authorized.cm-workspace #cmContextBar{
+  border-color:#dcdff4!important;
+}
+body.fr2-app-authorized.cm-workspace .cm-context-glyph{
+  background:linear-gradient(145deg,#7857ef 0%,#4d30bc 65%,#302080 100%)!important;
+  border:1px solid rgba(255,255,255,.6)!important;
+  box-shadow:inset 1px 2px 2px rgba(255,255,255,.28),0 7px 13px rgba(61,47,156,.22)!important;
+  color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace #cmContextTitle{color:#271866!important}
+body.fr2-app-authorized.cm-workspace .cm-context-eyebrow{color:#7a7d9e!important}
+
+/* Encabezados: superficies blancas esmaltadas y detalle aqua/violeta */
+body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading,
+body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero{
+  position:relative!important;
+  isolation:isolate!important;
+  background:
+    radial-gradient(ellipse 180px 130px at 100% 0%,rgba(33,209,211,.19),transparent 76%),
+    radial-gradient(ellipse 300px 260px at 100% 100%,rgba(129,100,249,.09),transparent 88%),
+    linear-gradient(138deg,#fff 0%,#fafaff 56%,#f1efff 100%)!important;
+  border:1px solid rgba(222,219,251,.92)!important;
+  border-top:2px solid rgba(255,255,255,1)!important;
+  box-shadow:var(--cm-shadow-deep),inset 0 2px 1px rgba(255,255,255,.95)!important;
+  border-radius:22px!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading .eyebrow,
+body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero .eyebrow{
+  background:linear-gradient(135deg,#fff,#c8fbf8)!important;
+  border:1px solid #a8f1ec!important;
+  border-radius:999px!important;
+  color:#4731b4!important;
+  box-shadow:inset 0 1px 0 #fff,0 3px 8px rgba(18,175,174,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading h1,
+body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero h1{
+  color:#281168!important;
+  text-shadow:0 1px 0 #fff!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading p,
+body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero p{
+  color:#666c89!important;font-size:clamp(12px,1vw,13px)!important;
+}
+
+/* Tarjetas 3D suaves: brillo superior, volumen perceptible y bordes limpios */
+body.fr2-app-authorized.cm-workspace .fr5-screen :is(.panel,.op-panel),
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad{
+  background:linear-gradient(146deg,#ffffff 0%,#fafaff 56%,#f0efff 100%)!important;
+  border:1px solid #dfe0f5!important;
+  border-top:2px solid rgba(255,255,255,.98)!important;
+  border-radius:19px!important;
+  box-shadow:var(--cm-shadow-light)!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .panel-head{
+  background:linear-gradient(110deg,rgba(249,248,255,.98),rgba(245,243,255,.92) 65%,rgba(230,255,252,.76))!important;
+  border-bottom:1px solid #e6e4f6!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .panel-head h2,
+body.fr2-app-authorized.cm-workspace .fr5-screen .form-panel>h2,
+body.fr2-app-authorized.cm-workspace .fr5-screen :is(.journey-panel-heading,.clinical-panel-header) h2{
+  color:#2d1d79!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .panel-head p,
+body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading p{
+  line-height:1.48!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .field :is(input,select,textarea),
+body.fr2-app-authorized.cm-workspace .fr5-screen :is(input[type="search"],.journey-report-company-trigger){
+  background:linear-gradient(180deg,#fff,#f7f7ff)!important;
+  border-color:#dcdff0!important;
+  box-shadow:inset 0 1px 2px rgba(54,48,143,.045),0 1px 0 #fff!important;
+  color:#29245e!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .field :is(input,select,textarea):focus{
+  border-color:#49d7d0!important;
+  box-shadow:0 0 0 3px rgba(22,199,198,.17)!important;
+  outline:0!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .field label {
+  color:#343866!important;
+  font-weight:800!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .btn {
+  border-radius:13px!important;
+  border:1px solid #cbd4f2!important;
+  background:linear-gradient(180deg,#fff 0%,#f0f5ff 67%,#e7eeff 100%)!important;
+  color:#34416d!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.95),0 3px 0 #cbd2e7,0 6px 10px rgba(50,62,137,.10)!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.65)!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .btn.primary{
+  background:linear-gradient(180deg,#7353f3 0%,#462aaf 47%,#26166c 100%)!important;
+  border:1px solid #4f32bc!important;
+  border-top-color:#a391ff!important;
+  color:#fff!important;
+  text-shadow:0 1px 2px rgba(29,15,91,.5)!important;
+  box-shadow:inset 0 2px 1px rgba(255,255,255,.33),inset 0 -2px 1px rgba(23,12,67,.25),0 3px 0 #1f145b,0 8px 16px rgba(56,32,167,.19)!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .btn.primary:hover{
+  background:linear-gradient(180deg,#846cff,#5033c0 56%,#2d1b79)!important;
+}
+
+/* Indicadores: reflejo, anillos aqua sutiles y cifras perfectamente centradas */
+body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat),
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis>.op-kpi{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(ellipse 180px 170px at 105% 105%,rgba(42,221,213,.16),transparent 70%),
+    linear-gradient(138deg,#fff 5%,#f8f7ff 54%,#efedff 100%)!important;
+  border:1px solid rgba(215,214,246,.9)!important;
+  border-top:2px solid #fff!important;
+  border-radius:18px!important;
+  box-shadow:0 12px 20px rgba(58,43,138,.12),0 3px 3px rgba(55,46,139,.055),inset 0 2px rgba(255,255,255,.98)!important;
+}
+body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat)::after,
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis>.op-kpi::after{
+  content:""!important;position:absolute!important;z-index:0!important;pointer-events:none!important;
+  width:150px!important;height:150px!important;
+  right:-105px!important;bottom:-111px!important;
+  border-radius:50%!important;
+  border:20px solid rgba(13,205,206,.10)!important;
+}
+body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat)>*,
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis>.op-kpi>*{
+  position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat) :is(strong,b),
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis .op-kpi-value{
+  color:#32208d!important;
+  text-shadow:0 1px 0 #fff!important;
+  font-variant-numeric:tabular-nums!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis .op-kpi-body,
+body.fr2-app-authorized.cm-workspace #view-home #operationalKpis .op-kpi-body>*{
+  text-align:center!important;
+  align-items:center!important;
+  min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace :is(.journey-kpi-icon,.stat-icon,.fr2-catalog-stat-icon){
+  background:linear-gradient(145deg,#f2ecff 0%,#c1fcf7 100%)!important;
+  color:#5133bf!important;
+  border:1px solid #d7ddfb!important;
+  box-shadow:inset 0 1px #fff,0 3px 7px rgba(51,67,171,.08)!important;
+}
+body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi,
+body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi-copy{
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;align-items:center!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi-copy>*{
+  width:100%!important;text-align:center!important;
+}
+
+/* Inicio: hero esmaltado con índigo y aqua */
+body.fr2-app-authorized.cm-workspace #view-home>.fr2-home-hero{
+  background:
+    radial-gradient(ellipse 340px 240px at 105% -20%,rgba(27,241,228,.35),transparent 76%),
+    linear-gradient(118deg,#261265 0%,#4226aa 54%,#7760ec 100%)!important;
+  border:1px solid #6d56d9!important;
+  border-top:2px solid rgba(255,255,255,.3)!important;
+  box-shadow:0 13px 26px rgba(44,25,116,.21),inset 0 2px 2px rgba(255,255,255,.19)!important;
+  border-radius:21px!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .fr2-home-copy h1 {
+  color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .fr2-home-copy>p{
+  color:#e3e0ff!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad{
+  box-shadow:var(--cm-shadow-deep)!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad-head h2{
+  color:#271766!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad .fr2-home-action{
+  background:linear-gradient(145deg,#fff,#eff0ff)!important;
+  border:1px solid #e0ddf7!important;
+  border-top:2px solid #fff!important;
+  box-shadow:0 7px 13px rgba(58,42,149,.09),inset 0 1px #fff!important;
+  border-radius:15px!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad .fr2-home-action.primary{
+  background:linear-gradient(135deg,#f0eaff,#dffdf9)!important;
+  border-color:#cfccff!important;
+}
+body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad .fr2-home-action-icon{
+  background:linear-gradient(140deg,#fff,#c8f8f5)!important;
+  color:#4a2cb9!important;
+  box-shadow:inset 0 1px #fff,0 3px 8px rgba(60,41,150,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace #view-journey .journey-report-footer{
+  background:linear-gradient(110deg,#261468,#5540bc 75%,#267d9d)!important;
+  border-color:#4935a7!important;
+  box-shadow:var(--cm-shadow-deep)!important;
+}
+body.fr2-app-authorized.cm-workspace #view-journey .journey-report-button{
+  background:linear-gradient(180deg,#48e8e1,#0fa79f)!important;
+  color:#073e56!important;
+  border-color:#3ed7ce!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.6),0 4px 0 #067d83,0 7px 14px rgba(10,125,138,.19)!important;
+  text-shadow:0 1px rgba(255,255,255,.55)!important;
+}
+
+/* Menú único abajo: flotante, blanco perlado y teclas con efecto 3D */
+body.fr2-app-authorized.cm-workspace #sidebar{
+  background:linear-gradient(180deg,#fcfcff,#f1f0ff)!important;
+  border-right:1px solid #dedcf4!important;
+  box-shadow:8px 0 27px rgba(46,34,129,.10)!important;
+}
+body.fr2-app-authorized.cm-workspace #sidebar .nav-list button[data-nav].active {
+  color:#35219d!important;
+  background:linear-gradient(110deg,#ebe5ff,#dafbf7)!important;
+  border-color:#cfcbff!important;
+  box-shadow:inset 0 1px #fff,0 4px 10px rgba(68,51,162,.07)!important;
+}
+body.fr2-app-authorized.cm-workspace #sidebar .drawer-footer {
+  background:linear-gradient(180deg,#f5f2ff,#ebe9fb)!important;
+  border-top-color:#dedaf2!important;
+}
+body.fr2-app-authorized.cm-workspace #sidebar .module-menu-close{
+  background:linear-gradient(145deg,#fff,#ece9ff)!important;
+  color:#36268b!important;
+  border:1px solid #d4cff0!important;
+  box-shadow:0 3px 8px rgba(47,36,129,.09)!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock{
+  background:linear-gradient(150deg,rgba(255,255,255,.99),rgba(239,241,255,.98))!important;
+  border:1px solid #dcdcf6!important;
+  border-top:2px solid #fff!important;
+  box-shadow:0 11px 28px rgba(41,30,113,.24),inset 0 2px rgba(255,255,255,.95)!important;
+  border-radius:21px!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button {
+  color:#68718e!important;
+  transition:background .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button.is-active{
+  color:#fff!important;
+  background:linear-gradient(175deg,#946dff 0%,#6142e8 39%,#2c1b93 100%)!important;
+  border:1px solid #674fe7!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.36),inset 0 -2px rgba(20,11,80,.29),0 3px 0 #28166f,0 7px 11px rgba(65,36,184,.22)!important;
+  text-shadow:0 1px rgba(30,15,96,.5)!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button[data-cm-nav="more"]{
+  color:#fff!important;
+  background:linear-gradient(150deg,#4532a6 0%,#2b1c78 58%,#19154c 100%)!important;
+  border:1px solid #38268b!important;
+  box-shadow:inset 0 2px rgba(255,255,255,.24),0 3px 0 #171345,0 7px 11px rgba(44,25,127,.22)!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button[data-cm-nav="more"] svg{
+  stroke:#41ede0!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button:focus-visible{
+  outline:3px solid rgba(24,199,200,.7)!important;
+  outline-offset:2px!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button .cm-dock-label{
+  color:inherit!important;
+}
+body.fr2-app-authorized.cm-workspace .fr5-screen .settings-tabs button.active{
+  background:linear-gradient(130deg,#e8e4ff,#dafbf7)!important;
+  border:1px solid #d1cbf5!important;
+  color:#35258c!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized.cm-workspace .topbar{
+    box-shadow:0 3px 13px rgba(40,30,111,.10)!important;
+  }
+  body.fr2-app-authorized.cm-workspace .topbar .fr2-topbar-left{
+    padding-left:0!important;
+  }
+  body.fr2-app-authorized.cm-workspace #cmMobileDock {
+    min-height:68px!important;
+    padding:6px!important;
+    bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading,
+  body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero{
+    border-radius:18px!important;
+    padding:17px 15px!important;
+    margin-bottom:12px!important;
+  }
+  body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat),
+  body.fr2-app-authorized.cm-workspace #view-home #operationalKpis>.op-kpi{
+    border-radius:17px!important;
+    box-shadow:0 9px 17px rgba(62,48,146,.12),inset 0 2px #fff!important;
+  }
+  body.fr2-app-authorized.cm-workspace .fr5-screen .btn {
+    min-height:44px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button{transition:none!important}
+}
+@media print{
+  body.fr2-app-authorized.cm-workspace #cmMobileDock,
+  body.fr2-app-authorized.cm-workspace #cmContextBar{display:none!important}
+  body.fr2-app-authorized.cm-workspace .fr5-screen :is(.report-paper,.report-paper *){box-shadow:none!important;text-shadow:none!important}
 }
