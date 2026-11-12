@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20261112200000_private_module_tables.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112202121_private_module_tables.sql',import.meta.url),'utf8');
 test('nine independent protected physical module tables with catch-all',()=>{
  for(const m of ['patients','journeys','companies','reports','catalog','attentions','clinical','settings','extras'])
   assert.ok(sql.includes('create table if not exists private.fr_module_'+m+'('));

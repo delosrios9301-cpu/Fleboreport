@@ -1,6 +1,6 @@
 -- Physical partition, conservative data retention and transactional legacy bridge.
 \set ON_ERROR_STOP on
-\i supabase/migrations/20261112200000_private_module_tables.sql
+\i supabase/migrations/20261112202121_private_module_tables.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
 do $test$

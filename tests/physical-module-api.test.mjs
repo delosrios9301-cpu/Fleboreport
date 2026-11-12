@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const s=await readFile(new URL('../supabase/migrations/20261112202000_modular_api.sql',import.meta.url),'utf8');
+const s=await readFile(new URL('../supabase/migrations/20261112202124_modular_api.sql',import.meta.url),'utf8');
 test('modular APIs compare authoritative physical data and preserve patient guards',()=>{
  assert.match(s,/full_state:=full_state\|\|p/);
  assert.match(s,/full_state is distinct from original/);

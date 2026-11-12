@@ -1,6 +1,6 @@
 -- User simulation only; no production patient records.
 \set ON_ERROR_STOP on
-\i supabase/migrations/20261112202000_modular_api.sql
+\i supabase/migrations/20261112202124_modular_api.sql
 reset role;
 create or replace function private.has_workspace_permission(
  p_workspace_id uuid,p_module_key text,p_action_key text,p_site_id uuid default null)
