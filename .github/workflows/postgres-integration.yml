@@ -32,3 +32,7 @@ jobs:
         env:
           PGPASSWORD: test-only
         run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/shared-workspace-state.postgres.sql
+      - name: Verify private recovery checkpoint on synthetic data
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/integrity-checkpoint.postgres.sql
