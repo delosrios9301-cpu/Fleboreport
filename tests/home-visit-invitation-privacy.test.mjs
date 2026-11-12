@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 const migration=await readFile(new URL('../supabase/migrations/20261112205607_invitation_preview_rpc.sql',import.meta.url),'utf8');
-const rls=await readFile(new URL('../supabase/migrations/20261112224000_hide_unaccepted_home_visit_rows.sql',import.meta.url),'utf8');
+const rls=await readFile(new URL('../supabase/migrations/20261112205909_hide_unaccepted_home_visit_rows.sql',import.meta.url),'utf8');
 const client=await readFile(new URL('../domicilios.js',import.meta.url),'utf8');
 test('preacceptance RPC exposes only minimal invitation fields',()=>{
  assert.match(migration,/list_home_visit_invitation_previews/);
