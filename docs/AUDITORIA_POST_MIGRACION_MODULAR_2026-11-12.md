@@ -80,6 +80,14 @@ el espejo mientras existan versiones antiguas o dependencias del reset
 sin una ventana de migración controlada. Esto impide llamar a la
 arquitectura «100 % desacoplada».
 
+**P1 — Privacidad de domicilios antes de aceptar.** La política RLS de
+`home_visits` permite que el asignado con estado `invited` lea toda la
+fila, que incluye dirección y teléfono. La ocultación en pantalla no impide
+una lectura autorizada por la API; hay que crear una proyección previa
+sin detalles sensibles y ajustar simultáneamente el cliente y las políticas
+antes de limitar el acceso a la fila completa. Actualmente no hay
+asignaciones `invited` activas para probar este caso con datos reales.
+
 **P1 — Prueba E2E multidispositivo.** No se han comprobado físicamente
 Android + iPad + PC al editar simultáneamente, recuperar Wi-Fi, aceptar
 domicilios ni exportar los reportes. Debe validarse con cuentas sintéticas
