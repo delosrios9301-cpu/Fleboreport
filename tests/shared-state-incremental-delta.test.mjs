@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20261112184000_shared_state_incremental_deltas.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112181852_shared_state_incremental_deltas.sql',import.meta.url),'utf8');
 const cloud=await readFile(new URL('../cloud-state-sync.js',import.meta.url),'utf8');
 test('legacy full writes track per-section versions and deletion tombstones',()=>{
  assert.match(sql,/add column if not exists key_versions jsonb/);

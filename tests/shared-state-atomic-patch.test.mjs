@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const cloud=await readFile(new URL('../cloud-state-sync.js',import.meta.url),'utf8');
-const sql=await readFile(new URL('../supabase/migrations/20261112182000_shared_state_atomic_patch.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112181850_shared_state_atomic_patch.sql',import.meta.url),'utf8');
 
 test('only changed top-level workspace keys are sent to the patch RPC',()=>{
  const match=cloud.match(/function changedStateFields\(payload,baseline\)\{[\s\S]*?\n\}/);

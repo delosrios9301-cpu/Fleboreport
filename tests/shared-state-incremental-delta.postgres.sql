@@ -1,6 +1,6 @@
 -- Delta tests use only synthetic data created in the preceding integration suite.
 \set ON_ERROR_STOP on
-\i supabase/migrations/20261112184000_shared_state_incremental_deltas.sql
+\i supabase/migrations/20261112181852_shared_state_incremental_deltas.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
 do $test$

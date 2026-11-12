@@ -1,6 +1,6 @@
 -- Synthetic two-user concurrency, patient retention and permissions.
 \set ON_ERROR_STOP on
-\i supabase/migrations/20261112182000_shared_state_atomic_patch.sql
+\i supabase/migrations/20261112181850_shared_state_atomic_patch.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);
 do $test$
