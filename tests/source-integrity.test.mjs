@@ -626,7 +626,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v276'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v277'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -1365,4 +1365,19 @@ test('Clinical Premium 5.0 compone nuevos modelos de pantalla y conserva los IDs
   assert.ok(html.includes('@import url("./clinical-premium-screen-models.css?v=20261112-premium-models2")'));
   assert.match(screenModels, /CLINICAL PREMIUM 5\.1/);
   assert.match(screenModels, /op-kpi-body/);
+});
+
+
+test('Clinical Modern Workspace 6.0 incorpora navegación real y preserva los controladores', async () => {
+  const ui = await readFile(new URL('../clinical-modern-workspace.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../clinical-modern-workspace.css', import.meta.url), 'utf8');
+  assert.doesNotThrow(() => new Function(ui));
+  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw1/);
+  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw1/);
+  assert.match(serviceWorker, /clinical-modern-workspace\.js/);
+  assert.match(serviceWorker, /clinical-modern-workspace\.css/);
+  assert.match(ui, /original\.click\(\)/);
+  assert.match(ui, /existingActions/);
+  assert.match(css, /cm-mobile-dock/);
+  assert.match(css, /cm-launchpad/);
 });
