@@ -53,7 +53,7 @@ values('e2222222-2222-4222-8222-222222222222',
        'e1111111-1111-4111-8111-111111111111',
        '00000000-0000-0000-0000-000000000004',
        null,'invited',now());
-\i supabase/migrations/20261112223000_invitation_preview_rpc.sql
+\i supabase/migrations/20261112205607_invitation_preview_rpc.sql
 \i supabase/migrations/20261112224000_hide_unaccepted_home_visit_rows.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
