@@ -61,6 +61,26 @@ test('mismo diseño premium, sin ocultar información y usable en Android tablet
 test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
  assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
  assert.match(html,/domicilios\.js\?v=20261112-premium1/);
- assert.match(sw,/fleboreport-shell-v288/);
+ assert.match(sw,/fleboreport-shell-v289/);
  assert.match(sw,/'\.\/domicilios-premium.css'/);
+});
+
+test('gestos de Variante C funcionan visualmente sin llamar flujos clínicos', async()=>{
+ const gestureJs=await readFile(new URL('../domicilios-premium-gestures.js',import.meta.url),'utf8');
+ assert.match(gestureJs,/document\.addEventListener\('pointerdown',onPointerDown,\{passive:true\}\)/);
+ assert.match(gestureJs,/\.hv-premium-visit/);
+ assert.match(gestureJs,/\.hv-module-tab/);
+ assert.match(gestureJs,/\.hv-cal-day/);
+ assert.match(gestureJs,/\.hv-detail-dialog \.hv-actions button/);
+ assert.match(gestureJs,/\.hv-premium-touch-ripple/);
+ assert.match(gestureJs,/prefers-reduced-motion: reduce/);
+ assert.doesNotMatch(gestureJs,/\.rpc\(|\.from\(|fetch\(|localStorage|sessionStorage|hvStatus\(|hvCreate\(|hvSelect\(/i);
+ assert.doesNotThrow(()=>new Function(gestureJs));
+});
+test('animaciones suaves e indicadores de estado respetan accesibilidad',()=>{
+ for(const item of ['hvPremiumArrive','hvPremiumSheetRise','hvPremiumTouchRipple','hvPremiumStatusGlow','prefers-reduced-motion:reduce',':focus-visible'])
+  assert.ok(css.includes(item),item);
+ assert.match(html,/domicilios-premium-gestures\.js\?v=20261112-gestures1/);
+ assert.match(sw,/'\.\/domicilios-premium-gestures.js'/);
+ assert.match(sw,/fleboreport-shell-v289/);
 });

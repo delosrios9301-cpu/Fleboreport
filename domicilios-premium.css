@@ -748,3 +748,149 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
   box-shadow:none!important;
  }
 }
+
+
+/* Gestos premium — animaciones ligeras, con respeto al movimiento reducido. */
+@keyframes hvPremiumTouchRipple{
+  0%{transform:scale(.04);opacity:.37}
+  72%{opacity:.15}
+  100%{transform:scale(1);opacity:0}
+}
+@keyframes hvPremiumArrive{
+  from{opacity:.52;transform:translate3d(0,8px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@keyframes hvPremiumSheetRise{
+  from{opacity:.6;transform:translate3d(0,22px,0) scale(.99)}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+@keyframes hvPremiumIndicatorReveal{
+  from{opacity:.75;transform:scale(.95)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes hvPremiumStatusGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(62,180,208,0)}
+  50%{box-shadow:0 0 0 4px rgba(62,180,208,.09)}
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ .hv-premium-visit,.hv-module-tab,.hv-cal-day,.hv-cal-event,
+ .hv-premium-hero-actions .btn,#hvCreatePanel .form-actions button),
+body.fr2-app-authorized.cm-workspace.vc-compact :is(
+ .hv-detail-dialog .hv-actions button,.hv-detail-dialog .hv-premium-detail-section button,
+ .hv-assignment-modal button,.hv-review-modal button){
+ position:relative!important;isolation:isolate;
+ overflow:hidden!important;
+ -webkit-tap-highlight-color:transparent;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .hv-premium-touch-ripple{
+ position:absolute;z-index:5;pointer-events:none;
+ display:block;border-radius:50%;
+ background:radial-gradient(circle,rgba(255,255,255,.82),rgba(201,224,255,.42) 58%,transparent 75%);
+ transform:scale(.04);opacity:0;
+ animation:hvPremiumTouchRipple .52s ease-out forwards;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit .hv-premium-touch-ripple{
+ background:radial-gradient(circle,rgba(140,91,226,.33),rgba(109,221,236,.2) 58%,transparent 75%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows .hv-premium-visit,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows .hv-premium-visit{
+ animation:hvPremiumArrive .24s both;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows .hv-premium-visit:nth-child(2),
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows .hv-premium-visit:nth-child(2){
+ animation-delay:30ms;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows .hv-premium-visit:nth-child(3),
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows .hv-premium-visit:nth-child(3){
+ animation-delay:55ms;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRows .hv-premium-visit:nth-child(n+4),
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvHistoryRows .hv-premium-visit:nth-child(n+4){
+ animation-delay:75ms;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi{
+ animation:hvPremiumIndicatorReveal .28s ease-out both;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(2){animation-delay:40ms}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(3){animation-delay:75ms}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvKpis .hv-premium-kpi:nth-child(4){animation-delay:110ms}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-module-tab{
+ transition:color .19s ease,background-color .19s ease,border-color .19s ease,
+   box-shadow .19s ease,transform .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-module-tab.active{
+ box-shadow:0 3px 12px rgba(89,56,189,.15)!important;
+ transform:translateY(-1px);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-module-tab:active{
+ transform:scale(.97);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ #hvAgendaPanel,#hvCreatePanel,#hvHistoryPanel,.hv-calendar-panel){
+ animation:hvPremiumArrive .22s ease-out both;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit{
+ transition:transform .17s ease,border-color .17s ease,box-shadow .17s ease,
+  background-color .17s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit:active{
+ transform:scale(.988)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-visit.selected{
+ box-shadow:0 0 0 2px rgba(158,116,240,.32),0 8px 20px rgba(92,58,166,.15)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-cal-day,.hv-cal-event){
+ transition:transform .15s ease,border-color .18s ease,background-color .18s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day:active,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-event:active{
+ transform:scale(.963)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-cal-day.selected{
+ animation:hvPremiumIndicatorReveal .2s ease both;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-status.active,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-status.pending{
+ animation:hvPremiumStatusGlow 3.4s ease-in-out infinite;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-detail-backdrop .hv-detail-dialog,.hv-assignment-modal,.hv-review-modal){
+ animation:hvPremiumSheetRise .25s cubic-bezier(.2,.8,.2,1) both;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-detail-backdrop .hv-detail-dialog,.hv-assignment-modal,.hv-review-modal) :is(button,input,select,textarea):focus-visible,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(button,input,select,textarea):focus-visible{
+ outline:3px solid #15b7d6!important;outline-offset:2px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ .hv-premium-filters input,.hv-premium-filters select,
+ .hv-premium-fields input,.hv-premium-fields select,.hv-premium-fields textarea){
+ transition:border-color .2s ease,box-shadow .2s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ .hv-premium-filters input,.hv-premium-filters select,
+ .hv-premium-fields input,.hv-premium-fields select,.hv-premium-fields textarea):focus{
+ border-color:#8f68e8!important;box-shadow:0 0 0 3px rgba(142,99,230,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(
+ .hv-module-tabs,#hvKpis,.hv-cal-grid){
+ -webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-premium-hero-actions .btn:active,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvCreatePanel .form-actions button:active{
+ transform:scale(.975);
+}
+@media(max-width:650px){
+ body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-detail-backdrop .hv-detail-dialog,.hv-assignment-modal){
+  animation-duration:.22s;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios *,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios *::before,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios *::after,
+ body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-detail-backdrop *, .hv-assignment-modal *, .hv-review-modal *){
+  animation:none!important;transition:none!important;scroll-behavior:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .hv-premium-touch-ripple{
+  display:none!important;
+ }
+}
