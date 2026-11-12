@@ -1,3 +1,5 @@
+> **Actualización del 12/11/2026:** Los hallazgos sobre privacidad previa a aceptar domicilios y ejecución directa de funciones internas fueron corregidos y publicados en v285. Consultar el [informe de resolución](CIERRE_HALLAZGOS_2026-11-12.md) para resultados actuales y pendientes. Este documento conserva los hallazgos de la auditoría original.
+
 # Auditoría posterior a migración física modular — FleboReport
 
 **Fecha:** 12 de noviembre de 2026
