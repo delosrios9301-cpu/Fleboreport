@@ -37,6 +37,7 @@ const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrat
 const dataRetentionGuardMigration = await readFile(new URL('../supabase/migrations/20261106220000_admin_only_deletion_and_audit_retention.sql', import.meta.url), 'utf8');
 const redesignShell = await readFile(new URL('../fleboreport-v2-shell.js', import.meta.url), 'utf8');
 const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.meta.url), 'utf8');
+const screenModels = await readFile(new URL('../clinical-premium-screen-models.css', import.meta.url), 'utf8');
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
@@ -1347,4 +1348,18 @@ test('Clinical Premium 4.0 incorpora nuevos modelos de pantalla responsive en lo
   assert.match(css, /#view-clinical-processing \.clinical-kpis/);
   assert.match(css, /#view-domicilios #hvWorkspace/);
   assert.match(css, /@media\(max-width:760px\)/);
+});
+
+
+test('Clinical Premium 5.0 compone nuevos modelos de pantalla y conserva los IDs funcionales', () => {
+  for (const model of ['command-center','live-session','company-directory','patient-records','clinical-library','report-studio','specimen-intake','sample-workflow','admin-console']) {
+    assert.match(html, new RegExp('data-fr5-model="' + model + '"'));
+  }
+  for (const id of ['journeyPatientName','journeyPatientId','journeyPatientTestSearch','journeyPatients','patientSearch','patientList','companyList','catalogSearch','reportPaper','clinicalReviewRows','clinicalQueueRows']) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.match(screenModels, /Bento command center/);
+  assert.match(screenModels, /director first/);
+  assert.match(screenModels, /clinical-premium/i);
+  assert.match(html, /clinical-premium-screen-models\.css\?v=20261112-premium-models1/);
 });
