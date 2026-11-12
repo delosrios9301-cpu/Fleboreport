@@ -11,6 +11,19 @@ const CLINICAL_DB_SYNC_KEYS=['_clinicalCloudSyncCursor','_clinicalCloudSyncWorks
 let client=null,workspaceId=null,userId=null,role=null,revision=0,lastHash='',channel=null,ready=false,writable=false,stateSyncAllowed=false,busy=false,dirtyAgain=false,pendingLocalChanges=false,saveRetryCount=0,timer=null,pollTimer=null,started=false;
 let baselineState=null,baselineRevision=null,baselineWorkspaceId=null;
 let partialWrites=0,fullWrites=0,unchangedWrites=0;
+let moduleRevisions=null,modularReads=0,modularWrites=0,modularReadFallbacks=0;
+function moduleForKey(key){
+ if(key==='patients')return 'patients';
+ if(['journey','journeyEntries','selected','includeJourneyPatients'].includes(key))return 'journeys';
+ if(['company','companies'].includes(key))return 'companies';
+ if(['reportHistory','reportHistoryLogos'].includes(key))return 'reports';
+ if(['catalog','individualTestCatalog','individualServices','examPackages','individualTestPrices'].includes(key))return 'catalog';
+ if(key==='attentionTemplates')return 'attentions';
+ if(String(key).startsWith('clinical'))return 'clinical';
+ if(['billingSettings','style','auditOperator'].includes(key))return 'settings';
+ return 'extras';
+}
+function modulePermissionName(name){return name==='attentions'?'reception':name==='clinical'?'studies':name==='extras'?'settings':name}
 const engine=window.FleboEngine;
 const statusEl=()=>document.getElementById('fleboSyncStatus');
 function status(message,error){
@@ -268,7 +281,18 @@ function changedStateFields(payload,baseline){
  return Object.fromEntries(Object.keys(payload||{}).filter(key=>JSON.stringify(payload[key])!==JSON.stringify(baseline&&baseline[key])).map(key=>[key,payload[key]]));
 }
 async function fetchRemote(){
- const remote=await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
+ let remote=null;
+ try{
+  remote=await engine.measure('cloud.modules.download',()=>rpcRow('get_workspace_modular_snapshot',{p_workspace_id:workspaceId}));
+  moduleRevisions=remote&&remote.module_revisions||null;
+  modularReads++;
+ }catch(error){
+  // No sustituir un dato de módulo incompleto: usar la lectura clásica
+  // autorizada mientras se verifica la causa y mantener la app utilizable.
+  console.warn('[FleboReport Sync] Lectura física modular no disponible; cargando compatibilidad.',error);
+  moduleRevisions=null;modularReadFallbacks++;
+  remote=await engine.measure('cloud.download',()=>rpcRow('get_workspace_shared_app_state',{p_workspace_id:workspaceId}));
+ }
  if(remote&&remote.state)rememberRemoteBaseline(remote.state,remote.revision);
  return remote;
 }
@@ -293,14 +317,42 @@ async function writeRemote(state,expected){
   return {saved:true,revision:expected};
  }
  const partial=!!patch;
- const procedure=partial?'save_workspace_shared_app_state_patch':'save_workspace_shared_app_state';
- const args=partial
-  ?{p_workspace_id:workspaceId,p_patch:patch,p_expected_revision:expected}
-  :{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected};
+ const changedKeys=patch?Object.keys(patch):[];
+ const changedModules=new Set(changedKeys.map(moduleForKey));
+ const moduleName=changedModules.size===1?Array.from(changedModules)[0]:null;
+ const canWriteModule=partial&&moduleName&&moduleName!=='extras'
+  &&moduleRevisions&&Number.isInteger(Number(moduleRevisions[moduleName]))
+  &&typeof window.fleboCan==='function'
+  &&(window.fleboCan(modulePermissionName(moduleName),'edit')
+    ||(moduleName==='clinical'&&window.fleboCan('processing','edit')));
+ let procedure,args;
+ if(canWriteModule){
+  const fullModule=Object.fromEntries(Object.entries(payload).filter(([key])=>moduleForKey(key)===moduleName));
+  procedure='save_workspace_module_state';
+  args={p_workspace_id:workspaceId,p_module_key:moduleName,p_payload:fullModule,p_expected_module_revision:Number(moduleRevisions[moduleName])};
+ }else{
+  procedure=partial?'save_workspace_shared_app_state_patch':'save_workspace_shared_app_state';
+  args=partial
+   ?{p_workspace_id:workspaceId,p_patch:patch,p_expected_revision:expected}
+   :{p_workspace_id:workspaceId,p_state:payload,p_expected_revision:expected};
+ }
  const r=await engine.measure('cloud.upload',()=>client.rpc(procedure,args));
  if(r.error)throw r.error;
  const row=(Array.isArray(r.data)?r.data[0]:r.data)||{saved:false,revision:expected};
  if(row.saved){
+  if(canWriteModule){
+   modularWrites++;
+   moduleRevisions[moduleName]=Number(row.module_revision);
+   if(Number(row.revision)>Number(expected)+1){
+    // Otro módulo cambió mientras escribíamos: recuperar su versión oficial
+    // antes de actualizar la interfaz, nunca mostrar la copia local obsoleta.
+    const updated=await fetchRemote();
+    if(!updated)throw new Error('No se pudo recuperar el estado modular concurrente.');
+    return {...row,revision:updated.revision,authoritativeState:updated.state};
+   }
+  }else{
+   moduleRevisions=null;
+  }
   rememberRemoteBaseline(payload,row.revision);
   if(partial)partialWrites++;else fullWrites++;
  }
@@ -323,8 +375,9 @@ async function publishMerged(local,remote,expected){
  for(let attempt=0;attempt<3;attempt++){
   const result=await writeRemote(candidate,expected);
   if(result.saved){
-   applyCloudState(candidate);
-   const h=await hashState(app()||candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
+   const confirmed=result.authoritativeState||candidate;
+   applyCloudState(confirmed);
+   const h=await hashState(app()||confirmed);saveMeta(h,result.revision,meta().resetEpoch||null);
    return true;
   }
   const latest=await fetchRemote();
@@ -342,7 +395,7 @@ async function connect(){
   const user=window.FleboAuth.user,membership=window.FleboAuth.membership;
   if(!user||!membership||membership.active!==true){ready=false;stateSyncAllowed=false;workspaceId=null;status('Inicia sesión para sincronizar los datos.');return}
   if(user.id!==userId||membership.workspace_id!==workspaceId){
-   baselineState=null;baselineRevision=null;baselineWorkspaceId=null;
+   baselineState=null;baselineRevision=null;baselineWorkspaceId=null;moduleRevisions=null;
   }
   userId=user.id;workspaceId=membership.workspace_id;role=membership.role;writable=['admin','clinician','reception'].includes(role);stateSyncAllowed=['admin','clinician','reception','viewer'].includes(role);
   // Los flebotomistas trabajan con módulos y tablas relacionales asignadas; no usan el estado JSON legado por usuario.
@@ -366,7 +419,7 @@ async function connect(){
   let remote=await fetchRemote();
   await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote&&remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
   if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
-  if(remote&&remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote()}else remote=Object.assign({},remote,{state:cleaned})}
+  if(remote&&remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleanResult.authoritativeState||cleaned,revision:cleanResult.revision});else remote=await fetchRemote()}else remote=Object.assign({},remote,{state:cleaned})}
   const localHash=await hashState(local);
   if(remote&&remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state,true);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);ready=true;announceReady();status('Restablecimiento recibido desde la nube · versión '+remote.revision);subscribe();return}
   if(!remote){
@@ -454,7 +507,7 @@ async function receiveRemote(){
   let local=app()||{};
   await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
   if(Array.isArray(local.auditLog)&&local.auditLog.length){local=stripLegacyAudit(local);applyCloudState(local)}
-  if(remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleaned,revision:cleanResult.revision});else remote=await fetchRemote();if(!remote)return}else remote=Object.assign({},remote,{state:cleaned})}
+  if(remote.state&&Array.isArray(remote.state.auditLog)&&remote.state.auditLog.length){const cleaned=stripLegacyAudit(remote.state);if(writable){const cleanResult=await writeRemote(cleaned,remote.revision);if(cleanResult.saved)remote=Object.assign({},remote,{state:cleanResult.authoritativeState||cleaned,revision:cleanResult.revision});else remote=await fetchRemote();if(!remote)return}else remote=Object.assign({},remote,{state:cleaned})}
   if(Array.isArray(local.catalog)){const cleaned=dedupeCatalog(local.catalog);if(cleaned.length!==local.catalog.length){local=Object.assign({},local,{catalog:cleaned});applyCloudState(local)}}
   const localHash=await hashState(local);
   if(remote.reset_epoch&&(remote.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,remote.reset_epoch);applyCloudState(remote.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,remote.revision,remote.reset_epoch);status('Restablecimiento recibido desde la nube · versión '+revision);return}
@@ -513,7 +566,7 @@ async function syncLocal(options){
    const merged=mergeState(remote.state,local);
    const result=await writeRemote(merged,remote.revision);
    if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
-   applyCloudState(merged);const h=await hashState(app()||merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);
+   const confirmed=result.authoritativeState||merged;applyCloudState(confirmed);const h=await hashState(app()||confirmed);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);
   }else{
    const result=await writeRemote(local,revision);
    if(!result.saved){
@@ -522,8 +575,15 @@ async function syncLocal(options){
     if(latest.reset_epoch&&(latest.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,latest.reset_epoch);applyCloudState(latest.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,latest.revision,latest.reset_epoch);return;}
     const merged=mergeState(latest.state,local),retry=await writeRemote(merged,latest.revision);
     if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
-    applyCloudState(merged);const h=await hashState(app()||merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);
-   }else{revision=result.revision;saveMeta(localHash,revision,remoteMeta.reset_epoch||null)}
+    const confirmed=retry.authoritativeState||merged;applyCloudState(confirmed);const h=await hashState(app()||confirmed);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);
+   }else{
+    revision=result.revision;
+    if(result.authoritativeState){
+     applyCloudState(result.authoritativeState);
+     const h=await hashState(app()||result.authoritativeState);
+     saveMeta(h,revision,remoteMeta.reset_epoch||null);
+    }else saveMeta(localHash,revision,remoteMeta.reset_epoch||null);
+   }
   }
   if(forceVerify){
    const verifiedMeta=await fetchRemoteMeta();
@@ -553,7 +613,7 @@ function schedule(){
  engine.schedule('cloud-save',syncLocal,700)
 }
 window.addEventListener('flebo:local-state-saved',schedule);
-window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;baselineState=null;baselineRevision=null;baselineWorkspaceId=null;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
+window.addEventListener('flebo:auth-changed',()=>{const user=window.FleboAuth&&window.FleboAuth.user,membership=window.FleboAuth&&window.FleboAuth.membership;if(!user){ready=false;stateSyncAllowed=false;baselineState=null;baselineRevision=null;baselineWorkspaceId=null;moduleRevisions=null;if(document.body)document.body.classList.remove('flebo-cloud-ready');if(channel&&client)client.removeChannel(channel);channel=null;status('Inicia sesión para sincronizar los datos.');return}if(user.id!==userId||membership?.workspace_id!==workspaceId){if(document.body)document.body.classList.remove('flebo-cloud-ready')}connect()});
 window.addEventListener('online',()=>{if(ready)syncLocal();schedulePoll(250)});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)receiveRemote();else connect();schedulePoll(500)}else if(pollTimer){clearTimeout(pollTimer);pollTimer=null}});
 function schedulePoll(delay){
@@ -569,7 +629,7 @@ connect=()=>engine.measure('sync.connect',rawConnect);
 receiveRemote=()=>engine.measure('sync.refresh',rawReceiveRemote);
 syncLocal=(options)=>engine.measure('sync.save',()=>rawSyncLocal(options));
 schedulePoll();
-window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return {...engine.diagnostics(),partialWrites,fullWrites,unchangedWrites}}};
+window.FleboCloudSync={connect,syncNow:syncLocal,get status(){return{ready,workspaceId,revision,role}},get diagnostics(){return {...engine.diagnostics(),partialWrites,fullWrites,unchangedWrites,modularReads,modularWrites,modularReadFallbacks}}};
 window.FleboCloudAudit={record:recordAppActivity,importLegacy:persistLegacyAuditEvents,get ready(){return !!(ready&&client&&workspaceId&&userId)},get workspaceId(){return workspaceId}};
 function boot(){if(started)return;started=true;status('Conectando con la nube…');if(window.FleboAuth&&window.FleboAuth.user)connect()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);

@@ -56,3 +56,11 @@ jobs:
         env:
           PGPASSWORD: test-only
         run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/shared-state-incremental-delta.postgres.sql
+      - name: Test physical module backfill and legacy bridge
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/physical-module-tables.postgres.sql
+      - name: Verify independent module RPCs, conflicts and viewer privacy
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/physical-module-api.postgres.sql
