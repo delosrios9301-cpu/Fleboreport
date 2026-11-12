@@ -40,6 +40,13 @@
   function go(key) {
     if (key === 'more') return;
     if (!isPermitted(key)) return;
+    // Pulsar la pestaña actual no vuelve a recalcular gráficos ni listas.
+    // La navegación original sigue resolviendo permisos y acciones.
+    const current = activeView();
+    if (current && current.id === 'view-' + key) {
+      window.scrollTo(0, 0);
+      return;
+    }
     const original = navSource(key);
     if (original) original.click();
   }

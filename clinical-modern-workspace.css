@@ -1181,3 +1181,139 @@ body.fr2-app-authorized.cm-workspace .fr5-screen .settings-tabs button.active{
   body.fr2-app-authorized.cm-workspace #cmContextBar{display:none!important}
   body.fr2-app-authorized.cm-workspace .fr5-screen :is(.report-paper,.report-paper *){box-shadow:none!important;text-shadow:none!important}
 }
+
+
+/* CLINICAL MODERN 6.2 · CABECERA PERSISTENTE Y NAVEGACIÓN FLUIDA
+   La cabecera queda inmóvil en todas las vistas y los efectos son livianos.
+   No se alteran servicios, datos, sesiones, permisos ni estados clínicos. */
+body.fr2-app-authorized.cm-workspace{
+  --cm-fixed-header:67px;
+}
+body.fr2-app-authorized.cm-workspace .main{
+  padding-top:var(--cm-fixed-header)!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar{
+  position:fixed!important;
+  top:0!important;
+  left:255px!important;
+  right:0!important;
+  width:auto!important;
+  height:var(--cm-fixed-header)!important;
+  min-height:var(--cm-fixed-header)!important;
+  margin:0!important;
+  transform:none!important;
+  z-index:85!important;
+  visibility:visible!important;
+  opacity:1!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  isolation:isolate!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-topbar-inner {
+  height:100%!important;
+  min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-brand-link,
+body.fr2-app-authorized.cm-workspace .app-shell .topbar #frNotifBell{
+  pointer-events:auto!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-brand-copy strong{
+  white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-topbar-right{
+  min-width:0!important;
+  flex:0 0 auto!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .topbar #frNotifBell{
+  display:inline-flex!important;
+  flex:0 0 auto!important;
+  visibility:visible!important;
+}
+body.fr2-app-authorized.cm-workspace .app-shell .content{
+  scroll-margin-top:calc(var(--cm-fixed-header) + 8px)!important;
+}
+html:has(body.fr2-app-authorized.cm-workspace),
+body.fr2-app-authorized.cm-workspace{
+  scroll-behavior:auto!important;
+}
+body.fr2-app-authorized.cm-workspace :is(button,[role="button"],a,summary){
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button {
+  transition:transform 110ms ease-out,opacity 110ms ease-out!important;
+}
+body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button:active{
+  transform:scale(.96)!important;
+}
+body.fr2-app-authorized.cm-workspace :is(.fr5-screen .btn,.fr5-screen .fr2-home-action):active {
+  transform:scale(.99)!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized.cm-workspace{
+    --cm-fixed-header:calc(58px + env(safe-area-inset-top,0px));
+  }
+  body.fr2-app-authorized.cm-workspace .main{
+    padding-top:var(--cm-fixed-header)!important;
+  }
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar{
+    left:0!important;right:0!important;
+    width:100%!important;
+    padding-top:env(safe-area-inset-top,0px)!important;
+    padding-left:max(12px,env(safe-area-inset-left,0px))!important;
+    padding-right:max(12px,env(safe-area-inset-right,0px))!important;
+    box-sizing:border-box!important;
+  }
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-brand-copy{
+    min-width:0!important;
+  }
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar .fr2-brand-copy strong{
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar #frNotifBell{
+    width:38px!important;min-width:38px!important;
+    height:38px!important;min-height:38px!important;
+    z-index:2!important;
+  }
+  /* Evitar filtros pesados repintados durante el desplazamiento a 90/120 Hz. */
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar,
+  body.fr2-app-authorized.cm-workspace #cmMobileDock,
+  body.fr2-app-authorized.cm-workspace #sidebar{
+    -webkit-backdrop-filter:none!important;
+    backdrop-filter:none!important;
+  }
+  body.fr2-app-authorized.cm-workspace .fr5-screen :is(.panel,.op-panel),
+  body.fr2-app-authorized.cm-workspace #view-home .cm-launchpad{
+    box-shadow:0 5px 14px rgba(62,48,146,.10),inset 0 1px #fff!important;
+  }
+  body.fr2-app-authorized.cm-workspace :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat),
+  body.fr2-app-authorized.cm-workspace #view-home #operationalKpis>.op-kpi{
+    box-shadow:0 5px 13px rgba(62,48,146,.11),inset 0 1px #fff!important;
+  }
+  body.fr2-app-authorized.cm-workspace .fr5-screen .page-heading,
+  body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero{
+    box-shadow:0 6px 16px rgba(58,37,153,.10),inset 0 1px #fff!important;
+  }
+  body.fr2-app-authorized.cm-workspace #view-home>.fr2-home-hero{
+    box-shadow:0 6px 17px rgba(44,25,116,.18),inset 0 1px rgba(255,255,255,.25)!important;
+  }
+  body.fr2-app-authorized.cm-workspace #cmMobileDock{
+    box-shadow:0 8px 19px rgba(41,30,113,.18),inset 0 1px #fff!important;
+  }
+  /* Animar solo la acción, nunca todo el contenido o los formularios. */
+  body.fr2-app-authorized.cm-workspace .fr5-screen.active{
+    animation:none!important;
+    transform:none!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized.cm-workspace #cmMobileDock .cm-dock-button,
+  body.fr2-app-authorized.cm-workspace :is(.fr5-screen .btn,.fr5-screen .fr2-home-action){
+    transition:none!important;
+  }
+}
+@media print{
+  body.fr2-app-authorized.cm-workspace .main{padding-top:0!important}
+  body.fr2-app-authorized.cm-workspace .app-shell .topbar{display:none!important}
+}
