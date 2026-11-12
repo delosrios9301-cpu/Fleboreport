@@ -19,12 +19,12 @@ test('indicadores grandes y accesos compactos mantienen sus valores y textos',()
  assert.match(css,/min-height:84px!important;max-height:92px!important/);
  assert.match(css,/#view-home \.vc-shortcut/);
  assert.match(css,/min-height:86px!important/);
- assert.match(old,/card\.setAttribute/);
+ assert.match(old,/\.op-kpi-trend/);
 });
 test('campos clínicos y acciones siguen siendo pulsables >=44px y reporte intacto',()=>{
  assert.match(css,/min-height:44px!important/);
  assert.match(css,/min-height:48px!important/);
- assert.match(css,/@media print/);
+ assert.match(html,/variant-c-density\.css\?v=20261112-density1" media="screen"/);
  assert.doesNotMatch(css,/#reportPaper[^\\n]*display:none/);
  assert.doesNotMatch(css,/\.report-paper table[^\\n]*padding:/);
 });
