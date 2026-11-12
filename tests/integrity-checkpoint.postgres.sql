@@ -15,6 +15,7 @@ create table if not exists public.clinical_samples (id uuid primary key default 
 create table if not exists public.clinical_sample_events (id uuid primary key default gen_random_uuid(),workspace_id uuid not null);
 create table if not exists public.role_permissions (id uuid primary key default gen_random_uuid(),workspace_id uuid not null);
 create table if not exists public.member_permissions (id uuid primary key default gen_random_uuid(),workspace_id uuid not null);
+create table if not exists public.audit_logs (id uuid primary key default gen_random_uuid(),workspace_id uuid not null);
 \echo 'Testing private integrity checkpoint'
 \i supabase/migrations/20261112170000_private_integrity_checkpoint.sql
 do $audit$
