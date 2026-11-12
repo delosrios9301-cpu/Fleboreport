@@ -56,7 +56,7 @@ test('mismo diseño premium, sin ocultar información y usable en Android tablet
  assert.match(css,/@media\(max-width:370px\)/);
  assert.match(css,/min-height:44px!important/);
  assert.match(css,/\.hv-premium-hero-actions \[hidden\]/);
- assert.doesNotMatch(css,/#hvCreatePanel[^{]*\{[^}]*display:none/);
+ assert.match(css,/#hvWorkspace > #hvCreatePanel\[hidden\]\{[\s\S]*?display:none!important/);
 });
 test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
  assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
