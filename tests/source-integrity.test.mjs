@@ -1362,5 +1362,7 @@ test('Clinical Premium 5.0 compone nuevos modelos de pantalla y conserva los IDs
   assert.match(screenModels, /grid-template-areas:"heading" "metrics" "directory"/);
   assert.match(screenModels, /CLINICAL PREMIUM 5\.0/);
   assert.match(html, /clinical-premium-final-layer/);
-  assert.match(html, /@import url\\(\"\\.\\/clinical-premium-screen-models\\.css\\?v=20261112-premium-models2\"\\)/);\n  assert.match(screenModels, /CLINICAL PREMIUM 5\\.1/);\n  assert.match(screenModels, /op-kpi-body/);
+  assert.ok(html.includes('@import url("./clinical-premium-screen-models.css?v=20261112-premium-models2")'));
+  assert.match(screenModels, /CLINICAL PREMIUM 5\.1/);
+  assert.match(screenModels, /op-kpi-body/);
 });
