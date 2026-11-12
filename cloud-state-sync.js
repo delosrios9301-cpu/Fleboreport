@@ -272,6 +272,11 @@ async function fetchRemote(){
  if(remote&&remote.state)rememberRemoteBaseline(remote.state,remote.revision);
  return remote;
 }
+async function fetchRemoteDelta(sinceRevision){
+ return await engine.measure('cloud.delta',()=>rpcRow('get_workspace_shared_app_state_delta',{
+  p_workspace_id:workspaceId,p_since_revision:sinceRevision
+ }));
+}
 async function writeRemote(state,expected){
  const payload=normalizePatientState(stripLegacyAudit(state));
  if(Array.isArray(payload.catalog))payload.catalog=dedupeCatalog(payload.catalog);
@@ -416,6 +421,35 @@ async function receiveRemote(){
    status('Restablecimiento recibido desde la nube · versión '+revision);return;
   }
   if(remoteMeta.revision<=revision)return;
+  // Solo aplicar una lectura incremental cuando el dispositivo no tiene
+  // cambios locales pendientes y conserva una base confirmada de esa revisión.
+  // Ante cualquier duda, usar la descarga completa anterior y el CAS.
+  const localBeforeDelta=app()||{};
+  const localHashBeforeDelta=await hashState(localBeforeDelta);
+  const canReadDelta=baselineState&&baselineWorkspaceId===workspaceId
+   &&Number(baselineRevision)===Number(revision)
+   &&m.workspaceId===workspaceId&&m.userId===userId
+   &&m.hash===localHashBeforeDelta
+   &&!pendingLocalChanges&&!dirtyAgain;
+  if(canReadDelta){
+   try{
+    const delta=await fetchRemoteDelta(revision);
+    if(delta&&!delta.full_required
+      &&Number(delta.revision)===Number(remoteMeta.revision)
+      &&String(delta.reset_epoch||'')===String(m.resetEpoch||'')){
+     const patched=Object.assign({},baselineState,delta.state||{});
+     (Array.isArray(delta.removed_keys)?delta.removed_keys:[]).forEach(key=>{delete patched[key]});
+     applyCloudState(patched);
+     const h=await hashState(app()||patched);
+     rememberRemoteBaseline(patched,delta.revision);
+     saveMeta(h,delta.revision,delta.reset_epoch||null);
+     status('Secciones actualizadas desde otro dispositivo · versión '+revision);
+     return;
+    }
+   }catch(deltaError){
+    console.warn('[FleboReport Sync] Delta no disponible; se usará lectura completa.',deltaError);
+   }
+  }
   let remote=await fetchRemote();if(!remote)return;
   let local=app()||{};
   await persistLegacyAuditEvents([...(Array.isArray(local.auditLog)?local.auditLog:[]),...((remote.state&&Array.isArray(remote.state.auditLog))?remote.state.auditLog:[])]);
