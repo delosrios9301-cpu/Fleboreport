@@ -1,7 +1,7 @@
 # Punto de recuperación de FleboReport — auditoría 12/11/2026
 
 Este procedimiento mantiene la base operativa intacta. La migración
-\`20261112170000_private_integrity_checkpoint.sql\` crea una instantánea **dentro de la
+\`20261112155007_private_integrity_checkpoint.sql\` crea una instantánea **dentro de la
 misma base de datos**, bajo el esquema privado, con acceso denegado a
 \`anon\`, \`authenticated\` y \`service_role\`. Contiene información clínica sensible;
 **nunca exportar a GitHub ni incluir los datos en logs**.

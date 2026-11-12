@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const source = await readFile(new URL('../supabase/migrations/20261112170000_private_integrity_checkpoint.sql',import.meta.url),'utf8');
+const source = await readFile(new URL('../supabase/migrations/20261112155007_private_integrity_checkpoint.sql',import.meta.url),'utf8');
 
 test('checkpoint de recuperación solo copia datos en esquema privado, sin mutar registros',()=>{
  assert.match(source,/create table if not exists private\.fleboreport_integrity_checkpoints/i);
