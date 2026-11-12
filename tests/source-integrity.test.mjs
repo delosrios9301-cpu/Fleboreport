@@ -40,7 +40,7 @@ const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.me
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
-  assert.match(html, /fleboreport-v2\\.css\\?v=20261111-clinical-premium1/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-clinical-premium1/);
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
