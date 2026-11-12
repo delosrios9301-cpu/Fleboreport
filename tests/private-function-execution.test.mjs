@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const sql=await readFile(new URL('../supabase/migrations/20261112211500_restrict_private_function_execution.sql',import.meta.url),'utf8');
-const indexes=await readFile(new URL('../supabase/migrations/20261112212000_targeted_assignment_indexes.sql',import.meta.url),'utf8');
+const sql=await readFile(new URL('../supabase/migrations/20261112210506_restrict_private_function_execution.sql',import.meta.url),'utf8');
+const indexes=await readFile(new URL('../supabase/migrations/20261112210509_targeted_assignment_indexes.sql',import.meta.url),'utf8');
 test('direct invocation of internal private functions is restricted',()=>{
  for(const name of ['notify_clinical_sample_pending','notify_clinical_sample_registered',
  'track_workspace_shared_state_keys','generate_coagulation_alerts','reset_workspace_operational_data'])

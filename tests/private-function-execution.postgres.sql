@@ -1,8 +1,8 @@
 -- Verify that internal SECURITY DEFINER trigger/scheduled functions cannot
 -- be invoked directly by ordinary clients while shared-state triggers work.
 \set ON_ERROR_STOP on
-\i supabase/migrations/20261112211500_restrict_private_function_execution.sql
-\i supabase/migrations/20261112212000_targeted_assignment_indexes.sql
+\i supabase/migrations/20261112210506_restrict_private_function_execution.sql
+\i supabase/migrations/20261112210509_targeted_assignment_indexes.sql
 do $privileges$
 declare func text; p regprocedure;
 begin

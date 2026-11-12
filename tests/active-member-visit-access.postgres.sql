@@ -6,7 +6,7 @@ as $membership$
  select exists(select 1 from public.workspace_members m
   where m.workspace_id=target and m.user_id=auth.uid() and m.active);
 $membership$;
-\i supabase/migrations/20261112213500_require_active_visit_assignee.sql
+\i supabase/migrations/20261112210511_require_active_visit_assignee.sql
 set role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false);
 do $active$
