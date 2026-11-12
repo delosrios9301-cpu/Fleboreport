@@ -1460,7 +1460,7 @@ test('sincronización clínica evita consultas por técnico sin privilegios de l
 });
 
 test('integración de seguridad por rol usa recursos versión 281',()=>{
-  assert.match(html,/cloud-state-sync\\.js\\?v=20261112-audit-role1/);
-  assert.match(html,/clinical-cloud-sync\\.js\\?v=20261112-audit-role1/);
+  assert.match(html,/cloud-state-sync\.js\?v=20261112-audit-role1/);
+  assert.match(html,/clinical-cloud-sync\.js\?v=20261112-audit-role1/);
   assert.match(serviceWorker,/fleboreport-shell-v281/);
 });
