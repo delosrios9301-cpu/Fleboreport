@@ -1,0 +1,587 @@
+/* FleboReport · Variante C Compact Premium 7.0
+   Capa de presentación: no modifica permisos, datos, RPC, formularios ni impresión. */
+:root{
+  --vc-violet:#4b2cbd;--vc-indigo:#251678;--vc-aqua:#03c5d5;
+  --vc-ink:#20194c;--vc-muted:#69708e;--vc-border:#e2def4;
+  --vc-shadow:0 8px 24px rgba(45,30,125,.095);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact,
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell,
+body.fr2-app-authorized.cm-workspace.vc-compact .main{
+  background:linear-gradient(180deg,#f7f8ff 0%,#f9fbff 52%,#f3f5ff 100%)!important;
+  color:var(--vc-ink)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content{
+  max-width:1420px!important;
+  padding:16px clamp(12px,2.4vw,30px) 105px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar{
+  position:sticky!important;top:0!important;
+  min-height:80px!important;height:80px!important;
+  padding:7px clamp(16px,2.6vw,32px) 17px!important;
+  background:linear-gradient(117deg,#211369 0%,#38229c 39%,#5b31c7 72%,#3436ad 100%)!important;
+  border:0!important;box-shadow:0 4px 16px rgba(40,22,120,.14)!important;
+  overflow:visible!important;isolation:isolate!important;
+  z-index:85!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 71% 7%,rgba(180,110,255,.4),transparent 38%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::after{
+  content:"";pointer-events:none;position:absolute;left:0;right:0;bottom:-1px;height:19px;z-index:0;
+  background:linear-gradient(100deg,#f5f6ff 0%,#be91ff 44%,#00d8e3 86%,#f5f6ff 100%);
+  clip-path:polygon(0 82%,9% 45%,24% 44%,43% 90%,57% 55%,73% 3%,88% 35%,100% 74%,100% 100%,0 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-topbar-inner{
+  position:relative;z-index:1;min-height:48px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-link{
+  display:inline-flex!important;align-items:center!important;gap:11px!important;text-decoration:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-mark{
+  display:grid!important;place-items:center!important;flex:0 0 45px!important;
+  width:45px!important;height:45px!important;border-radius:14px!important;
+  background:linear-gradient(150deg,#fff,#f1eaff 66%,#b9f5ff)!important;
+  color:#4b27bc!important;
+  border:1px solid rgba(255,255,255,.9)!important;
+  box-shadow:inset 0 2px 1px #fff,0 4px 13px rgba(11,6,58,.19)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-mark svg{
+  width:32px!important;height:32px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy strong{
+  color:#fff!important;font-size:clamp(19px,2vw,24px)!important;
+  font-weight:900!important;line-height:1.05!important;letter-spacing:-.55px!important;
+  text-shadow:0 1px 5px rgba(17,9,74,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy small{
+  display:block!important;font-size:10px!important;font-weight:600!important;
+  letter-spacing:.15px!important;color:#dedaff!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-current-area{
+  color:#e4d8ff!important;border-left-color:#cbb7ff66!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-catalog-shortcut{
+  background:rgba(255,255,255,.12)!important;border-color:#ffffff4a!important;color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar #frNotifBell{
+  color:#fff!important;background:rgba(255,255,255,.09)!important;
+  border:1px solid rgba(255,255,255,.20)!important;box-shadow:none!important;
+  border-radius:14px!important;transform:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmContextBar{
+  display:flex!important;align-items:center!important;
+  gap:11px!important;min-height:48px!important;
+  padding:4px 2px 10px!important;margin-bottom:12px!important;
+  border-bottom:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .cm-context-glyph{
+  display:grid!important;place-items:center!important;
+  width:32px!important;height:32px!important;flex:0 0 32px!important;
+  border-radius:10px!important;background:#ebe4ff!important;color:#5833d1!important;
+  box-shadow:none!important;font-size:18px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmContextBar[data-area="home"] .cm-context-glyph{
+  background:transparent!important;color:#6532e3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .cm-context-eyebrow{
+  font-size:9px!important;color:#83799e!important;letter-spacing:1px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmContextTitle{
+  color:#1c163f!important;font-size:clamp(19px,2vw,24px)!important;
+  font-weight:900!important;line-height:1.15!important;letter-spacing:-.65px!important;
+}
+/* El resumen compacto ocupa el sitio del hero sobredimensionado original. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero{
+  min-height:0!important;max-height:none!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;padding:11px 16px!important;margin:0 0 10px!important;
+  background:linear-gradient(110deg,#32219b,#6339ce 72%,#257fc8)!important;
+  border:0!important;border-radius:15px!important;
+  box-shadow:0 5px 12px rgba(50,28,133,.12)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero .fr2-home-copy h1{
+  font-size:16px!important;margin:0!important;line-height:1.25!important;letter-spacing:-.2px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero .fr2-home-copy :is(.eyebrow,p){
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero .fr2-home-date{
+  display:flex!important;align-items:center!important;gap:5px!important;
+  padding:4px 9px!important;min-width:0!important;
+  border-radius:10px!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero .fr2-home-date :is(.fr2-home-date-mark,small,span){
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero .fr2-home-date b{
+  margin:0!important;font-size:11px!important;white-space:nowrap!important;
+}
+/* Carrusel de tarjetas pequeñas con los conteos reales del motor de Inicio. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-stage{
+  display:flex!important;align-items:center!important;gap:3px!important;
+  min-width:0!important;width:100%!important;margin:0 0 13px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis{
+  display:flex!important;flex-flow:row nowrap!important;
+  gap:8px!important;min-width:0!important;flex:1 1 auto!important;
+  margin:0!important;padding:4px 1px 7px!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  overscroll-behavior-x:contain!important;scroll-snap-type:x mandatory!important;
+  -webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis::-webkit-scrollbar{display:none!important}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi{
+  --vc-kpi-bg:linear-gradient(140deg,#3450f5 0%,#2340c6 64%,#0876df 100%);
+  display:flex!important;flex:0 0 clamp(112px,12vw,154px)!important;
+  flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  width:clamp(112px,12vw,154px)!important;min-height:108px!important;max-height:118px!important;
+  padding:10px 8px!important;gap:3px!important;
+  scroll-snap-align:start!important;overflow:hidden!important;
+  border-radius:17px!important;border:1px solid rgba(255,255,255,.15)!important;
+  background:var(--vc-kpi-bg)!important;color:#fff!important;
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.3),0 5px 12px rgba(60,36,154,.16)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi:nth-child(4n+2){
+  --vc-kpi-bg:linear-gradient(138deg,#02caca,#008f9d 72%,#18d7e2);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi:nth-child(4n+3){
+  --vc-kpi-bg:linear-gradient(138deg,#b348fa,#7928d6 66%,#4c29c6);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi:nth-child(4n+4){
+  --vc-kpi-bg:linear-gradient(130deg,#ad24d5,#8419b9 70%,#6424b8);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi::before{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi::after{
+  content:"";position:absolute!important;inset:auto 0 0!important;
+  width:100%!important;height:27px!important;border:0!important;
+  border-radius:0!important;opacity:1!important;
+  background:linear-gradient(90deg,rgba(172,235,255,.10),rgba(19,237,241,.4))!important;
+  clip-path:polygon(0 70%,24% 58%,50% 83%,76% 31%,100% 12%,100% 100%,0 100%)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-icon{
+  display:grid!important;place-items:center!important;width:26px!important;height:25px!important;
+  flex:0 0 25px!important;margin:0!important;background:none!important;
+  border:0!important;box-shadow:none!important;color:#fff!important;font-size:23px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-body{
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  justify-content:center!important;gap:0!important;width:100%!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-body>*{
+  color:#fff!important;text-shadow:none!important;
+  width:100%!important;text-align:center!important;min-width:0!important;
+  word-break:normal!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-value{
+  order:0!important;font-size:clamp(24px,3vw,30px)!important;line-height:1.03!important;
+  font-weight:900!important;letter-spacing:-.8px!important;font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-label{
+  order:1!important;font-size:10px!important;line-height:1.13!important;
+  max-height:2.26em!important;display:-webkit-box!important;-webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;overflow:hidden!important;font-weight:650!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-trend{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-arrow{
+  width:29px!important;height:38px!important;flex:0 0 29px!important;
+  display:grid!important;place-items:center!important;
+  border:1px solid #e9e4ff!important;border-radius:50%!important;
+  background:linear-gradient(150deg,#fff,#f0ebff)!important;color:#6739d5!important;
+  box-shadow:0 3px 8px rgba(64,35,150,.09)!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-arrow svg{
+  width:17px;height:17px;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-arrow:disabled{
+  opacity:.34!important;box-shadow:none!important;cursor:default!important;
+}
+/* Accesos rápidos de la imagen de referencia: cuatro tarjetas operativas. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad{
+  padding:8px 0 14px!important;margin:0 0 12px!important;border:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head{
+  display:flex!important;align-items:center!important;gap:8px!important;
+  justify-content:space-between!important;margin:0 0 12px!important;padding:0 3px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head h2{
+  font-size:clamp(19px,2vw,23px)!important;letter-spacing:-.55px!important;
+  color:var(--vc-ink)!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head>div{
+  display:flex!important;align-items:center!important;gap:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head>div::before{
+  content:"⚡";color:#6239db!important;font-size:24px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head span,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad-head>small{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad .fr2-home-actions{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-launch-grid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut{
+  position:relative;display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;justify-content:center!important;gap:6px!important;
+  min-width:0!important;min-height:116px!important;overflow:hidden!important;
+  padding:14px 15px!important;text-align:left!important;
+  border:1px solid #dcd5f7!important;border-radius:18px!important;
+  color:#3421a0!important;background:linear-gradient(140deg,#f3edff 0%,#f8f6ff 73%,#ebe3ff 100%)!important;
+  box-shadow:inset 0 1px #fff,0 4px 13px rgba(75,47,145,.075)!important;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut:nth-child(even){
+  color:#078b9c!important;border-color:#bbeced!important;
+  background:linear-gradient(145deg,#eafcff 0%,#e8f7fa 72%,#d5fbfd 100%)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut::before{
+  content:"";position:absolute;inset:auto 0 0;height:27px;z-index:0;
+  background:linear-gradient(95deg,rgba(220,210,255,.24),rgba(131,72,241,.65));
+  clip-path:polygon(0 90%,29% 78%,63% 88%,100% 10%,100% 100%,0 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut:nth-child(even)::before{
+  background:linear-gradient(90deg,#85edf622,#0bd4dba8)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut>*{position:relative;z-index:1}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut .vc-shortcut-icon{
+  display:flex!important;align-items:center!important;justify-content:flex-start!important;
+  width:29px!important;height:29px!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut .vc-shortcut-icon svg{
+  width:28px;height:28px;stroke:currentColor;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut strong{
+  display:block!important;color:#201940!important;font-size:16px!important;
+  font-weight:850!important;letter-spacing:-.3px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut small{
+  display:block!important;color:#5e6080!important;font-size:11px!important;line-height:1.25!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut .vc-shortcut-chevron{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  color:#473879!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut[hidden]{
+  display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut:focus-visible{
+  outline:3px solid #4cbbd6!important;outline-offset:2px!important;
+}
+@media(hover:hover){
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut:hover{
+    transform:translateY(-2px)!important;border-color:#9e8bea!important;
+    box-shadow:0 9px 21px rgba(67,44,170,.14)!important;
+  }
+}
+/* Nuevo lenguaje compacto para el resto de las pantallas sin tocar los controladores. */
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog .fr2-catalog-hero{
+  position:relative!important;overflow:hidden!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;min-height:76px!important;
+  padding:14px 17px!important;margin-bottom:13px!important;
+  border:1px solid #e3dcf8!important;border-radius:17px!important;
+  background:linear-gradient(113deg,#fff 0%,#f4eeff 74%,#e4fbff 100%)!important;
+  box-shadow:var(--vc-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading::before{
+  content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px!important;
+  background:linear-gradient(180deg,#6a3dec,#13c9d5)!important;border-radius:5px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading::after{
+  content:"";position:absolute;bottom:0;right:0;width:40%;height:11px;opacity:.55;
+  background:linear-gradient(95deg,transparent,#a993fd,#08cbdd);
+  clip-path:polygon(0 100%,35% 50%,70% 20%,100% 80%,100% 100%);
+  pointer-events:none;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading .eyebrow{
+  color:#6d48cb!important;font-size:9px!important;letter-spacing:1.05px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading h1{
+  color:#221845!important;font-size:clamp(19px,2.1vw,25px)!important;
+  line-height:1.16!important;letter-spacing:-.55px!important;margin:4px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading p{
+  margin:5px 0 0!important;color:#6d728e!important;
+  font-size:11px!important;line-height:1.45!important;max-width:710px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .panel,
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .op-panel,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-home .op-panel,
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-panel,.audit-panel,.fr-config-card){
+  border:1px solid #e2e0f4!important;border-radius:17px!important;
+  background:linear-gradient(180deg,#fff,#fdfcff)!important;
+  box-shadow:0 5px 16px rgba(45,28,124,.075)!important;
+  min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .panel-head{
+  padding:12px 14px!important;gap:10px!important;border-bottom-color:#f0ecfc!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .panel-body{
+  padding:12px 14px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .panel-head h2{
+  color:#282055!important;font-size:14px!important;line-height:1.25!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .btn{
+  border-radius:11px!important;min-height:40px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .btn.primary{
+  background:linear-gradient(140deg,#5336d8,#34219c)!important;
+  color:#fff!important;border-color:#5d4bd1!important;
+  box-shadow:0 3px 9px rgba(59,35,166,.14)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.field input,.field select,.field textarea,input[type="search"]){
+  min-width:0!important;max-width:100%!important;
+  border:1px solid #deddf0!important;border-radius:10px!important;
+  background:#fff!important;font-size:13px!important;line-height:1.35!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .field :is(input,select){
+  min-height:40px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.settings-tabs,.clinical-config-tabs,.hv-module-tabs,.audit-tabs){
+  gap:7px!important;padding:5px!important;border-radius:14px!important;
+  border-color:#e3ddf8!important;background:#f4f1ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.settings-tabs,.clinical-config-tabs,.hv-module-tabs,.audit-tabs) button.active{
+  border-color:#cabdff!important;border-radius:10px!important;
+  color:#5130b8!important;background:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(table,.data-table,.clinical-table){
+  writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+  border-collapse:separate!important;border-spacing:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(th,td){
+  vertical-align:middle!important;line-height:1.35!important;word-break:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpis,.stats-grid,.fr2-catalog-stats,.clinical-kpis,.hv-kpis,.audit-stats){
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr))!important;
+  gap:8px!important;margin-bottom:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat){
+  min-width:0!important;min-height:78px!important;
+  padding:10px!important;gap:5px!important;
+  border-radius:14px!important;border:1px solid #dfdcf4!important;
+  background:linear-gradient(145deg,#fff,#f5f1ff)!important;
+  box-shadow:0 3px 10px rgba(51,37,143,.07)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat):nth-child(even){
+  border-color:#cbebed!important;background:linear-gradient(145deg,#fff,#ecfcff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi-copy strong,.stat-card strong,.fr2-catalog-stat strong,.clinical-kpi strong,.hv-kpi strong,.audit-stat strong){
+  color:#38219e!important;font-size:clamp(19px,2.1vw,25px)!important;
+  font-variant-numeric:tabular-nums!important;line-height:1.12!important;
+  text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi-copy small,.stat-card small,.fr2-catalog-stat small,.clinical-kpi small,.hv-kpi small,.audit-stat small){
+  font-size:10px!important;line-height:1.2!important;
+  color:#68648c!important;text-align:center!important;overflow-wrap:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi-icon,.stat-icon,.fr2-catalog-stat-icon){
+  width:28px!important;height:28px!important;flex-basis:28px!important;
+  border-radius:9px!important;background:linear-gradient(145deg,#ede5ff,#d7fcff)!important;
+  color:#603bd0!important;font-size:15px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact :is(.hv-kpi,.audit-stat,.clinical-kpi){
+  text-align:center!important;
+}
+/* Mantener los indicadores únicamente en Inicio cuando existan en otros módulos
+   estructuralmente necesarios: se compactan, pero nunca se eliminan. */
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .heading-actions{
+  gap:7px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .heading-actions .btn{
+  font-size:11px!important;padding:9px 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-reports .report-card{
+  border:1px solid #e1dcf5!important;border-radius:17px!important;
+  box-shadow:var(--vc-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-reports .report-toolbar{
+  background:linear-gradient(110deg,#f5efff,#ebfbfd)!important;border-radius:15px 15px 0 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-settings .settings-tabs button{
+  border-radius:10px!important;font-size:11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #sidebar{
+  background:linear-gradient(165deg,#252071,#4730af 74%,#1b668f)!important;
+  border-color:#b5a8ff54!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #sidebar .nav-list button[data-nav].active{
+  background:#eae3ff!important;color:#3820a5!important;border-color:#d8ccfa!important;
+}
+/* Dock de cuatro accesos: Inicio, Jornada, Domicilios, Más. */
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock{
+  background:linear-gradient(145deg,#fff,#f7f5ff)!important;
+  border:1px solid #e0dcf1!important;border-top:2px solid #fff!important;
+  border-radius:23px!important;
+  box-shadow:0 7px 22px rgba(46,32,117,.17)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-button{
+  border:0!important;box-shadow:none!important;text-shadow:none!important;
+  background:transparent!important;color:#5d6484!important;border-radius:16px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-button.is-active{
+  color:#4a29d4!important;background:linear-gradient(155deg,#eee7ff,#e8ddff)!important;
+  border:0!important;box-shadow:inset 0 1px #fff!important;text-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-button[data-cm-nav="more"]{
+  background:transparent!important;color:#5d6484!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-button[data-cm-nav="more"] svg{
+  stroke:currentColor!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-label{
+  font-size:11px!important;font-weight:750!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized.cm-workspace.vc-compact{
+    --cm-fixed-header:calc(83px + env(safe-area-inset-top,0px))!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .main{
+    padding-top:var(--cm-fixed-header)!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar{
+    position:fixed!important;left:0!important;right:0!important;top:0!important;
+    min-height:var(--cm-fixed-header)!important;height:var(--cm-fixed-header)!important;
+    padding-top:env(safe-area-inset-top,0px)!important;
+    padding-bottom:16px!important;padding-left:15px!important;padding-right:15px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content{
+    padding:9px 12px calc(103px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-mark{
+    width:43px!important;height:43px!important;flex-basis:43px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy strong{
+    font-size:19px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy small{
+    font-size:9px!important;display:block!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #cmContextBar{
+    margin-bottom:6px!important;min-height:42px!important;padding:2px 2px 6px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home>.fr2-home-hero{
+    display:none!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi{
+    flex:0 0 clamp(101px,26.4vw,125px)!important;
+    width:clamp(101px,26.4vw,125px)!important;
+    min-height:105px!important;max-height:112px!important;padding:9px 5px!important;
+    border-radius:16px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis .op-kpi-value{
+    font-size:26px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-arrow{
+    flex-basis:25px!important;width:25px!important;height:34px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .cm-launchpad{
+    padding:6px 0 10px!important;margin:0 0 7px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-launch-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut{
+    min-height:111px!important;padding:12px 13px!important;gap:5px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut strong{
+    font-size:15px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut small{
+    font-size:10px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut .vc-shortcut-chevron{
+    right:9px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading,
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog .fr2-catalog-hero{
+    flex-direction:column!important;align-items:stretch!important;
+    gap:8px!important;min-height:0!important;padding:13px 14px!important;
+    border-radius:16px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading h1{
+    font-size:20px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen>.page-heading p{
+    font-size:10px!important;line-height:1.4!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .heading-actions{
+    display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+    width:100%!important;gap:6px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen .heading-actions>.btn{
+    flex:1 1 130px!important;max-width:none!important;min-height:40px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpis,.stats-grid,.fr2-catalog-stats,.clinical-kpis,.hv-kpis,.audit-stats){
+    display:flex!important;flex-flow:row nowrap!important;gap:7px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    padding:2px 1px 7px!important;
+    scroll-snap-type:x proximity!important;scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch!important;
+    margin:0 0 8px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi,.stat-card,.fr2-catalog-stat,.clinical-kpi,.hv-kpi,.audit-stat){
+    flex:0 0 112px!important;max-width:142px!important;min-height:76px!important;
+    padding:8px 7px!important;scroll-snap-align:start!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen :is(.journey-kpi-icon,.stat-icon,.fr2-catalog-stat-icon){
+    width:24px!important;height:24px!important;flex-basis:24px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-settings .settings-tabs,
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-settings .clinical-config-tabs{
+    display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;
+    scrollbar-width:none!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock{
+    left:11px!important;right:11px!important;bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+    max-width:470px!important;min-height:66px!important;padding:5px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #cmMobileDock .cm-dock-button{
+    padding:6px 3px 5px!important;
+  }
+}
+@media(max-width:370px){
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy strong{font-size:17px!important}
+  body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-mark{
+    width:38px!important;height:38px!important;flex-basis:38px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home #operationalKpis>.op-kpi{
+    flex-basis:99px!important;width:99px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut{min-height:109px!important;padding:10px!important}
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut small{font-size:9.5px!important}
+}
+@media(min-width:761px){
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-shortcut{
+    min-height:123px!important;
+  }
+  body.fr2-app-authorized.cm-workspace.vc-compact #view-home .vc-kpi-arrow{
+    width:36px!important;flex-basis:36px!important;
+  }
+}
+@media print{
+  body.vc-compact .vc-kpi-arrow,
+  body.vc-compact .vc-launch-grid,
+  body.vc-compact #cmMobileDock{display:none!important}
+  body.vc-compact .app-shell .topbar{display:none!important}
+  body.vc-compact .main{padding-top:0!important}
+  body.vc-compact #view-reports .report-paper{
+    box-shadow:none!important;background:white!important;color:#000!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.vc-compact :is(.vc-shortcut,.vc-kpi-arrow,.cm-dock-button){transition:none!important;animation:none!important}
+}
