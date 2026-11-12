@@ -12,7 +12,7 @@
 - Supabase Advisor: 21 avisos de RPC `SECURITY DEFINER` accesibles a usuarios autenticados; un aviso de protección de contraseñas filtradas desactivada; 87 referencias externas sin índice de cobertura y 20 índices sin uso observado. Esos avisos deben priorizarse por uso real, no tratarse como fallos automáticamente.
 
 ## Correcciones de esta intervención
-1. **Seguridad (media):** revocar `EXECUTE` al rol anónimo en cinco RPC operativas que ya requieren sesión y rol: `save_workspace_app_state`, `search_workspace_patients`, `sync_workspace_patient`, `upsert_clinical_sample_type_config` y `upsert_clinical_visit_config`. Mantener explícitamente el acceso de `authenticated` y `service_role`. Migración `20261112160000_revoke_anonymous_operational_rpcs.sql`.
+1. **Seguridad (media):** revocar `EXECUTE` al rol anónimo en cinco RPC operativas que ya requieren sesión y rol: `save_workspace_app_state`, `search_workspace_patients`, `sync_workspace_patient`, `upsert_clinical_sample_type_config` y `upsert_clinical_visit_config`. Mantener explícitamente el acceso de `authenticated` y `service_role`. Migración `20261112152720_revoke_anonymous_operational_rpcs.sql`.
 2. **Auditoría/ruido de navegación (media):** `app-activity-cloud.js` deja de generar eventos nuevos por abrir el menú y enfocar campos «Usuario» o «Contraseña», sin filtrar registros clínicos ni cambios guardados. Historial ya existente permanece intacto.
 3. **Consistencia visual (baja):** `audit-history.js` integra la clase `fr5-screen` para heredar el lenguaje visual Clinical Modern sin cambiar su búsqueda, exportación ni permisos.
 4. **Pruebas:** cobertura estática para las tres modificaciones anteriores.
