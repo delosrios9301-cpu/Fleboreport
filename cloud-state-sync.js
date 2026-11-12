@@ -313,6 +313,10 @@ async function connect(){
    ready=true;pendingLocalChanges=false;dirtyAgain=false;announceReady();status('Sesión activa · módulos habilitados por permisos');subscribe();return;
   }
   if(!stateSyncAllowed){ready=false;status('Sincronización de datos generales no habilitada para este rol.');return}
+  // Un visor puede conservar datos en memoria de una sesión/versión anterior.
+  // Vaciar únicamente su caché local de solo lectura antes de recibir la
+  // proyección autorizada impide presentar expedientes fuera de sus permisos.
+  if(role==='viewer')applyCloudState(window.FleboAppState.empty(),true);
   let local=app()||{},m=meta();
   const normalizedLocal=normalizePatientState(local);
   if(JSON.stringify(normalizedLocal.patients||[])!==JSON.stringify(local.patients||[])||JSON.stringify(normalizedLocal.journeyEntries||[])!==JSON.stringify(local.journeyEntries||[])){local=normalizedLocal;applyCloudState(local);local=app()||local}

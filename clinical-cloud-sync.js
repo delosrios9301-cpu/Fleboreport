@@ -55,7 +55,11 @@ async function connect(){
   const nextUserId=auth.user.id,nextWorkspaceId=m.workspace_id,nextRole=m.role;
   if(userId!==nextUserId||workspaceId!==nextWorkspaceId||role!==nextRole)clinicalSyncCursor=null;
   userId=nextUserId;workspaceId=nextWorkspaceId;role=nextRole;
-  ready=['admin','clinician','technician','reception'].includes(role);
+  // Evitar descargar y suscribir el catálogo clínico para cuentas sin
+  // estudios/processing.view. La UI no debe consultar datos prohibidos por RLS.
+  const clinicalModuleView = !!(window.fleboCan?.('studies','view')||window.fleboCan?.('processing','view'));
+  ready=['admin','clinician','reception'].includes(role)
+    || (['technician','role_custom'].includes(role)&&clinicalModuleView);
   // Una sesión nueva siempre descarga una instantánea completa. No reutilizar
   // cursores persistidos sin verificar que el estado local contenga la instantánea
   // completa: un cursor antiguo podía omitir todas las muestras al entrar como admin.
