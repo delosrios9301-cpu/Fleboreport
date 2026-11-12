@@ -2802,3 +2802,654 @@ body.fr2-app-authorized .journey-patient-state.pending{
 @media(prefers-reduced-motion:reduce){
  body.fr2-app-authorized *{scroll-behavior:auto!important}
 }
+
+
+/* ==========================================================================
+   FLEBOREPORT · CLINICAL PREMIUM 4.0 · MODELOS DE PANTALLA
+   Rediseño de composición y jerarquía visual para escritorio, tablet y móvil.
+   Mantiene los mismos nodos, acciones, IDs, datos y controladores funcionales.
+   ========================================================================== */
+
+:root{
+  --fr4-ink:#292443;
+  --fr4-muted:#77738f;
+  --fr4-border:#e5e0f1;
+  --fr4-bg:#f4f2fa;
+  --fr4-violet:#5142b8;
+  --fr4-violet-2:#7566e7;
+  --fr4-aqua:#0b9f9a;
+  --fr4-card-shadow:0 10px 28px rgba(39,30,91,.065);
+  --fr4-card-shadow-hover:0 16px 34px rgba(39,30,91,.11);
+}
+
+body.fr2-app-authorized .app-shell .main{
+  background:transparent!important;
+}
+body.fr2-app-authorized .content{
+  max-width:1840px!important;
+  padding:30px clamp(18px,3.2vw,52px) 64px!important;
+}
+body.fr2-app-authorized .topbar{
+  min-height:74px!important;
+  border-bottom:1px solid rgba(222,217,240,.9)!important;
+  background:rgba(250,249,254,.9)!important;
+  box-shadow:0 6px 24px rgba(39,30,91,.045)!important;
+}
+body.fr2-app-authorized .fr2-brand-mark{
+  width:42px!important;height:42px!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,#7162e6,#0b9f9a)!important;
+  box-shadow:0 8px 20px rgba(81,66,184,.2),inset 0 1px rgba(255,255,255,.35)!important;
+}
+body.fr2-app-authorized .fr2-brand-copy strong{color:#292443!important;font-size:16px!important}
+body.fr2-app-authorized .fr2-current-area{
+  padding:8px 12px!important;
+  border:1px solid #e5e0f1!important;
+  border-radius:999px!important;
+  background:#f3f1fb!important;
+  color:#514b70!important;
+}
+body.fr2-app-authorized .fr2-menu-toggle{
+  border-color:#e3def2!important;
+  background:#f7f5fc!important;
+  color:#5142b8!important;
+}
+
+/* Nueva cabecera de módulo: composición editorial, no solo cambio de color. */
+body.fr2-app-authorized .view:not(#view-home)>.page-heading,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:18px!important;
+  min-height:104px!important;
+  margin:0 0 22px!important;
+  padding:20px 23px!important;
+  border:1px solid #e5e0f1!important;
+  border-radius:20px!important;
+  background:
+    radial-gradient(circle at 96% 5%,rgba(117,102,231,.10),transparent 28%),
+    linear-gradient(110deg,#fff 0%,#fbfaff 68%,#f1fbfa 100%)!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading:before,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading:before{
+  content:"";
+  position:absolute!important;
+  left:0;top:18px;bottom:18px;width:4px;
+  border-radius:0 5px 5px 0;
+  background:linear-gradient(180deg,#7566e7,#0b9f9a);
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading>div,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading>div{
+  min-width:0!important;
+  padding-left:4px!important;
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading .eyebrow,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading .eyebrow{
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:22px!important;
+  padding:4px 9px!important;
+  border:1px solid #e2ddf5!important;
+  border-radius:999px!important;
+  background:#f2efff!important;
+  color:#5c4ec2!important;
+  font-size:8px!important;
+  letter-spacing:1.25px!important;
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading h1,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading h1{
+  margin:8px 0 4px!important;
+  color:#292443!important;
+  font-size:clamp(24px,2.2vw,31px)!important;
+  font-weight:900!important;
+  letter-spacing:-1.05px!important;
+  line-height:1.12!important;
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading p,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading p{
+  color:#77738f!important;
+  font-size:11px!important;
+  line-height:1.55!important;
+}
+body.fr2-app-authorized .view:not(#view-home)>.page-heading>.heading-actions,
+body.fr2-app-authorized .view:not(#view-home)>.page-heading>.btn,
+body.fr2-app-authorized #view-patients #patientsHome>.page-heading>.btn{
+  flex:0 0 auto!important;
+  margin-left:auto!important;
+}
+
+/* INICIO · tablero Bento con niveles de prioridad y zonas operativas. */
+body.fr2-app-authorized #view-home>.fr2-home-hero{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(220px,270px)!important;
+  align-items:stretch!important;
+  gap:24px!important;
+  min-height:230px!important;
+  padding:clamp(25px,3vw,39px)!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  border-radius:26px!important;
+  background:
+    radial-gradient(circle at 83% 10%,rgba(187,177,255,.35),transparent 24%),
+    radial-gradient(circle at 7% 100%,rgba(23,204,187,.22),transparent 32%),
+    linear-gradient(120deg,#211a45 0%,#45378f 57%,#087f83 100%)!important;
+  box-shadow:0 22px 48px rgba(39,30,91,.2)!important;
+}
+body.fr2-app-authorized #view-home>.fr2-home-hero:after{
+  content:"";
+  position:absolute;right:17%;top:-75px;
+  width:245px;height:245px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:50%;
+  box-shadow:0 0 0 22px rgba(255,255,255,.035),0 0 0 48px rgba(255,255,255,.025);
+  pointer-events:none;
+}
+body.fr2-app-authorized #view-home .fr2-home-copy,
+body.fr2-app-authorized #view-home .fr2-home-date{
+  position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-copy .eyebrow{
+  color:#b9b0ff!important;
+  letter-spacing:1.7px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-copy h1{
+  margin:10px 0!important;
+  color:#fff!important;
+  font-size:clamp(29px,3.6vw,44px)!important;
+  letter-spacing:-1.65px!important;
+  line-height:1.04!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-copy>p{
+  max-width:650px!important;
+  color:rgba(247,246,255,.78)!important;
+  font-size:12px!important;
+  line-height:1.65!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-actions{
+  display:flex!important;flex-wrap:wrap!important;gap:9px!important;margin-top:22px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action{
+  min-height:52px!important;
+  display:flex!important;align-items:center!important;gap:10px!important;
+  padding:9px 13px!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  border-radius:13px!important;
+  background:rgba(255,255,255,.09)!important;
+  color:#fff!important;
+  text-align:left!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.12)!important;
+  backdrop-filter:blur(10px)!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action.primary{
+  border-color:#a4f0e7!important;
+  background:linear-gradient(135deg,#20b9aa,#087f83)!important;
+  box-shadow:0 8px 20px rgba(0,20,34,.18)!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action-icon{
+  display:grid!important;place-items:center!important;
+  width:32px!important;height:32px!important;flex:none!important;
+  border-radius:10px!important;
+  background:rgba(255,255,255,.15)!important;color:#fff!important;font-size:17px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action b{
+  display:block!important;color:#fff!important;font-size:10px!important;font-weight:850!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action small{
+  display:block!important;margin-top:3px!important;color:rgba(245,248,255,.72)!important;font-size:8px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date{
+  display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:flex-start!important;
+  min-width:0!important;padding:20px!important;
+  border:1px solid rgba(255,255,255,.2)!important;border-radius:19px!important;
+  background:linear-gradient(150deg,rgba(255,255,255,.17),rgba(255,255,255,.07))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.13)!important;
+  backdrop-filter:blur(14px)!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date-mark{
+  display:grid!important;place-items:center!important;width:39px!important;height:39px!important;
+  margin-bottom:15px!important;border-radius:13px!important;
+  background:#ffffff1e!important;color:#fff!important;font-size:20px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date small{
+  color:#d6d0ff!important;font-size:8px!important;font-weight:900!important;letter-spacing:1.35px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date b{
+  margin:8px 0!important;color:#fff!important;font-size:clamp(17px,1.8vw,22px)!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date>span:last-child{
+  color:#d2eae8!important;font-size:9px!important;
+}
+body.fr2-app-authorized #view-home .op-kpis,
+body.fr2-app-authorized #view-home #operationalKpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;margin:16px 0!important;
+}
+body.fr2-app-authorized #view-home .op-kpi{
+  position:relative!important;overflow:hidden!important;min-width:0!important;
+  min-height:104px!important;padding:17px 18px!important;
+  border:1px solid #e5e0f1!important;border-radius:18px!important;
+  background:linear-gradient(145deg,#fff 0%,#f7f5ff 100%)!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-home .op-kpi:after{
+  content:"";position:absolute;right:-24px;bottom:-36px;width:88px;height:88px;
+  border:1px solid rgba(101,85,220,.12);border-radius:50%;
+  box-shadow:0 0 0 12px rgba(101,85,220,.035);pointer-events:none;
+}
+body.fr2-app-authorized #view-home .op-kpi-value{
+  color:#342b70!important;font-size:28px!important;font-weight:900!important;letter-spacing:-1px!important;
+}
+body.fr2-app-authorized #view-home .op-kpi small,
+body.fr2-app-authorized #view-home .op-kpi-label{
+  color:#77738f!important;font-size:9px!important;font-weight:800!important;
+}
+body.fr2-app-authorized #view-home .op-grid{
+  display:grid!important;gap:14px!important;align-items:stretch!important;margin:14px 0!important;
+}
+body.fr2-app-authorized #view-home .op-grid.op-grid-wide{
+  grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr)!important;
+}
+body.fr2-app-authorized #view-home .op-grid:not(.op-grid-wide){
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+body.fr2-app-authorized #view-home .op-panel,
+body.fr2-app-authorized #view-home .clinical-dash-panel{
+  min-width:0!important;border:1px solid #e5e0f1!important;border-radius:19px!important;
+  background:#fff!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-head,
+body.fr2-app-authorized #view-home .clinical-dash-panel>.panel-head{
+  min-height:66px!important;padding:17px 19px!important;
+  border-bottom:1px solid #eeeaf6!important;
+  background:linear-gradient(110deg,#f7f5ff,#fff 72%,#f0fbfa)!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-head h2,
+body.fr2-app-authorized #view-home .clinical-dash-panel>.panel-head h2{
+  color:#30295b!important;font-size:12px!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-head p,
+body.fr2-app-authorized #view-home .clinical-dash-panel>.panel-head p{
+  color:#89849e!important;font-size:9px!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-body,
+body.fr2-app-authorized #view-home .clinical-dash-panel>.panel-body{
+  padding:18px!important;
+}
+body.fr2-app-authorized #view-home .op-quick{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;
+}
+body.fr2-app-authorized #view-home .op-quick button{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:8px!important;
+  min-height:104px!important;padding:14px!important;
+  border:1px solid #e6e1f2!important;border-radius:15px!important;
+  background:linear-gradient(145deg,#fff,#f8f6ff)!important;
+  text-align:left!important;box-shadow:0 5px 14px rgba(39,30,91,.045)!important;
+}
+body.fr2-app-authorized #view-home .op-quick button>span{
+  display:grid!important;place-items:center!important;width:32px!important;height:32px!important;
+  border-radius:10px!important;background:#eeecff!important;color:#5b4bcb!important;font-size:18px!important;
+}
+body.fr2-app-authorized #view-home .op-quick button b{color:#30295b!important;font-size:10px!important}
+body.fr2-app-authorized #view-home .op-quick button small{color:#89849e!important;font-size:8px!important}
+body.fr2-app-authorized #view-home .clinical-dash-columns{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:13px!important;
+}
+body.fr2-app-authorized #view-home .clinical-dash-columns>section{
+  min-width:0!important;padding:13px!important;border:1px solid #e9e5f3!important;border-radius:14px!important;background:#fbfaff!important;
+}
+body.fr2-app-authorized #view-home .clinical-dash-columns h3,
+body.fr2-app-authorized #view-home .clinical-dash-recent h3{
+  color:#514b70!important;font-size:10px!important;font-weight:900!important;
+}
+
+/* JORNADA · espacio de captura + panel de revisión. */
+body.fr2-app-authorized #view-journey .journey-kpis{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;margin:0 0 17px!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi{
+  position:relative!important;overflow:hidden!important;min-height:96px!important;padding:15px 17px!important;
+  border:1px solid #e5e0f1!important;border-radius:17px!important;
+  background:linear-gradient(145deg,#fff,#f7f5ff)!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi-icon{
+  width:39px!important;height:39px!important;border-radius:13px!important;
+  background:#eeecff!important;color:#5b4bcb!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi-copy strong{
+  color:#342b70!important;font-size:26px!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-journey .journey-layout{
+  display:grid!important;grid-template-columns:minmax(0,1.08fr) minmax(340px,.92fr)!important;
+  gap:16px!important;align-items:start!important;
+}
+body.fr2-app-authorized #view-journey .journey-main-column,
+body.fr2-app-authorized #view-journey .journey-side-column{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:15px!important;min-width:0!important;
+}
+body.fr2-app-authorized #view-journey .journey-entry-panel,
+body.fr2-app-authorized #view-journey .journey-tests-panel,
+body.fr2-app-authorized #view-journey .journey-details-panel{
+  overflow:hidden!important;border:1px solid #e5e0f1!important;border-radius:19px!important;
+  background:#fff!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-journey .journey-panel-heading{
+  padding-bottom:13px!important;border-bottom:1px solid #eeeaf6!important;
+}
+body.fr2-app-authorized #view-journey .journey-panel-heading h2{
+  color:#30295b!important;font-size:14px!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-journey .journey-step-number{
+  width:36px!important;height:36px!important;border-radius:12px!important;
+  background:#eeecff!important;color:#5b4bcb!important;
+}
+body.fr2-app-authorized #view-journey .journey-detail-fields input,
+body.fr2-app-authorized #view-journey .journey-detail-fields select,
+body.fr2-app-authorized #view-journey .journey-patient-fields input,
+body.fr2-app-authorized #view-journey #journeyPatientTestSearch{
+  min-height:46px!important;border:1px solid #e3def2!important;border-radius:12px!important;
+  background:#fbfaff!important;
+}
+body.fr2-app-authorized #view-journey .journey-patient-card{
+  border:1px solid #e5e0f1!important;border-radius:16px!important;
+  background:linear-gradient(120deg,#fff,#fbfaff)!important;
+  box-shadow:0 6px 16px rgba(39,30,91,.045)!important;
+}
+body.fr2-app-authorized #view-journey .journey-patient-card:hover{
+  border-color:#c9c1ef!important;box-shadow:var(--fr4-card-shadow-hover)!important;
+}
+
+/* PACIENTES y EMPRESAS · vistas de directorio con resumen y contenido en bloques. */
+body.fr2-app-authorized #view-patients #patientsHome>.stats-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome>.stats-grid .stat-card{
+  min-width:0!important;min-height:100px!important;padding:16px!important;border-radius:17px!important;
+  border-color:#e5e0f1!important;background:linear-gradient(145deg,#fff,#f7f5ff)!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome .stat-icon{
+  width:41px!important;height:41px!important;border-radius:13px!important;
+  background:#eeecff!important;color:#5b4bcb!important;border:1px solid #dfd9f7!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome .stat-card strong{
+  color:#342b70!important;font-size:25px!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-patients #patientsHome .individual-revenue-panel,
+body.fr2-app-authorized #view-patients #patientsHome .dashboard-grid>.panel,
+body.fr2-app-authorized #view-patients #patientsHome>section.panel{
+  overflow:hidden!important;border:1px solid #e5e0f1!important;border-radius:19px!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-companies>.module-grid{
+  display:grid!important;grid-template-columns:minmax(280px,.78fr) minmax(0,1.22fr)!important;
+  gap:16px!important;align-items:start!important;
+}
+body.fr2-app-authorized #view-companies>.module-grid>.panel{
+  overflow:hidden!important;border:1px solid #e5e0f1!important;border-radius:19px!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-companies>.module-grid>.panel:first-child{border-top:4px solid #7566e7!important}
+body.fr2-app-authorized #view-companies>.module-grid>.panel:last-child{border-top:4px solid #0b9f9a!important}
+
+/* CATÁLOGO · portada de biblioteca y buscador como herramienta principal. */
+body.fr2-app-authorized #view-catalog .fr2-catalog-hero{
+  min-height:220px!important;padding:31px!important;border-radius:24px!important;
+  background:
+    radial-gradient(circle at 90% 12%,rgba(190,180,255,.34),transparent 24%),
+    linear-gradient(118deg,#211a45 0%,#493b96 59%,#087f83 100%)!important;
+  box-shadow:0 18px 42px rgba(39,30,91,.19)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro .eyebrow{color:#c6bdff!important}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro h1{
+  color:#fff!important;font-size:clamp(30px,3.2vw,40px)!important;letter-spacing:-1.5px!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro p{max-width:650px!important;color:#e1def8!important}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stats{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:12px!important;margin:14px 0!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat{
+  min-height:96px!important;border:1px solid #e5e0f1!important;border-radius:17px!important;
+  background:linear-gradient(145deg,#fff,#f7f5ff)!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat-icon{
+  width:40px!important;height:40px!important;border-radius:13px!important;background:#eeecff!important;color:#5b4bcb!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-toolbar,
+body.fr2-app-authorized #view-catalog .fr2-catalog-list-panel{
+  overflow:hidden!important;border:1px solid #e5e0f1!important;border-radius:19px!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-search{
+  min-height:53px!important;border:1px solid #ded8f2!important;border-radius:14px!important;background:#fbfaff!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-search input{min-height:48px!important;background:transparent!important}
+
+/* ESTUDIOS CLÍNICOS y PROCESAMIENTO · centro de trabajo con filtros y tablas. */
+body.fr2-app-authorized #view-clinical-studies .clinical-kpis,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi{
+  min-width:0!important;min-height:100px!important;padding:16px!important;border-radius:17px!important;
+  border:1px solid #e5e0f1!important;background:linear-gradient(145deg,#fff,#f7f5ff)!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{
+  color:#342b70!important;font-size:27px!important;font-weight:900!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout,
+body.fr2-app-authorized #view-clinical-processing .clinical-layout{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:15px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout>.panel,
+body.fr2-app-authorized #view-clinical-processing .clinical-layout>.panel{
+  border:1px solid #e5e0f1!important;border-radius:19px!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-filter,
+body.fr2-app-authorized #view-clinical-processing .clinical-filter{
+  border:1px solid #e4def2!important;border-radius:15px!important;background:#f8f6fd!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table-wrap,
+body.fr2-app-authorized #view-clinical-processing .clinical-table-wrap{
+  border:1px solid #e5e0f1!important;border-radius:15px!important;background:#fff!important;
+}
+
+/* DOMICILIOS · tablero de coordinación y agenda. */
+body.fr2-app-authorized #view-domicilios #hvWorkspace{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:15px!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs{
+  width:100%!important;padding:6px!important;border:1px solid #e3def2!important;border-radius:15px!important;background:#f0edfa!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs .hv-module-tab.active{
+  color:#5142b8!important;border-color:#d3ccf1!important;background:#fff!important;box-shadow:0 4px 12px rgba(81,66,184,.1)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi{
+  min-height:92px!important;border:1px solid #e5e0f1!important;border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f7f5ff)!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi strong{color:#342b70!important;font-size:25px!important;font-weight:900!important}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>#hvCreatePanel,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>#hvAgendaPanel,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-history-panel,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-detail-panel,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-calendar-panel{
+  border:1px solid #e5e0f1!important;border-radius:19px!important;background:#fff!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+
+/* REPORTES · vista previa con marco editorial y controles separados. */
+body.fr2-app-authorized #view-reports .report-card{
+  overflow:hidden!important;border:1px solid #e5e0f1!important;border-radius:22px!important;
+  box-shadow:0 15px 38px rgba(39,30,91,.09)!important;
+}
+body.fr2-app-authorized #view-reports .report-toolbar{
+  display:flex!important;align-items:center!important;gap:12px!important;padding:16px 19px!important;
+  background:linear-gradient(110deg,#f5f2ff,#fff 75%,#effaf9)!important;border-bottom:1px solid #e9e4f3!important;
+}
+body.fr2-app-authorized #view-reports .style-picker{
+  display:flex!important;gap:6px!important;padding:4px!important;border:1px solid #e2ddf1!important;border-radius:12px!important;background:#f0edfa!important;
+}
+body.fr2-app-authorized #view-reports .style-picker button{
+  min-height:34px!important;border-radius:9px!important;background:transparent!important;color:#706b89!important;
+}
+body.fr2-app-authorized #view-reports .style-picker button.active{
+  background:#fff!important;color:#5142b8!important;border-color:#d5cef3!important;box-shadow:0 3px 9px rgba(81,66,184,.1)!important;
+}
+body.fr2-app-authorized #view-reports .report-paper{
+  max-width:1120px!important;margin:22px auto!important;border:1px solid #e9e4f2!important;
+  box-shadow:0 12px 30px rgba(39,30,91,.08)!important;
+}
+
+/* HISTORIAL y CONFIGURACIÓN · filtros, secciones y tablas legibles. */
+body.fr2-app-authorized #view-audit .audit-filters,
+body.fr2-app-authorized #view-audit .audit-toolbar{
+  padding:14px!important;border:1px solid #e5e0f1!important;border-radius:16px!important;background:#f8f6fd!important;
+}
+body.fr2-app-authorized #view-audit .audit-stat{
+  border:1px solid #e5e0f1!important;border-radius:16px!important;background:linear-gradient(145deg,#fff,#f7f5ff)!important;
+  box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs{
+  display:flex!important;flex-wrap:nowrap!important;gap:7px!important;overflow-x:auto!important;
+  padding:6px!important;border:1px solid #e3def2!important;border-radius:15px!important;background:#f0edfa!important;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs button{
+  flex:0 0 auto!important;min-height:41px!important;padding:9px 13px!important;border:1px solid transparent!important;border-radius:10px!important;
+  background:transparent!important;color:#706b89!important;font-weight:850!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs button.active{
+  border-color:#d5cef3!important;background:#fff!important;color:#5142b8!important;box-shadow:0 4px 12px rgba(81,66,184,.1)!important;
+}
+body.fr2-app-authorized #view-settings .settings-section>.panel,
+body.fr2-app-authorized #view-settings .settings-section .form-panel{
+  border:1px solid #e5e0f1!important;border-radius:19px!important;box-shadow:var(--fr4-card-shadow)!important;
+}
+body.fr2-app-authorized .panel,
+body.fr2-app-authorized .form-panel,
+body.fr2-app-authorized .report-card,
+body.fr2-app-authorized .op-panel{
+  border-radius:19px!important;
+}
+body.fr2-app-authorized .panel-head{
+  min-height:60px!important;padding:16px 19px!important;
+}
+body.fr2-app-authorized .panel-head h2,
+body.fr2-app-authorized .form-panel h2{
+  color:#30295b!important;font-size:13px!important;font-weight:900!important;
+}
+body.fr2-app-authorized .panel-body{padding:18px!important}
+body.fr2-app-authorized .field label{
+  color:#5e5878!important;font-size:10px!important;font-weight:850!important;
+}
+body.fr2-app-authorized .field input,
+body.fr2-app-authorized .field select,
+body.fr2-app-authorized .field textarea,
+body.fr2-app-authorized .fr-config-field input,
+body.fr2-app-authorized .fr-config-field select,
+body.fr2-app-authorized .fr-config-field textarea{
+  min-height:45px!important;border:1px solid #e3def2!important;border-radius:12px!important;
+  background:#fbfaff!important;color:#292443!important;
+}
+body.fr2-app-authorized .field input:focus,
+body.fr2-app-authorized .field select:focus,
+body.fr2-app-authorized .field textarea:focus{
+  border-color:#8c7de5!important;outline:3px solid rgba(101,85,220,.13)!important;
+}
+body.fr2-app-authorized .btn,
+body.fr2-app-authorized button.btn{
+  min-height:42px!important;border-radius:12px!important;font-weight:850!important;
+}
+body.fr2-app-authorized .btn.primary,
+body.fr2-app-authorized .btn.blue,
+body.fr2-app-authorized .btn-primary{
+  border-color:#5142b8!important;background:linear-gradient(120deg,#5142b8,#7566e7)!important;
+  color:#fff!important;box-shadow:0 7px 17px rgba(81,66,184,.19)!important;
+}
+
+/* Tablet: conserva la jerarquía en dos columnas sin estrechar formularios. */
+@media(max-width:1120px){
+  body.fr2-app-authorized #view-home .op-grid:not(.op-grid-wide){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.fr2-app-authorized #view-home .op-grid.op-grid-wide{grid-template-columns:minmax(0,1fr) minmax(0,.85fr)!important}
+  body.fr2-app-authorized #view-home .op-kpis,
+  body.fr2-app-authorized #view-home #operationalKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.fr2-app-authorized #view-journey .journey-layout{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)!important}
+  body.fr2-app-authorized #view-patients #patientsHome>.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpis,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  body.fr2-app-authorized .content{padding:17px 13px 46px!important}
+  body.fr2-app-authorized .topbar{min-height:62px!important;padding:0 13px!important}
+  body.fr2-app-authorized .view:not(#view-home)>.page-heading,
+  body.fr2-app-authorized #view-patients #patientsHome>.page-heading{
+    min-height:0!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;
+    margin-bottom:14px!important;padding:16px!important;border-radius:16px!important;
+  }
+  body.fr2-app-authorized .view:not(#view-home)>.page-heading>.heading-actions,
+  body.fr2-app-authorized .view:not(#view-home)>.page-heading>.btn,
+  body.fr2-app-authorized #view-patients #patientsHome>.page-heading>.btn{
+    width:100%!important;margin:0!important;
+  }
+  body.fr2-app-authorized .view:not(#view-home)>.page-heading .heading-actions .btn{flex:1 1 auto!important}
+  body.fr2-app-authorized #view-home>.fr2-home-hero{
+    grid-template-columns:minmax(0,1fr)!important;gap:16px!important;min-height:0!important;padding:21px 17px!important;border-radius:19px!important;
+  }
+  body.fr2-app-authorized #view-home .fr2-home-copy h1{font-size:30px!important}
+  body.fr2-app-authorized #view-home .fr2-home-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-top:17px!important}
+  body.fr2-app-authorized #view-home .fr2-home-action{width:100%!important;min-height:49px!important}
+  body.fr2-app-authorized #view-home .fr2-home-date{display:grid!important;grid-template-columns:42px minmax(0,1fr)!important;align-items:center!important;gap:3px 12px!important;padding:13px!important}
+  body.fr2-app-authorized #view-home .fr2-home-date-mark{grid-row:1/4;margin:0!important}
+  body.fr2-app-authorized #view-home .fr2-home-date b{margin:0!important;font-size:16px!important}
+  body.fr2-app-authorized #view-home .op-kpis,
+  body.fr2-app-authorized #view-home #operationalKpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  body.fr2-app-authorized #view-home .op-kpi{min-height:83px!important;padding:12px!important;border-radius:14px!important}
+  body.fr2-app-authorized #view-home .op-kpi-value{font-size:23px!important}
+  body.fr2-app-authorized #view-home .op-grid,
+  body.fr2-app-authorized #view-home .op-grid.op-grid-wide,
+  body.fr2-app-authorized #view-home .op-grid:not(.op-grid-wide){grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+  body.fr2-app-authorized #view-home .op-quick{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.fr2-app-authorized #view-home .op-quick button{min-height:95px!important;padding:11px!important}
+  body.fr2-app-authorized #view-home .clinical-dash-columns{grid-template-columns:minmax(0,1fr)!important}
+  body.fr2-app-authorized #view-journey .journey-kpis{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  body.fr2-app-authorized #view-journey .journey-kpi{min-height:78px!important;padding:9px 7px!important;border-radius:12px!important}
+  body.fr2-app-authorized #view-journey .journey-kpi-icon{width:28px!important;height:28px!important;border-radius:9px!important;font-size:13px!important}
+  body.fr2-app-authorized #view-journey .journey-kpi-copy strong{font-size:20px!important}
+  body.fr2-app-authorized #view-journey .journey-kpi-copy small{font-size:8px!important}
+  body.fr2-app-authorized #view-journey .journey-layout{grid-template-columns:minmax(0,1fr)!important;gap:11px!important}
+  body.fr2-app-authorized #view-patients #patientsHome>.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  body.fr2-app-authorized #view-patients #patientsHome>.stats-grid .stat-card{min-height:83px!important;padding:11px!important}
+  body.fr2-app-authorized #view-companies>.module-grid{grid-template-columns:minmax(0,1fr)!important;gap:11px!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-hero{min-height:0!important;padding:21px 17px!important;border-radius:19px!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stat{min-height:76px!important;padding:9px!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stat strong{font-size:20px!important}
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpis,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpi,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpi{min-height:76px!important;padding:10px!important}
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{font-size:21px!important}
+  body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs{overflow-x:auto!important;flex-wrap:nowrap!important}
+  body.fr2-app-authorized #view-reports .report-toolbar{flex-wrap:wrap!important}
+  body.fr2-app-authorized #view-reports .report-paper{margin:11px!important}
+  body.fr2-app-authorized #view-settings>.settings-tabs{margin-bottom:12px!important}
+  body.fr2-app-authorized .panel-head{padding:14px!important}
+  body.fr2-app-authorized .panel-body{padding:14px!important}
+}
+@media(max-width:420px){
+  body.fr2-app-authorized #view-home .op-quick{grid-template-columns:minmax(0,1fr)!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stats{grid-template-columns:minmax(0,1fr)!important}
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stat{min-height:69px!important}
+  body.fr2-app-authorized #view-journey .journey-kpi-copy em{font-size:6px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized #view-home .fr2-home-action,
+  body.fr2-app-authorized #view-home .op-quick button,
+  body.fr2-app-authorized #view-journey .journey-patient-card,
+  body.fr2-app-authorized .panel,
+  body.fr2-app-authorized .btn{transition:none!important}
+}

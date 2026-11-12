@@ -41,8 +41,8 @@ test('unified audit history exposes the migrated application activity module', (
   assert.ok(history.includes('value="application"'));
   assert.ok(history.includes('r.details&&r.details.section'));
   assert.ok(html.includes('app-activity-cloud.js'));
-  assert.ok(sw.includes('fleboreport-shell-v273'));
-  assert.ok(html.includes('fleboreport-v2.css?v=20261112-clinical-premium6'));
+  assert.ok(sw.includes('fleboreport-shell-v274'));
+  assert.ok(html.includes('fleboreport-v2.css?v=20261112-clinical-premium7'));
   assert.ok(sw.includes('./app-activity-cloud.js'));
 });
 
