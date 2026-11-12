@@ -225,7 +225,7 @@ test('la sincronización general comparte el estado por espacio y conserva permi
 
 test('los expedientes se sincronizan en la tabla maestra compartida del espacio', () => {
   assert.doesNotThrow(() => new Function(patientCloudSync), 'patient-cloud-sync.js debe tener sintaxis válida');
-  assert.ok(html.includes('src="./patient-cloud-sync.js"'));
+  assert.ok(html.includes('src="./patient-cloud-sync.js?v=20261112-sync2"'));
   assert.match(patientCloudMigration, /add column if not exists app_data jsonb/i);
   assert.match(patientCloudMigration, /sync_workspace_patient/i);
   assert.match(patientCloudMigration, /supabase_realtime/i);
@@ -260,7 +260,7 @@ test('la búsqueda del expediente muestra su historial completo y la coincidenci
 });
 
 test('la PWA renueva la caché para instalar la última versión de Domicilios y expedientes', () => {
-  const serviceWorker = html.includes('src="./patient-cloud-sync.js"');
+  const serviceWorker = html.includes('src="./patient-cloud-sync.js?v=20261112-sync2"');
   assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
 });
 
@@ -1461,7 +1461,7 @@ test('sincronización clínica evita consultas por técnico sin privilegios de l
 
 test('integración de seguridad por rol usa recursos versión 281',()=>{
   assert.match(html,/cloud-state-sync\.js\?v=20261112-audit-role1/);
-  assert.match(html,/clinical-cloud-sync\.js\?v=20261112-audit-role1/);
+  assert.match(html,/clinical-cloud-sync\.js\?v=20261112-sync2/);
   assert.match(serviceWorker,/fleboreport-shell-v282/);
 });
 
