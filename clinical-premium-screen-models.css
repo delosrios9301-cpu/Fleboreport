@@ -1,5 +1,6 @@
 
 /* CLINICAL PREMIUM 5.0 — nuevos modelos de pantalla */
+body.fr2-app-authorized .fr5-screen:not(.active){display:none!important}
 :root{--fr5-ink:#292443;--fr5-muted:#77738f;--fr5-line:#e5e0f1;--fr5-violet:#5142b8;--fr5-violet2:#7566e7;--fr5-aqua:#0b9f9a;--fr5-shadow:0 12px 30px rgba(39,30,91,.065)}
 body.fr2-app-authorized .content{max-width:1840px!important;padding:27px clamp(15px,2.6vw,42px) 64px!important}
 body.fr2-app-authorized .fr5-screen{min-width:0!important}
@@ -22,7 +23,7 @@ body.fr2-app-authorized .fr5-screen .btn{min-height:42px!important;border-radius
 body.fr2-app-authorized .fr5-screen .btn.primary,body.fr2-app-authorized .fr5-screen .btn.blue{border-color:#5142b8!important;background:linear-gradient(120deg,#5142b8,#7566e7)!important;color:#fff!important;box-shadow:0 7px 17px rgba(81,66,184,.19)!important}
 
 /* INICIO — Bento command center */
-body.fr2-app-authorized #view-home.fr5-screen-home{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:16px!important;align-items:stretch!important}
+body.fr2-app-authorized #view-home.fr5-screen-home.active{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:16px!important;align-items:stretch!important}
 body.fr2-app-authorized #view-home>.fr2-home-hero{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) 245px!important;gap:26px!important;min-height:252px!important;padding:34px!important;border-radius:26px!important;background:radial-gradient(circle at 82% 10%,rgba(188,179,255,.36),transparent 23%),radial-gradient(circle at 12% 115%,rgba(24,202,188,.21),transparent 34%),linear-gradient(118deg,#211a45 0%,#493b95 58%,#087f83 100%)!important;box-shadow:0 24px 55px rgba(39,30,91,.22)!important}
 body.fr2-app-authorized #view-home>.fr2-home-hero:after{content:"";position:absolute;right:18%;top:-82px;width:265px;height:265px;border:1px solid rgba(255,255,255,.15);border-radius:50%;box-shadow:0 0 0 22px rgba(255,255,255,.035),0 0 0 48px rgba(255,255,255,.025);pointer-events:none}
 body.fr2-app-authorized #view-home .fr2-home-copy,body.fr2-app-authorized #view-home .fr2-home-date{position:relative!important;z-index:1!important}
@@ -153,7 +154,7 @@ body.fr2-app-authorized #view-reports .report-toolbar{display:flex!important;ali
 body.fr2-app-authorized #view-reports .report-paper{width:min(100% - 24px,1120px)!important;margin:23px auto!important;border:1px solid #e8e3f2!important;box-shadow:0 13px 32px rgba(39,30,91,.07)!important}
 
 /* CONFIGURACIÓN — consola lateral en escritorio */
-body.fr2-app-authorized #view-settings.fr5-screen-settings{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;gap:15px!important;align-items:start!important}
+body.fr2-app-authorized #view-settings.fr5-screen-settings.active{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;gap:15px!important;align-items:start!important}
 body.fr2-app-authorized #view-settings>.page-heading{grid-column:1/-1!important}
 body.fr2-app-authorized #view-settings>[data-fr5-area="settings-navigation"]{position:sticky!important;top:88px!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:5px!important;padding:9px!important;border:1px solid #e4def2!important;border-radius:17px!important;background:#f0edfa!important;box-shadow:0 7px 20px rgba(39,30,91,.045)!important}
 body.fr2-app-authorized #view-settings>[data-fr5-area="settings-navigation"] button{min-height:42px!important;width:100%!important;padding:10px 12px!important;text-align:left!important;white-space:normal!important;border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;color:#706b89!important;font-size:10px!important}
@@ -174,7 +175,7 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit,body.fr2-app-aut
  body.fr2-app-authorized #view-home .op-quick{grid-template-columns:repeat(3,minmax(0,1fr))!important}
  body.fr2-app-authorized #view-journey .journey-layout{grid-template-columns:minmax(0,1fr) minmax(330px,.9fr)!important}
  body.fr2-app-authorized #view-patients #patientsHome>[data-fr5-area="patient-kpis"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
- body.fr2-app-authorized #view-settings.fr5-screen-settings{grid-template-columns:190px minmax(0,1fr)!important}
+ body.fr2-app-authorized #view-settings.fr5-screen-settings.active{grid-template-columns:190px minmax(0,1fr)!important}
 }
 
 /* Teléfono y tablet estrecha */
@@ -182,7 +183,7 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit,body.fr2-app-aut
  body.fr2-app-authorized .content{padding:15px 12px 48px!important}
  body.fr2-app-authorized .fr5-screen .page-heading{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:9px!important;min-height:0!important;margin-bottom:14px!important;padding:16px!important;border-radius:16px!important}
  body.fr2-app-authorized .fr5-screen .page-heading>.btn,body.fr2-app-authorized .fr5-screen .page-heading .heading-actions{width:100%!important;margin:0!important}
- body.fr2-app-authorized #view-home.fr5-screen-home{display:flex!important;flex-direction:column!important;gap:11px!important}
+ body.fr2-app-authorized #view-home.fr5-screen-home.active{display:flex!important;flex-direction:column!important;gap:11px!important}
  body.fr2-app-authorized #view-home>.fr2-home-hero{display:flex!important;flex-direction:column!important;gap:15px!important;min-height:0!important;padding:21px 17px!important;border-radius:19px!important}
  body.fr2-app-authorized #view-home .fr2-home-copy h1{font-size:29px!important}
  body.fr2-app-authorized #view-home .fr2-home-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-top:16px!important}
@@ -220,7 +221,7 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit,body.fr2-app-aut
  body.fr2-app-authorized #view-reports .report-toolbar{display:flex!important;flex-direction:column!important;align-items:stretch!important}
  body.fr2-app-authorized #view-reports .style-picker{width:100%!important}
  body.fr2-app-authorized #view-reports .style-picker button{flex:1 1 auto!important}
- body.fr2-app-authorized #view-settings.fr5-screen-settings{display:flex!important;flex-direction:column!important;gap:12px!important}
+ body.fr2-app-authorized #view-settings.fr5-screen-settings.active{display:flex!important;flex-direction:column!important;gap:12px!important}
  body.fr2-app-authorized #view-settings>[data-fr5-area="settings-navigation"]{position:static!important;display:flex!important;flex-direction:row!important;overflow-x:auto!important;white-space:nowrap!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
  body.fr2-app-authorized #view-settings>[data-fr5-area="settings-navigation"] button{width:auto!important;flex:0 0 auto!important;white-space:nowrap!important}
  body.fr2-app-authorized #view-settings>.settings-section{width:100%!important}
