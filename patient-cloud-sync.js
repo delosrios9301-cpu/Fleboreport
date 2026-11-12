@@ -2,6 +2,7 @@
 'use strict';
 const TABLE='patients';
 let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false,patientRefreshPending=false;
+let remoteRefreshTimer=null,remoteRefreshQueued=false;
 const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
@@ -97,7 +98,8 @@ document.addEventListener('focusout',()=>setTimeout(flushPatientRefresh,0));
 window.addEventListener('flebo:local-state-saved',()=>setTimeout(flushPatientRefresh,0));
 async function syncNow(options){
  options=options||{};
- if(!ready||busy||!client||!workspaceId)return;
+ if(!ready||!client||!workspaceId)return;
+ if(busy){if(options.remote)remoteRefreshQueued=true;return;}
  busy=true;dirty=false;
  try{
   const local=(app()?.patients||[]).slice();
@@ -139,7 +141,23 @@ async function syncNow(options){
   if(saveList(combined))refreshPatientViews();
   lastContent=new Map(combined.map(p=>[keyOf(p),contentOf(p)]));
  }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
- finally{busy=false;if(dirty)schedule(300)}
+ finally{
+  busy=false;
+  if(dirty)schedule(300);
+  else if(remoteRefreshQueued)scheduleRemoteRefresh(200);
+ }
+}
+function scheduleRemoteRefresh(delay=250){
+ if(!ready)return;
+ remoteRefreshQueued=true;
+ if(remoteRefreshTimer)clearTimeout(remoteRefreshTimer);
+ remoteRefreshTimer=setTimeout(()=>{
+  remoteRefreshTimer=null;
+  if(!ready||!navigator.onLine)return;
+  if(busy)return; // syncNow's finally will process the queued invalidation.
+  remoteRefreshQueued=false;
+  syncNow({remote:true});
+ },delay);
 }
 function schedule(delay=900){
  if(!ready)return;dirty=true;
@@ -148,26 +166,54 @@ function schedule(delay=900){
  clearTimeout(timer);timer=setTimeout(()=>syncNow({allowLocalPush:true}),delay);
 }
 function subscribe(){
- // Los expedientes se actualizan mediante syncNow al abrir la app,
- // al recuperar conexión y por consulta periódica; evitamos otro canal Realtime.
  if(channel&&client)client.removeChannel(channel);
  channel=null;
+ if(!client||!workspaceId||!userId)return;
+ // El evento es únicamente una señal de invalidación: el expediente se
+ // vuelve a leer con RLS en syncNow, nunca desde el contenido del evento.
+ // La consulta periódica sigue activa si Realtime está desconectado.
+ channel=client.channel('flebo-patients-'+workspaceId+'-'+userId)
+  .on('postgres_changes',{
+   event:'*',schema:'public',table:'patients',filter:'workspace_id=eq.'+workspaceId
+  },(event)=>{
+   const changedWorkspace=event?.new?.workspace_id||event?.old?.workspace_id;
+   if(changedWorkspace&&String(changedWorkspace)!==String(workspaceId))return;
+   scheduleRemoteRefresh(250);
+  })
+  .subscribe();
 }
 async function connect(){
  const auth=window.FleboAuth;if(!auth)return;
  try{
   client=await auth.init();const user=auth.user,m=auth.membership;
   if(!user||!m?.workspace_id||m.active!==true){ready=false;if(channel)client.removeChannel(channel);channel=null;return}
-  if(!['admin','clinician','reception'].includes(m.role)){ready=false;return}
+  if(!['admin','clinician','reception'].includes(m.role)){
+   ready=false;remoteRefreshQueued=false;
+   if(remoteRefreshTimer)clearTimeout(remoteRefreshTimer);remoteRefreshTimer=null;
+   if(channel)client.removeChannel(channel);channel=null;
+   return;
+  }
   const changed=workspaceId!==m.workspace_id||userId!==user.id;userId=user.id;workspaceId=m.workspace_id;ready=true;
-  if(changed){initialized=false;pendingKeys.clear();lastContent.clear();subscribe()}await syncNow();
+  if(changed){
+   initialized=false;pendingKeys.clear();lastContent.clear();
+   remoteRefreshQueued=false;
+   if(remoteRefreshTimer)clearTimeout(remoteRefreshTimer);remoteRefreshTimer=null;
+   subscribe();
+  }
+  await syncNow();
  }catch(e){ready=false;console.error('[FleboReport Patient Sync] Conexión:',e)}
 }
 window.addEventListener('flebo:local-state-saved',()=>{if(ready)schedule()});
-window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth?.user)connect();else{ready=false;if(channel&&client)client.removeChannel(channel);channel=null}});
-window.addEventListener('online',()=>{if(ready)syncNow();else connect()});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)syncNow();else connect()}});
-setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)syncNow();else connect()}},40000);
+window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth?.user)connect();else{
+ ready=false;initialized=false;pendingKeys.clear();lastContent.clear();
+ remoteRefreshQueued=false;
+ if(remoteRefreshTimer)clearTimeout(remoteRefreshTimer);remoteRefreshTimer=null;
+ if(timer)clearTimeout(timer);timer=null;
+ if(channel&&client)client.removeChannel(channel);channel=null;
+}});
+window.addEventListener('online',()=>{if(ready)scheduleRemoteRefresh(100);else connect()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)scheduleRemoteRefresh(150);else connect()}});
+setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)scheduleRemoteRefresh(250);else connect()}},40000);
 function boot(){if(window.FleboAuth&&window.FleboAuth.user)connect();else window.addEventListener('flebo:auth-changed',connect,{once:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
 window.FleboPatientCloud={syncNow,connect,get ready(){return ready},get workspaceId(){return workspaceId}};
