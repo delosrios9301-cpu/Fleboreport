@@ -2578,3 +2578,227 @@ body.fr2-app-authorized [role="button"]:focus-visible{
   }
   body.fr2-app-authorized .view.active{animation:none!important}
 }
+
+
+/* ==========================================================================
+   FLEBOREPORT · IDENTIDAD CROMÁTICA CLINICAL PREMIUM 3.0
+   Renovación de color transversal. Solo presentación; sin reglas de negocio.
+   Paleta: índigo profundo + violeta mineral + aqua clínico + lavanda suave.
+   ========================================================================== */
+:root{
+  --navy:#241d49!important;
+  --navy2:#352b70!important;
+  --blue:#6555dc!important;
+  --teal:#0b9f9a!important;
+  --mint:#eeecff!important;
+  --ink:#292443!important;
+  --muted:#77738f!important;
+  --line:#e6e2f1!important;
+  --bg:#f5f3fa!important;
+  --white:#ffffff!important;
+  --green:#16866f!important;
+  --red:#c64f69!important;
+  --shadow:0 10px 30px rgba(39,30,91,.085)!important;
+  --fr-premium-ink:#292443!important;
+  --fr-premium-muted:#77738f!important;
+  --fr-premium-navy:#241d49!important;
+  --fr-premium-teal:#0b9f9a!important;
+  --fr-premium-teal-deep:#087f83!important;
+  --fr-premium-bg:#f5f3fa!important;
+  --fr-premium-surface:#ffffff!important;
+  --fr-premium-border:#e6e2f1!important;
+  --fr-premium-shadow:0 12px 32px rgba(39,30,91,.07)!important;
+  --fr-premium-shadow-hover:0 17px 38px rgba(39,30,91,.13)!important;
+}
+html,body{background:#f5f3fa!important;color:#292443!important}
+body.fr2-app-authorized{
+  background:
+    radial-gradient(ellipse at 92% 0%,rgba(111,91,224,.11),transparent 32%),
+    radial-gradient(ellipse at 8% 88%,rgba(11,159,154,.055),transparent 30%),
+    linear-gradient(180deg,#f8f7fc 0%,#f1eff8 100%)!important;
+  color:#292443!important;
+}
+::selection{background:#dcd7ff!important;color:#241d49!important}
+
+/* Sidebar: nuevo tono índigo-violeta, con remate aqua */
+@media(min-width:761px){
+ body.fr2-app-authorized #sidebar{
+  background:linear-gradient(158deg,#211a45 0%,#34296f 56%,#087f83 100%)!important;
+  border-right:1px solid rgba(255,255,255,.14)!important;
+  box-shadow:14px 0 40px rgba(35,25,83,.16)!important;
+ }
+}
+body.fr2-app-authorized #sidebar .active,
+body.fr2-app-authorized #sidebar .module-link.active,
+body.fr2-app-authorized #sidebar .nav-item.active{
+ background:linear-gradient(100deg,rgba(133,119,255,.27),rgba(17,183,173,.15))!important;
+ border-color:rgba(190,183,255,.28)!important;
+}
+
+/* Identidad de página, cabeceras y superficies principales */
+body.fr2-app-authorized .page-heading h1,
+body.fr2-app-authorized .panel-head h2,
+body.fr2-app-authorized .form-panel h2{color:#292443!important}
+body.fr2-app-authorized .page-heading p,
+body.fr2-app-authorized .panel-head p,
+body.fr2-app-authorized .section-description{color:#77738f!important}
+body.fr2-app-authorized .eyebrow{color:#6253cf!important}
+body.fr2-app-authorized .panel,
+body.fr2-app-authorized .report-card,
+body.fr2-app-authorized .stat-card,
+body.fr2-app-authorized .catalog-card,
+body.fr2-app-authorized .journey-patient-card,
+body.fr2-app-authorized .patient-test-status,
+body.fr2-app-authorized .form-panel,
+body.fr2-app-authorized .op-panel{
+ border-color:#e6e2f1!important;
+ box-shadow:0 8px 25px rgba(39,30,91,.055)!important;
+}
+body.fr2-app-authorized .panel-head,
+body.fr2-app-authorized .op-panel>.panel-head{
+ background:linear-gradient(105deg,#f2efff 0%,#fbfaff 72%,#f0fbfa 100%)!important;
+ border-bottom-color:#e8e3f5!important;
+}
+body.fr2-app-authorized .content{background:transparent!important}
+
+/* Acciones principales: violeta reconocible; aqua queda para acciones clínicas */
+body.fr2-app-authorized .btn.blue,
+body.fr2-app-authorized .btn.primary,
+body.fr2-app-authorized .btn-primary,
+body.fr2-app-authorized button.primary,
+body.fr2-app-authorized .primary-btn,
+body.fr2-app-authorized #view-home .fr2-home-action.primary,
+body.fr2-app-authorized #view-catalog .fr2-catalog-new{
+ color:#fff!important;
+ border-color:#5b4bcb!important;
+ background:linear-gradient(112deg,#5142b8 0%,#7160e5 100%)!important;
+ box-shadow:0 7px 18px rgba(81,66,184,.22)!important;
+}
+body.fr2-app-authorized .btn.blue:hover,
+body.fr2-app-authorized .btn.primary:hover,
+body.fr2-app-authorized .btn-primary:hover,
+body.fr2-app-authorized button.primary:hover,
+body.fr2-app-authorized .primary-btn:hover,
+body.fr2-app-authorized #view-home .fr2-home-action.primary:hover,
+body.fr2-app-authorized #view-catalog .fr2-catalog-new:hover{
+ background:linear-gradient(112deg,#4536a8 0%,#6252d3 100%)!important;
+ box-shadow:0 10px 24px rgba(81,66,184,.28)!important;
+}
+body.fr2-app-authorized .btn:not(.blue):not(.primary):not(.danger):not(.success),
+body.fr2-app-authorized button:not(.blue):not(.primary):not(.danger):not(.success){
+ border-color:#e4e0f0;
+}
+body.fr2-app-authorized .btn.success,
+body.fr2-app-authorized .btn.green{background:#0b9f8e!important;border-color:#0b9f8e!important;color:#fff!important}
+
+/* Navegación activa: pastilla lavanda y acento índigo */
+body.fr2-app-authorized .settings-tabs,
+body.fr2-app-authorized .clinical-config-tabs,
+body.fr2-app-authorized #view-settings>.settings-tabs,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs,
+body.fr2-app-authorized #view-patients .patient-record-tabs{
+ background:#efedfa!important;border-color:#e3def3!important;
+}
+body.fr2-app-authorized .settings-tabs button.active,
+body.fr2-app-authorized .clinical-config-tabs button.active,
+body.fr2-app-authorized #view-settings>.settings-tabs button.active,
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs .hv-module-tab.active,
+body.fr2-app-authorized #view-patients .patient-record-tabs button.active,
+body.fr2-app-authorized #view-reports .style-picker button.active{
+ color:#4f40b4!important;
+ background:#fff!important;
+ border-color:#cfc8f2!important;
+ box-shadow:0 3px 12px rgba(81,66,184,.12)!important;
+}
+
+/* Inicio y módulos: acentos cromáticos más visibles */
+body.fr2-app-authorized .op-hero,
+body.fr2-app-authorized #view-home>.fr2-home-hero{
+ background:
+  radial-gradient(circle at 88% 16%,rgba(166,153,255,.48),transparent 25%),
+  linear-gradient(116deg,#211a45 0%,#44368f 58%,#087f83 100%)!important;
+ box-shadow:0 18px 42px rgba(39,30,91,.22)!important;
+}
+body.fr2-app-authorized #view-home .op-kpi,
+body.fr2-app-authorized #view-journey .journey-kpi,
+body.fr2-app-authorized #view-patients #patientsHome>.stats-grid .stat-card,
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi,
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi,
+body.fr2-app-authorized #view-audit .audit-stat,
+body.fr2-app-authorized #view-reports .report-metric{
+ border-color:#e4def5!important;
+ background:linear-gradient(145deg,#fff 0%,#f7f5ff 100%)!important;
+}
+body.fr2-app-authorized #view-home .op-kpi-value,
+body.fr2-app-authorized #view-journey .journey-kpi strong,
+body.fr2-app-authorized #view-audit .audit-stat strong{color:#342b70!important}
+body.fr2-app-authorized #view-home .op-quick button>span,
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat-icon,
+body.fr2-app-authorized #view-patients #patientsHome .stat-icon{
+ color:#5b4bcb!important;
+ background:#eeecff!important;
+ border-color:#ded8fb!important;
+}
+body.fr2-app-authorized #view-journey .journey-kpi-icon,
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi-icon{
+ color:#087f83!important;
+ background:#e5f7f5!important;
+}
+
+/* Formularios, buscadores, tablas y selección */
+body.fr2-app-authorized input:focus,
+body.fr2-app-authorized select:focus,
+body.fr2-app-authorized textarea:focus{
+ border-color:#8c7de5!important;
+ box-shadow:0 0 0 3px rgba(101,85,220,.14)!important;
+}
+body.fr2-app-authorized .table-wrap,
+body.fr2-app-authorized .clinical-table-wrap,
+body.fr2-app-authorized .audit-table-wrap{
+ border-color:#e5e0f1!important;
+}
+body.fr2-app-authorized .data-table th,
+body.fr2-app-authorized .clinical-table th,
+body.fr2-app-authorized .audit-table th{
+ color:#514b70!important;
+ background:#f0eef9!important;
+ border-bottom-color:#e3def1!important;
+}
+body.fr2-app-authorized .data-table tbody tr:hover td,
+body.fr2-app-authorized .clinical-table tbody tr:hover td,
+body.fr2-app-authorized .audit-table tbody tr:hover td{
+ background:#f7f5ff!important;
+}
+body.fr2-app-authorized .badge,
+body.fr2-app-authorized .journey-active-badge{
+ border-color:#dcd6f5!important;
+ background:#f0edff!important;
+ color:#5546bd!important;
+}
+body.fr2-app-authorized .badge.success,
+body.fr2-app-authorized .badge.complete,
+body.fr2-app-authorized .journey-patient-state.complete{
+ border-color:#c8eae2!important;background:#e8f7f2!important;color:#14765f!important;
+}
+body.fr2-app-authorized .badge.pending,
+body.fr2-app-authorized .journey-patient-state.pending{
+ border-color:#f1dfb9!important;background:#fff7e8!important;color:#9b6818!important;
+}
+
+/* Acceso: se armoniza con la nueva identidad sin alterar el formulario */
+#fleboAuthGate:not([hidden]){
+ background:
+  radial-gradient(circle at 12% 12%,#ded9ff 0,transparent 31%),
+  radial-gradient(circle at 90% 86%,#ccefeb 0,transparent 32%),
+  linear-gradient(135deg,#f6f4fc,#eeecf7)!important;
+}
+#fleboAuthPanel{border-color:#e3def3!important;box-shadow:0 24px 70px rgba(39,30,91,.17)!important}
+#fleboAuthPanel h1,
+#fleboAuthPanel .auth-title{color:#292443!important}
+#fleboAuthPanel button[type=submit],
+#fleboAuthPanel .auth-submit{background:linear-gradient(112deg,#5142b8,#7160e5)!important;border-color:#5142b8!important;color:#fff!important}
+
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized *{scroll-behavior:auto!important}
+}
