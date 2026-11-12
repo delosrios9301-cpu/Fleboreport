@@ -2094,3 +2094,387 @@ body.fr2-app-authorized #view-clinical-processing .clinical-age-critical>td{
   }
 }
 
+
+
+
+/* ==========================================================================
+   CLINICAL PREMIUM 2.4 · FASE 4
+   Domicilios, Reportes, Historial General y Configuración.
+   Presentación aislada; conserva los flujos y permisos existentes.
+   ========================================================================== */
+
+/* DOMICILIOS · centro de coordinación y visitas */
+body.fr2-app-authorized #view-domicilios>.page-heading h1{
+  font-size:clamp(27px,2.5vw,35px)!important;
+  letter-spacing:-1.1px!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace{
+  gap:16px!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-notice{
+  border-radius:13px!important;
+  background:linear-gradient(110deg,#effaf7,#f7fbfc)!important;
+  box-shadow:inset 3px 0 #18a99b!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs{
+  padding:6px!important;
+  border:1px solid #e0e9ee!important;
+  border-radius:15px!important;
+  background:linear-gradient(145deg,#f5f9fa,#eef4f6)!important;
+  box-shadow:0 4px 13px rgba(20,48,67,.035)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs .hv-module-tab{
+  min-height:43px!important;
+  padding:9px 15px!important;
+  border-radius:11px!important;
+  font-size:10px!important;
+  transition:background .16s ease,color .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs .hv-module-tab.active{
+  border-color:#d3e8e4!important;
+  background:#fff!important;
+  color:#087f79!important;
+  box-shadow:0 4px 12px rgba(20,48,67,.07)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:88px!important;
+  padding:15px!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f7fbfc)!important;
+  box-shadow:0 7px 20px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi strong{
+  color:#15384f!important;
+  font-size:26px!important;
+  font-weight:900!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace #hvCreatePanel{
+  border-top:3px solid #18a99b!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace #hvAgendaPanel{
+  border-top:3px solid #7aa6ba!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-history-panel{
+  border-top:3px solid #91a9b8!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-calendar-panel{
+  border-top:3px solid #1b9a91!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit{
+  min-height:70px!important;
+  padding:14px!important;
+  border-radius:14px!important;
+  background:linear-gradient(115deg,#fff,#f9fcfd)!important;
+  box-shadow:0 4px 13px rgba(20,48,67,.035)!important;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit:hover{
+  transform:translateY(-1px)!important;
+  border-color:#c5dedb!important;
+  box-shadow:0 9px 20px rgba(20,48,67,.065)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-status{
+  padding:6px 10px!important;
+  font-size:9px!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-cal-day{
+  min-height:70px!important;
+  border-radius:11px!important;
+  background:linear-gradient(145deg,#fff,#f9fcfd)!important;
+  transition:border-color .15s ease,background .15s ease!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-cal-day.today{
+  border-color:#8ccfc4!important;
+  background:#f0faf7!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-cal-day.selected{
+  border-color:#0b9187!important;
+  background:#eaf8f4!important;
+  box-shadow:0 0 0 2px rgba(11,145,135,.1)!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-detail-panel{
+  border-top:3px solid #0d9189!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-detail-panel .hv-info>div{
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#fff,#f7fafb)!important;
+}
+body.fr2-app-authorized .hv-detail-dialog{
+  border:1px solid rgba(255,255,255,.35)!important;
+  border-radius:23px!important;
+  box-shadow:0 30px 90px rgba(4,24,38,.35)!important;
+}
+body.fr2-app-authorized .hv-assignment-modal{
+  border-radius:23px!important;
+  box-shadow:0 28px 80px rgba(4,24,38,.3)!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs{
+    gap:5px!important;
+  }
+  body.fr2-app-authorized #view-domicilios #hvWorkspace>.hv-module-tabs .hv-module-tab{
+    padding:8px 11px!important;
+  }
+  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi{
+    min-height:76px!important;
+    padding:11px!important;
+  }
+  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-kpi strong{
+    font-size:22px!important;
+  }
+}
+
+/* REPORTES · documento profesional y herramientas de salida */
+body.fr2-app-authorized #view-reports>.page-heading h1{
+  font-size:clamp(27px,2.5vw,35px)!important;
+}
+body.fr2-app-authorized #view-reports>.page-heading .heading-actions .btn{
+  min-height:44px!important;
+  padding-inline:16px!important;
+}
+body.fr2-app-authorized #view-reports .report-card{
+  overflow:hidden!important;
+  padding:16px!important;
+  border:1px solid #e1eaf0!important;
+  border-radius:21px!important;
+  background:linear-gradient(145deg,#fff,#f6fafb)!important;
+  box-shadow:0 12px 32px rgba(20,48,67,.07)!important;
+}
+body.fr2-app-authorized #view-reports .report-toolbar{
+  display:flex!important;
+  align-items:center!important;
+  flex-wrap:wrap!important;
+  gap:12px!important;
+  padding:4px 4px 15px!important;
+  border-bottom:1px solid #e8eff2!important;
+}
+body.fr2-app-authorized #view-reports .report-toolbar>b{
+  color:#1b4057!important;
+  font-size:12px!important;
+  font-weight:850!important;
+}
+body.fr2-app-authorized #view-reports .report-patient-toggle{
+  color:#587487!important;
+  font-size:10px!important;
+  font-weight:750!important;
+}
+body.fr2-app-authorized #view-reports .style-picker{
+  padding:4px!important;
+  border:1px solid #e2ebef!important;
+  border-radius:11px!important;
+  background:#f3f8f9!important;
+}
+body.fr2-app-authorized #view-reports .style-picker button{
+  min-height:34px!important;
+  padding:7px 12px!important;
+  border-radius:8px!important;
+  color:#647c8b!important;
+  font-size:9px!important;
+  font-weight:800!important;
+}
+body.fr2-app-authorized #view-reports .style-picker button.active{
+  border:1px solid #d9e9e5!important;
+  background:#fff!important;
+  color:#087f79!important;
+  box-shadow:0 3px 9px rgba(20,48,67,.06)!important;
+}
+body.fr2-app-authorized #view-reports .report-paper{
+  margin:18px auto 4px!important;
+  border:1px solid #e4ebef!important;
+  border-radius:15px!important;
+  box-shadow:0 9px 25px rgba(20,48,67,.055)!important;
+}
+body.fr2-app-authorized #view-reports .report-section-title{
+  color:#17394f!important;
+  letter-spacing:-.2px!important;
+}
+body.fr2-app-authorized #view-reports .report-metric{
+  border:1px solid #e5edf1!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#fff,#f7fafb)!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-reports .report-card{
+    padding:10px!important;
+    border-radius:16px!important;
+  }
+  body.fr2-app-authorized #view-reports .report-paper{
+    margin-top:12px!important;
+    border-radius:10px!important;
+  }
+  body.fr2-app-authorized #view-reports .report-toolbar{
+    align-items:flex-start!important;
+    flex-direction:column!important;
+  }
+  body.fr2-app-authorized #view-reports .style-picker{
+    width:100%!important;
+    display:flex!important;
+  }
+  body.fr2-app-authorized #view-reports .style-picker button{
+    flex:1 1 0!important;
+  }
+}
+
+/* HISTORIAL GENERAL · filtros, métricas y trazabilidad */
+body.fr2-app-authorized #view-audit>.page-heading h1{
+  font-size:clamp(27px,2.5vw,35px)!important;
+}
+body.fr2-app-authorized #view-audit .audit-stats{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:11px!important;
+  margin:0 0 16px!important;
+}
+body.fr2-app-authorized #view-audit .audit-stat{
+  min-width:0!important;
+  min-height:84px!important;
+  padding:15px!important;
+  border:1px solid #e2ebef!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f7fafc)!important;
+  box-shadow:0 6px 18px rgba(20,48,67,.04)!important;
+}
+body.fr2-app-authorized #view-audit .audit-stat strong{
+  display:block!important;
+  margin-top:6px!important;
+  color:#17394f!important;
+  font-size:26px!important;
+  font-weight:900!important;
+}
+body.fr2-app-authorized #view-audit .audit-filters{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:11px!important;
+  padding:15px!important;
+  border:1px solid #e6eef1!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,#f9fcfd,#f2f7f8)!important;
+}
+body.fr2-app-authorized #view-audit .audit-filters input,
+body.fr2-app-authorized #view-audit .audit-filters select{
+  min-height:43px!important;
+  border-radius:11px!important;
+  background:#fff!important;
+}
+body.fr2-app-authorized #view-audit .audit-table-wrap{
+  border:1px solid #e5edf1!important;
+  border-radius:13px!important;
+  background:#fff!important;
+}
+body.fr2-app-authorized #view-audit .audit-table th{
+  background:#f3f8fa!important;
+  color:#607a8b!important;
+}
+body.fr2-app-authorized #view-audit .audit-section-tag{
+  border:1px solid #d9ebe6!important;
+  background:#eef9f5!important;
+  color:#14786e!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-audit .audit-stats{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  body.fr2-app-authorized #view-audit .audit-stat{
+    min-height:70px!important;
+    padding:10px!important;
+  }
+  body.fr2-app-authorized #view-audit .audit-stat strong{
+    font-size:21px!important;
+  }
+  body.fr2-app-authorized #view-audit .audit-filters{
+    grid-template-columns:minmax(0,1fr)!important;
+    padding:11px!important;
+  }
+}
+
+/* CONFIGURACIÓN · consola administrativa */
+body.fr2-app-authorized #view-settings>.page-heading h1{
+  font-size:clamp(27px,2.5vw,35px)!important;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  padding:8px!important;
+  border:1px solid #e1eaf0!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#f5f9fa,#eef4f6)!important;
+  box-shadow:0 5px 16px rgba(20,48,67,.035)!important;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs button{
+  min-height:41px!important;
+  padding:9px 13px!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  color:#60798a!important;
+  font-size:10px!important;
+  font-weight:820!important;
+  transition:background .16s ease,color .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized #view-settings>.settings-tabs button.active{
+  border-color:#d9e9e5!important;
+  background:#fff!important;
+  color:#087f79!important;
+  box-shadow:0 3px 10px rgba(20,48,67,.065)!important;
+}
+body.fr2-app-authorized #view-settings .settings-section>.panel,
+body.fr2-app-authorized #view-settings .settings-section .panel{
+  border-radius:18px!important;
+  box-shadow:0 8px 24px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-settings .settings-section .panel-head{
+  padding:17px 19px!important;
+  background:linear-gradient(110deg,#f7fafb,#fff)!important;
+}
+body.fr2-app-authorized #view-settings .clinical-config-tabs{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  padding:8px!important;
+  border:1px solid #e3ebef!important;
+  border-radius:14px!important;
+  background:#f5f9fa!important;
+}
+body.fr2-app-authorized #view-settings .clinical-config-tabs button{
+  min-height:38px!important;
+  padding:8px 12px!important;
+  border-radius:9px!important;
+  font-size:9px!important;
+  font-weight:800!important;
+}
+body.fr2-app-authorized #view-settings .clinical-config-tabs button.active{
+  background:#fff!important;
+  color:#087f79!important;
+  box-shadow:0 3px 9px rgba(20,48,67,.07)!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-settings>.settings-tabs{
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    scrollbar-width:thin;
+    -webkit-overflow-scrolling:touch;
+  }
+  body.fr2-app-authorized #view-settings>.settings-tabs button{
+    flex:0 0 auto!important;
+    white-space:nowrap!important;
+  }
+  body.fr2-app-authorized #view-settings .clinical-config-tabs{
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    scrollbar-width:thin;
+  }
+  body.fr2-app-authorized #view-settings .clinical-config-tabs button{
+    flex:0 0 auto!important;
+    white-space:nowrap!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-visit,
+  body.fr2-app-authorized #view-settings>.settings-tabs button{
+    transition:none!important;
+  }
+}
+
