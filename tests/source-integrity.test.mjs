@@ -1416,3 +1416,20 @@ test('Clinical Modern 6.2 mantiene marca/campana fijas y navega sin scroll anima
   assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw3/);
   assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw3/);
 });
+
+
+test('auditoría 2026-11-12 minimiza RPC anónimos y ruido de navegación sin alterar las escrituras clínicas', async () => {
+  const activity = await readFile(new URL('../app-activity-cloud.js', import.meta.url), 'utf8');
+  const history = await readFile(new URL('../audit-history.js', import.meta.url), 'utf8');
+  const migration = await readFile(new URL('../supabase/migrations/20261112160000_revoke_anonymous_operational_rpcs.sql', import.meta.url), 'utf8');
+  assert.doesNotThrow(() => new Function(activity));
+  assert.doesNotThrow(() => new Function(history));
+  for (const rpc of ['save_workspace_app_state','search_workspace_patients','sync_workspace_patient','upsert_clinical_sample_type_config','upsert_clinical_visit_config']) {
+    assert.match(migration,new RegExp('revoke execute on function public\\.'+rpc+'\\('));
+    assert.match(migration,new RegExp('grant execute on function public\\.'+rpc+'\\('));
+  }
+  assert.match(activity,/actionLabel==='Abrir menú de módulos'/);
+  assert.match(activity,/actionLabel==='Contraseña'/);
+  assert.match(history,/section\.className='view fr5-screen'/);
+  assert.match(migration,/to authenticated, service_role/);
+});

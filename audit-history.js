@@ -15,7 +15,7 @@ function ensureMarkup(){
  const settingsNav=document.querySelector('[data-nav="settings"]');
  if(settingsNav){const b=document.createElement('button');b.type='button';b.dataset.nav='audit';b.innerHTML='<span class="nav-icon">▤</span><span class="nav-copy">Historial General</span>';b.onclick=()=>window.navigate('audit');b.hidden=!(window.fleboCan&&window.fleboCan('audit','view'));settingsNav.parentNode.insertBefore(b,settingsNav);}
  const content=document.querySelector('.main>.content');if(!content)return;
- const section=document.createElement('section');section.className='view';section.id='view-audit';
+ const section=document.createElement('section');section.className='view fr5-screen';section.id='view-audit';
  section.innerHTML=`
  <div class="page-heading"><div><div class="eyebrow">TRAZABILIDAD Y CONTROL</div><h1>Historial General</h1><p>Registro centralizado de actividades, operaciones y modificaciones de todos los módulos.</p></div><div class="heading-actions"><button class="btn" onclick="FleboAuditHistory.exportCsv()">Exportar CSV</button><button class="btn" onclick="window.print()">Imprimir / PDF</button></div></div>
  <div class="audit-stats"><div class="audit-stat"><small>Resultados con filtros actuales</small><strong id="auditTotalStat">0</strong></div><div class="audit-stat"><small>Creaciones en la página</small><strong id="auditCreateStat">0</strong></div><div class="audit-stat"><small>Modificaciones en la página</small><strong id="auditUpdateStat">0</strong></div></div>

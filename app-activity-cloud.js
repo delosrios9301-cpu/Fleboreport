@@ -29,6 +29,11 @@ async function flushQueue(){
  }finally{flushing=false}
 }
 function auditAdd(section,action){
+ // Los clics de navegación y el foco de las credenciales no son cambios
+ // operativos. Evitar ruido, escrituras repetitivas y rastros de pantallas
+ // de autenticación. Se conservan los eventos de sesión y las mutaciones.
+ const actionLabel=String(action||'Actividad').trim();
+ if(actionLabel==='Abrir menú de módulos'||actionLabel==='Usuario'||actionLabel==='Contraseña')return;
  const state=window.FleboAppState&&window.FleboAppState.get?window.FleboAppState.get():{};
  const event={
   id:'log-'+Date.now()+'-'+Math.random().toString(36).slice(2,9),
