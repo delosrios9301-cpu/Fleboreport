@@ -323,8 +323,8 @@ async function publishMerged(local,remote,expected){
  for(let attempt=0;attempt<3;attempt++){
   const result=await writeRemote(candidate,expected);
   if(result.saved){
-   const h=await hashState(candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
    applyCloudState(candidate);
+   const h=await hashState(app()||candidate);saveMeta(h,result.revision,meta().resetEpoch||null);
    return true;
   }
   const latest=await fetchRemote();
@@ -378,18 +378,18 @@ async function connect(){
   if(remote){
    const sameSession=m.workspaceId===workspaceId&&m.userId===userId;
    if(sameSession&&m.hash===localHash){
-    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision,remote.reset_epoch||null)}
+    if(remote.revision!==m.revision){applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision,remote.reset_epoch||null)}
     else{revision=remote.revision;lastHash=localHash}
    }else if(!sameSession){
     const backedUp=backupUnlinkedLocalState(local,workspaceId);
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
     status(backedUp?'Datos oficiales cargados desde la nube. El estado local previo quedó respaldado en este dispositivo.':'Datos oficiales cargados desde la nube.');
    }else if(!meaningful(local)){
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    }else if(writable){
     await publishMerged(local,remote,remote.revision);
    }else{
-    applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+    applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    }
   }
   ready=true;announceReady();status('Sincronizado con la nube · versión '+revision);subscribe();
@@ -461,10 +461,10 @@ async function receiveRemote(){
   if(remote.revision<=revision)return;
   if(m.workspaceId!==workspaceId||m.userId!==userId){
    const backedUp=backupUnlinkedLocalState(local,workspaceId);
-   applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+   applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    status(backedUp?'Datos de la nube actualizados; el estado local anterior quedó respaldado.':'Datos de la nube actualizados.');
   }else if(!writable||m.hash===localHash){
-   applyCloudState(remote.state);const h=await hashState(remote.state);saveMeta(h,remote.revision);
+   applyCloudState(remote.state);const h=await hashState(app()||remote.state);saveMeta(h,remote.revision);
    status('Actualizado desde otro dispositivo · versión '+revision);
   }else{
    await publishMerged(local,remote,remote.revision);
@@ -513,7 +513,7 @@ async function syncLocal(options){
    const merged=mergeState(remote.state,local);
    const result=await writeRemote(merged,remote.revision);
    if(!result.saved)throw new Error('El registro cambió durante la sincronización. Reintentaremos automáticamente.');
-   const h=await hashState(merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);applyCloudState(merged);
+   applyCloudState(merged);const h=await hashState(app()||merged);revision=result.revision;saveMeta(h,revision,remote.reset_epoch||null);
   }else{
    const result=await writeRemote(local,revision);
    if(!result.saved){
@@ -522,7 +522,7 @@ async function syncLocal(options){
     if(latest.reset_epoch&&(latest.reset_epoch!==(m.resetEpoch||null))){backupResetLocalState(local,latest.reset_epoch);applyCloudState(latest.state);const resetHash=await hashState(app()||{});saveMeta(resetHash,latest.revision,latest.reset_epoch);return;}
     const merged=mergeState(latest.state,local),retry=await writeRemote(merged,latest.revision);
     if(!retry.saved)throw new Error('Se detectó una edición simultánea. Se reintentará al recibir la actualización.');
-    const h=await hashState(merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);applyCloudState(merged);
+    applyCloudState(merged);const h=await hashState(app()||merged);revision=retry.revision;saveMeta(h,revision,latest.reset_epoch||null);
    }else{revision=result.revision;saveMeta(localHash,revision,remoteMeta.reset_epoch||null)}
   }
   if(forceVerify){

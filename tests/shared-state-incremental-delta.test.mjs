@@ -20,3 +20,10 @@ test('reader respects RLS-equivalent role projection and stale revision fallback
  assert.match(cloud,/delta\.removed_keys/);
  assert.doesNotThrow(()=>new Function(cloud));
 });
+
+
+test('confirmed revision fingerprints are computed from applied client view',()=>{
+ assert.match(cloud,/hashState\(app\(\)\|\|remote\.state\)/);
+ assert.match(cloud,/applyCloudState\(candidate\);\s*const h=await hashState\(app\(\)\|\|candidate\)/);
+ assert.match(cloud,/applyCloudState\(merged\);const h=await hashState\(app\(\)\|\|merged\)/);
+});
