@@ -59,3 +59,10 @@ test('las métricas compactas cubren Jornada, Pacientes, Domicilios, Clínica e 
  assert.match(css,/#view-settings \.fr-config-intro/);
  assert.match(css,/#view-domicilios \.hv-status/);
 });
+
+test('indicadores compactos conservan los datos íntegros para accesibilidad',()=>{
+ const {js,css}=files;
+ assert.match(js,/card\.setAttribute\('aria-label',description\)/);
+ assert.match(js,/const trend=card\.querySelector\('\.op-kpi-trend'\)/);
+ assert.match(css,/#view-home \.clinical-dash-kpis/);
+});

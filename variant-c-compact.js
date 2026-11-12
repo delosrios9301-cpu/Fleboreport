@@ -52,6 +52,15 @@
    const max=kpis.scrollWidth-kpis.clientWidth;
    prev.disabled=max<=2||kpis.scrollLeft<2;
    next.disabled=max<=2||kpis.scrollLeft>max-2;
+   // Mantener el indicador completo disponible en la descripción accesible,
+   // aunque la tendencia no ocupe espacio en la tarjeta compacta.
+   kpis.querySelectorAll('.op-kpi').forEach(card=>{
+    const value=card.querySelector('.op-kpi-value')?.textContent?.trim();
+    const label=card.querySelector('.op-kpi-label')?.textContent?.trim();
+    const trend=card.querySelector('.op-kpi-trend')?.textContent?.trim();
+    const description=[label,value,trend].filter(Boolean).join(' · ');
+    if(description){card.setAttribute('aria-label',description);card.title=description;}
+   });
   };
   kpis.addEventListener('scroll',sync,{passive:true});
   new ResizeObserver(sync).observe(kpis);
