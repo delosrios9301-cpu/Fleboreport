@@ -431,6 +431,7 @@ async function save(v){
 }
 let cloudRefreshTimer=null,cloudRefreshRunning=false,cloudRefreshAgain=false;
 function scheduleCloudVisitsRefresh(){
+ if(!cloud.ready||!navigator.onLine)return;
  if(cloudRefreshTimer)clearTimeout(cloudRefreshTimer);
  cloudRefreshTimer=setTimeout(async()=>{
   cloudRefreshTimer=null;
@@ -440,6 +441,12 @@ function scheduleCloudVisitsRefresh(){
   finally{cloudRefreshRunning=false;if(cloudRefreshAgain){cloudRefreshAgain=false;scheduleCloudVisitsRefresh()}}
  },250);
 }
+// Deltas only: the normal interval checks the outbox cursor and does not
+// fetch all patient addresses or tests again when nothing has changed.
+setInterval(()=>{
+ if(cloud.ready&&document.visibilityState==='visible'&&navigator.onLine)
+  scheduleCloudVisitsRefresh();
+},60000);
 async function connectCloud(){
  if(cloud.loading)return;cloud.loading=true;
  try{
