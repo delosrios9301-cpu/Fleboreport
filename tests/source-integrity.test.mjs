@@ -1491,7 +1491,7 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
  assert.match(visits,/sync_change_log/);
  assert.match(html,/patient-cloud-sync\.js\?v=20261112-sync2/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261112-sync2/);
- assert.match(html,/domicilios\.js\?v=20261112-privacy1/);
+ assert.match(html,/domicilios\.js\?v=20261112-premium1/);
  assert.match(serviceWorker,/fleboreport-shell-v289/);
  assert.doesNotThrow(()=>new Function(visits));
 });
@@ -1519,6 +1519,6 @@ test('privacy v285 hides sensitive invitation fields at API and client',async()=
  assert.match(client,/list_home_visit_invitation_previews/);
  assert.match(client,/patient_id:null,patient_phone:null,address:''/);
  assert.match(client,/if\(cloud\.role==='technician'\)visits=visits\.filter/);
- assert.match(html,/domicilios\.js\?v=20261112-privacy1/);
+ assert.match(html,/domicilios\.js\?v=20261112-premium1/);
  assert.match(serviceWorker,/fleboreport-shell-v289/);
 });

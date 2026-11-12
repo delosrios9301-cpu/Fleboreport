@@ -37,7 +37,7 @@ test('el diseño de invitaciones NO revela datos del paciente antes de aceptar',
 test('agrupación del formulario no cambia IDs, botones clínicos ni acciones',()=>{
  for(const id of ['hvPatientLookup','hvDate','hvAssignee','hvTests','hvCreatePanel','hvAgendaPanel','hvCalendar','hvHistoryRows'])
   assert.ok(dom.includes(id),id);
- assert.match(dom,/fieldset\.className='hv-premium-fieldset'/);
+ assert.match(dom,/section\.className='hv-premium-fieldset'/);
  assert.match(dom,/body\.appendChild\(field\)/);
  assert.match(dom,/onclick="hvCreate\(\)"/);
  assert.match(dom,/onclick="hvStatus\(/);
