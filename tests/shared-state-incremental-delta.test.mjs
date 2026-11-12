@@ -24,6 +24,6 @@ test('reader respects RLS-equivalent role projection and stale revision fallback
 
 test('confirmed revision fingerprints are computed from applied client view',()=>{
  assert.match(cloud,/hashState\(app\(\)\|\|remote\.state\)/);
- assert.match(cloud,/applyCloudState\(candidate\);\s*const h=await hashState\(app\(\)\|\|candidate\)/);
- assert.match(cloud,/applyCloudState\(merged\);const h=await hashState\(app\(\)\|\|merged\)/);
+ assert.match(cloud,/applyCloudState\(confirmed\);\s*const h=await hashState\(app\(\)\|\|confirmed\)/);
+ assert.match(cloud,/const confirmed=result\.authoritativeState\|\|merged;applyCloudState\(confirmed\)/);
 });
