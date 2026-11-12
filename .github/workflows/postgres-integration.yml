@@ -64,3 +64,7 @@ jobs:
         env:
           PGPASSWORD: test-only
         run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/physical-module-api.postgres.sql
+      - name: Verify sanitized invitations before technician acceptance
+        env:
+          PGPASSWORD: test-only
+        run: psql -h 127.0.0.1 -U postgres -d fleboreport_test -v ON_ERROR_STOP=1 -f tests/home-visit-invitation-privacy.postgres.sql
