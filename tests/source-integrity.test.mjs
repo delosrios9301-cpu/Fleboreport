@@ -1372,8 +1372,8 @@ test('Clinical Modern Workspace 6.0 incorpora navegación real y preserva los co
   const ui = await readFile(new URL('../clinical-modern-workspace.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../clinical-modern-workspace.css', import.meta.url), 'utf8');
   assert.doesNotThrow(() => new Function(ui));
-  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw3/);
-  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw3/);
+  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw4/);
+  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw4/);
   assert.match(serviceWorker, /clinical-modern-workspace\.js/);
   assert.match(serviceWorker, /clinical-modern-workspace\.css/);
   assert.match(ui, /original\.click\(\)/);
@@ -1395,8 +1395,8 @@ test('Clinical Modern 6.1 usa paleta 3D y exactamente un acceso móvil al panel'
   assert.match(css, /linear-gradient\(175deg,#946dff/);
   assert.match(css, /#cmMobileDock \.cm-dock-button\[data-cm-nav="more"\]/);
   assert.match(serviceWorker, /fleboreport-shell-v286/);
-  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw3/);
-  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw3/);
+  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw4/);
+  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw4/);
 });
 
 
@@ -1413,8 +1413,8 @@ test('Clinical Modern 6.2 mantiene marca/campana fijas y navega sin scroll anima
   assert.match(ui, /window\.scrollTo\(0, 0\)/);
   assert.match(html, /window\.scrollTo\(\{top:0,behavior:'auto'\}\)/);
   assert.match(serviceWorker, /fleboreport-shell-v286/);
-  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw3/);
-  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw3/);
+  assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw4/);
+  assert.match(html, /clinical-modern-workspace\.js\?v=20261112-cmw4/);
 });
 
 
