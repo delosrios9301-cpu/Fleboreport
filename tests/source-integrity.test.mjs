@@ -40,7 +40,7 @@ const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.me
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
-  assert.match(html, /fleboreport-v2\.css\?v=20261111-jornada5/);
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-clinical-premium1/);
   assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
@@ -1271,4 +1271,15 @@ test('el cierre de PNG y PDF archiva el reporte y deja una jornada nueva vacía 
   assert.doesNotMatch(html, /window\.print\(\);setTimeout\(finish,1200\)/);
   assert.match(html, /function downloadPNG\(\)[\s\S]*?archiveCurrentReport\('png'\)[\s\S]*?setTimeout\(completeJourneyAfterExport,350\)/);
   assert.match(html, /state\.journey=\{id:'j-'\+Date\.now\(\)/);
+});
+
+
+test('la capa Clinical Premium renueva la interfaz sin alterar los puntos de entrada funcionales', () => {
+  assert.match(html, /fleboreport-v2\.css\?v=20261111-clinical-premium1/);
+  assert.match(redesignStyles, /FLEBOREPORT · CLINICAL PREMIUM 2\.1/);
+  assert.match(redesignStyles, /#view-home>\.fr2-home-hero/);
+  assert.match(redesignStyles, /#sidebar \.nav-list button\.active/);
+  assert.match(redesignStyles, /prefers-reduced-motion:reduce/);
+  assert.match(html, /function navigate\(view,settingsTab\)/);
+  assert.match(html, /function toggleDrawer\(\)/);
 });

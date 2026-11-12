@@ -812,3 +812,486 @@ body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date>b{margin:7px 0!
 #view-journey #journeyTestPicker #journeyPatientTestChoices label.test-choice>span.choice-selected{
  display:none!important;
 }
+
+
+
+/* ==========================================================================
+   FLEBOREPORT · CLINICAL PREMIUM 2.1
+   Capa de presentación global. No modifica estructura, permisos ni negocio.
+   ========================================================================== */
+:root{
+  --fr-premium-ink:#152f43;
+  --fr-premium-muted:#718597;
+  --fr-premium-navy:#142f49;
+  --fr-premium-teal:#0d9289;
+  --fr-premium-teal-deep:#087a7c;
+  --fr-premium-bg:#f2f6f8;
+  --fr-premium-surface:#ffffff;
+  --fr-premium-border:#e3ebf0;
+  --fr-premium-shadow:0 12px 32px rgba(18,48,69,.055);
+  --fr-premium-shadow-hover:0 17px 38px rgba(18,48,69,.095);
+}
+html{background:var(--fr-premium-bg)!important}
+body.fr2-app-authorized{
+  background:
+    radial-gradient(ellipse at 85% 0%,rgba(28,174,160,.055),transparent 34%),
+    linear-gradient(180deg,#f7f9fb 0%,#f1f5f8 100%)!important;
+  color:var(--fr-premium-ink)!important;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+body.fr2-app-authorized .app-shell,
+body.fr2-app-authorized .app-shell .main{min-height:100vh!important;background:transparent!important}
+body.fr2-app-authorized .app-shell .main{isolation:isolate}
+body.fr2-app-authorized .content{
+  max-width:1720px!important;
+  padding-top:clamp(22px,2.6vw,38px)!important;
+  padding-bottom:64px!important;
+}
+body.fr2-app-authorized .view.active{animation:fr-premium-enter .22s cubic-bezier(.2,.7,.25,1) both}
+@keyframes fr-premium-enter{
+  from{opacity:.72;transform:translate3d(0,7px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+
+/* Menú principal: jerarquía clara, contraste y estados precisos. */
+@media(min-width:761px){
+  body.fr2-app-authorized #sidebar{
+    background:
+      radial-gradient(circle at 12% 0%,rgba(45,190,174,.17),transparent 29%),
+      linear-gradient(165deg,#102b43 0%,#153d58 56%,#0c5962 100%)!important;
+    border-right:1px solid rgba(255,255,255,.12)!important;
+    box-shadow:14px 0 42px rgba(9,34,52,.12)!important;
+  }
+  body.fr2-app-authorized #sidebar .module-menu-head{
+    padding-bottom:22px!important;
+    border-bottom-color:rgba(255,255,255,.14)!important;
+  }
+  body.fr2-app-authorized #sidebar .drawer-brand-mark{
+    background:linear-gradient(145deg,#33c9b5,#087e85)!important;
+    box-shadow:0 9px 24px rgba(0,12,22,.28),inset 0 1px rgba(255,255,255,.25)!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-group>summary{
+    color:#9dbbc8!important;
+    letter-spacing:1.45px!important;
+    font-size:9px!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-list button{
+    min-height:47px!important;
+    border-radius:13px!important;
+    transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-list button .nav-icon{
+    border-radius:11px!important;
+    background:rgba(255,255,255,.075)!important;
+    border-color:rgba(255,255,255,.12)!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-list button.active{
+    background:linear-gradient(105deg,rgba(34,190,174,.22),rgba(255,255,255,.075))!important;
+    border-color:rgba(91,220,204,.3)!important;
+    box-shadow:inset 3px 0 #63ddcf,0 5px 16px rgba(0,15,25,.12)!important;
+  }
+  body.fr2-app-authorized #sidebar .nav-list button.active .nav-icon{
+    background:rgba(40,197,180,.2)!important;
+    border-color:rgba(102,230,215,.28)!important;
+    color:#b9fff2!important;
+  }
+}
+body.fr2-app-authorized #sidebar .drawer-footer{
+  border-top-color:rgba(255,255,255,.16)!important;
+}
+body.fr2-app-authorized #sidebar #fleboGlobalSignOut{
+  border-radius:12px!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+body.fr2-app-authorized #sidebar #fleboGlobalSignOut:active{transform:scale(.985)!important}
+
+/* Barra superior: marca, módulo activo y herramientas alineadas. */
+body.fr2-app-authorized .topbar{
+  background:rgba(255,255,255,.88)!important;
+  border-bottom:1px solid rgba(220,231,237,.9)!important;
+  box-shadow:0 5px 24px rgba(20,48,67,.045)!important;
+  backdrop-filter:blur(18px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(150%)!important;
+}
+.fr2-brand-mark{
+  background:linear-gradient(145deg,#2ac4b1 0%,#087b83 100%)!important;
+  box-shadow:0 7px 17px rgba(8,126,131,.22),inset 0 1px rgba(255,255,255,.25)!important;
+}
+.fr2-brand-copy strong{letter-spacing:-.55px!important}
+.fr2-current-area{
+  color:#527184!important;
+  font-size:11px!important;
+  font-weight:800!important;
+}
+.fr2-catalog-shortcut{
+  border-color:#dce9ed!important;
+  background:linear-gradient(180deg,#fff,#f6fafb)!important;
+  color:#17666a!important;
+  box-shadow:0 2px 7px rgba(20,48,67,.035)!important;
+}
+.fr2-catalog-shortcut:hover{
+  border-color:#a9d9d1!important;
+  background:#f0faf7!important;
+  transform:translateY(-1px);
+}
+.fr2-sync-holder{
+  border-color:#d9ebe5!important;
+  background:linear-gradient(180deg,#f5fcf9,#edf8f4)!important;
+}
+body.fr2-app-authorized .topbar #frNotifBell{
+  border-color:#e1eaf0!important;
+  border-radius:12px!important;
+  background:linear-gradient(180deg,#fff,#f8fbfc)!important;
+  box-shadow:0 3px 10px rgba(20,48,67,.05)!important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+body.fr2-app-authorized .topbar #frNotifBell:active{transform:scale(.96)!important}
+
+/* Encabezados de módulo: mejor jerarquía editorial y espacio respirable. */
+body.fr2-app-authorized .page-heading{
+  align-items:flex-end!important;
+  margin-bottom:25px!important;
+}
+body.fr2-app-authorized .page-heading h1{
+  color:#152f45!important;
+  font-size:clamp(25px,2.15vw,32px)!important;
+  letter-spacing:-1.05px!important;
+  line-height:1.12!important;
+  font-weight:880!important;
+}
+body.fr2-app-authorized .page-heading p{
+  max-width:760px!important;
+  color:#738797!important;
+  font-size:12px!important;
+  line-height:1.65!important;
+}
+body.fr2-app-authorized .eyebrow{
+  color:#0b938a!important;
+  font-size:9px!important;
+  letter-spacing:1.5px!important;
+  font-weight:900!important;
+}
+
+/* Superficies compartidas de los módulos. */
+body.fr2-app-authorized .panel,
+body.fr2-app-authorized .form-panel,
+body.fr2-app-authorized .report-card,
+body.fr2-app-authorized .stat-card,
+body.fr2-app-authorized .catalog-card,
+body.fr2-app-authorized .journey-patient-card,
+body.fr2-app-authorized .patient-test-status,
+body.fr2-app-authorized .op-panel{
+  border-color:var(--fr-premium-border)!important;
+  border-radius:18px!important;
+  background:var(--fr-premium-surface)!important;
+  box-shadow:var(--fr-premium-shadow)!important;
+}
+body.fr2-app-authorized .panel{overflow:hidden!important}
+body.fr2-app-authorized .panel-head{
+  background:linear-gradient(110deg,#f8fbfc 0%,#fff 72%)!important;
+  border-bottom-color:#edf2f5!important;
+}
+body.fr2-app-authorized .panel-head h2,
+body.fr2-app-authorized .form-panel h2{
+  color:#18374e!important;
+  font-weight:850!important;
+  letter-spacing:-.25px!important;
+}
+body.fr2-app-authorized .panel-body{color:#304f64}
+body.fr2-app-authorized .list-row{
+  border-color:#e7eef2!important;
+  border-radius:13px!important;
+  background:linear-gradient(180deg,#fff,#fbfdfe)!important;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+body.fr2-app-authorized .list-row:hover{
+  border-color:#c7e0dd!important;
+  box-shadow:0 7px 18px rgba(15,65,74,.055)!important;
+}
+body.fr2-app-authorized .stat-card{
+  border-radius:17px!important;
+  box-shadow:0 6px 20px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized .stat-card strong{
+  color:#15364e!important;
+  font-size:25px!important;
+  font-weight:900!important;
+  letter-spacing:-.7px!important;
+}
+body.fr2-app-authorized .stat-icon{
+  border-radius:14px!important;
+}
+
+/* Acciones y campos: affordance táctil consistente. */
+body.fr2-app-authorized .btn,
+body.fr2-app-authorized button.btn{
+  min-height:42px!important;
+  border-radius:12px!important;
+  font-size:11px!important;
+  font-weight:820!important;
+  letter-spacing:.02px!important;
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease,background .16s ease!important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+body.fr2-app-authorized .btn.primary,
+body.fr2-app-authorized .btn.blue{
+  background:linear-gradient(135deg,#16aa9e 0%,#087e83 100%)!important;
+  border-color:#0a928a!important;
+  box-shadow:0 5px 14px rgba(8,145,136,.2)!important;
+}
+body.fr2-app-authorized .btn.primary:hover,
+body.fr2-app-authorized .btn.blue:hover{
+  box-shadow:0 8px 18px rgba(8,145,136,.25)!important;
+}
+body.fr2-app-authorized .btn:active,
+body.fr2-app-authorized .icon-button:active{
+  transform:translateY(1px) scale(.985)!important;
+  box-shadow:0 2px 5px rgba(18,48,69,.08)!important;
+}
+body.fr2-app-authorized .field input,
+body.fr2-app-authorized .field select,
+body.fr2-app-authorized .field textarea,
+body.fr2-app-authorized input:not([type=checkbox]):not([type=radio]):not([type=file]),
+body.fr2-app-authorized select,
+body.fr2-app-authorized textarea{
+  border-color:#dce7ed!important;
+  border-radius:12px!important;
+  background:#fcfdfe!important;
+  color:#18384f!important;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+body.fr2-app-authorized .field input:focus,
+body.fr2-app-authorized .field select:focus,
+body.fr2-app-authorized .field textarea:focus,
+body.fr2-app-authorized input:focus,
+body.fr2-app-authorized select:focus,
+body.fr2-app-authorized textarea:focus{
+  border-color:#62bdb2!important;
+  background:#fff!important;
+  box-shadow:0 0 0 4px rgba(24,164,151,.12)!important;
+  outline:none!important;
+}
+body.fr2-app-authorized .field label{
+  color:#526f82!important;
+  font-size:10px!important;
+  font-weight:820!important;
+}
+body.fr2-app-authorized :focus-visible{
+  outline:3px solid rgba(31,166,155,.35)!important;
+  outline-offset:2px!important;
+}
+
+/* Tablas y etiquetas de estado. */
+body.fr2-app-authorized .data-table th,
+body.fr2-app-authorized .clinical-table th,
+body.fr2-app-authorized .audit-table th{
+  background:#f4f8fa!important;
+  color:#61798a!important;
+  font-size:9px!important;
+  letter-spacing:.65px!important;
+  font-weight:850!important;
+}
+body.fr2-app-authorized .data-table td,
+body.fr2-app-authorized .clinical-table td,
+body.fr2-app-authorized .audit-table td{
+  border-top-color:#edf2f5!important;
+}
+body.fr2-app-authorized .data-table tbody tr:hover td,
+body.fr2-app-authorized .clinical-table tbody tr:hover td{
+  background:#f8fcfb!important;
+}
+body.fr2-app-authorized .badge{
+  border:1px solid rgba(13,146,137,.12)!important;
+  background:#eaf8f4!important;
+  color:#167765!important;
+  font-weight:850!important;
+}
+body.fr2-app-authorized .badge.pending{
+  border-color:#f4e6c7!important;
+  background:#fff7e7!important;
+  color:#8b681b!important;
+}
+
+/* Inicio: portada más editorial y tarjetas con profundidad contenida. */
+body.fr2-app-authorized #view-home>.fr2-home-hero{
+  position:relative!important;
+  min-height:258px!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:26px!important;
+  background:
+    radial-gradient(circle at 78% 14%,rgba(65,224,204,.25),transparent 24%),
+    radial-gradient(circle at 100% 100%,rgba(57,160,203,.24),transparent 34%),
+    linear-gradient(118deg,#102a43 0%,#17455f 57%,#087879 100%)!important;
+  box-shadow:0 22px 52px rgba(13,48,66,.17)!important;
+}
+body.fr2-app-authorized #view-home>.fr2-home-hero:after{
+  content:"";
+  position:absolute;
+  inset:0 0 0 auto;
+  width:34%;
+  pointer-events:none;
+  opacity:.14;
+  background-image:radial-gradient(rgba(255,255,255,.7) .7px,transparent .7px);
+  background-size:12px 12px;
+  mask-image:linear-gradient(90deg,transparent,black);
+}
+body.fr2-app-authorized #view-home .fr2-home-copy,
+body.fr2-app-authorized #view-home .fr2-home-date{position:relative;z-index:1}
+body.fr2-app-authorized #view-home .fr2-home-copy h1{
+  font-size:clamp(29px,3.25vw,40px)!important;
+  letter-spacing:-1.45px!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-actions{gap:10px!important}
+body.fr2-app-authorized #view-home .fr2-home-action{
+  min-height:52px!important;
+  border-radius:13px!important;
+  border-color:rgba(255,255,255,.25)!important;
+  background:rgba(255,255,255,.105)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.08)!important;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action:hover{
+  transform:translateY(-2px)!important;
+  background:rgba(255,255,255,.17)!important;
+  border-color:rgba(255,255,255,.45)!important;
+  box-shadow:0 8px 19px rgba(0,15,25,.16)!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-action:active{transform:scale(.985)!important}
+body.fr2-app-authorized #view-home .fr2-home-action.primary{
+  background:linear-gradient(120deg,#22bfae,#0b8d8d)!important;
+  border-color:rgba(137,245,224,.55)!important;
+  box-shadow:0 8px 22px rgba(0,18,27,.2)!important;
+}
+body.fr2-app-authorized #view-home .fr2-home-date{
+  border-color:rgba(255,255,255,.28)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.17),rgba(255,255,255,.075))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.13),0 14px 30px rgba(0,15,25,.1)!important;
+}
+body.fr2-app-authorized #view-home .op-kpi{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:102px!important;
+  padding:16px 17px!important;
+  border:1px solid #e3ebf0!important;
+  border-radius:17px!important;
+  background:linear-gradient(145deg,#fff 0%,#f8fbfc 100%)!important;
+  box-shadow:0 7px 22px rgba(20,48,67,.045)!important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+}
+body.fr2-app-authorized #view-home .op-kpi:before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  background:linear-gradient(180deg,#22b5a5,#0c7f86);
+  opacity:.8;
+}
+body.fr2-app-authorized #view-home .op-kpi:hover{
+  transform:translateY(-2px)!important;
+  border-color:#c8e2dd!important;
+  box-shadow:var(--fr-premium-shadow-hover)!important;
+}
+body.fr2-app-authorized #view-home .op-kpi-value{
+  color:#15364e!important;
+  font-size:27px!important;
+  font-weight:900!important;
+  letter-spacing:-.8px!important;
+}
+body.fr2-app-authorized #view-home .op-panel{
+  border-radius:19px!important;
+  box-shadow:0 8px 24px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-head{
+  padding:17px 19px!important;
+  background:linear-gradient(110deg,#f7fafb,#fff)!important;
+}
+body.fr2-app-authorized #view-home .op-panel>.panel-head h2{
+  font-size:13px!important;
+  letter-spacing:-.2px!important;
+}
+body.fr2-app-authorized #view-home .op-quick button{
+  min-height:108px!important;
+  border-radius:16px!important;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+body.fr2-app-authorized #view-home .op-quick button:active{transform:scale(.985)!important}
+body.fr2-app-authorized #view-home .clinical-dash-kpi{
+  border:1px solid #e6eef1!important;
+  border-radius:13px!important;
+  background:linear-gradient(145deg,#f9fcfd,#f0f7f7)!important;
+}
+
+/* Respuesta táctil sutil: nunca sustituye botones ni ejecuta acciones por gesto. */
+body.fr2-app-authorized button,
+body.fr2-app-authorized .catalog-card,
+body.fr2-app-authorized .journey-patient-card,
+body.fr2-app-authorized .list-row{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+body.fr2-app-authorized button:active,
+body.fr2-app-authorized .catalog-card:active,
+body.fr2-app-authorized .journey-patient-card:active{
+  filter:brightness(.985);
+}
+
+/* Ajustes tablet y móvil: mantener el flujo y los tamaños táctiles. */
+@media(max-width:1050px){
+  body.fr2-app-authorized .content{padding-left:22px!important;padding-right:22px!important}
+  body.fr2-app-authorized .page-heading{align-items:flex-start!important}
+}
+@media(max-width:760px){
+  body.fr2-app-authorized .topbar{
+    min-height:62px!important;
+    height:62px!important;
+    padding:0 12px!important;
+  }
+  body.fr2-app-authorized .content{
+    padding:17px 12px calc(84px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.fr2-app-authorized .page-heading{
+    gap:11px!important;
+    margin-bottom:16px!important;
+  }
+  body.fr2-app-authorized .page-heading h1{
+    font-size:23px!important;
+    letter-spacing:-.8px!important;
+  }
+  body.fr2-app-authorized .page-heading p{font-size:11px!important}
+  body.fr2-app-authorized .panel,
+  body.fr2-app-authorized .form-panel,
+  body.fr2-app-authorized .op-panel{border-radius:15px!important}
+  body.fr2-app-authorized .panel-head{padding:13px 14px!important}
+  body.fr2-app-authorized .panel-body{padding:14px!important}
+  body.fr2-app-authorized .form-panel{padding:14px!important}
+  body.fr2-app-authorized .btn{min-height:42px!important}
+  body.fr2-app-authorized #view-home>.fr2-home-hero{
+    min-height:0!important;
+    padding:21px 17px!important;
+    border-radius:20px!important;
+  }
+  body.fr2-app-authorized #view-home .fr2-home-copy h1{font-size:27px!important}
+  body.fr2-app-authorized #view-home .fr2-home-date{border-radius:15px!important}
+  body.fr2-app-authorized #view-home .op-kpi{min-height:90px!important;padding:13px!important}
+  body.fr2-app-authorized #view-home .op-kpi-value{font-size:23px!important}
+  body.fr2-app-authorized #view-home .op-quick button{min-height:95px!important}
+}
+@media(max-width:420px){
+  body.fr2-app-authorized .fr2-topbar-right{gap:5px!important}
+  body.fr2-app-authorized .fr2-sync-holder{max-width:88px!important;overflow:hidden!important}
+  body.fr2-app-authorized .fr2-sync-holder #fleboSyncStatus{overflow:hidden!important;text-overflow:ellipsis!important}
+  body.fr2-app-authorized .page-heading h1{font-size:21px!important}
+  body.fr2-app-authorized #view-home .fr2-home-actions{grid-template-columns:minmax(0,1fr)!important}
+  body.fr2-app-authorized #view-home .fr2-home-action{width:100%!important}
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized .view.active{animation:none!important}
+  body.fr2-app-authorized button,
+  body.fr2-app-authorized .catalog-card,
+  body.fr2-app-authorized .journey-patient-card,
+  body.fr2-app-authorized .list-row{transition:none!important}
+}
+
