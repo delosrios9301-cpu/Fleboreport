@@ -27,8 +27,7 @@ begin
  from public.save_workspace_shared_app_state_patch('10000000-0000-0000-0000-000000000001',
   '{"companies":[{"id":"reception"}]}'::jsonb,v_next);
  if not v_saved or v_next<>v_rev+2 then raise exception 'Retry after conflict failed'; end if;
- select state into v_new from public.workspace_shared_app_state
- where workspace_id='10000000-0000-0000-0000-000000000001';
+ select state into v_new from public.get_workspace_shared_app_state('10000000-0000-0000-0000-000000000001');
  if v_new->'journey'->>'id'<>'from-admin' or v_new->'companies'->0->>'id'<>'reception' then
   raise exception 'Different module patches overwrote each other';
  end if;
