@@ -17,9 +17,9 @@
     domicilios:'<path d="m3 11 9-8 9 8v10H3zM9 21v-7h6v7M9 10h6"/>',
     more:'<path d="M4 6h16M4 12h16M4 18h16"/>'
   };
+  // Variante C: cuatro accesos fijos; Pacientes sigue disponible en «Más».
   const dockItems = [
-    ['home','Inicio'],['journey','Jornada'],['patients','Pacientes'],
-    ['domicilios','Domicilios'],['more','Más']
+    ['home','Inicio'],['journey','Jornada'],['domicilios','Domicilios'],['more','Más']
   ];
   const $ = (selector, root) => (root || document).querySelector(selector);
   function navSource(key) {
