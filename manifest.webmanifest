@@ -9,7 +9,7 @@
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#f5f3fa",
-  "theme_color": "#241d49",
+  "theme_color": "#211a45",
   "icons": [
     { "src": "./icons/fleboreport.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" },
     { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
