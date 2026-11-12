@@ -1766,3 +1766,331 @@ body.fr2-app-authorized #view-companies #companyCount{
   }
 }
 
+
+
+
+/* ==========================================================================
+   CLINICAL PREMIUM 2.3 · FASE 3
+   Catálogo, Registro de sujetos y Procesamiento. Presentación solamente.
+   ========================================================================== */
+
+/* CATÁLOGO · biblioteca clínica */
+body.fr2-app-authorized #view-catalog .fr2-catalog-hero{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:205px!important;
+  padding:27px 29px!important;
+  border:1px solid rgba(255,255,255,.18)!important;
+  border-radius:23px!important;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(73,222,204,.2),transparent 25%),
+    radial-gradient(circle at 100% 100%,rgba(73,159,198,.2),transparent 32%),
+    linear-gradient(118deg,#102a43 0%,#17455f 58%,#087879 100%)!important;
+  box-shadow:0 18px 42px rgba(13,48,66,.14)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-hero:after{
+  content:"";
+  position:absolute;
+  top:-35px;right:5%;
+  width:190px;height:190px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:50%;
+  box-shadow:0 0 0 18px rgba(255,255,255,.035),0 0 0 38px rgba(255,255,255,.025);
+  pointer-events:none;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro,
+body.fr2-app-authorized #view-catalog .fr2-catalog-new{
+  position:relative!important;
+  z-index:1!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro h1{
+  font-size:clamp(28px,3vw,38px)!important;
+  letter-spacing:-1.4px!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-intro p{
+  max-width:650px!important;
+  color:rgba(240,249,251,.78)!important;
+  line-height:1.65!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-new{
+  min-height:47px!important;
+  border:1px solid rgba(163,247,229,.42)!important;
+  border-radius:12px!important;
+  background:linear-gradient(130deg,#25bda9,#0a8586)!important;
+  box-shadow:0 8px 22px rgba(0,20,28,.2)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stats{
+  gap:12px!important;
+  margin:14px 0!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:90px!important;
+  padding:15px 17px!important;
+  border:1px solid #e3ebf0!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f8fbfc)!important;
+  box-shadow:0 7px 20px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat strong{
+  color:#17394f!important;
+  font-size:26px!important;
+  font-weight:900!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-stat-icon{
+  border:1px solid #e0efec!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#effaf7,#eaf4f6)!important;
+  color:#0b8982!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-toolbar{
+  border-radius:16px!important;
+  box-shadow:0 6px 18px rgba(20,48,67,.04)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-search{
+  min-height:48px!important;
+  border-radius:12px!important;
+  background:#fbfdfe!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-list-panel{
+  overflow:hidden!important;
+  border-radius:19px!important;
+  box-shadow:0 9px 26px rgba(20,48,67,.05)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-list-panel>.panel-head{
+  padding:18px 20px!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-list{
+  gap:10px!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-item{
+  border:1px solid #e5edf1!important;
+  border-radius:14px!important;
+  background:linear-gradient(115deg,#fff,#f9fcfd)!important;
+  box-shadow:0 3px 10px rgba(20,48,67,.025)!important;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-item:hover{
+  transform:translateY(-1px)!important;
+  border-color:#c6e2dc!important;
+  box-shadow:0 9px 22px rgba(20,48,67,.065)!important;
+}
+body.fr2-app-authorized #view-catalog .fr2-catalog-archive{
+  border:1px solid #e3ebf0!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  box-shadow:0 5px 15px rgba(20,48,67,.035)!important;
+}
+
+/* REGISTRO DE SUJETOS · recepción, revisión y trazabilidad */
+body.fr2-app-authorized #view-clinical-studies>.page-heading,
+body.fr2-app-authorized #view-clinical-processing>.page-heading{
+  margin-bottom:20px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpis,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpis{
+  gap:11px!important;
+  margin:0 0 17px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi{
+  position:relative!important;
+  overflow:hidden!important;
+  min-height:90px!important;
+  padding:15px 16px!important;
+  border:1px solid #e2ebef!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f7fafc)!important;
+  box-shadow:0 7px 20px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi:after,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi:after{
+  content:"";
+  position:absolute;
+  width:76px;height:76px;
+  right:-29px;bottom:-40px;
+  border:1px solid rgba(14,146,137,.12);
+  border-radius:50%;
+  box-shadow:0 0 0 11px rgba(14,146,137,.03);
+  pointer-events:none;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{
+  color:#17394f!important;
+  font-size:27px!important;
+  font-weight:900!important;
+  letter-spacing:-.8px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout,
+body.fr2-app-authorized #view-clinical-processing .clinical-layout{
+  gap:15px!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout>.panel,
+body.fr2-app-authorized #view-clinical-processing .clinical-layout>.panel{
+  overflow:hidden!important;
+  border:1px solid #e2ebef!important;
+  border-radius:18px!important;
+  box-shadow:0 8px 24px rgba(20,48,67,.045)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-layout>.panel.wide:first-child{
+  border-top:3px solid #17a99b!important;
+}
+body.fr2-app-authorized #view-clinical-studies #clinicalReviewPanel{
+  border-top:3px solid #7aa6ba!important;
+}
+body.fr2-app-authorized #view-clinical-processing .clinical-layout>.panel{
+  border-top:3px solid #178f91!important;
+}
+body.fr2-app-authorized #view-clinical-studies .panel-head,
+body.fr2-app-authorized #view-clinical-processing .panel-head{
+  padding:17px 19px!important;
+  background:linear-gradient(110deg,#f7fafb,#fff)!important;
+  border-bottom:1px solid #edf2f5!important;
+}
+body.fr2-app-authorized #view-clinical-studies .panel-head h2,
+body.fr2-app-authorized #view-clinical-processing .panel-head h2{
+  color:#18384f!important;
+  font-size:14px!important;
+  font-weight:850!important;
+}
+body.fr2-app-authorized #view-clinical-studies .panel-head p,
+body.fr2-app-authorized #view-clinical-processing .panel-head p{
+  color:#7b8f9d!important;
+  line-height:1.55!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-filter,
+body.fr2-app-authorized #view-clinical-processing .clinical-filter{
+  gap:11px!important;
+  padding:15px!important;
+  border:1px solid #e8eff2!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,#f9fcfd,#f3f8f9)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-filter input,
+body.fr2-app-authorized #view-clinical-studies .clinical-filter select,
+body.fr2-app-authorized #view-clinical-processing .clinical-filter input,
+body.fr2-app-authorized #view-clinical-processing .clinical-filter select{
+  min-height:43px!important;
+  border-radius:11px!important;
+  background:#fff!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table-wrap,
+body.fr2-app-authorized #view-clinical-processing .clinical-table-wrap{
+  margin-top:12px!important;
+  border:1px solid #e5edf1!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  scrollbar-width:thin;
+  scrollbar-color:#b8cfce #f2f6f7;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table,
+body.fr2-app-authorized #view-clinical-processing .clinical-table{
+  border-collapse:separate!important;
+  border-spacing:0!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table th,
+body.fr2-app-authorized #view-clinical-processing .clinical-table th{
+  position:sticky;
+  top:0;
+  z-index:1;
+  padding:13px 12px!important;
+  border-bottom:1px solid #e4edf0!important;
+  background:#f3f8fa!important;
+  color:#5e7789!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table td,
+body.fr2-app-authorized #view-clinical-processing .clinical-table td{
+  padding:12px!important;
+  color:#345267!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-table tbody tr:hover td,
+body.fr2-app-authorized #view-clinical-processing .clinical-table tbody tr:hover td{
+  background:#f7fcfa!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-history-disclosure,
+body.fr2-app-authorized #view-clinical-processing .clinical-history-disclosure{
+  overflow:hidden!important;
+  border:1px solid #e2ebef!important;
+  border-radius:17px!important;
+  background:#fff!important;
+  box-shadow:0 7px 20px rgba(20,48,67,.04)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-history-summary,
+body.fr2-app-authorized #view-clinical-processing .clinical-history-summary{
+  min-height:65px!important;
+  padding:15px 18px!important;
+  background:linear-gradient(110deg,#f7fafb,#fff)!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-history-title,
+body.fr2-app-authorized #view-clinical-processing .clinical-history-title{
+  color:#1c4056!important;
+  font-weight:850!important;
+}
+body.fr2-app-authorized #view-clinical-studies .clinical-history-toggle,
+body.fr2-app-authorized #view-clinical-processing .clinical-history-toggle{
+  border:1px solid #dceae7!important;
+  border-radius:10px!important;
+  background:#f0faf7!important;
+  color:#087f79!important;
+}
+body.fr2-app-authorized #view-clinical-processing .clinical-age-orange>td{
+  background:#fff7e9!important;
+}
+body.fr2-app-authorized #view-clinical-processing .clinical-age-red>td{
+  background:#fff0f0!important;
+}
+body.fr2-app-authorized #view-clinical-processing .clinical-age-critical>td{
+  background:#fce5e5!important;
+}
+@media(max-width:760px){
+  body.fr2-app-authorized #view-catalog .fr2-catalog-hero{
+    min-height:0!important;
+    padding:20px 17px!important;
+    border-radius:19px!important;
+  }
+  body.fr2-app-authorized #view-catalog .fr2-catalog-new{
+    width:100%!important;
+    margin-top:12px!important;
+  }
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stats{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stat{
+    min-height:76px!important;
+    padding:10px!important;
+  }
+  body.fr2-app-authorized #view-catalog .fr2-catalog-stat strong{
+    font-size:21px!important;
+  }
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpis,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+  }
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpi,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpi{
+    min-height:77px!important;
+    padding:11px!important;
+  }
+  body.fr2-app-authorized #view-clinical-studies .clinical-kpi strong,
+  body.fr2-app-authorized #view-clinical-processing .clinical-kpi strong{
+    font-size:22px!important;
+  }
+  body.fr2-app-authorized #view-clinical-studies .panel-head,
+  body.fr2-app-authorized #view-clinical-processing .panel-head{
+    padding:14px!important;
+  }
+  body.fr2-app-authorized #view-clinical-studies .clinical-filter,
+  body.fr2-app-authorized #view-clinical-processing .clinical-filter{
+    padding:11px!important;
+    border-radius:12px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.fr2-app-authorized #view-catalog .fr2-catalog-item{
+    transition:none!important;
+  }
+}
+
