@@ -37,6 +37,7 @@ const adminRolePermissionsMigration = await readFile(new URL('../supabase/migrat
 const dataRetentionGuardMigration = await readFile(new URL('../supabase/migrations/20261106220000_admin_only_deletion_and_audit_retention.sql', import.meta.url), 'utf8');
 const redesignShell = await readFile(new URL('../fleboreport-v2-shell.js', import.meta.url), 'utf8');
 const redesignStyles = await readFile(new URL('../fleboreport-v2.css', import.meta.url), 'utf8');
+const screenModels = await readFile(new URL('../clinical-premium-screen-models.css', import.meta.url), 'utf8');
 
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
@@ -351,7 +352,7 @@ test('el técnico registra y guarda las cantidades de alícuotas al iniciar el p
 test('el módulo de procesamiento usa únicamente estados y no requiere cajas ni crioviales', () => {
   assert.doesNotThrow(() => new Function(simpleProcessing), 'clinical-processing-simple.js debe tener sintaxis válida');
   assert.match(html, /src="\.\/clinical-processing-simple\.js(?:\?[^\"]*)?"/);
-  const view = html.slice(html.indexOf('<section class="view" id="view-clinical-processing">'), html.indexOf('<section class="view" id="view-settings">'));
+  const view = html.slice(html.indexOf('id="view-clinical-processing"'), html.indexOf('id="view-settings"'));
   assert.ok(view.length > 0, 'debe existir la vista de procesamiento');
   for (const obsolete of ['clinicalBulkLocation', 'cryoBox', 'cryoPosition', 'clinicalCryoRows', 'caja disponible', 'Ubicación']) {
     assert.ok(!view.toLowerCase().includes(obsolete.toLowerCase()), 'el flujo ya no debe mostrar: ' + obsolete);
@@ -625,7 +626,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v274'/);
+  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v275'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -903,7 +904,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1122,7 +1123,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1174,7 +1175,7 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
   assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1190,7 +1191,7 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1224,7 +1225,7 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(journeyStyles, /#view-journey \.journey-layout/);
   assert.match(journeyStyles, /#view-journey \.journey-patient-progress-track/);
   assert.match(journeyStyles, /@media\(max-width:980px\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1241,7 +1242,7 @@ test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsque
   assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación horizontal y ancho útil', () => {
@@ -1249,7 +1250,7 @@ test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación hor
   assert.match(journeyStyles, /label\.test-choice>span\.test-choice-copy\{\s*display:block!important/);
   assert.match(journeyStyles, /grid-template-columns:18px 38px minmax\(0,1fr\)!important/);
   assert.match(journeyStyles, /test-choice-copy \.choice-name,\s*#view-journey #journeyTestPicker/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1294,7 +1295,7 @@ test('Clinical Premium 2.2 renueva Jornada, Pacientes y Empresas sin cambiar sus
   assert.match(html, /onclick="registerJourneyPatient\(\)"/);
   assert.match(html, /onclick="openPatientForm\(\)"/);
   assert.match(html, /onclick="addCompany\(\)"/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1307,7 +1308,7 @@ test('Clinical Premium 2.3 mejora catálogo y flujos clínicos sin alterar sus a
   assert.match(html, /onclick="receiveClinicalSample\(\)"/);
   assert.match(html, /id="clinicalReviewRows"/);
   assert.match(html, /id="clinicalQueueRows"/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1320,7 +1321,7 @@ test('Clinical Premium 2.4 renueva Domicilios, Reportes, Historial y Configuraci
   assert.match(redesignStyles, /#view-settings>.settings-tabs/);
   assert.match(html, /onclick="generateReportPDF\(\)"/);
   assert.match(html, /onclick="downloadPNG\(\)"/);
-  assert.match(serviceWorker, /fleboreport-shell-v274/);
+  assert.match(serviceWorker, /fleboreport-shell-v275/);
 });
 
 
@@ -1347,4 +1348,18 @@ test('Clinical Premium 4.0 incorpora nuevos modelos de pantalla responsive en lo
   assert.match(css, /#view-clinical-processing \.clinical-kpis/);
   assert.match(css, /#view-domicilios #hvWorkspace/);
   assert.match(css, /@media\(max-width:760px\)/);
+});
+
+
+test('Clinical Premium 5.0 compone nuevos modelos de pantalla y conserva los IDs funcionales', () => {
+  for (const model of ['command-center','live-session','company-directory','patient-records','clinical-library','report-studio','specimen-intake','sample-workflow','admin-console']) {
+    assert.match(html, new RegExp('data-fr5-model="' + model + '"'));
+  }
+  for (const id of ['journeyPatientName','journeyPatientId','journeyPatientTestSearch','journeyPatients','patientSearch','patientList','companyList','catalogSearch','reportPaper','clinicalReviewRows','clinicalQueueRows']) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.match(screenModels, /Bento command center/);
+  assert.match(screenModels, /grid-template-areas:"heading" "metrics" "directory"/);
+  assert.match(screenModels, /CLINICAL PREMIUM 5\.0/);
+  assert.match(html, /clinical-premium-screen-models\.css\?v=20261112-premium-models1/);
 });
