@@ -1449,3 +1449,12 @@ test('la revisión operativa se distribuye mediante la nueva caché v280', () =>
   assert.match(html,/app-activity-cloud\.js\?v=20261112-audit1/);
   assert.match(serviceWorker,/fleboreport-shell-v280/);
 });
+
+
+test('sincronización clínica evita consultas por técnico sin privilegios de lectura', async()=>{
+ const c=await readFile(new URL('../clinical-cloud-sync.js',import.meta.url),'utf8');
+ assert.match(c,/window\.fleboCan\?\.\('studies','view'\)/);
+ assert.match(c,/window\.fleboCan\?\.\('processing','view'\)/);
+ assert.match(c,/\['technician','role_custom'\]\.includes\(role\)&&clinicalModuleView/);
+ assert.doesNotThrow(()=>new Function(c));
+});

@@ -47,7 +47,7 @@ begin
         ) or (
           nullif(previous_patient.value->>'id','') is not null
           and previous_patient.value->>'id'=incoming_patient.value->>'id'
-        )
+        ) or previous_patient.value=incoming_patient.value
       )
     ) then
       raise exception 'No se pueden retirar expedientes sin permiso patients.delete. Sincroniza de nuevo para recuperar la lista completa.';
