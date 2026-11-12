@@ -294,6 +294,24 @@ async function fetchHomeVisitRows(ids){
  }
  return rows;
 }
+async function fetchInvitationPreviewRows(){
+ if(cloud.role!=='technician')return [];
+ const response=await cloud.client.rpc('list_home_visit_invitation_previews',{p_workspace_id:cloud.workspaceId});
+ if(response.error)throw response.error;
+ // La respuesta del servidor es una lista blanca: NO incluye paciente,
+ // teléfono, dirección, pruebas, coordenadas ni notas de la visita.
+ return (response.data||[]).map(x=>({
+  id:x.visit_id,workspace_id:x.workspace_id,scheduled_at:x.scheduled_at,
+  priority:x.priority,status:'pending_acceptance',
+  patient_id:null,patient_phone:null,address:'',latitude:null,longitude:null,notes:null,
+  home_visit_assignments:[{
+   id:x.assignment_id,professional_id:x.professional_id||null,
+   assigned_user_id:x.assigned_user_id,status:'invited',assigned_at:x.assigned_at
+  }],
+  home_visit_tests:[],home_visit_events:[],home_visit_documents:[],
+  home_visit_additional_patients:[]
+ }));
+}
 async function loadCloudVisits(){
  if(homeVisitCacheActive&&!canCacheHomeVisitSnapshot()){homeVisitCacheActive=false;homeVisitSyncCursor=null;visits=[];try{localStorage.removeItem(KEY)}catch(_){}}
  if(homeVisitSyncCursor===null)restoreHomeVisitCache();
@@ -301,16 +319,26 @@ async function loadCloudVisits(){
  const fullSnapshot=homeVisitSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
  const changes=fullSnapshot?[]:await fetchAllPages(cloud.client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').gt('seq',homeVisitSyncCursor).order('seq',{ascending:true}));
- if(!fullSnapshot&&!changes.length){saveHomeVisitCache();return false;}
+ const invitationRows=await fetchInvitationPreviewRows();
+ const currentInvitations=visits.filter(v=>v.assignmentStatus==='invited').map(v=>String(v.id)).sort().join('|');
+ const nextInvitations=invitationRows.map(v=>String(v.id)).sort().join('|');
+ if(!fullSnapshot&&!changes.length&&currentInvitations===nextInvitations){
+  saveHomeVisitCache();return false;
+ }
  const changedIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
  const data=await fetchHomeVisitRows(fullSnapshot?null:changedIds);
- const mapped=data.map(dbVisit);
+ const detailedIds=new Set(data.map(v=>String(v.id)));
+ const pendingMapped=invitationRows.filter(row=>!detailedIds.has(String(row.id))).map(dbVisit);
+ const mapped=data.map(dbVisit).concat(pendingMapped);
  if(fullSnapshot){
   visits=mapped;
   persistedEventIds.clear();
  }else{
   const changedSet=new Set(changedIds);
-  // Un registro que ya no es visible por RLS o fue eliminado debe desaparecer de este dispositivo.
+  // El cambio de una invitación o su rechazo debe eliminar información anterior
+  // del dispositivo sin conservar datos que ya no son visibles por RLS.
+  for(const v of visits)if(v.assignmentStatus==='invited')changedSet.add(String(v.id));
+  for(const v of pendingMapped)changedSet.add(String(v.id));
   visits=visits.filter(v=>!changedSet.has(String(v.id))).concat(mapped);
  }
  if(cloud.role==='technician')visits=visits.filter(v=>v.assignedUserId===cloud.user?.id);
@@ -382,6 +410,9 @@ async function persistVisit(v){
    }
    // Una invitación rechazada queda registrada en home_visit_assignments.
    // No debe intentar insertar un evento de aceptación para una asignación rechazada.
+   // La asignación ahora permite o impide leer la fila clínica completa.
+   // Rehacer la fotografía tras responder, sin depender del outbox.
+   homeVisitSyncCursor=null;
    try{await loadCloudVisits()}catch(refreshError){console.warn('[Domicilios] La respuesta quedó guardada; no se pudo refrescar la agenda:',refreshError?.message||refreshError)}
    return;
   }
