@@ -325,8 +325,8 @@
   color:#fff!important;font-size:clamp(9px,1.5vw,12px)!important;
   font-weight:730!important;line-height:1.2!important;word-break:normal!important;
  }
- body.fr2-app-authorized #view-patients.pp-premium #patientWorkspace>:scope>.panel-head,
- body.fr2-app-authorized #view-patients.pp-premium #patientWorkspace>:scope>.stats-grid{
+ body.fr2-app-authorized #view-patients.pp-premium #patientWorkspace>.panel-head,
+ body.fr2-app-authorized #view-patients.pp-premium #patientWorkspace>.stats-grid{
   display:none!important;
  }
  body.fr2-app-authorized #view-patients.pp-premium .pp-record-tabs{

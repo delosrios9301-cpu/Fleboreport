@@ -249,6 +249,13 @@
     const im=el('img');im.src=photo;im.alt='Foto del paciente';portrait.append(im);
    }else portrait.innerHTML=icon('user');
   }
+  const originalEdit=$('patient-tab-personal')?.querySelector('button[onclick*="editIndividualPatient"]');
+  const editButton=$('ppRecordHero')?.querySelector('button.pp-outline-edit');
+  if(editButton){
+   const unavailable=!originalEdit||originalEdit.disabled||originalEdit.hidden||
+    window.getComputedStyle(originalEdit).display==='none';
+   editButton.hidden=unavailable;
+  }
   const attentions=Array.isArray(p.attentions)?p.attentions:[];
   const tests=attentions.flatMap(a=>Array.isArray(a.tests)?a.tests:[]);
   const resultTests=tests.filter(t=>t&&typeof t==='object'&&String(t.result||'').trim().length);
@@ -261,7 +268,7 @@
    results.replaceChildren();
    if(!resultTests.length)results.append(el('p','pp-empty','Este expediente no tiene resultados registrados.'));
    for(const a of attentions){
-    for(const t of (a.tests||[])){
+    for(const t of (Array.isArray(a.tests)?a.tests:[])){
      if(!t||typeof t!=='object'||!String(t.result||'').trim())continue;
      const item=el('article','pp-result-item');
      item.append(el('strong','',t.name||'Prueba'));
