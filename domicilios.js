@@ -782,7 +782,7 @@ function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
  workspace.dataset.referenceCards='1';
  const head=document.createElement('header');head.className='hv-ref-heading';
- head.innerHTML='<div class="hv-ref-heading-title"><span class="hv-ref-house" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15 16 5l13 10v13H3V15Z"/><path d="M11 28V17h10v11"/></svg></span><div><h1>Domicilios</h1><p>Visitas domiciliarias asignadas</p></div></div><button type="button" id="hvRefNew" hidden>＋ Nuevo domicilio</button>';
+ head.innerHTML='<div class="hv-ref-heading-title"><span class="hv-ref-house" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15 16 5l13 10v13H3V15Z"/><path d="M11 28V17h10v11"/></svg></span><div><h1>Domicilios</h1><p>Visitas domiciliarias asignadas</p></div></div><button type="button" id="hvRefNew" class="hv-ref-new" hidden>＋ Nuevo domicilio</button>';
  workspace.prepend(head);
  const statusBar=document.createElement('nav');statusBar.id='hvRefQuick';statusBar.className='hv-ref-quick';statusBar.setAttribute('aria-label','Filtrar domicilios por estado');
  head.insertAdjacentElement('afterend',statusBar);

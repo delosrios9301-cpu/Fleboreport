@@ -508,3 +508,25 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new
   transition:none!important;animation:none!important;
  }
 }
+
+
+/* v293: la clase de la cápsula ya está en el botón real. Los IDs
+   aseguran precedencia sobre el CSS legado inyectado por Domicilios. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(#hvRefNew.hv-ref-new,#hvRefToggleTools.hv-ref-tools-toggle){
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ min-width:0!important;width:auto!important;min-height:44px!important;
+ padding:9px 12px!important;gap:7px!important;
+ border:1px solid #d9d0f4!important;border-radius:999px!important;
+ color:#4b3185!important;background:linear-gradient(135deg,#fff 5%,#eeeaff 100%)!important;
+ box-shadow:0 3px 7px #54328c25,inset 0 1px #fff!important;
+ text-align:center!important;text-shadow:none!important;
+ font-weight:800!important;line-height:1.18!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRefNew.hv-ref-new[hidden]{
+ display:none!important;
+}
+@media(max-width:420px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvRefNew.hv-ref-new{
+  padding:9px 10px!important;font-size:10.5px!important;
+ }
+}
