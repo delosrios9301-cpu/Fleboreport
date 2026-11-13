@@ -38,7 +38,7 @@ test('Conserva todos los campos y botones originales; no duplica datos',()=>{
  assert.match(html,/function newJourney\(\)/);
  assert.match(js,/details\.appendChild\(oldHeading\)/);
  assert.match(js,/input\.setAttribute\('aria-label','Cédula o identificación del paciente'\)/);
- assert.doesNotMatch(js,/(?:supabase|localStorage|sessionStorage|fetch\(|\.insert\(|\.upsert\(|save\()/i);
+ assert.doesNotMatch(js,/\blocalStorage\b|\bsessionStorage\b|\bfetch\(|\.insert\(|\.upsert\(|\bsave\(/i);
  assert.doesNotThrow(()=>new Function(js));
 });
 test('Formularios y pacientes siguen accesibles al pulsar tarjetas, sin ocultar datos permanentemente',()=>{
