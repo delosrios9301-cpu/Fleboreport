@@ -113,7 +113,7 @@ test('Ver expediente llama directamente con ID real y cambia la vista visible',(
  };
  const events=[];let selected=null;
  const ctx={
-  $,window:{openPatient:id=>{selected=id;events.push('native:'+id)},
+  window:{openPatient:id=>{selected=id;events.push('native:'+id)},
    renderPatientWorkspace:()=>events.push('render'),
    showPatientTab:key=>events.push('tab:'+key),
    toast:message=>events.push('error:'+message)},
