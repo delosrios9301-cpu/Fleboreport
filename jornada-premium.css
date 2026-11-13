@@ -944,3 +944,77 @@ body.fr2-app-authorized.cm-workspace.vc-compact
 @media screen and (prefers-reduced-motion:reduce){
  body.fr2-app-authorized .jp-lookup-dialog *{transition:none!important;animation:none!important}
 }
+
+/* v313 — El teclado móvil reduce el viewport visual, no siempre el fixed layout.
+   Medidas derivadas de VisualViewport: el buscador permanece por encima
+   del teclado y sus resultados se desplazan de forma independiente. */
+@media screen{
+ body.fr2-app-authorized .jp-lookup-overlay:not([hidden]){
+  inset:auto!important;top:var(--jp-lookup-top,0px)!important;
+  left:var(--jp-lookup-left,0px)!important;
+  right:auto!important;bottom:auto!important;
+  width:var(--jp-lookup-width,100%)!important;
+  height:var(--jp-lookup-height,100dvh)!important;
+  max-width:none!important;max-height:none!important;
+  box-sizing:border-box!important;overflow:hidden!important;
+  padding:max(6px,env(safe-area-inset-top,0px)) 10px
+   max(6px,env(safe-area-inset-bottom,0px))!important;
+  overscroll-behavior:contain!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay:not([hidden]) .jp-lookup-dialog{
+  max-height:calc(100% - 2px)!important;
+  min-height:0!important;height:auto!important;
+  flex:0 1 auto!important;
+  box-sizing:border-box!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay:not([hidden]) .jp-lookup-results{
+  flex:1 1 auto!important;min-height:0!important;max-height:none!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  touch-action:pan-y!important;overscroll-behavior-y:contain!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]){
+  align-items:center!important;justify-content:flex-start!important;
+  padding:6px 8px!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-dialog{
+  max-height:100%!important;width:min(100%,590px)!important;
+  padding:11px!important;gap:7px!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  scrollbar-width:thin!important;
+  -webkit-overflow-scrolling:touch!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-head{
+  flex:0 0 auto!important;padding-bottom:7px!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-head p{
+  display:none!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-search-label{
+  flex:0 0 auto!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) #jpPatientLookupInput{
+  flex:0 0 auto!important;min-height:45px!important;height:45px!important;
+  font-size:16px!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-status{
+  flex:0 0 auto!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-tight:not([hidden]) .jp-lookup-head small{
+  display:none!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-tight:not([hidden]) .jp-lookup-head h2{
+  font-size:19px!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-tight:not([hidden]) .jp-lookup-foot{
+  display:none!important;
+ }
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-tight:not([hidden]) .jp-lookup-results{
+  min-height:28px!important;padding-bottom:2px!important;
+ }
+}
+@media screen and (max-width:760px){
+ body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]) .jp-lookup-dialog{
+  margin:0!important;border-radius:17px!important;
+  width:100%!important;max-width:none!important;
+ }
+}
