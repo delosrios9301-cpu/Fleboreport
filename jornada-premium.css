@@ -765,3 +765,30 @@ body.fr2-app-authorized.cm-workspace.vc-compact
   bottom:calc(8px + env(safe-area-inset-bottom,0px) + var(--jp-keyboard-bottom,0px))!important;
  }
 }
+
+/* v299 · La barra inferior permanece visible; el panel de Registro termina
+   ANTES de la barra y el teclado. El botón no queda debajo de otro control. */
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+ bottom:calc(15px + env(safe-area-inset-bottom,0px) + var(--jp-viewport-clearance,96px))!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column{
+ padding-bottom:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column>.journey-submit-actions{
+ flex-shrink:0!important;
+ margin-top:0!important;
+ padding-bottom:12px!important;
+}
+@media(max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+  bottom:calc(8px + env(safe-area-inset-bottom,0px) + var(--jp-viewport-clearance,96px))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column{
+  padding-bottom:8px!important;
+ }
+}
