@@ -18,7 +18,7 @@ test('Jornada reconstruye la composición como la imagen original con encabezado
  assert.match(html,/journeyKpiInProgress:inProgress/);
 });
 test('Jornada activa, búsqueda, identificación, pruebas, pacientes y reporte aparecen en el orden pedido',()=>{
- for(const word of ['Jornada activa','Buscar paciente','Pruebas seleccionadas','Pacientes en toma','Cédula / identificación']){
+ for(const word of ['Jornada activa','Buscar paciente','Registrar paciente','Pacientes en toma','Cédula / identificación']){
   assert.ok(js.includes(word)||html.includes(word),word);
  }
  assert.match(js,/active\.insertAdjacentElement\('afterend',actions\)/);
@@ -44,7 +44,7 @@ test('Conserva todos los campos y botones originales; no duplica datos',()=>{
 test('Formularios y pacientes siguen accesibles al pulsar tarjetas, sin ocultar datos permanentemente',()=>{
  assert.match(js,/view\.classList\.add\('jp-workspace-open'\)/);
  assert.match(css,/\.jp-workspace-open>\.journey-layout/);
- assert.match(js,/openWorkspace\('tests'\)/);
+ assert.match(js,/openWorkspace\(last\?'tests':'patient'\)/);
  assert.match(js,/openWorkspace\('patients'\)/);
  assert.match(html,/class="panel form-panel journey-entry-panel"/);
  assert.match(html,/class="panel journey-list-panel"/);
@@ -58,7 +58,7 @@ test('Encabezado fijo, estilo responsive y PWA v295',()=>{
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(html,/jornada-premium\.css\?v=20261113-jornada6" media="screen"/);
  assert.match(html,/jornada-premium\.js\?v=20261113-jornada5/);
- assert.match(sw,/fleboreport-shell-v311/);
+ assert.match(sw,/fleboreport-shell-v312/);
  assert.match(sw,/'\.\/jornada-premium.css'/);
  assert.match(sw,/'\.\/jornada-premium.js'/);
 });
@@ -87,5 +87,5 @@ test('Tarjetas operativas y de identificación centradas verticalmente y sin cor
  for(const token of tokens)assert.ok(css.includes(token),token);
  assert.match(css,/min-height:106px!important;cursor:default!important;\s*align-items:center!important/);
  assert.match(html,/jornada-premium\.css\?v=20261113-jornada6" media="screen"/);
- assert.match(sw,/fleboreport-shell-v311/);
+ assert.match(sw,/fleboreport-shell-v312/);
 });
