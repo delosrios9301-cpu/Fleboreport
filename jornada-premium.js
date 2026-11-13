@@ -93,6 +93,27 @@
  // Búsqueda independiente del registro. Solo consulta expedientes sincronizados,
  // y nunca guarda ni crea pacientes hasta que se pulse Guardar en el formulario.
  let lookup=null,lookupInput=null,lookupList=null,lookupStatus=null,lookupReturnFocus=null;
+ let lookupBaselineHeight=0;
+ // Un modal fixed usa el viewport de diseño, pero el teclado Android recorta
+ // el viewport visual. Anclarlo al viewport visual evita que quede detrás.
+ function updateLookupViewport(){
+  if(!lookup||lookup.hidden)return;
+  const viewport=window.visualViewport;
+  const layoutHeight=Math.max(1,window.innerHeight||document.documentElement.clientHeight||1);
+  const height=Math.max(1,viewport?.height||layoutHeight);
+  const width=Math.max(1,viewport?.width||window.innerWidth||document.documentElement.clientWidth||1);
+  const top=Math.max(0,viewport?.offsetTop||0);
+  const left=Math.max(0,viewport?.offsetLeft||0);
+  lookup.style.setProperty('--jp-lookup-top',Math.round(top)+'px');
+  lookup.style.setProperty('--jp-lookup-left',Math.round(left)+'px');
+  lookup.style.setProperty('--jp-lookup-width',Math.floor(width)+'px');
+  lookup.style.setProperty('--jp-lookup-height',Math.floor(height)+'px');
+  const hiddenSpace=Math.max(0,layoutHeight-top-height,lookupBaselineHeight-height);
+  const typing=!!(lookupInput&&document.activeElement===lookupInput);
+  const keyboard=typing&&hiddenSpace>110;
+  lookup.classList.toggle('jp-lookup-keyboard',keyboard);
+  lookup.classList.toggle('jp-lookup-tight',keyboard&&height<420);
+ }
  const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
   .toLocaleLowerCase('es').trim().replace(/\s+/g,' ');
  const documentKey=value=>String(value||'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
@@ -140,6 +161,18 @@
    openWorkspace('patient');
   });
   lookupInput.addEventListener('input',renderLookup);
+  lookupInput.addEventListener('focus',()=>requestAnimationFrame(updateLookupViewport));
+  lookupInput.addEventListener('blur',()=>requestAnimationFrame(updateLookupViewport));
+  if(window.visualViewport){
+   window.visualViewport.addEventListener('resize',updateLookupViewport,{passive:true});
+   window.visualViewport.addEventListener('scroll',updateLookupViewport,{passive:true});
+  }
+  window.addEventListener('resize',updateLookupViewport,{passive:true});
+  window.addEventListener('orientationchange',()=>{
+   if(!lookup||lookup.hidden)return;
+   lookupBaselineHeight=Math.max(1,window.innerHeight||window.visualViewport?.height||1);
+   requestAnimationFrame(updateLookupViewport);
+  },{passive:true});
   lookup.addEventListener('keydown',e=>{
    if(e.key==='Escape'){e.preventDefault();closeLookup();}
    if(e.key!=='Tab')return;
@@ -153,6 +186,10 @@
  function closeLookup(){
   if(!lookup||lookup.hidden)return;
   lookup.hidden=true;
+  lookup.classList.remove('jp-lookup-keyboard','jp-lookup-tight');
+  for(const key of ['--jp-lookup-top','--jp-lookup-left','--jp-lookup-width','--jp-lookup-height'])
+   lookup.style.removeProperty(key);
+  lookupBaselineHeight=0;
   document.body.classList.remove('jp-lookup-open');
   if(lookupReturnFocus?.isConnected)lookupReturnFocus.focus({preventScroll:true});
   lookupReturnFocus=null;
@@ -162,9 +199,14 @@
   lookupReturnFocus=document.activeElement;
   lookup.hidden=false;
   document.body.classList.add('jp-lookup-open');
+  lookupBaselineHeight=Math.max(1,window.innerHeight||window.visualViewport?.height||1);
   lookupInput.value='';
   renderLookup();
-  requestAnimationFrame(()=>lookupInput.focus({preventScroll:true}));
+  updateLookupViewport();
+  requestAnimationFrame(()=>{
+   lookupInput.focus({preventScroll:true});
+   updateLookupViewport();
+  });
  }
  function openMatchedPatient(p){
   const documentId=String(p.document||p.cedula||'').trim();
