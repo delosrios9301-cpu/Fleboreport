@@ -56,9 +56,9 @@ test('Encabezado fijo, estilo responsive y PWA v294',()=>{
  assert.match(css,/@media\(max-width:760px\)/);
  assert.match(css,/@media\(max-width:370px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada1" media="screen"/);
+ assert.match(html,/jornada-premium\.css\?v=20261112-jornada2" media="screen"/);
  assert.match(html,/jornada-premium\.js\?v=20261112-jornada1/);
- assert.match(sw,/fleboreport-shell-v294/);
+ assert.match(sw,/fleboreport-shell-v295/);
  assert.match(sw,/'\.\/jornada-premium.css'/);
  assert.match(sw,/'\.\/jornada-premium.js'/);
 });
