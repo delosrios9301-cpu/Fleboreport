@@ -11,8 +11,9 @@
  const calendarIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v5M16 2v5M3 10h18"/></svg>';
  const userIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>';
  const fileIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h6"/></svg>';
+ const searchIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>';
  const testIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6M10 2v8l-6 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-6-9V2M7 16h10"/></svg>';
- const icon=(key)=>({calendar:calendarIcon,user:userIcon,file:fileIcon,test:testIcon})[key]||fileIcon;
+ const icon=(key)=>({calendar:calendarIcon,user:userIcon,file:fileIcon,test:testIcon,search:searchIcon})[key]||fileIcon;
  const localDate=value=>{
   const d=String(value||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return '—';
   const obj=new Date(d+'T00:00:00');
@@ -47,7 +48,7 @@
   if(fields&&!fields.classList.contains('pp-compact-search')){
    fields.classList.add('pp-compact-search');
    const first=fields.querySelector('.field');
-   if(first&&!first.querySelector('.pp-search-icon'))first.prepend(elementIcon('file','pp-search-icon'));
+   if(first&&!first.querySelector('.pp-search-icon'))first.prepend(elementIcon('search','pp-search-icon'));
   }
   const date=$('patientDateFilter')?.closest('.field');
   const chips=panel?.querySelector('.pp-list-chips');
@@ -56,6 +57,15 @@
    details.append(mk('summary','','Filtrar por fecha'));
    date.before(details);details.append(date);
    chips.after(details);
+  }
+  if(panel&&fields&&!$('ppPatientSearchPanel')){
+   const searchPanel=mk('section','pp-search-panel');
+   searchPanel.id='ppPatientSearchPanel';
+   panel.before(searchPanel);
+   searchPanel.append(fields);
+   if(chips)searchPanel.append(chips);
+   const dateDetails=panel.querySelector('.pp-date-filter');
+   if(dateDetails)searchPanel.append(dateDetails);
   }
   if(panel&&!panel.querySelector('.pp-directory-head-icon')){
    const header=panel.querySelector(':scope > .panel-head');
