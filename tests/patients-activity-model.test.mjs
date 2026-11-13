@@ -42,7 +42,7 @@ test('Cuenta únicamente muestras tomadas de Jornadas y pruebas de atenciones re
  assert.equal(m.summary.returning,1);
  const journey=p.records.find(r=>r.source==='journey');
  assert.equal(journey.status,'Toma parcial');
- assert.deepEqual(journey.tests.map(t=>t.performed),[true,false]);
+ assert.equal(JSON.stringify(journey.tests.map(t=>t.performed)),JSON.stringify([true,false]));
 });
 test('Jornada sin ninguna muestra tomada no aumenta atenciones ni pruebas realizadas',()=>{
  const copy=JSON.parse(JSON.stringify(testState));
