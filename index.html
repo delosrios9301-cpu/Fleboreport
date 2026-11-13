@@ -1144,15 +1144,22 @@ function totalTests(){return state.selected.reduce(function(sum,x){return sum+x.
 function renderJourney(){const list=$('journeyTests'),groups=grouped();$('journeyTotal').textContent=totalTests();list.innerHTML=groups.length?groups.map(function(g){return '<div class="catalog-card"><span class="catalog-icon">'+vesselSvg(g.test)+'</span><span><strong>'+esc(g.test.name)+'</strong><small>'+esc(g.test.vessel||'Recipiente sin configurar')+' · '+g.count+' realizada'+(g.count===1?'':'s')+'</small></span><span class="list-actions"><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',-1)" aria-label="Restar">−</button><b>'+g.count+'</b><button class="icon-button" onclick="changeCount(\''+esc(g.test.id)+'\',1)" aria-label="Sumar">+</button><button class="icon-button" onclick="removeFromJourney(\''+esc(g.test.id)+'\')" aria-label="Quitar">×</button></span></div>'}).join(''):'<div class="empty-state">Todavía no agregas pruebas.</div>';updateJourneySummary()}
 function patientsForJourney(){
  var patients=Array.isArray(state.patients)?state.patients:[],entries=Array.isArray(state.journeyEntries)?state.journeyEntries:[],history=[];
+ const journeyId=String(state.journey&&state.journey.id||'');
+ const inJourney=function(e){return e&&String(e.journeyId||'')===journeyId};
+ const activeEntries=entries.filter(function(e){return inJourney(e)&&!e.removedAt});
+ const activePatientIds=new Set(activeEntries.map(function(e){return String(e.patientId||e.patientRecordId||'')}));
+ const removedPatientIds=new Set(entries.filter(function(e){return inJourney(e)&&e.removedAt}).map(function(e){return String(e.patientId||e.patientRecordId||'')}));
  patients.forEach(function(p){
   (Array.isArray(p.journeyHistory)?p.journeyHistory:[]).forEach(function(entry){
-   if(entry&&String(entry.journeyId||'')===String(state.journey.id||'')){
-    history.push(Object.assign({},entry,{patientId:entry.patientId||p.id,patientRecordId:p.id}));
-   }
+   if(!inJourney(entry))return;
+   const patientId=String(entry.patientId||entry.patientRecordId||p.id||'');
+   if(entry.removedAt){if(!activePatientIds.has(patientId))removedPatientIds.add(patientId);return}
+   if(removedPatientIds.has(patientId)||activePatientIds.has(patientId))return;
+   history.push(Object.assign({},entry,{patientId:entry.patientId||p.id,patientRecordId:p.id}));
   });
  });
  var unique=new Map();
- entries.filter(function(e){return e&&e.journeyId===state.journey.id}).forEach(function(e){
+ activeEntries.filter(function(e){return !removedPatientIds.has(String(e.patientId||e.patientRecordId||''))}).forEach(function(e){
   var key=String(e.id||String(e.journeyId)+'|'+String(e.patientId||e.participantId||''));
   unique.set(key,e);
  });
@@ -1165,7 +1172,7 @@ function patientsForJourney(){
   return Object.assign({},p,{journeyId:e.journeyId,journeyDate:e.journeyDate,testIds:Array.isArray(e.testIds)?e.testIds:[],testStatuses:e.testStatuses||{},participantId:e.id||('je-history-'+String(e.journeyId)+'-'+String(p.id||e.patientId||'')),patientId:p.id||e.patientId||e.patientRecordId||''});
  });
  var seen=new Set(joined.map(function(p){return String(p.patientId)}));
- var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))});
+ var legacy=patients.filter(function(p){return p.journeyId===state.journey.id&&Array.isArray(p.testIds)&&p.testIds.length>0&&!seen.has(String(p.id))&&!removedPatientIds.has(String(p.id))});
  var allPatients=joined.concat(legacy.map(function(p){return Object.assign({},p,{participantId:p.id,patientId:p.id})}));
  allPatients.sort(function(a,b){
   var aIds=Array.isArray(a.testIds)?a.testIds:[],bIds=Array.isArray(b.testIds)?b.testIds:[];
@@ -1195,7 +1202,52 @@ function renderReport(){const groups=grouped(),total=totalTests(),patients=journ
 function refreshDashboard(){const groups=grouped();$('dashJourneys').textContent=totalTests()?'1':'0';$('dashPatients').textContent=state.patients.length;$('dashTests').textContent=totalTests();$('dashCompanies').textContent=state.companies.length;$('patientCount').textContent=state.patients.length;$('localPatientsCount').textContent=state.patients.length;const chart=$('dashboardChart');if(!groups.length){chart.className='empty-state';chart.innerHTML='<span class="empty-symbol">⚗</span>Agrega pruebas para ver los conteos de esta jornada.'}else{const max=Math.max.apply(null,groups.map(function(g){return g.count}));chart.className='chart-list';chart.innerHTML=groups.map(function(g){return '<div class="chart-row"><strong>'+esc(g.test.name)+'</strong><div class="chart-track"><div class="chart-fill" style="width:'+Math.max(7,Math.round(g.count/max*100))+'%"></div></div><b>'+g.count+'</b></div>'}).join('')}$('dashboardSummary').innerHTML=groups.length?'<div class="table-wrap"><table class="data-table"><thead><tr><th>Prueba</th><th>Cantidad</th><th>Recipiente</th></tr></thead><tbody>'+groups.map(function(g){return '<tr><td>'+esc(g.test.name)+'</td><td>'+g.count+'</td><td>'+esc(g.test.vessel||'Sin configurar')+'</td></tr>'}).join('')+'<tr><td><b>Total general</b></td><td><b>'+totalTests()+'</b></td><td></td></tr></tbody></table></div>':'<div class="empty-state">Aún no hay pruebas agregadas a la jornada.</div>'}
 function addPatient(){const name=$('patientName').value.trim(),id=$('patientId').value.trim();if(!name){toast('Escribe el nombre del paciente.');$('patientName').focus();return}state.patients.unshift({id:'p-'+Date.now(),name,document:id,notes:$('patientNotes').value.trim(),createdAt:new Date().toISOString()});save();$('patientName').value='';$('patientId').value='';$('patientNotes').value='';renderPatients();toast('Registro guardado. Sincronizando con la nube…')}
 function renderPatients(){const host=$('patientList'),term=$('patientSearch').value.trim().toLowerCase();const records=state.patients.filter(function(p){return (p.name+' '+p.document).toLowerCase().includes(term)});host.innerHTML=records.length?records.map(function(p){return '<div class="list-row"><span><strong>'+esc(p.name)+'</strong><small>'+esc(p.document||'Sin documento')+' · '+new Date(p.createdAt).toLocaleDateString('es')+'</small></span><button class="btn danger" onclick="deletePatient(\''+esc(p.id)+'\')">Eliminar</button></div>'}).join(''):'<div class="empty-state">No hay registros que coincidan.</div>'}
-function deletePatient(id){var entry=state.journeyEntries.find(function(e){return e.id===id&&e.journeyId===state.journey.id});if(entry){(entry.testIds||[]).forEach(function(testId){var item=state.selected.find(function(x){return x.testId===testId});if(item)item.count-=1});state.journeyEntries=state.journeyEntries.filter(function(e){return e.id!==id})}else{var patient=state.patients.find(function(p){return p.id===id});if(patient&&patient.journeyId===state.journey.id){(patient.testIds||[]).forEach(function(testId){var item=state.selected.find(function(x){return x.testId===testId});if(item)item.count-=1});patient.journeyId='';patient.testIds=[];patient.testStatuses={}}else{state.patients=state.patients.filter(function(p){return p.id!==id})}}state.selected=state.selected.filter(function(x){return x.count>0});save();renderAll()}
+function deletePatient(id){
+ // Retirar de la jornada no equivale a borrar el expediente maestro.
+ // Un marcador persistente impide que la nube restaure la participación.
+ const participant=patientsForJourney().find(function(p){return String(p.participantId||'')===String(id||'')});
+ if(!participant){toast('Este paciente ya no figura en la jornada. Actualiza la lista.');renderJourneyPatients();return}
+ const jid=String(state.journey&&state.journey.id||''),pid=String(participant.patientId||participant.id||'');
+ if(!jid||!pid){toast('No se pudo identificar la participación.');return}
+ if(!confirm('¿Quitar a '+(participant.name||'este paciente')+' de la jornada activa? Su expediente permanecerá registrado.'))return;
+ const previous=journeySnapshot(),now=new Date().toISOString(),actor=window.FleboAuth&&window.FleboAuth.user&&window.FleboAuth.user.id||'';
+ const samePatient=function(e){return e&&String(e.journeyId||'')===jid&&
+  (String(e.patientId||'')===pid||String(e.patientRecordId||'')===pid||String(e.id||'')===String(id))};
+ state.journeyEntries=Array.isArray(state.journeyEntries)?state.journeyEntries:[];
+ let matched=false;
+ state.journeyEntries.forEach(function(e){
+  if(!samePatient(e))return;
+  e.removedAt=now;e.removedBy=actor;e.updatedAt=now;matched=true;
+ });
+ if(!matched)state.journeyEntries.push({
+  id:String(id||'je-removed-'+Date.now()),journeyId:jid,patientId:pid,
+  journeyDate:state.journey.date,testIds:Array.isArray(participant.testIds)?participant.testIds.slice():[],
+  testStatuses:Object.assign({},participant.testStatuses||{}),
+  removedAt:now,removedBy:actor,updatedAt:now,createdAt:participant.createdAt||now
+ });
+ (state.patients||[]).forEach(function(p){
+  if(String(p.id||'')!==pid)return;
+  if(Array.isArray(p.journeyHistory))p.journeyHistory.forEach(function(e){
+   if(samePatient(e)||e&&String(e.journeyId||'')===jid){
+    e.removedAt=now;e.removedBy=actor;e.updatedAt=now;
+   }
+  });
+  if(String(p.journeyId||'')===jid){
+   p.journeyId='';p.testIds=[];p.testStatuses={};
+  }
+  p.updatedAt=now;
+ });
+ (Array.isArray(participant.testIds)?participant.testIds:[]).forEach(function(testId){
+  const row=(state.selected||[]).find(function(x){return String(x.testId)===String(testId)});
+  if(row)row.count=Math.max(0,(Number(row.count)||0)-1);
+ });
+ state.selected=(state.selected||[]).filter(function(x){return Number(x.count)>0});
+ touchJourney();
+ if(!save()){restoreJourneySnapshot(previous);renderJourneyPatients();return}
+ renderAll();
+ auditAdd('Jornada','Retiró una participación de jornada '+jid+' (sin borrar expediente)');
+ toast('Paciente retirado de esta jornada. Su expediente se conserva.');
+}
 function setStyle(style){state.style=style;$('reportCard').classList.toggle('formal',style==='formal');$('reportCard').classList.toggle('infographic',style==='infographic');document.querySelectorAll('[data-style]').forEach(function(b){b.classList.toggle('active',b.dataset.style===style)});save()}
 function newJourney(){var hasWork=!!(totalTests()||patientsForJourney().length),hasReport=(state.reportHistory||[]).some(function(r){return r&&r.snapshot&&String(r.snapshot.journeyId||'')===String(state.journey.id||'')});if(hasWork&&!hasReport){toast('Antes de iniciar otra jornada, genera y guarda el reporte de la jornada actual. Sus datos permanecerán aquí.');return}if(hasWork&&!confirm('¿Iniciar una jornada nueva? El reporte de la jornada actual ya está guardado y los datos históricos se conservarán.'))return;clearJourneyDraft();state.journey={id:'j-'+Date.now(),date:new Date().toISOString().slice(0,10),start:'',end:'',responsible:'',companyId:'',updatedAt:new Date().toISOString()};state.selected=[];$('journeyDate').value=state.journey.date;$('journeyStart').value='';$('journeyEnd').value='';$('journeyResponsible').value='';$('journeyPatientName').value='';$('journeyPatientLastName').value='';$('journeyPatientId').value='';$('journeyPatientBirth').value='';$('journeyPatientSex').value='';$('journeyPatientTestSearch').value='';$('journeyPatientLookupHint').textContent='La cédula identifica al paciente y evita duplicar su expediente.';save();renderAll();navigate('journey')}
 function completeJourneyAfterExport(){
@@ -1296,7 +1348,15 @@ function renderJourneyPatients(){
   }).join('');
   return '<article class="journey-patient-card"><div class="journey-patient-head"><span class="journey-patient-identity"><strong>'+esc(p.name||p.fullName||'Paciente')+'</strong><small>Cédula: '+esc(p.document||p.cedula||'—')+'</small></span><span class="journey-patient-state '+(isComplete?'complete':'pending')+'">'+(isComplete?'Completado':'Pendiente')+'</span><button type="button" class="btn danger journey-remove-patient" data-journey-patient-delete="'+esc(p.participantId)+'" aria-label="Quitar paciente de esta jornada">Quitar</button></div><div class="journey-patient-progress"><div class="journey-patient-progress-label"><span>'+completed+' de '+ids.length+' muestras tomadas</span><strong>'+progress+'%</strong></div><div class="journey-patient-progress-track"><span style="width:'+progress+'%"></span></div></div><div class="patient-test-status-list">'+(rows||'<div class="journey-no-tests">No hay detalles de pruebas disponibles en el catálogo.</div>')+'</div></article>';
  }).join(''):'<div class="empty-state journey-empty-state"><span class="journey-empty-icon">♙</span><strong>La jornada todavía no tiene pacientes</strong><small>Registra el primer paciente y selecciona sus pruebas para comenzar.</small></div>';
- host.querySelectorAll('[data-journey-patient-delete]').forEach(function(b){b.onclick=function(){deletePatient(b.dataset.journeyPatientDelete)}});
+ if(!host.dataset.journeyRemoveBound){
+  host.dataset.journeyRemoveBound='1';
+  host.addEventListener('click',function(event){
+   const b=event.target.closest('[data-journey-patient-delete]');
+   if(!b||!host.contains(b))return;
+   event.preventDefault();event.stopPropagation();
+   deletePatient(b.dataset.journeyPatientDelete);
+  });
+ }
  host.querySelectorAll('[data-patient-status]').forEach(function(b){b.onclick=function(){
   const patientId=b.dataset.patientId||'',now=new Date().toISOString();
   const entry=state.journeyEntries.find(function(x){return x.id===b.dataset.patientStatus||(x.journeyId===state.journey.id&&x.patientId===patientId)});
@@ -1343,7 +1403,12 @@ function registerJourneyPatient(){
  if(!patient){patient={id:'p-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),module:'journey',name:name,fullName:name,firstName:firstName,lastName:lastName,document:documentId,cedula:documentId,birthDate:birthDate,sex:sex,createdAt:now,updatedAt:now};state.patients.push(patient)}
  else{if(!patient.name)patient.name=name;if(!patient.fullName)patient.fullName=patient.name;if(!patient.firstName)patient.firstName=firstName;if(!patient.lastName)patient.lastName=lastName;if(!patient.document)patient.document=documentId;if(birthDate&&!patient.birthDate)patient.birthDate=birthDate;if(sex&&!patient.sex)patient.sex=sex;patient.updatedAt=now}
  state.journeyEntries=Array.isArray(state.journeyEntries)?state.journeyEntries:[];
- var entry=state.journeyEntries.find(function(e){return e.journeyId===state.journey.id&&e.patientId===patient.id}),added=requested.filter(function(id){return !entry||(entry.testIds||[]).indexOf(id)<0});
+ var entry=state.journeyEntries.find(function(e){return e.journeyId===state.journey.id&&e.patientId===patient.id});
+ if(entry&&entry.removedAt){
+  entry.testIds=[];entry.testStatuses={};entry.removedAt=null;entry.removedBy=null;
+  entry.updatedAt=now;
+ }
+ var added=requested.filter(function(id){return !entry||(entry.testIds||[]).indexOf(id)<0});
  if(entry){entry.testIds=entry.testIds||[];entry.testStatuses=entry.testStatuses||{};added.forEach(function(id){entry.testIds.push(id);entry.testStatuses[id]='pendiente'});if(added.length)entry.lastAddedAt=now;entry.updatedAt=now}
  else{var statuses={};requested.forEach(function(id){statuses[id]='pendiente'});state.journeyEntries.push({id:'je-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),journeyId:state.journey.id,journeyDate:state.journey.date,patientId:patient.id,testIds:requested.slice(),testStatuses:statuses,createdAt:now,lastAddedAt:now,updatedAt:now})}
  added.forEach(function(testId){var row=state.selected.find(function(x){return x.testId===testId});if(row)row.count+=1;else state.selected.push({testId:testId,count:1})});
