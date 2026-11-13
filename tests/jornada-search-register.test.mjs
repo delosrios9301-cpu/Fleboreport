@@ -72,7 +72,7 @@ test('Conserva guardado real, cédula única y PWA con diseño táctil',()=>{
  assert.match(css,/@media screen and \(max-width:760px\)/);
  assert.match(html,/jornada-premium\.css\?v=20261113-jornada8/);
  assert.match(html,/jornada-premium\.js\?v=20261113-jornada7/);
- assert.match(sw,/fleboreport-shell-v317/);
+ assert.match(sw,/fleboreport-shell-v318/);
  assert.doesNotThrow(()=>new Function(ui));
 });
 test('Búsqueda se adapta al viewport visual cuando aparece el teclado móvil',()=>{
