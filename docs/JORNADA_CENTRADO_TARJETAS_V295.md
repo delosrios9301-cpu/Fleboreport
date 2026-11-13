@@ -1,0 +1,3 @@
+# FleboReport Jornada v295 — Alineación exacta
+
+Se corrige el centrado vertical de iconos, números y etiquetas en los cuatro KPIs mediante grid con `place-content:center` y `place-items:center`. Las tarjetas de accesos, incluido Cédula/identificación, alinean icono y contenido en el eje vertical. Contenedores con `width/max-width:100%`, `min-width:0`, `box-sizing:border-box` y márgenes horizontales simétricos evitan desplazamientos laterales en teléfono, tablet y PC. Se mantienen datos, acciones, reportes, Supabase y permisos sin cambios. Se actualiza CSS v295 y tests automatizados, sin modificar scripts clínicos ni impresión. La coincidencia visual requiere captura del dispositivo.
