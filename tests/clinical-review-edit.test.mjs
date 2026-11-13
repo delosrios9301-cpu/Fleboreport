@@ -48,7 +48,7 @@ test('Versión PWA y sintaxis actualizadas',()=>{
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical5/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical4/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
- assert.match(sw,/fleboreport-shell-v310/);
+ assert.match(sw,/fleboreport-shell-v311/);
  assert.doesNotThrow(()=>new Function(ui));
  assert.doesNotThrow(()=>new Function(cloud));
 });
