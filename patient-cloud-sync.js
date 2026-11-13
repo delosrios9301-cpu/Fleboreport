@@ -38,8 +38,8 @@ function mergePatientDetails(local,remote){
    if(row&&typeof row==='object'&&old&&typeof old==='object'){
     const oldTime=Date.parse(old.updatedAt||old.updated_at||old.createdAt||old.created_at||0)||0,rowTime=Date.parse(row.updatedAt||row.updated_at||row.createdAt||row.created_at||0)||0;
     const newer=rowTime>=oldTime?row:old,older=newer===row?old:row,merged={...older,...newer};
-    if(Array.isArray(old.testIds)||Array.isArray(row.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(row.testIds)?row.testIds:[])]));
-    if(old.testStatuses||row.testStatuses)merged.testStatuses={...(older.testStatuses||{}),...(newer.testStatuses||{})};
+    if(old.removedAt||row.removedAt){merged.testIds=Array.isArray(newer.testIds)?newer.testIds.slice():[];merged.testStatuses={...(newer.testStatuses||{})};}
+    else{if(Array.isArray(old.testIds)||Array.isArray(row.testIds))merged.testIds=Array.from(new Set([...(Array.isArray(old.testIds)?old.testIds:[]),...(Array.isArray(row.testIds)?row.testIds:[])]));if(old.testStatuses||row.testStatuses)merged.testStatuses={...(older.testStatuses||{}),...(newer.testStatuses||{})};}
     map.set(key,merged);
    }
   });
