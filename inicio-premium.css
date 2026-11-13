@@ -1,0 +1,838 @@
+/* FleboReport · Inicio Premium v300 · referencia visual aprobada.
+   Solo @media screen. Se conservan las cifras, series y estados originales. */
+@media screen {
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard{
+ --hp-ink:#1e1745;--hp-purple:#6420e5;--hp-cyan:#00bfc7;
+ --hp-line:#ded5fb;--hp-shadow:0 7px 21px rgba(57,36,138,.12),inset 0 1px rgba(255,255,255,.95);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #cmContextBar[data-area="home"]{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.fr5-screen-home.active.hp-layout-ready{
+ display:block!important;width:100%!important;max-width:100%!important;
+ min-width:0!important;padding:0!important;margin:0!important;
+ background:transparent!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.hp-layout-ready>.fr2-home-hero{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow{
+ display:flex!important;flex-direction:column!important;
+ width:100%!important;min-width:0!important;max-width:1240px!important;
+ margin:0 auto!important;padding:7px 2px 34px!important;gap:11px!important;
+ box-sizing:border-box!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;min-width:0!important;padding:4px 4px 3px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-title{
+ display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-glyph{
+ width:37px!important;height:37px!important;flex:0 0 37px!important;
+ display:grid!important;place-items:center!important;color:#6127db!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-glyph svg{
+ width:32px!important;height:32px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-title h1{
+ margin:0!important;color:#15102e!important;white-space:nowrap!important;
+ font-size:clamp(18px,3.1vw,27px)!important;line-height:1.15!important;font-weight:900!important;
+ letter-spacing:-.65px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .fr2-home-date.hp-date-pill{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ flex-direction:row!important;gap:7px!important;
+ min-width:0!important;max-width:51%!important;
+ min-height:40px!important;height:auto!important;margin:0!important;
+ padding:8px 11px!important;border:1px solid #bbb0f1!important;
+ border-radius:999px!important;background:linear-gradient(155deg,#fff,#f2eeff)!important;
+ box-shadow:0 3px 8px #5130c51c!important;color:#28224f!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill .fr2-home-date-mark{
+ display:grid!important;place-items:center!important;width:20px!important;height:20px!important;
+ flex:0 0 20px!important;margin:0!important;background:transparent!important;
+ color:#6224df!important;font-size:19px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill :is(small,span:not(.fr2-home-date-mark)){
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill b{
+ display:block!important;margin:0!important;min-width:0!important;
+ color:#29224b!important;font-size:clamp(9px,1.7vw,12px)!important;
+ font-weight:790!important;text-align:center!important;line-height:1.2!important;
+ overflow-wrap:anywhere!important;
+}
+/* Tarjetas principales: siete métricas reales, icono, valor y etiqueta. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-kpi-stage{
+ display:flex!important;align-items:center!important;gap:4px!important;
+ width:100%!important;min-width:0!important;margin:0!important;
+ padding:2px 0!important;background:transparent!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis{
+ display:flex!important;flex-flow:row nowrap!important;gap:8px!important;
+ flex:1 1 auto!important;min-width:0!important;width:100%!important;
+ margin:0!important;padding:4px 3px 10px!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ scroll-snap-type:x mandatory!important;overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi{
+ --hp-bg:linear-gradient(145deg,#2544ec,#163bc7 72%,#0685f9);
+ position:relative!important;isolation:isolate!important;
+ display:flex!important;flex:0 0 clamp(109px,11.5vw,145px)!important;
+ flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ width:clamp(109px,11.5vw,145px)!important;min-height:120px!important;max-height:none!important;
+ padding:11px 7px!important;gap:4px!important;
+ border:1px solid rgba(255,255,255,.9)!important;border-radius:20px!important;
+ background:var(--hp-bg)!important;box-shadow:0 8px 15px #421f9a3a,inset 0 1px #ffffffa8!important;
+ scroll-snap-align:start!important;overflow:hidden!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi:nth-child(4n+2){
+ --hp-bg:linear-gradient(145deg,#00babe,#05888f 70%,#00d2dc);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi:nth-child(4n+3){
+ --hp-bg:linear-gradient(145deg,#ce42f6,#7523e5 68%,#6817d1);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi:nth-child(4n+4){
+ --hp-bg:linear-gradient(145deg,#ad1be8,#6715bb 70%,#9510dc);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi::before{
+ content:""!important;position:absolute!important;left:-4%!important;right:-4%!important;
+ bottom:-6px!important;height:25px!important;border-radius:60% 10% 0 0!important;
+ background:linear-gradient(100deg,transparent,#ffffff26,#36f7fc50)!important;
+ pointer-events:none!important;z-index:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-icon{
+ display:grid!important;place-items:center!important;
+ width:32px!important;height:32px!important;flex:0 0 32px!important;margin:0!important;
+ background:transparent!important;color:#fff!important;font-size:27px!important;
+ box-shadow:none!important;filter:drop-shadow(0 2px 3px #1c0d7933)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-body{
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:3px!important;min-width:0!important;width:100%!important;
+ position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-value{
+ color:#fff!important;text-shadow:0 2px 3px #35148b55!important;
+ font-size:clamp(26px,3.2vw,38px)!important;font-weight:940!important;line-height:1!important;
+ font-variant-numeric:tabular-nums!important;max-width:100%!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-label{
+ color:#fff!important;font-size:clamp(9px,1.1vw,13px)!important;
+ line-height:1.18!important;font-weight:780!important;text-align:center!important;
+ white-space:normal!important;overflow-wrap:normal!important;max-width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-trend{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-kpi-arrow{
+ display:grid!important;place-items:center!important;z-index:2!important;
+ width:35px!important;min-width:35px!important;flex:0 0 35px!important;
+ height:43px!important;min-height:43px!important;max-height:43px!important;
+ border:1px solid #dcd4f4!important;border-radius:50%!important;
+ background:linear-gradient(150deg,#fff,#f0ebff)!important;color:#631ce1!important;
+ box-shadow:0 3px 10px #39208624!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-kpi-arrow:disabled{
+ opacity:.42!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-kpi-pager{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;min-height:12px!important;margin:-6px 0 0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-kpi-pager[hidden]{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-page-dot{
+ width:9px!important;height:9px!important;min-width:9px!important;min-height:9px!important;
+ padding:0!important;border:0!important;border-radius:999px!important;
+ background:#cfc9e6!important;box-shadow:none!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-page-dot.is-active{
+ background:#6d1be7!important;width:21px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home :is(.vc-kpi-arrow,.hp-page-dot,.vc-shortcut):focus-visible{
+ outline:3px solid #02c2d8!important;outline-offset:3px!important;
+}
+/* Accesos de la referencia: ocho destinos originales, sin duplicaciones. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .cm-launchpad{
+ display:block!important;min-width:0!important;margin:1px 0 0!important;
+ padding:1px 0 6px!important;background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .cm-launchpad-head{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ padding:0 4px!important;margin:0 0 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .cm-launchpad-head h2{
+ margin:0!important;color:#15102e!important;font-size:clamp(19px,2.6vw,26px)!important;
+ font-weight:900!important;letter-spacing:-.55px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .cm-launchpad-head>div::before{
+ content:"ϟ"!important;font-size:29px!important;font-weight:900!important;color:#6426e7!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-launch-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px 12px!important;width:100%!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut{
+ position:relative!important;isolation:isolate!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ gap:10px!important;min-width:0!important;width:100%!important;
+ min-height:95px!important;max-height:none!important;padding:13px 13px!important;
+ border:1px solid #d5cafa!important;border-radius:19px!important;
+ color:#4d21c6!important;background:linear-gradient(150deg,#fff,#f5f1ff)!important;
+ box-shadow:var(--hp-shadow)!important;text-align:left!important;
+ transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut:nth-child(even){
+ color:#028e9b!important;border-color:#b4e9ee!important;
+ background:linear-gradient(145deg,#f3ffff,#e9fcff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut::before{
+ content:""!important;position:absolute!important;bottom:0!important;left:0!important;right:0!important;
+ height:21px!important;background:linear-gradient(100deg,transparent,#bb82f8b3,#6c23eadd)!important;
+ clip-path:polygon(0 85%,27% 70%,64% 98%,85% 12%,100% 55%,100% 100%,0 100%)!important;
+ pointer-events:none!important;z-index:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut:nth-child(even)::before{
+ background:linear-gradient(90deg,transparent,#8bf9ffcc,#00c2cfdc)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut>*{
+ position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-icon{
+ display:grid!important;place-items:center!important;flex:0 0 44px!important;
+ width:44px!important;height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:11px!important;background:transparent!important;
+ color:inherit!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-icon svg{
+ width:39px!important;height:39px!important;stroke:currentColor!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut>span:nth-child(2){
+ display:flex!important;flex:1 1 auto!important;min-width:0!important;
+ flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;
+ gap:3px!important;padding-right:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut strong{
+ font-size:clamp(13px,1.8vw,19px)!important;font-weight:880!important;line-height:1.12!important;
+ color:#15132f!important;text-align:left!important;white-space:normal!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut small{
+ font-size:clamp(9px,1.15vw,12px)!important;line-height:1.2!important;
+ color:#4d4965!important;text-align:left!important;white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-chevron{
+ position:relative!important;right:auto!important;top:auto!important;
+ display:grid!important;place-items:center!important;width:20px!important;
+ height:27px!important;flex:0 0 20px!important;margin-left:auto!important;
+ color:#30244d!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut:active{
+ transform:scale(.986)!important;
+}
+@media(hover:hover){
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut:hover{
+  transform:translateY(-2px)!important;box-shadow:0 12px 24px #4c31aa2d!important;
+ }
+}
+/* Estadísticas: la fuente sigue siendo el renderizador clínico existente. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:11px!important;min-width:0!important;align-items:stretch!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-trend-group{
+ grid-template-columns:minmax(0,1.35fr) minmax(0,.65fr)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-performance-group{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-final-group{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel){
+ display:flex!important;flex-direction:column!important;min-width:0!important;
+ width:100%!important;max-width:100%!important;margin:0!important;
+ padding:0!important;overflow:hidden!important;
+ border:1px solid #d9cff9!important;border-radius:21px!important;
+ background:linear-gradient(160deg,#fff 5%,#f9f6ff 98%)!important;
+ box-shadow:var(--hp-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head{
+ display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+ gap:9px!important;min-width:0!important;padding:13px 15px 7px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head h2{
+ margin:0!important;color:#15112d!important;font-size:clamp(14px,1.9vw,19px)!important;
+ font-weight:900!important;line-height:1.22!important;letter-spacing:-.3px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head p{
+ margin:3px 0 0!important;color:#666080!important;font-size:10.5px!important;
+ line-height:1.3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-body{
+ display:block!important;flex:1 1 auto!important;padding:8px 14px 14px!important;
+ min-width:0!important;background:transparent!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow .op-panel>.panel-head .btn{
+ min-height:40px!important;border:1px solid #b9a5ef!important;
+ border-radius:999px!important;background:#f2edff!important;color:#5827c4!important;
+ font-size:10px!important;font-weight:820!important;padding:8px 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow .op-empty,
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-empty{
+ font-size:11px!important;color:#71658e!important;border-radius:12px!important;
+ background:#f3efff!important;padding:16px 12px!important;text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow .op-trend-svg{
+ display:block!important;width:100%!important;height:auto!important;
+ background:linear-gradient(180deg,#fff,#f7f3ff)!important;border-radius:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend{
+ overflow-x:auto!important;overflow-y:hidden!important;
+ -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;
+ scrollbar-width:thin!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-trend-svg polyline{
+ stroke:#7026e8!important;stroke-width:3.3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-trend-svg polygon{
+ fill:#a961ef36!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-trend-svg circle{
+ stroke:#7430e5!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-chart-labels{
+ color:#50476c!important;font-size:10px!important;font-weight:750!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashActiveJourney .op-active-stats{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashActiveJourney .op-active-stat{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ background:linear-gradient(145deg,#fff,#edeaff)!important;
+ border:1px solid #dfd5f8!important;border-radius:14px!important;min-width:0!important;
+ padding:9px 5px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashActiveJourney .op-active-stat b{
+ color:#3e19b8!important;font-size:22px!important;font-weight:920!important;line-height:1.1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashActiveJourney .op-active-stat small{
+ color:#544969!important;text-align:center!important;font-size:9px!important;line-height:1.2!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-progress{
+ height:11px!important;border-radius:999px!important;background:#e7e4f6!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-progress>span{
+ background:linear-gradient(90deg,#01c98b,#17dd50)!important;border-radius:inherit!important;
+}
+/* Seis indicadores clínicos, estados, tipos y almacenamiento */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis{
+ display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:8px!important;margin-bottom:11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi{
+ display:flex!important;flex-direction:column-reverse!important;
+ justify-content:center!important;align-items:center!important;
+ min-width:0!important;min-height:106px!important;max-height:none!important;
+ padding:10px 6px!important;margin:0!important;
+ color:#fff!important;border:1px solid #fff!important;border-radius:15px!important;
+ background:linear-gradient(145deg,#2552e8,#082ebf)!important;
+ box-shadow:0 5px 11px #3e298c25!important;text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi:nth-child(3n+2){
+ background:linear-gradient(145deg,#00baba,#007f89)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi:nth-child(3n+3){
+ background:linear-gradient(145deg,#b72ff1,#6114d0)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi :is(b,strong){
+ display:block!important;color:#fff!important;font-size:clamp(25px,3vw,34px)!important;
+ font-weight:920!important;line-height:1.1!important;order:0!important;
+ font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi small{
+ color:#fff!important;font-size:10px!important;font-weight:730!important;
+ line-height:1.16!important;text-align:center!important;order:1!important;
+ white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:10px!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns>section{
+ min-width:0!important;padding:10px!important;
+ background:linear-gradient(150deg,#fff,#f6f1ff)!important;
+ border:1px solid #ded6f6!important;border-radius:14px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns h3,
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-recent h3{
+ margin:1px 0 10px!important;color:#25154f!important;font-size:13px!important;font-weight:900!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-status-list .clinical-dash-row i{
+ height:9px!important;border-radius:999px!important;background:#ece6f9!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-status-list .clinical-dash-row i em{
+ background:linear-gradient(90deg,#7627eb,#bf45f0)!important;border-radius:inherit!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-status-list .clinical-dash-row:nth-child(2n) i em{
+ background:linear-gradient(90deg,#03b4d3,#15dbd7)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-storage{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-storage>div{
+ min-width:0!important;padding:10px 7px!important;border-radius:13px!important;
+ border:1px solid #e1d9fa!important;background:linear-gradient(145deg,#f4efff,#eafaff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-storage b{
+ color:#34179e!important;font-size:22px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-storage small{
+ font-size:10px!important;line-height:1.2!important;color:#4c476f!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-capacity{
+ background:#e7f8fa!important;color:#087987!important;border-radius:12px!important;font-size:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-recent{
+ margin-top:12px!important;border:1px solid #ded7f8!important;border-radius:15px!important;
+ padding:11px!important;background:#fff!important;overflow:hidden!important;
+}
+/* Donas: datos y leyendas originales. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut-wrap{
+ display:grid!important;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)!important;
+ align-items:center!important;gap:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut{
+ width:min(100%,160px)!important;margin:auto!important;filter:drop-shadow(0 5px 8px #5528a527)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut-center{
+ font-size:clamp(17px,2.2vw,24px)!important;font-weight:900!important;color:#311b69!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut-center small{
+ font-size:10px!important;color:#5c567b!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend{
+ min-width:0!important;gap:7px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend-row{
+ display:grid!important;grid-template-columns:10px minmax(0,1fr) auto!important;
+ gap:5px!important;font-size:10px!important;color:#312757!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend-row span{
+ min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend-row b{
+ color:#281b53!important;
+}
+/* Barras horizontales originales: empresa y ranking. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bars{
+ gap:11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-row{
+ display:grid!important;grid-template-columns:minmax(90px,125px) minmax(0,1fr) 26px!important;
+ align-items:center!important;gap:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-label{
+ font-size:11px!important;color:#221943!important;font-weight:760!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-value{
+ color:#24174f!important;font-size:11px!important;font-weight:870!important;text-align:right!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-track{
+ height:12px!important;border-radius:999px!important;background:#eae7f9!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-fill{
+ border-radius:inherit!important;
+}
+/* Barras verticales reconstituidas desde las barras calculadas, sin nuevos datos. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-original{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-columns-chart{
+ display:flex!important;align-items:flex-end!important;justify-content:space-around!important;
+ gap:8px!important;min-width:0!important;width:100%!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ -webkit-overflow-scrolling:touch!important;scrollbar-width:thin!important;
+ padding:10px 2px 4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column{
+ display:flex!important;flex:1 0 43px!important;flex-direction:column!important;
+ align-items:center!important;justify-content:flex-end!important;gap:5px!important;
+ min-width:43px!important;max-width:94px!important;
+ min-height:133px!important;margin:0!important;padding:4px 2px!important;
+ border:0!important;border-radius:11px!important;background:transparent!important;
+ color:#32265a!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column.selected{
+ background:#f0eaff!important;box-shadow:inset 0 0 0 1px #bca9ee!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column b{
+ font-size:12px!important;font-weight:900!important;line-height:1!important;
+ color:#261752!important;font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-column-track{
+ display:flex!important;align-items:flex-end!important;justify-content:stretch!important;
+ width:100%!important;height:84px!important;max-width:47px!important;
+ border-radius:8px 8px 3px 3px!important;background:#eeeaf9!important;
+ overflow:hidden!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-column-fill{
+ display:block!important;width:100%!important;border-radius:8px 8px 2px 2px!important;
+ background:linear-gradient(160deg,#b92cf1,#6e20e4)!important;
+ box-shadow:inset 0 1px #ffffff69!important;transition:height .22s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column:nth-child(2n) .hp-column-fill{
+ background:linear-gradient(180deg,#0de1e2,#0b9abc)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column:nth-child(3n) .hp-column-fill{
+ background:linear-gradient(180deg,#ffe049,#fbb322)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column small{
+ font-size:9px!important;line-height:1.1!important;text-align:center!important;
+ color:#4e426c!important;white-space:normal!important;overflow-wrap:anywhere!important;
+ max-width:100%!important;min-height:21px!important;
+}
+/* Resumen financiero: cuatro saldos existentes y su serie mensual. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card{
+ min-width:0!important;border:1px solid #e3d8fb!important;
+ border-radius:14px!important;padding:12px 9px!important;
+ background:linear-gradient(150deg,#ede5ff,#d9ecff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card:nth-child(2n){
+ background:linear-gradient(145deg,#e0feff,#c9ebf6)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card small{
+ font-size:10px!important;color:#504078!important;font-weight:800!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card b{
+ font-size:clamp(12px,1.8vw,19px)!important;font-weight:900!important;
+ color:#1f1552!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-bars{
+ display:flex!important;gap:5px!important;align-items:flex-end!important;
+ height:140px!important;border-bottom:1px solid #bcb1e7!important;padding:10px 3px 1px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-bar i{
+ background:linear-gradient(180deg,#b53cf6,#6022d8)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-bar small{
+ color:#514b7b!important;
+}
+/* Alertas, embudo, indicadores, jornadas y ubicaciones. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-alerts{
+ display:grid!important;gap:8px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-alert{
+ border:1px solid #f6dfc1!important;border-radius:11px!important;
+ padding:9px 10px!important;font-size:10.5px!important;line-height:1.3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-alert.ok{
+ border-color:#cdeed9!important;background:#effbf4!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-alert.info{
+ border-color:#dde4f4!important;background:#f4f7ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-funnel-step{
+ background:linear-gradient(110deg,#8b34ee,#2b2fc6)!important;
+ color:#fff!important;border-radius:999px!important;
+ font-weight:800!important;min-height:30px!important;font-size:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-funnel-step:nth-of-type(4n+3){
+ background:linear-gradient(100deg,#0abccf,#0b9cbd)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-funnel-step b{
+ color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-medical-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-medical-card{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:5px!important;padding:8px!important;border:1px solid #ded4fa!important;
+ background:#f7f4ff!important;border-radius:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-medical-card small{
+ color:#31275e!important;font-size:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-medical-card b{
+ color:#5a26c0!important;font-size:17px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-location{
+ background:#f2edff!important;color:#4826a9!important;
+ border:1px solid #dfd3fc!important;border-radius:10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashRecentJourneys{
+ overflow-x:auto!important;-webkit-overflow-scrolling:touch!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashRecentJourneys .op-table{
+ min-width:420px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions{
+ border:1px solid #e0d6fa!important;border-radius:15px!important;
+ background:#faf8ff!important;overflow:hidden!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions>summary{
+ padding:13px 15px!important;color:#4727a7!important;font-size:12px!important;
+ min-height:44px!important;font-weight:830!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions>[data-fr5-area="quick-actions"]{
+ display:block!important;min-width:0!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions .op-quick{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions .op-quick button{
+ min-width:0!important;min-height:76px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashSystemFooter{
+ display:none!important;
+}
+} /* @media screen */
+@media screen and (max-width:980px){
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-performance-group{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-performance-group>[data-fr5-area="company-activity"]{
+  grid-column:1/-1!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+}
+@media screen and (max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow{
+  padding:5px 0 calc(100px + env(safe-area-inset-bottom,0px))!important;gap:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-heading{
+  padding:1px 3px 4px!important;gap:4px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-glyph{
+  width:30px!important;height:30px!important;flex-basis:30px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-glyph svg{
+  width:27px!important;height:27px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-title h1{
+  font-size:clamp(18px,5.2vw,23px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill.hp-date-pill{
+  padding:6px 7px!important;min-height:36px!important;max-width:49%!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill b{
+  font-size:9px!important;line-height:1.13!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-kpi-arrow{
+  width:29px!important;min-width:29px!important;flex-basis:29px!important;
+  height:42px!important;min-height:42px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis{
+  gap:6px!important;padding:3px 2px 9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis>.op-kpi{
+  flex-basis:clamp(93px,23vw,112px)!important;width:clamp(93px,23vw,112px)!important;
+  min-height:103px!important;max-height:113px!important;padding:7px 5px!important;
+  border-radius:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-icon{
+  width:26px!important;height:26px!important;flex-basis:26px!important;font-size:24px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-value{
+  font-size:clamp(24px,6.3vw,31px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #operationalKpis .op-kpi-label{
+  font-size:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-launch-grid{
+  gap:8px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut{
+  min-height:76px!important;padding:9px 8px!important;gap:5px!important;border-radius:16px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-icon{
+  flex:0 0 29px!important;width:29px!important;height:35px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-icon svg{
+  width:28px!important;height:28px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut strong{
+  font-size:clamp(11px,3.4vw,15px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut small{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut .vc-shortcut-chevron{
+  width:13px!important;flex-basis:13px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-trend-group,
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-final-group{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-donuts-group{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-performance-group{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-performance-group>[data-fr5-area="company-activity"]{
+  grid-column:1/-1!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-alerts-group{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel){
+  border-radius:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head{
+  padding:11px 10px 5px!important;gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head h2{
+  font-size:clamp(12px,3.4vw,16px)!important;line-height:1.18!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-head p{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.op-panel,.clinical-dash-panel)>.panel-body{
+  padding:7px 9px 11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-trend-svg{
+  min-width:610px!important;min-height:160px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashPatientTrend .op-chart-labels{
+  min-width:610px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi{
+  min-height:81px!important;max-height:none!important;padding:6px 3px!important;border-radius:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi b{
+  font-size:clamp(21px,6vw,30px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalKpis>.clinical-dash-kpi small{
+  font-size:9px!important;line-height:1.12!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns>section{
+  padding:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns>section:nth-child(3){
+  grid-column:1/-1!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .clinical-dash-columns h3{
+  font-size:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut-wrap{
+  display:flex!important;flex-direction:column!important;gap:6px!important;min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-donut{
+  width:min(105px,95%)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend{
+  align-self:stretch!important;width:100%!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-legend-row{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-columns-chart{
+  gap:4px!important;padding:6px 0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column{
+  flex:1 0 35px!important;min-width:35px!important;min-height:126px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-chart-column small{
+  font-size:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-row{
+  grid-template-columns:minmax(70px,105px) minmax(0,1fr) 23px!important;gap:6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-bar-label{
+  font-size:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card{
+  padding:8px 5px!important;border-radius:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card small{
+  font-size:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-finance-card b{
+  font-size:clamp(9px,2.8vw,12px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-alert{
+  padding:8px 6px!important;font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .op-medical-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-extra-actions .op-quick{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ /* Actividad clínica: tarjetas legibles con todos los campos del registro. */
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .table-wrap{
+  width:100%!important;min-width:0!important;overflow:visible!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table{
+  display:block!important;min-width:0!important;width:100%!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table thead{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table tbody{
+  display:grid!important;gap:6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table tr{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:repeat(3,auto)!important;gap:2px 7px!important;
+  min-width:0!important;padding:8px!important;
+  border:1px solid #e0d5fa!important;border-left:4px solid #7834ee!important;
+  border-radius:13px!important;background:#f8f6ff!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table tr:nth-child(even){
+  border-left-color:#04bdc7!important;background:#f0feff!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td{
+  display:block!important;min-width:0!important;max-width:100%!important;
+  margin:0!important;padding:0!important;border:0!important;white-space:normal!important;
+  overflow-wrap:anywhere!important;font-size:10px!important;color:#3c3265!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(1){grid-column:1!important;grid-row:1!important;font-weight:870!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(2){grid-column:1!important;grid-row:2!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(3){grid-column:1!important;grid-row:3!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(4){grid-column:2!important;grid-row:1!important;text-align:right!important;font-size:9px!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(5){grid-column:2!important;grid-row:3!important;text-align:right!important;font-size:9px!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashClinicalRecent .op-table td:nth-child(6){grid-column:2!important;grid-row:2!important;text-align:right!important}
+}
+@media screen and (max-width:370px){
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-date-pill.hp-date-pill{
+  max-width:42%!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-title h1{
+  font-size:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-donuts-group,
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-group.hp-alerts-group{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .vc-shortcut{
+  gap:4px!important;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-dashboard-flow :is(.vc-shortcut,.hp-column-fill){
+  transition:none!important;animation:none!important;
+ }
+}
