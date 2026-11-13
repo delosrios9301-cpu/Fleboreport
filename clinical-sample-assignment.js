@@ -156,8 +156,10 @@
      last.ids=Array.from(native.options).map(o=>String(o.value)).filter(id=>ids.has(id));
      applySelection(last.ids);
      if(typeof window.renderClinicalStudySampleSpecs==='function')window.renderClinicalStudySampleSpecs();
+     // Ya se actualizó el formulario de especificaciones. No disparamos
+     // el onchange heredado porque regeneraría las casillas y borraría
+     // los parámetros que el usuario acaba de escribir.
      restoreSpecs();
-     native.dispatchEvent(new Event('change',{bubbles:false}));
      render();
     });
     frag.append(label);
