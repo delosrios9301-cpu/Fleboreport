@@ -1,0 +1,881 @@
+/* FleboReport · Estudios y Procesamiento, diseño referencia 2026-11-13
+   Apariencia premium aislada, mantiene funciones, ids, datos y permisos. */
+@media screen{
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready){
+ --crx-purple:#5917df;--crx-ink:#17132d;--crx-muted:#625b77;
+ --crx-line:#d5cafa;--crx-shadow:0 7px 17px rgba(56,35,126,.11);
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ padding:8px 1px 102px!important;overflow-x:clip!important;
+ background:linear-gradient(180deg,#fcfbff 0%,#f7f4ff 100%)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)>.page-heading{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)>.crx-page-header{
+ display:grid!important;gap:7px!important;width:100%!important;
+ margin:0 0 18px!important;padding:8px 5px 2px!important;min-width:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-row{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-title{
+ display:flex!important;align-items:center!important;gap:12px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-symbol{
+ display:grid!important;place-items:center!important;flex:0 0 46px!important;
+ width:46px!important;height:46px!important;color:#5c21e8!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-symbol svg{
+ width:41px!important;height:41px!important;stroke-width:2.25px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-title h1{
+ color:var(--crx-ink)!important;font-size:clamp(24px,3.8vw,34px)!important;
+ font-weight:900!important;line-height:1.12!important;letter-spacing:-.7px!important;
+ margin:0!important;padding:0!important;border:0!important;background:transparent!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-subtitle{
+ color:#5c536f!important;font-size:clamp(12px,1.8vw,15px)!important;
+ line-height:1.4!important;margin:0!important;padding:0 5px!important;
+ letter-spacing:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-dots{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:7px!important;flex:0 0 auto!important;padding:0 4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-dots span{
+ display:block!important;width:9px!important;height:9px!important;
+ border-radius:50%!important;background:#c4c0db!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-dots .is-active{
+ background:#5c14ed!important;box-shadow:0 0 0 2px #ece6ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(.crx-icon,.crx-heading-symbol,.crx-card-chevron,.crx-kpi-symbol){
+ display:inline-grid;place-items:center;flex-shrink:0;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(.crx-icon,.crx-card-chevron) svg{
+ width:20px!important;height:20px!important;max-width:100%!important;
+}
+/* ESTUDIOS: buscador integrado y segmentos como la fotografía. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready>.clinical-layout{display:none!important;}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-toolbar{
+ display:flex!important;align-items:stretch!important;gap:0!important;position:relative!important;
+ margin:0 2px 15px!important;width:calc(100% - 4px)!important;min-height:54px!important;
+ border:1px solid #bdb0e9!important;border-radius:999px!important;
+ box-shadow:0 5px 12px #4b258219!important;background:linear-gradient(135deg,#fbf9ff,#f4eeff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-search{
+ display:flex!important;align-items:center!important;min-width:0!important;flex:1 1 0!important;
+ gap:10px!important;padding:8px 14px!important;color:#5526b9!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-search>.crx-icon svg{
+ width:25px!important;height:25px!important;stroke-width:2.1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready input.crx-search-input{
+ flex:1 1 0!important;width:100%!important;min-width:0!important;
+ height:38px!important;min-height:38px!important;padding:0!important;margin:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;
+ box-shadow:none!important;color:#292344!important;
+ font-size:clamp(14px,2.8vw,17px)!important;font-weight:520!important;
+ outline:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready input.crx-search-input::placeholder{
+ color:#655d83!important;opacity:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-filters{
+ display:block!important;position:relative!important;flex:0 0 auto!important;
+ padding:5px!important;margin:0!important;border:0!important;background:transparent!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-toggle{
+ display:grid!important;place-items:center!important;
+ width:46px!important;height:44px!important;min-height:44px!important;
+ border:0!important;border-radius:16px!important;background:linear-gradient(155deg,#ece4ff,#ded0ff)!important;
+ color:#5317d9!important;list-style:none!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-toggle::-webkit-details-marker{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-toggle .crx-icon svg{
+ width:25px!important;height:25px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-panel{
+ position:absolute!important;right:0!important;top:calc(100% + 8px)!important;
+ display:grid!important;gap:7px!important;min-width:200px!important;padding:13px!important;
+ border:1px solid #d5c4fa!important;border-radius:15px!important;
+ background:#fff!important;box-shadow:0 12px 28px #34147a2e!important;z-index:15!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-panel label{
+ color:#433665!important;font-size:12px!important;font-weight:800!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-filter-panel select{
+ width:100%!important;min-height:43px!important;background:#f7f3ff!important;
+ border:1px solid #ddcffb!important;border-radius:11px!important;padding:8px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tabs{
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;
+ min-width:0!important;width:100%!important;margin:0 0 19px!important;
+ padding:2px 2px 8px!important;overflow-x:auto!important;overflow-y:hidden!important;
+ scroll-snap-type:x proximity!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tab{
+ display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;
+ min-height:44px!important;min-width:0!important;gap:7px!important;
+ margin:0!important;padding:9px 14px!important;border:1px solid #d4c6eb!important;
+ border-radius:999px!important;background:linear-gradient(170deg,#fff,#f7f3ff)!important;
+ box-shadow:0 3px 9px #4434891a!important;color:#392c68!important;
+ font-size:clamp(12px,2.3vw,15px)!important;font-weight:710!important;white-space:nowrap!important;
+ scroll-snap-align:start!important;transition:transform .16s ease,background .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tab.is-selected{
+ background:linear-gradient(155deg,#8039ff,#530bde)!important;color:#fff!important;
+ border-color:#7033f1!important;box-shadow:0 6px 15px #6221de38!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tab .crx-icon svg{
+ width:17px!important;height:17px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready :is(.crx-catalog-stage,.crx-review-stage,.crx-reception-stage){
+ display:block!important;min-width:0!important;margin:0 0 16px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready :is(.crx-catalog-stage,.crx-review-stage,.crx-reception-stage)[hidden]{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-stage-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:9px!important;margin:3px 5px 11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-stage-heading h2{
+ color:#1b1632!important;font-weight:880!important;font-size:16px!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-count{
+ display:inline-flex!important;align-items:center!important;
+ padding:5px 9px!important;border-radius:999px!important;background:#ece6ff!important;
+ border:1px solid #ddd1fb!important;color:#5b31b4!important;
+ font-size:10px!important;font-weight:790!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready :is(.crx-study-cards,.crx-review-cards){
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+ gap:12px!important;min-width:0!important;
+}
+/* Tarjetas Estudios: proporciones, emblema, chips, flecha y onda inferior. */
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card{
+ --crx-accent:#7231e9;--crx-wave:linear-gradient(110deg,#b882f3,#8022f4);
+ position:relative!important;isolation:isolate!important;
+ min-width:0!important;max-width:100%!important;
+ border:1px solid #d9cff1!important;border-radius:22px!important;
+ background:linear-gradient(140deg,#fff,#faf8ff 88%)!important;
+ box-shadow:var(--crx-shadow),inset 0 1px #ffffffb5!important;
+ overflow:hidden!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-cyan{
+ --crx-accent:#028d9b;--crx-wave:linear-gradient(110deg,#78e9ed,#00c9d8);
+ border-color:#b2e4e8!important;background:linear-gradient(140deg,#fff,#f5fcfd)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-mint{
+ --crx-accent:#118e73;--crx-wave:linear-gradient(110deg,#b7fbeb,#00ccaa);
+ border-color:#afede1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-blue{
+ --crx-accent:#235dd6;--crx-wave:linear-gradient(110deg,#b4b8ff,#5151f4);
+ border-color:#c6cefa!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card::after{
+ content:""!important;position:absolute!important;right:-4px!important;bottom:-13px!important;
+ width:45%!important;height:38px!important;border-radius:92% 0 0 0 / 100% 0 0 0!important;
+ transform:rotate(-7deg)!important;background:var(--crx-wave)!important;
+ opacity:.94!important;z-index:0!important;pointer-events:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card>*{
+ position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready :is(.crx-study-card,.crx-review-card){
+ display:flex!important;align-items:center!important;gap:14px!important;
+ padding:17px!important;min-height:135px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card-emblem{
+ display:grid!important;place-items:center!important;flex:0 0 78px!important;
+ width:78px!important;height:78px!important;border-radius:20px!important;
+ border:1px solid #dfbef2!important;background:linear-gradient(145deg,#ffebff,#e3bdff)!important;
+ color:#7c26e9!important;box-shadow:inset 0 1px #fff9!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-cyan .crx-card-emblem{
+ border-color:#9aebf2!important;background:linear-gradient(145deg,#efffff,#a7f4f4)!important;color:#048c9b!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-blue .crx-card-emblem{
+ border-color:#b9c4f5!important;background:linear-gradient(145deg,#f6f3ff,#c4c7ff)!important;color:#3255cf!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card.crx-mint .crx-card-emblem{
+ border-color:#aff0df!important;background:linear-gradient(145deg,#effffb,#aff6e4)!important;color:#078d77!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card-emblem svg{
+ width:49px!important;height:49px!important;stroke-width:2.0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-card-info{
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ min-width:0!important;flex:1 1 auto!important;gap:3px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-title{
+ display:block!important;color:#121022!important;font-weight:920!important;
+ font-size:clamp(19px,2.9vw,27px)!important;line-height:1.12!important;
+ letter-spacing:-.55px!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-subtitle{
+ display:block!important;color:#3b355b!important;font-size:clamp(11px,1.6vw,15px)!important;
+ line-height:1.3!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-meta{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ gap:6px!important;min-width:0!important;margin:7px 0 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-meta-pill{
+ display:inline-flex!important;align-items:center!important;min-height:28px!important;
+ max-width:100%!important;gap:5px!important;padding:5px 9px!important;
+ border:1px solid #e0d3ef!important;border-radius:999px!important;
+ background:#f7f4fe!important;color:#383150!important;font-size:clamp(9px,1.2vw,11px)!important;
+ font-weight:660!important;line-height:1.15!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-meta-pill .crx-icon svg{
+ width:15px!important;height:15px!important;color:#4d2b9d!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-chevron{
+ align-self:center!important;flex:0 0 23px!important;color:#30255b!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-chevron svg{
+ width:23px!important;height:23px!important;stroke-width:2.5!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-hit{
+ position:absolute!important;inset:0!important;z-index:3!important;
+ opacity:0!important;cursor:pointer!important;
+ border:0!important;background:transparent!important;width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card-hit:focus-visible{
+ opacity:1!important;outline:3px solid #661ff3!important;outline-offset:-4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-review-card{
+ min-height:126px!important;flex-wrap:wrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-review-card .crx-card-title{
+ font-size:clamp(17px,2.5vw,22px)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-review-actions{
+ display:flex!important;flex-direction:column!important;gap:7px!important;
+ flex:0 0 auto!important;max-width:100%!important;align-items:stretch!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) button.crx-action{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;min-height:44px!important;min-width:91px!important;max-width:100%!important;
+ padding:9px 13px!important;margin:0!important;border:1px solid #6b2ade!important;
+ border-radius:999px!important;background:linear-gradient(145deg,#9b2ff1,#5520c1)!important;
+ color:#fff!important;font-size:12px!important;font-weight:830!important;text-align:center!important;
+ line-height:1.13!important;white-space:normal!important;
+ box-shadow:0 5px 11px #6231c02a!important;cursor:pointer!important;
+ transition:transform .16s ease,filter .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) button.crx-action.danger{
+ color:#9a3549!important;border-color:#ecd3db!important;background:#fff4f5!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel{
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ padding:0!important;margin:0!important;max-width:100%!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>.panel-head{
+ display:flex!important;gap:8px!important;flex-wrap:wrap!important;
+ margin:0 0 10px!important;padding:0 4px!important;border:0!important;background:transparent!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>.panel-head h2{
+ color:#211830!important;font-size:clamp(16px,2.4vw,20px)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>.panel-head p{
+ font-size:11px!important;color:#615c77!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>.panel-head #clinicalReviewCount{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>.clinical-table-wrap{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready #clinicalReviewPanel>#clinicalReviewEmpty{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .form-panel{
+ border:1px solid #d8cbf4!important;border-radius:21px!important;padding:16px!important;
+ box-shadow:var(--crx-shadow)!important;background:linear-gradient(150deg,#fff,#faf7ff)!important;
+ margin:0!important;width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .form-panel h2{
+ font-size:20px!important;color:#201536!important;margin:0 0 7px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:11px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .field{
+ min-width:0!important;max-width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .field.full{
+ grid-column:1/-1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage :is(input,select,textarea){
+ max-width:100%!important;min-width:0!important;width:100%!important;
+ min-height:44px!important;border:1px solid #d4c4ed!important;border-radius:12px!important;
+ background:#fbf9ff!important;padding:9px!important;font-size:13px!important;
+ color:#302650!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage :is(button.btn.primary){
+ background:linear-gradient(135deg,#9633f8,#531ad1)!important;color:#fff!important;
+ border:1px solid #7941e8!important;border-radius:999px!important;min-height:45px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-metrics-details,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready>.clinical-history-disclosure{
+ margin:13px 0!important;border:1px solid #d8c9f0!important;border-radius:16px!important;
+ background:#fcfaff!important;box-shadow:0 3px 12px #3e25801c!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-metrics-details>summary{
+ color:#4e2ca8!important;font-size:13px!important;font-weight:800!important;
+ padding:14px 16px!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-metrics-details>.clinical-kpis{
+ padding:0 10px 12px!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:8px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-empty,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-empty{
+ padding:20px 14px!important;border:1px dashed #d5c6f5!important;border-radius:16px!important;
+ background:#f8f4ff!important;color:#5e537d!important;text-align:center!important;
+ font-size:12px!important;line-height:1.5!important;grid-column:1/-1!important;
+}
+/* PROCESAMIENTO: tres métricas exactas de la imagen; pendiente se conserva en la bandeja. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready>.crx-process-kpis{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:9px!important;margin:0 0 17px!important;width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:first-child{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:not(:first-child){
+ display:grid!important;grid-template-columns:37px minmax(0,1fr)!important;
+ grid-template-rows:auto auto!important;align-content:center!important;align-items:center!important;
+ column-gap:8px!important;row-gap:3px!important;
+ min-height:104px!important;max-height:none!important;width:100%!important;min-width:0!important;
+ padding:12px 8px!important;margin:0!important;position:relative!important;isolation:isolate!important;
+ overflow:hidden!important;border-radius:20px!important;border:1px solid #fff!important;
+ background:linear-gradient(145deg,#2c50ed,#1742b5)!important;color:#fff!important;
+ box-shadow:0 9px 16px #253bb53a,inset 0 1px #ffffff8c!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:nth-child(3){
+ background:linear-gradient(145deg,#09c1c8,#058992)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:nth-child(4){
+ background:linear-gradient(145deg,#c13af4,#7c19c7)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:not(:first-child)::after{
+ content:""!important;position:absolute!important;right:-8%!important;bottom:-19px!important;
+ width:110%!important;height:35px!important;border-radius:70% 0 0 0!important;
+ transform:rotate(-6deg)!important;background:linear-gradient(95deg,#ffffff24,#24f1f451)!important;
+ z-index:0!important;pointer-events:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:not(:first-child)>*{
+ position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .crx-kpi-symbol{
+ grid-row:1/3!important;grid-column:1!important;width:34px!important;height:34px!important;
+ color:#fff!important;justify-self:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .crx-kpi-symbol svg{
+ width:31px!important;height:31px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .clinical-kpi strong{
+ grid-column:2!important;grid-row:1!important;
+ color:#fff!important;font-weight:920!important;font-size:clamp(23px,3.6vw,31px)!important;
+ line-height:1.05!important;margin:0!important;text-align:center!important;
+ font-variant-numeric:tabular-nums!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .clinical-kpi small{
+ grid-column:2!important;grid-row:2!important;
+ color:#fff!important;font-size:clamp(9px,1.45vw,12px)!important;
+ line-height:1.15!important;letter-spacing:0!important;font-weight:700!important;
+ text-align:center!important;white-space:normal!important;
+}
+/* Reutiliza inputs y filtros reales, sin duplicar las búsquedas. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-layout{
+ display:block!important;max-width:100%!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-layout>section.panel:first-child{
+ display:block!important;width:100%!important;min-width:0!important;
+ margin:0!important;padding:0!important;border:0!important;border-top:0!important;
+ border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-layout>section.panel:first-child>.panel-head{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-toolbar{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:9px!important;
+ align-items:stretch!important;width:100%!important;min-width:0!important;margin:0 0 18px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-search{
+ display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;
+ min-height:52px!important;padding:6px 12px!important;
+ border:1px solid #c7bfe2!important;border-radius:999px!important;
+ background:linear-gradient(155deg,#fff,#f7f4ff)!important;
+ box-shadow:0 4px 10px #45357815!important;color:#4b4685!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-search>.crx-icon svg{
+ width:24px!important;height:24px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-search-field{
+ display:block!important;min-width:0!important;flex:1 1 auto!important;margin:0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-search-field>label{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready input#clinicalQueueSearch{
+ width:100%!important;max-width:100%!important;min-width:0!important;min-height:35px!important;
+ margin:0!important;padding:0!important;border:0!important;outline:0!important;
+ box-shadow:none!important;background:transparent!important;border-radius:0!important;
+ color:#2e2846!important;font-size:clamp(12px,1.85vw,15px)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-filters{
+ position:relative!important;display:block!important;min-width:0!important;margin:0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button{
+ display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
+ height:52px!important;min-height:52px!important;margin:0!important;padding:8px 14px!important;
+ border:1px solid #d4c8eb!important;border-radius:20px!important;
+ background:linear-gradient(155deg,#f2e9ff,#dfd0fb)!important;
+ box-shadow:0 3px 9px #3b258623!important;color:#512ca5!important;
+ font-size:13px!important;font-weight:820!important;list-style:none!important;cursor:pointer!important;
+ white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button::-webkit-details-marker{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button .crx-icon{
+ width:18px!important;height:18px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button .crx-icon:last-child{
+ transform:rotate(90deg)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-filters>.clinical-filter{
+ position:absolute!important;top:calc(100% + 8px)!important;right:0!important;
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:9px!important;max-width:min(570px,calc(100vw - 26px))!important;
+ min-width:min(510px,calc(100vw - 26px))!important;
+ padding:14px!important;border:1px solid #d4c5ee!important;border-radius:17px!important;
+ background:#fff!important;box-shadow:0 16px 32px #35207e2a!important;z-index:20!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-filters:not([open])>.clinical-filter{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-filters .field{
+ min-width:0!important;max-width:100%!important;margin:0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-filters :is(select,input){
+ width:100%!important;min-width:0!important;min-height:42px!important;
+ border:1px solid #d9cff5!important;border-radius:11px!important;
+ background:#fbf9ff!important;color:#332351!important;font-size:12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-listhead{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;margin:0 3px 11px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-list-title{
+ display:flex!important;align-items:center!important;gap:10px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-list-title::before{
+ content:""!important;display:block!important;flex:0 0 4px!important;
+ width:4px!important;height:25px!important;background:#6d1bea!important;border-radius:999px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-list-title h2{
+ color:#17112b!important;font-size:clamp(16px,2.5vw,21px)!important;font-weight:890!important;
+ line-height:1.2!important;margin:0!important;white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-list-status{
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ gap:7px!important;min-width:0!important;flex-wrap:wrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-updated,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-pending-pill{
+ display:inline-flex!important;align-items:center!important;min-height:32px!important;gap:4px!important;
+ border-radius:999px!important;padding:6px 9px!important;background:#f0ebff!important;
+ color:#5a4c81!important;font-size:10px!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-refresh{
+ display:grid!important;place-items:center!important;min-width:39px!important;width:39px!important;
+ height:39px!important;min-height:39px!important;margin:0!important;padding:7px!important;
+ background:linear-gradient(155deg,#f9f7ff,#ece5ff)!important;color:#5d20d8!important;
+ border:1px solid #dfd2f8!important;border-radius:50%!important;
+ box-shadow:0 3px 9px #5532a526!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-refresh:disabled{opacity:.55!important}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-cards{
+ display:grid!important;grid-template-columns:1fr!important;gap:10px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card{
+ display:grid!important;grid-template-columns:61px minmax(105px,1fr) minmax(140px,.9fr) auto!important;
+ align-items:center!important;gap:11px!important;min-width:0!important;
+ min-height:107px!important;padding:11px 13px!important;border-radius:20px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card .crx-card-emblem{
+ width:58px!important;height:58px!important;flex:0 0 58px!important;border-radius:16px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card .crx-card-emblem svg{
+ width:35px!important;height:35px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-identity{
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ gap:3px!important;min-width:0!important;width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-name{
+ display:block!important;color:#121020!important;
+ font-size:clamp(14px,1.9vw,19px)!important;font-weight:900!important;line-height:1.15!important;
+ overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready :is(.crx-process-study,.crx-process-type){
+ display:block!important;color:#514c6b!important;
+ font-size:clamp(10px,1.2vw,12px)!important;line-height:1.16!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ min-width:0!important;max-width:100%!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-detail-link{
+ display:inline-flex!important;align-self:flex-start!important;
+ border:0!important;margin:2px 0 0!important;padding:0!important;min-height:20px!important;
+ color:#5931b3!important;background:transparent!important;font-size:10px!important;
+ font-weight:800!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-state{
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ align-items:flex-start!important;gap:7px!important;min-width:0!important;
+ border-left:1px solid #d6cfec!important;padding:0 0 0 11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ gap:6px!important;min-width:0!important;max-width:100%!important;
+ padding:7px 11px!important;border:0!important;border-radius:999px!important;
+ color:#5d1bc1!important;background:linear-gradient(155deg,#f2e5ff,#e5d5ff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-cyan .crx-state-pill{
+ color:#087a86!important;background:linear-gradient(160deg,#e8feff,#c3f8fa)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-mint .crx-state-pill{
+ color:#0d8653!important;background:linear-gradient(150deg,#ebfff6,#c0fbe8)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-blue .crx-state-pill{
+ color:#3655c5!important;background:linear-gradient(160deg,#ebf0ff,#d7e1ff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill .crx-icon svg{
+ width:19px!important;height:19px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill strong{
+ font-size:clamp(10px,1.25vw,13px)!important;line-height:1.1!important;text-align:center!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;font-weight:820!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-time{
+ display:inline-flex!important;align-items:center!important;gap:4px!important;min-width:0!important;
+ color:#514d69!important;font-size:11px!important;line-height:1.1!important;white-space:normal!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-time .crx-icon svg{
+ width:15px!important;height:15px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-actions{
+ display:flex!important;justify-content:flex-end!important;align-items:center!important;
+ min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-actions button{
+ min-width:92px!important;max-width:126px!important;
+}
+/* Las filas originales continúan en DOM para preservar todas las acciones. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-layout>section.panel:first-child>.clinical-table-wrap{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-layout>section.panel:first-child>#clinicalQueueEmpty{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-history-processing{
+ display:block!important;margin:14px 0!important;padding:0!important;
+ border:1px solid #ded2f4!important;border-radius:17px!important;
+ background:linear-gradient(140deg,#fff,#faf7ff)!important;box-shadow:var(--crx-shadow)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .clinical-history-processing>summary{
+ padding:13px!important;min-height:52px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(button,input,select,summary):focus-visible{
+ outline:3px solid #04bfc9!important;outline-offset:2px!important;
+}
+@media(hover:hover){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(.crx-study-card,.crx-processing-card,.crx-study-tab,.crx-action):hover{
+  transform:translateY(-2px)!important;filter:brightness(1.015)!important;
+ }
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(.crx-study-card,.crx-processing-card,.crx-study-tab,.crx-action){
+ transition:transform .16s ease,filter .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+:is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-card:active{
+ transform:scale(.994)!important;
+}
+} /* screen */
+@media screen and (max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready){
+  padding:3px 2px calc(110px + env(safe-area-inset-bottom,0px))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)>.crx-page-header{
+  padding:8px 1px 0!important;margin-bottom:12px!important;gap:4px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-title{
+  gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-title h1{
+  font-size:clamp(19px,5.4vw,25px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-symbol{
+  width:33px!important;height:37px!important;flex-basis:33px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-heading-symbol svg{
+  width:31px!important;height:32px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) .crx-page-subtitle{
+  font-size:clamp(11px,2.9vw,13px)!important;line-height:1.3!important;padding:0 3px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-toolbar{
+  min-height:51px!important;margin:0 0 13px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-search{
+  gap:8px!important;padding:6px 10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-search>.crx-icon svg{
+  width:22px!important;height:22px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tabs{
+  gap:6px!important;margin-bottom:10px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-study-tab{
+  min-height:41px!important;padding:8px 11px!important;font-size:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card.crx-study-card{
+  min-height:114px!important;gap:9px!important;padding:11px!important;border-radius:18px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card.crx-review-card{
+  min-height:115px!important;gap:9px!important;padding:11px!important;border-radius:18px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-card-emblem{
+  flex-basis:60px!important;width:60px!important;height:65px!important;border-radius:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-card-emblem svg{
+  width:38px!important;height:38px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-card-title{
+  font-size:clamp(16px,4.4vw,21px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-card-subtitle{
+  font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-card-meta{
+  gap:4px!important;margin-top:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-meta-pill{
+  min-height:24px!important;font-size:9px!important;padding:4px 7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-card .crx-meta-pill .crx-icon svg{
+  width:13px!important;height:13px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-review-card .crx-review-actions{
+  flex-basis:100%!important;flex-direction:row!important;justify-content:flex-end!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-review-actions button{
+  min-height:42px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis{
+  gap:5px!important;margin-bottom:14px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis>.clinical-kpi:not(:first-child){
+  min-height:89px!important;padding:9px 5px!important;border-radius:15px!important;
+  grid-template-columns:24px minmax(0,1fr)!important;gap:2px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .crx-kpi-symbol{
+  width:23px!important;height:25px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .crx-kpi-symbol svg{
+  width:23px!important;height:23px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .clinical-kpi strong{
+  font-size:clamp(19px,5.3vw,27px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-kpis .clinical-kpi small{
+  font-size:clamp(8px,2vw,10px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-toolbar{
+  gap:7px!important;margin-bottom:14px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-search{
+  min-height:47px!important;padding:5px 9px!important;gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-search>.crx-icon svg{
+  width:20px!important;height:20px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button{
+  height:47px!important;min-height:47px!important;padding:7px 9px!important;gap:5px!important;
+  border-radius:16px!important;font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-filter-button .crx-icon{
+  width:15px!important;height:15px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-listhead{
+  gap:6px!important;flex-wrap:wrap!important;margin-bottom:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-list-title h2{
+  font-size:clamp(15px,4vw,18px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-updated{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card{
+  grid-template-columns:42px minmax(75px,1fr) minmax(93px,.86fr) minmax(70px,.62fr)!important;
+  gap:6px!important;min-height:92px!important;padding:9px 7px!important;border-radius:16px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card .crx-card-emblem{
+  width:41px!important;height:46px!important;flex-basis:41px!important;border-radius:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card .crx-card-emblem svg{
+  width:27px!important;height:27px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-name{
+  font-size:clamp(11px,3.2vw,14px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready :is(.crx-process-study,.crx-process-type){
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-state{
+  padding-left:5px!important;gap:4px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill{
+  padding:6px 5px!important;gap:3px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill strong{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-state-pill .crx-icon svg{
+  width:15px!important;height:15px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-time{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-process-actions button.crx-action{
+  min-width:0!important;width:100%!important;max-width:100%!important;
+  min-height:41px!important;padding:7px 4px!important;font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-detail-link{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .fields{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-studies.crx-ready .crx-reception-stage .field.full{
+  grid-column:1!important;
+ }
+}
+@media screen and (max-width:365px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card{
+  grid-template-columns:39px minmax(0,1fr) minmax(85px,.9fr)!important;
+  grid-template-areas:"icon info state" "icon info action"!important;
+  gap:4px!important;min-height:115px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-card-emblem{grid-area:icon!important;}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-identity{grid-area:info!important;}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-state{grid-area:state!important;}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-actions{grid-area:action!important;}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-pending-pill{display:none!important;}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready) :is(.crx-study-card,.crx-processing-card,.crx-study-tab,.crx-action){
+  animation:none!important;transition:none!important;
+ }
+}
+/* Ficha existente, no se sustituye: únicamente se adapta al acabado y el teclado. */
+@media screen{
+ body #clinicalProcessingModal .crx-detail-overlay{all:unset;}
+ body #clinicalProcessingModal>section{
+  border-radius:22px!important;border:1px solid #dacff2!important;
+  box-shadow:0 20px 62px #1d0d614f!important;
+  background:linear-gradient(160deg,#fff,#faf8ff)!important;
+  padding:18px!important;max-height:min(88dvh,690px)!important;overflow-y:auto!important;
+ }
+ body #clinicalProcessingModal :is(input,textarea){
+  border-radius:12px!important;border:1px solid #d8c7ee!important;background:#faf8ff!important;
+ }
+ body #clinicalProcessingModal .btn.primary{
+  border-radius:999px!important;background:linear-gradient(135deg,#9c39f2,#5c21d0)!important;color:#fff!important;
+ }
+ body .crx-detail-overlay{
+  position:fixed!important;inset:0!important;z-index:2147483001!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:15px!important;background:#1d1159a3!important;backdrop-filter:blur(6px)!important;
+ }
+ body .crx-detail-dialog{
+  width:min(480px,100%)!important;max-height:85dvh!important;overflow-y:auto!important;
+  padding:18px!important;border-radius:22px!important;
+  background:linear-gradient(150deg,#fff,#f5f0ff)!important;
+  border:1px solid #d9c8fa!important;box-shadow:0 20px 65px #12095160!important;
+ }
+ body .crx-detail-head{
+  display:flex!important;justify-content:space-between!important;align-items:center!important;margin-bottom:13px!important;
+ }
+ body .crx-detail-head h2{
+  font-size:20px!important;color:#24154d!important;margin:0!important;
+ }
+ body .crx-close{
+  display:grid!important;place-items:center!important;width:39px!important;height:39px!important;
+  background:#ebe4ff!important;border:1px solid #d5c5f5!important;color:#5e24ba!important;
+  border-radius:13px!important;font-size:26px!important;cursor:pointer!important;
+ }
+ body .crx-detail-row{
+  display:grid!important;gap:3px!important;padding:9px 0!important;border-bottom:1px solid #e6ddf6!important;
+ }
+ body .crx-detail-row small{
+  color:#665c80!important;font-size:10px!important;font-weight:760!important;
+ }
+ body .crx-detail-row strong{
+  color:#2c2349!important;font-size:12px!important;line-height:1.4!important;overflow-wrap:anywhere!important;
+ }
+ body .crx-detail-notes{
+  color:#51456d!important;font-size:12px!important;overflow-wrap:anywhere!important;line-height:1.5!important;
+ }
+}
