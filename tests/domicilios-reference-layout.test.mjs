@@ -56,6 +56,6 @@ test('v290 publica la capa de referencia después de estilos premium sin impacta
  assert.match(html,/domicilios-reference\.css\?v=20261112-reference3" media="screen"/);
  assert.match(html,/domicilios\.js\?v=20261112-reference3/);
  assert.ok(html.lastIndexOf('domicilios-reference.css')>html.lastIndexOf('domicilios-premium.css'));
- assert.match(sw,/fleboreport-shell-v310/);
+ assert.match(sw,/fleboreport-shell-v311/);
  assert.match(sw,/'\.\/domicilios-reference.css'/);
 });

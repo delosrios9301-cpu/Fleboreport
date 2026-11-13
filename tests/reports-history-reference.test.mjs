@@ -54,7 +54,7 @@ test('Diseño fiel a imágenes, responsive y sin alterar impresión original',()
 test('PWA precachea ambos nuevos archivos sin borrar archivos de los módulos anteriores',()=>{
  assert.match(html,/reports-history-reference\.css\?v=20261113-reports1/);
  assert.match(html,/reports-history-reference\.js\?v=20261113-reports1/);
- assert.match(sw,/fleboreport-shell-v310/);
+ assert.match(sw,/fleboreport-shell-v311/);
  for(const p of ["'./reports-history-reference.js'","'./reports-history-reference.css'",
  "'./clinical-reference-panels.js'","'./settings-reference-panels.js'",
  "'./audit-history.js'","'./inicio-premium.js'"])
