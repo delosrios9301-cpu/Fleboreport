@@ -11,7 +11,7 @@ test('Inicio v300 se publica como ultima capa, tambien para PWA sin eliminar mod
  assert.ok(html.includes('inicio-premium.js?v=20261113-inicio1'));
  assert.ok(html.lastIndexOf('inicio-premium.css')>html.lastIndexOf('jornada-premium.css'));
  assert.ok(html.lastIndexOf('inicio-premium.js')>html.lastIndexOf('variant-c-compact.js'));
- assert.ok(sw.includes('fleboreport-shell-v302'));
+ assert.ok(sw.includes('fleboreport-shell-v303'));
  assert.ok(sw.includes("'./inicio-premium.css'"));
  assert.ok(sw.includes("'./inicio-premium.js'"));
 });
@@ -58,7 +58,7 @@ test('Presentacion solamente; no toca datos clinicos ni permisos',()=>{
 
 test('v302: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
  assert.match(html,/inicio-premium\.css\?v=20261113-inicio3/);
- assert.match(sw,/fleboreport-shell-v302/);
+ assert.match(sw,/fleboreport-shell-v303/);
  assert.match(css,/\.hp-donuts-group \.op-donut::after/);
  assert.match(css,/inset:13%!important/);
  assert.ok(!css.includes('inset:33%!important'), 'No volver a estrechar el hueco central');

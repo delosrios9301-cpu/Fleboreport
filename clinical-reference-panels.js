@@ -89,7 +89,7 @@
   return card;
  }
  // ESTUDIOS: tarjetas de protocolos reales y revisión de recepción.
- let studyTab='todos',studyQ='',studyStatus='todos',pending=false;
+ let studyTab='todos',studyQ='',studyStatus='todos';
  let studiesInitialized=false;
  function currentStudyTab(key){
   studyTab=key;
@@ -113,13 +113,12 @@
   if(select&&Array.from(select.options).some(o=>String(o.value)===String(id))){
    select.value=id;
    select.dispatchEvent(new Event('change',{bubbles:true}));
-   if(typeof window.updateClinicalProtocolOptions==='function')window.updateClinicalProtocolOptions();
   }
   const target=get('crxStudyReception');
   target&&target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
  }
  function renderStudyCards(){
-  if(!studiesInitialized||pending)return;
+  if(!studiesInitialized)return;
   const host=get('crxStudyCards');
   if(!host)return;
   const app=data(),studies=Array.isArray(app?.clinicalStudies)?app.clinicalStudies:[],
@@ -253,7 +252,20 @@
   const nativeList=get('clinicalStudyList');
   if(nativeList)new MutationObserver(()=>renderStudyCards()).observe(nativeList,{childList:true});
   const reviewBody=get('clinicalReviewRows');
-  if(reviewBody)new MutationObserver(()=>renderReviewCards()).observe(reviewBody,{childList:true});
+  if(reviewBody){
+   let lastCount=reviewBody.querySelectorAll('tr').length;
+   new MutationObserver(()=>{
+    renderReviewCards();
+    const count=reviewBody.querySelectorAll('tr').length;
+    if(studyTab==='recepcion'&&count>lastCount){
+     currentStudyTab('revision');
+     requestAnimationFrame(()=>{
+      get('crxStudyReview')?.scrollIntoView({behavior:'smooth',block:'start'});
+     });
+    }
+    lastCount=count;
+   }).observe(reviewBody,{childList:true});
+  }
   window.addEventListener('flebo:auth-changed',()=>{renderStudyCards();renderReviewCards();});
   window.addEventListener('flebo:local-state-saved',()=>{renderStudyCards();renderReviewCards();});
  }
@@ -319,8 +331,8 @@
    const subject=c[0]?.querySelector('strong')?.textContent.trim()||'Sujeto';
    const study=String(c[0]?.firstChild?.textContent||'').trim();
    info.append(node('strong','crx-process-name',subject),node('small','crx-process-study',study||'Estudio clínico'));
-   const typeLines=String(c[1]?.innerText||c[1]?.textContent||'').trim().split(/\n/).map(x=>x.trim()).filter(Boolean);
-   info.append(node('small','crx-process-type','Tipo: '+(typeLines[typeLines.length-1]||'Muestra')));
+   const typeText=String(c[1]?.lastChild?.textContent||c[1]?.innerText||c[1]?.textContent||'').trim();
+   info.append(node('small','crx-process-type','Tipo: '+(typeText||'Muestra')));
    const middle=node('div','crx-process-state');
    const st=node('span','crx-state-pill');
    st.append(svg(final?'check':temporary?'database':processing?'refresh':'clock'),
