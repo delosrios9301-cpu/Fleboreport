@@ -139,7 +139,7 @@
    const anyNonEmpty=group.people.find(p=>p.name||p.fullName)||primary;
    const detail=k=>group.people.find(p=>p[k])?.[k]||primary[k]||'';
    result.push({
-    key:group.key,primary,id:str(primary.id),
+    key:group.key,primary,id:str(primary.id),ids:[...group.ids],
     name:str(anyNonEmpty.name||anyNonEmpty.fullName||'Paciente'),
     document:group.document,
     birthDate:str(detail('birthDate')),sex:str(detail('sex')),
@@ -157,7 +157,7 @@
    testsPerformed:result.reduce((n,p)=>n+p.testsPerformed,0),
    returning:result.filter(p=>p.recurrent).length
   };
-  return {patients:result,summary,byId:id=>result.find(p=>p.id===str(id)||p.key==='doc:'+norm(id)||p.document&&norm(p.document)===norm(id))||null};
+  return {patients:result,summary,byId:id=>result.find(p=>p.ids.includes(str(id))||p.key==='doc:'+norm(id)||p.document&&norm(p.document)===norm(id))||null};
  }
  return {build,normalizeDocument:norm,statusTaken};
 });
