@@ -59,6 +59,7 @@
   const active=!!(view&&view.classList.contains('active'));
   document.body.classList.toggle('jp-journey-active',active);
   if(!active&&view?.classList.contains('jp-workspace-open'))closeWorkspace();
+  if(!active&&lookup&&!lookup.hidden)closeLookup();
  }
  function swipeToPane(index,animate=true){
   const layout=byId('view-journey')?.querySelector('.journey-layout');
@@ -89,6 +90,142 @@
    });
   });
  }
+ // Búsqueda independiente del registro. Solo consulta expedientes sincronizados,
+ // y nunca guarda ni crea pacientes hasta que se pulse Guardar en el formulario.
+ let lookup=null,lookupInput=null,lookupList=null,lookupStatus=null,lookupReturnFocus=null;
+ const normalized=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .toLocaleLowerCase('es').trim().replace(/\s+/g,' ');
+ const documentKey=value=>String(value||'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
+ function patientRecords(){
+  const all=window.FleboAppState?.get?.()?.patients||[];
+  const unique=new Map();
+  for(const person of Array.isArray(all)?all:[]){
+   const id=String(person.document||person.cedula||'').trim(),key=documentKey(id);
+   if(!key)continue; // Nunca usar coincidencia solo por nombre como identidad.
+   const old=unique.get(key);
+   const newer=Date.parse(person.updatedAt||person.createdAt||0)||0;
+   const prior=old?(Date.parse(old.updatedAt||old.createdAt||0)||0):-1;
+   if(!old||newer>=prior)unique.set(key,person);
+  }
+  return Array.from(unique.values());
+ }
+ function personName(p){
+  return String(p.fullName||p.name||[p.firstName,p.lastName].filter(Boolean).join(' ')||'Paciente').trim();
+ }
+ function ensureLookup(){
+  if(lookup)return;
+  lookup=document.createElement('div');
+  lookup.className='jp-lookup-overlay';
+  lookup.hidden=true;
+  lookup.id='jpPatientLookupOverlay';
+  lookup.innerHTML=
+   '<div class="jp-lookup-backdrop"></div>'+
+   '<section class="jp-lookup-dialog" role="dialog" aria-modal="true" aria-labelledby="jpLookupTitle">'+
+    '<header class="jp-lookup-head"><div><small>EXPEDIENTES EXISTENTES</small><h2 id="jpLookupTitle">Buscar paciente</h2><p>Busca por nombre, apellido o número de cédula.</p></div>'+
+    '<button class="jp-lookup-close" type="button" aria-label="Cerrar búsqueda">×</button></header>'+
+    '<label class="jp-lookup-search-label" for="jpPatientLookupInput">Nombre o cédula</label>'+
+    '<input id="jpPatientLookupInput" type="search" autocomplete="off" placeholder="Escribe un nombre o cédula…" aria-controls="jpPatientLookupResults">'+
+    '<div class="jp-lookup-status" role="status" aria-live="polite" id="jpPatientLookupStatus"></div>'+
+    '<div class="jp-lookup-results" id="jpPatientLookupResults" role="list" aria-label="Pacientes encontrados"></div>'+
+    '<footer class="jp-lookup-foot"><button class="jp-lookup-new" type="button">＋ Registrar paciente nuevo</button></footer>'+
+   '</section>';
+  document.body.appendChild(lookup);
+  lookupInput=lookup.querySelector('#jpPatientLookupInput');
+  lookupList=lookup.querySelector('#jpPatientLookupResults');
+  lookupStatus=lookup.querySelector('#jpPatientLookupStatus');
+  lookup.querySelector('.jp-lookup-close').addEventListener('click',closeLookup);
+  lookup.querySelector('.jp-lookup-backdrop').addEventListener('click',closeLookup);
+  lookup.querySelector('.jp-lookup-new').addEventListener('click',()=>{
+   closeLookup();
+   openWorkspace('patient');
+  });
+  lookupInput.addEventListener('input',renderLookup);
+  lookup.addEventListener('keydown',e=>{
+   if(e.key==='Escape'){e.preventDefault();closeLookup();}
+   if(e.key!=='Tab')return;
+   const items=Array.from(lookup.querySelectorAll('button:not([disabled]),input:not([disabled])'));
+   if(!items.length)return;
+   const first=items[0],last=items[items.length-1];
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  });
+ }
+ function closeLookup(){
+  if(!lookup||lookup.hidden)return;
+  lookup.hidden=true;
+  document.body.classList.remove('jp-lookup-open');
+  if(lookupReturnFocus?.isConnected)lookupReturnFocus.focus({preventScroll:true});
+  lookupReturnFocus=null;
+ }
+ function openPatientLookup(){
+  ensureLookup();
+  lookupReturnFocus=document.activeElement;
+  lookup.hidden=false;
+  document.body.classList.add('jp-lookup-open');
+  lookupInput.value='';
+  renderLookup();
+  requestAnimationFrame(()=>lookupInput.focus({preventScroll:true}));
+ }
+ function openMatchedPatient(p){
+  const documentId=String(p.document||p.cedula||'').trim();
+  if(!documentId)return;
+  const field=byId('journeyPatientId');
+  const existingDoc=documentKey(field?.value||'');
+  if(existingDoc&&existingDoc!==documentKey(documentId)){
+   const hasDraft=!!(byId('journeyPatientName')?.value||byId('journeyPatientLastName')?.value);
+   if(hasDraft&&!window.confirm('Tienes un paciente diferente en el formulario. ¿Cargar el expediente seleccionado y reemplazar esos datos sin guardar?'))return;
+  }
+  const full=personName(p);
+  const first=String(p.firstName||'').trim()||full.split(/\s+/)[0]||'';
+  const last=String(p.lastName||'').trim()||full.slice(first.length).trim();
+  const patch={name:first,lastName:last,document:documentId,birthDate:p.birthDate||'',sex:p.sex||'',search:''};
+  const form={journeyPatientName:patch.name,journeyPatientLastName:patch.lastName,
+   journeyPatientId:patch.document,journeyPatientBirth:patch.birthDate,journeyPatientSex:patch.sex,
+   journeyPatientTestSearch:''};
+  for(const [id,value] of Object.entries(form)){const n=byId(id);if(n)n.value=value;}
+  if(typeof window.persistJourneyDraft==='function')window.persistJourneyDraft(patch);
+  if(typeof window.lookupExistingJourneyPatient==='function')window.lookupExistingJourneyPatient();
+  closeLookup();
+  openWorkspace(last?'tests':'patient');
+  const hint=byId('journeyPatientLookupHint');
+  const active=(window.FleboAppState?.get?.()?.journeyEntries||[]).some(e=>
+   !e.removedAt&&String(e.journeyId)===String(window.FleboAppState?.get?.()?.journey?.id)&&
+   String(e.patientId)===String(p.id));
+  if(hint)hint.textContent=active
+   ?'Este expediente ya participa en la jornada. Puedes agregar otras pruebas sin duplicar al paciente.'
+   :'Expediente existente cargado. Selecciona las pruebas antes de guardar en la jornada.';
+ }
+ function renderLookup(){
+  if(!lookupList)return;
+  lookupList.replaceChildren();
+  const term=normalized(lookupInput.value),doc=documentKey(lookupInput.value);
+  if(term.length<2&&doc.length<2){
+   lookupStatus.textContent='Escribe al menos 2 caracteres para buscar en expedientes registrados.';
+   return;
+  }
+  const matches=patientRecords().filter(p=>
+   normalized(personName(p)).includes(term)||documentKey(p.document||p.cedula).includes(doc));
+  const ordered=matches.sort((a,b)=>personName(a).localeCompare(personName(b),'es')).slice(0,25);
+  lookupStatus.textContent=matches.length
+   ?matches.length+' expediente'+(matches.length===1?'':'s')+' encontrado'+(matches.length===1?'':'s')+
+     (matches.length>25?' · Mostrando los primeros 25':'')
+   :'No hay pacientes registrados que coincidan. Puedes registrar uno nuevo.';
+  for(const p of ordered){
+   const row=document.createElement('div');
+   row.className='jp-lookup-result';row.setAttribute('role','listitem');
+   const info=document.createElement('span');info.className='jp-lookup-result-copy';
+   const name=document.createElement('strong');name.textContent=personName(p);
+   const detail=document.createElement('small');
+   detail.textContent='Cédula: '+String(p.document||p.cedula||'—');
+   info.append(name,detail);
+   const action=document.createElement('button');action.type='button';
+   action.className='jp-lookup-select';action.textContent='Seleccionar';
+   action.setAttribute('aria-label','Seleccionar expediente de '+personName(p));
+   action.addEventListener('click',()=>openMatchedPatient(p));
+   row.append(info,action);lookupList.appendChild(row);
+  }
+ }
+
  function updatePreview(){
   const chips=byId('journeySelectedTestChips');
   const labels=chips?Array.from(chips.querySelectorAll('.journey-test-chip strong')).map(x=>(x.textContent||'').trim()).filter(Boolean):[];
@@ -134,21 +271,15 @@
   active.addEventListener('click',()=>openWorkspace('overview'));
   kpis.insertAdjacentElement('afterend',active);
   const actions=document.createElement('div');actions.className='jp-actions';
-  const search=makeCard(()=>openWorkspace('patient'),'Buscar paciente','Nombre, cédula o identificación',icons.search,'search');
+  const search=makeCard(openPatientLookup,'Buscar paciente','Consulta expedientes por nombre o cédula',icons.search,'search');
   actions.appendChild(search);
-  // La cédula es la clave única del paciente. Nunca mover el input original
-  // fuera del formulario: registrar o buscar necesita nombre + identificación.
-  const identity=document.createElement('button');
-  identity.type='button';identity.className='jp-identity-card jp-aqua';
-  identity.setAttribute('aria-label','Abrir registro para ingresar cédula o identificación');
-  identity.innerHTML='<span class="jp-action-icon">'+icons.id+'</span><span class="jp-action-copy jp-identity-content"><strong>Cédula / identificación</strong><small>Ingresa el número único del paciente</small></span><span class="jp-action-chevron">'+icons.chevron+'</span>';
-  identity.addEventListener('click',()=>openWorkspace('identity'));
+  // La identificación y la selección de pruebas permanecen dentro del
+  // formulario completo; la portada solo ofrece un acceso a ese registro.
+  const register=makeCard(()=>openWorkspace('patient'),'Registrar paciente',
+   'Nombre, apellidos, cédula, nacimiento, sexo y pruebas',icons.id,'register');
+  actions.appendChild(register);
   const input=byId('journeyPatientId');
   if(input){input.placeholder='Ingresa la cédula o identificación';input.setAttribute('aria-label','Cédula o identificación del paciente');}
-  actions.appendChild(identity);
-  const tests=makeCard(()=>openWorkspace('tests'),'Pruebas seleccionadas','Busca y agrega pruebas del catálogo',icons.flask,'tests');
-  tests.querySelector('small').id='jpSelectedSummary';
-  actions.appendChild(tests);
   const patients=makeCard(()=>openWorkspace('patients'),'Pacientes en toma','0 pacientes con muestras pendientes',icons.users,'patients');
   patients.querySelector('small').id='jpPatientsInTakeSummary';
   actions.appendChild(patients);
