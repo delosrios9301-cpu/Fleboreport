@@ -32,8 +32,17 @@
   const view=byId('view-journey');
   if(!view?.classList.contains('jp-workspace-open'))return;
   const viewport=window.visualViewport;
-  const occluded=viewport?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0;
-  view.style.setProperty('--jp-keyboard-bottom',Math.ceil(occluded)+'px');
+  const keyboardClearance=viewport?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0;
+  // Navegación principal: si está presente, reservar el espacio real que ocupa.
+  // El teclado y el dock no se suman: se usa el que más altura ocluye.
+  const mobile=!!(window.matchMedia&&window.matchMedia('(max-width:760px)').matches);
+  const dock=mobile?byId('cmMobileDock'):null;
+  const dockStyle=dock?window.getComputedStyle(dock):null;
+  const dockVisible=!!(dock&&dockStyle&&dockStyle.display!=='none'&&dockStyle.visibility!=='hidden');
+  const dockRect=dockVisible?dock.getBoundingClientRect():null;
+  const dockClearance=dockRect&&dockRect.height>0?Math.max(0,window.innerHeight-dockRect.top+12):0;
+  const clearance=Math.max(keyboardClearance,dockClearance);
+  view.style.setProperty('--jp-viewport-clearance',Math.ceil(clearance)+'px');
   const active=document.activeElement;
   if(active&&view.contains(active)&&active.closest?.('.journey-entry-panel'))
    requestAnimationFrame(()=>ensureFieldVisible(active));
@@ -42,7 +51,7 @@
   const view=byId('view-journey');if(!view)return;
   view.classList.remove('jp-workspace-open');
   document.body.classList.remove('jp-workspace-modal-open');
-  view.style.removeProperty('--jp-keyboard-bottom');
+  view.style.removeProperty('--jp-viewport-clearance');
   byId('jpJourneyActiveButton')?.focus({preventScroll:true});
  }
  function syncNavState(){
@@ -69,6 +78,7 @@
   document.body.classList.add('jp-workspace-modal-open');
   updateWorkspaceViewport();
   requestAnimationFrame(()=>{
+   updateWorkspaceViewport();
    swipeToPane(mode==='patients'?1:0,false);
    const focusId=mode==='patient'?'journeyPatientName':mode==='identity'?'journeyPatientId':mode==='tests'?'journeyPatientTestSearch':null;
    if(focusId)requestAnimationFrame(()=>{
@@ -198,6 +208,8 @@
    window.visualViewport.addEventListener('resize',updateWorkspaceViewport,{passive:true});
    window.visualViewport.addEventListener('scroll',updateWorkspaceViewport,{passive:true});
   }
+  window.addEventListener('resize',updateWorkspaceViewport,{passive:true});
+  view.addEventListener('focusin',updateWorkspaceViewport);
   updatePreview();syncNavState();
   new MutationObserver(syncNavState).observe(view,{attributes:true,attributeFilter:['class']});
  }
