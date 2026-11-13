@@ -46,8 +46,8 @@ test('Formularios y pacientes siguen accesibles al pulsar tarjetas, sin ocultar 
  assert.match(css,/\.jp-workspace-open>\.journey-layout/);
  assert.match(js,/openWorkspace\('tests'\)/);
  assert.match(js,/openWorkspace\('patients'\)/);
- assert.match(js,/\.journey-entry-panel/);
- assert.match(js,/\.journey-list-panel/);
+ assert.match(html,/class="panel form-panel journey-entry-panel"/);
+ assert.match(html,/class="panel journey-list-panel"/);
  assert.match(css,/\.jp-collapse-workspace/);
  assert.match(js,/byId\('journeySelectedTestChips'\)/);
 });
