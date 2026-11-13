@@ -1264,3 +1264,142 @@ body.fr2-app-authorized.cm-workspace.vc-compact
   grid-column:1!important;
  }
 }
+
+/* v307 · Procesamiento: filtros desplazables y navegación vertical libre.
+   Soluciona el recorte del panel desplegable sin afectar los gestos de muestras. */
+@media screen{
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready{
+  height:auto!important;max-height:none!important;min-height:0!important;
+  overflow-x:clip!important;overflow-y:visible!important;
+  touch-action:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready>.clinical-layout,
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready>.clinical-layout>section.panel:first-child{
+  height:auto!important;min-height:0!important;max-height:none!important;
+  overflow:visible!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickheading{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+  justify-content:space-between!important;gap:4px 9px!important;
+  min-width:0!important;margin:0 4px 6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickheading strong{
+  font-size:clamp(11px,2.8vw,13px)!important;color:#322653!important;
+  font-weight:820!important;line-height:1.2!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickheading small{
+  color:#6b5a94!important;font-size:10px!important;font-weight:740!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickstrip{
+  display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+  align-items:stretch!important;gap:9px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  padding:3px 5px 10px!important;margin:0 0 12px!important;
+  scroll-snap-type:x proximity!important;scroll-padding-inline:5px!important;
+  overscroll-behavior-x:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:thin!important;touch-action:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickstrip>.crx-quick-filter{
+  display:flex!important;flex:0 0 clamp(170px,34%,265px)!important;
+  flex-direction:column!important;justify-content:center!important;
+  min-width:0!important;max-width:none!important;gap:5px!important;
+  padding:8px 10px!important;margin:0!important;
+  border:1px solid #d5c8f4!important;border-radius:16px!important;
+  background:linear-gradient(145deg,#fff,#f4efff)!important;
+  box-shadow:0 3px 9px #48329317!important;scroll-snap-align:start!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickstrip>.crx-quick-filter label{
+  color:#5234a4!important;font-size:11px!important;font-weight:830!important;
+  margin:0!important;padding:0!important;line-height:1.25!important;
+  white-space:normal!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickstrip>.crx-quick-filter select{
+  display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  min-height:43px!important;height:auto!important;margin:0!important;
+  padding:8px 10px!important;border:1px solid #d6caf1!important;
+  border-radius:12px!important;background:#fff!important;color:#302150!important;
+  font-size:12px!important;line-height:1.3!important;
+  writing-mode:horizontal-tb!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-config-shortcut{
+  display:flex!important;flex:0 0 auto!important;
+  justify-content:center!important;align-items:center!important;gap:5px!important;
+  min-width:165px!important;min-height:59px!important;align-self:center!important;
+  padding:10px 13px!important;margin:0!important;
+  border:1px solid #c9b9f2!important;border-radius:16px!important;
+  background:linear-gradient(140deg,#e8d9ff,#d8f8fa)!important;
+  color:#5024b7!important;font-size:11px!important;font-weight:840!important;
+  box-shadow:0 3px 8px #47389c22!important;
+  white-space:normal!important;cursor:pointer!important;
+  scroll-snap-align:end!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-config-shortcut[hidden]{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-config-shortcut svg{
+  width:18px!important;height:18px!important;flex:0 0 auto!important;
+ }
+ /* El filtro de fecha/estado se expande dentro del flujo, nunca queda
+    fuera del área visible ni atrapado por el overflow de la tarjeta. */
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-toolbar>.crx-process-filters[open]{
+  grid-column:1/-1!important;min-width:0!important;width:100%!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-filters[open]>.clinical-filter{
+  display:grid!important;position:static!important;top:auto!important;right:auto!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  padding:11px!important;margin:8px 0 0!important;
+  overflow:visible!important;border-radius:17px!important;
+  background:linear-gradient(145deg,#fff,#f8f5ff)!important;
+  box-shadow:0 5px 13px #4f2f9c1c!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-filters:not([open])>.clinical-filter{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-cards{
+  height:auto!important;max-height:none!important;
+  overflow:visible!important;touch-action:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .clinical-history-processing{
+  height:auto!important;max-height:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .clinical-history-processing[open]
+ .clinical-history-panel{
+  overflow:visible!important;max-height:none!important;
+ }
+}
+@media screen and (max-width:520px){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickstrip>.crx-quick-filter{
+  flex:0 0 min(66vw,230px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-quickheading{
+  margin-bottom:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-filters[open]>.clinical-filter{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}
