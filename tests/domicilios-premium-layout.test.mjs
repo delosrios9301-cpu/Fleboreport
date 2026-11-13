@@ -8,7 +8,8 @@ const sw=await readFile(new URL('../service-worker.js',import.meta.url),'utf8');
 
 test('Domicilios conserva la navegación funcional, pero reconstruye la jerarquía de pantalla',()=>{
  assert.match(dom,/hv-premium-hero/);
- assert.match(dom,/hvPremiumCreate/);
+ assert.match(dom,/id="hvRefNew" hidden>＋ Nuevo domicilio<\/button>/);
+ assert.doesNotMatch(dom,/hvPremiumCreate|hvCreateTab/);
  assert.match(dom,/enhanceHomeVisitComposition\(\)/);
  assert.match(dom,/hv-premium-section-intro/);
  assert.match(dom,/hv-premium-panel-heading/);
@@ -61,8 +62,8 @@ test('mismo diseño premium, sin ocultar información y usable en Android tablet
 });
 test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
  assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
- assert.match(html,/domicilios\.js\?v=20261112-reference1/);
- assert.match(sw,/fleboreport-shell-v290/);
+ assert.match(html,/domicilios\.js\?v=20261112-reference2/);
+ assert.match(sw,/fleboreport-shell-v291/);
  assert.match(sw,/'\.\/domicilios-premium.css'/);
 });
 
@@ -83,5 +84,5 @@ test('animaciones suaves e indicadores de estado respetan accesibilidad',()=>{
   assert.ok(css.includes(item),item);
  assert.match(html,/domicilios-premium-gestures\.js\?v=20261112-gestures1/);
  assert.match(sw,/'\.\/domicilios-premium-gestures.js'/);
- assert.match(sw,/fleboreport-shell-v290/);
+ assert.match(sw,/fleboreport-shell-v291/);
 });
