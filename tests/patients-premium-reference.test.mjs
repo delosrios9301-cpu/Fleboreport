@@ -95,10 +95,10 @@ test('Layout horizontal y móvil oculta información antigua repetida sin afecta
  assert.match(css,/touch-action:pan-x!important/);
  assert.match(css,/word-break:normal!important/);
 });
-test('Servicio PWA v319 carga los dos archivos del expediente premium',()=>{
- assert.match(html,/patients-premium-reference\.css\?v=20261113-patient2/);
- assert.match(html,/patients-premium-reference\.js\?v=20261113-patient2/);
- assert.match(sw,/fleboreport-shell-v319/);
+test('Servicio PWA v320 carga los dos archivos del expediente premium',()=>{
+ assert.match(html,/patients-premium-reference\.css\?v=20261113-patient3/);
+ assert.match(html,/patients-premium-reference\.js\?v=20261113-patient3/);
+ assert.match(sw,/fleboreport-shell-v320/);
  assert.match(sw,/'\.\/patients-premium-reference\.css'/);
  assert.match(sw,/'\.\/patients-premium-reference\.js'/);
 });
@@ -113,6 +113,7 @@ test('Ver expediente llama directamente con ID real y cambia la vista visible',(
  };
  const events=[];let selected=null;
  const ctx={
+  showPatientModal:()=>{events.push('modal');return true},
   window:{openPatient:id=>{selected=id;events.push('native:'+id)},
    renderPatientWorkspace:()=>events.push('render'),
    showPatientTab:key=>events.push('tab:'+key),
@@ -125,13 +126,14 @@ test('Ver expediente llama directamente con ID real y cambia la vista visible',(
  vm.runInNewContext(code,ctx);
  assert.equal(ctx.openPatientRecord('patient-123'),true);
  assert.equal(selected,'patient-123');
- assert.equal(elements.patientsHome.hidden,true);
+ assert.equal(elements.patientsHome.hidden,false);
  assert.equal(elements.patientFormPanel.hidden,true);
  assert.equal(elements.patientWorkspace.hidden,false);
  assert.ok(events.includes('render'));
  assert.ok(events.includes('premium'));
  assert.ok(events.includes('tab:history'));
- assert.ok(events.includes('scroll'));
+ assert.ok(events.includes('modal'));
+ assert.equal(events.includes('scroll'),false);
 });
 test('La estructura compacta no deja cuadrícula fantasma, duplica encabezados ni esconde expediente abierto',()=>{
  assert.match(css,/grid-template-areas:"heading" "metrics" "directory" "advanced"!important/);
@@ -145,4 +147,22 @@ test('La estructura compacta no deja cuadrícula fantasma, duplica encabezados n
  assert.match(js,/home\.classList\.add\('pp-strict-layout'\)/);
  assert.match(js,/const id=match\?\.\[1\]/);
  assert.match(js,/const selected=findPatient\(\)/);
+});
+
+test('Ver expediente despliega un cuadro flotante real con todos los paneles existentes',()=>{
+ assert.match(js,/function initPatientDialog\(\)/);
+ assert.match(js,/el\('dialog','pp-expedient-dialog'\)/);
+ assert.match(js,/dialog\.showModal\(\)/);
+ assert.match(js,/dialog\.append\(toolbar,space\)/);
+ assert.match(js,/dialog\.setAttribute\('aria-label','Expediente de '/);
+ assert.match(js,/dialog\.addEventListener\('close'/);
+ assert.match(js,/const selected=findPatient\(\)/);
+ assert.match(js,/showPatientModal\(\)/);
+ assert.match(js,/wrap\('openPatientForm',dismissPatientModal\)/);
+ assert.match(js,/wrap\('closePatientWorkspace',dismissPatientModal\)/);
+ assert.match(css,/dialog\.pp-expedient-dialog\[open\]/);
+ assert.match(css,/dialog\.pp-expedient-dialog::backdrop/);
+ assert.match(css,/#patientWorkspace:not\(\[hidden\]\)/);
+ assert.match(css,/overflow-y:auto!important/);
+ assert.match(css,/@media screen and \(max-width:600px\)/);
 });
