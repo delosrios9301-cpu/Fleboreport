@@ -3,7 +3,7 @@
    resultados, documentos ni cambios de datos automáticamente. */
 (function(){
  'use strict';
- let ready=false,directoryMode='all',paintQueued=false;
+ let ready=false,directoryMode='all',paintQueued=false,patientDialog=null;
  const $=id=>document.getElementById(id);
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n};
  const icon=key=>{
@@ -120,17 +120,71 @@
    window.toast?.('No se encontró el expediente de este paciente.');
    return false;
   }
-  home.hidden=true;
+  // La apertura nativa ya dispara el cuadro flotante sobre el directorio.
+  // Conservar el directorio detrás y el ID real asignado por openPatient.
+  home.hidden=false;
   if(form)form.hidden=true;
   workspace.hidden=false;
-  // Mantener una pestaña nativa, nunca un modal ficticio sin datos.
   window.renderPatientWorkspace?.();
   window.showPatientTab?.('history');
   renderWorkspace();
-  const scroller=document.querySelector('.app-shell .content');
-  if(scroller&&typeof scroller.scrollTo==='function')scroller.scrollTo({top:0,behavior:'auto'});
-  else window.scrollTo?.({top:0,behavior:'auto'});
+  showPatientModal();
+  if(typeof workspace.scrollTo==='function')workspace.scrollTo({top:0,behavior:'auto'});
   return true;
+ }
+ function initPatientDialog(){
+  if(patientDialog)return patientDialog;
+  const view=$('view-patients'),space=$('patientWorkspace');
+  if(!view||!space)return null;
+  const dialog=el('dialog','pp-expedient-dialog');
+  dialog.id='ppExpedientDialog';
+  dialog.setAttribute('aria-label','Expediente clínico del paciente');
+  const toolbar=el('div','pp-modal-toolbar');
+  const title=el('div','pp-modal-brand');
+  const glyph=el('span','pp-modal-brand-glyph');glyph.innerHTML=icon('file');
+  title.append(glyph,el('strong','','Expediente clínico'));
+  const close=button('Cerrar expediente','pp-modal-dismiss',()=>{
+   dialog.close();
+  },'back');
+  close.setAttribute('aria-label','Cerrar expediente y volver a pacientes');
+  toolbar.append(title,close);
+  // El mismo workspace ya contiene las fichas y acciones verdaderas.
+  // Al moverlo dentro del diálogo se conservan sus ID, eventos y registros.
+  space.before(dialog);
+  dialog.append(toolbar,space);
+  dialog.addEventListener('close',()=>{
+   document.body.classList.remove('pp-expedient-open');
+   if(!space.hidden&&typeof window.closePatientWorkspace==='function'){
+    window.closePatientWorkspace();
+   }
+  });
+  patientDialog=dialog;
+  return dialog;
+ }
+ function showPatientModal(){
+  const dialog=initPatientDialog(),space=$('patientWorkspace'),home=$('patientsHome');
+  if(!dialog||!space||!findPatient())return false;
+  if(home)home.hidden=false;
+  space.hidden=false;
+  const p=findPatient();
+  dialog.setAttribute('aria-label','Expediente de '+(p.name||'paciente'));
+  if(!dialog.open){
+   try{dialog.showModal()}
+   catch(error){
+    console.error('[FleboReport] No se pudo abrir el cuadro del expediente',error);
+    window.toast?.('No se pudo abrir la ficha. Actualiza la aplicación.');
+    return false;
+   }
+  }
+  document.body.classList.add('pp-expedient-open');
+  const close=dialog.querySelector('.pp-modal-dismiss');
+  close?.focus({preventScroll:true});
+  return true;
+ }
+ function dismissPatientModal(){
+  const dialog=patientDialog;
+  if(dialog?.open)dialog.close();
+  document.body.classList.remove('pp-expedient-open');
  }
  function recentPatient(record){
   const dates=(record?.attentions||[]).map(x=>String(x.date||'').slice(0,10)).filter(Boolean).sort().reverse();
@@ -355,17 +409,21 @@
   if(!home||!space||typeof window.renderPatients!=='function'||typeof window.renderPatientWorkspace!=='function')return;
   ready=true;
   const v=$('view-patients');v?.classList.add('pp-premium');
-  createHome();createWorkspace();
+  createHome();createWorkspace();initPatientDialog();
   wrap('renderPatients',scheduleRefresh);
   wrap('renderPatientWorkspace',renderWorkspace);
   wrap('showPatientTab',activateTab);
   wrap('openPatient',()=>{
-   // Apertura nativa directa; el estado visual del expediente se sincroniza.
    if(!$('patientWorkspace')?.hidden){
     window.showPatientTab?.('history');
     renderWorkspace();
+    showPatientModal();
    }
   });
+  // Al cambiar a edición, conservar el formulario y cerrar solamente el cuadro.
+  wrap('openPatientForm',dismissPatientModal);
+  wrap('closePatientWorkspace',dismissPatientModal);
+  wrap('navigate',dismissPatientModal);
   const tbody=$('patientList');
   if(tbody)new MutationObserver(scheduleRefresh).observe(tbody,{childList:true});
   window.addEventListener('flebo:cloud-state-applied',scheduleRefresh);
@@ -373,5 +431,5 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
  else mount();
- window.FleboPatientsPremium={refresh:()=>{if(!ready)mount();refresh()},getDirectoryMode:()=>directoryMode,openPatientRecord};
+ window.FleboPatientsPremium={refresh:()=>{if(!ready)mount();refresh()},getDirectoryMode:()=>directoryMode,openPatientRecord,showPatientModal,dismissPatientModal};
 })();
