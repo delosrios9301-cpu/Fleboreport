@@ -462,7 +462,8 @@ async function correctSample(sample,visit,collectionAt,receivedAt,reason){
 }
 async function deleteSample(sample,reason){
  requireReady(['admin','clinician']);
- if(role!=='admin')throw new Error('Solo el administrador puede eliminar muestras.');
+ const granted=await getManagementPermissions();
+ if(!granted.can_delete)throw new Error('No tienes permiso autorizado para eliminar muestras clínicas.');
  if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada al registro clínico de Supabase.');
  const result=await client.rpc('delete_clinical_sample',{p_workspace_id:workspaceId,p_sample_id:sample.cloudId,p_reason:String(reason||'').trim()});
  if(result.error)fail(result.error);
