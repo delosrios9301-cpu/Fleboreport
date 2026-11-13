@@ -40,5 +40,5 @@ test('Acceso a configuración restringido a admin',()=>{
 test('Cache y enlaces de rediseño actualizados',()=>{
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical5/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical4/);
- assert.match(sw,/fleboreport-shell-v311/);
+ assert.match(sw,/fleboreport-shell-v312/);
 });
