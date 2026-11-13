@@ -49,6 +49,7 @@
   const home=$('patientsHome');if(!home)return;
   home.classList.add('pp-home');
   const heading=home.querySelector(':scope > .page-heading');
+  home.classList.add('pp-strict-layout');
   if(heading){
    const title=heading.querySelector('h1'),description=heading.querySelector('p');
    if(title)title.textContent='Pacientes';
@@ -98,11 +99,38 @@
  function pickRecord(original){
   const buttonEl=original.querySelector('button.link-button');
   const onclick=buttonEl?.getAttribute('onclick')||'';
-  const match=onclick.match(/openPatient\('([^']+)'\)/);
-  const id=match?.[1];
+  const match=onclick.match(/openPatient\('((?:\\'|[^'])+)'\)/);
+  const id=match?.[1]?.replace(/\\'/g,"'");
   const all=window.FleboAppState?.get?.()?.patients;
   const patient=Array.isArray(all)?all.find(x=>String(x.id)===id):null;
-  return {patient,openButton:buttonEl};
+  return {id,patient,openButton:buttonEl};
+ }
+ function openPatientRecord(id){
+  const pid=String(id||'');
+  const home=$('patientsHome'),workspace=$('patientWorkspace'),form=$('patientFormPanel');
+  if(!pid||typeof window.openPatient!=='function'||!workspace||!home){
+   window.toast?.('No se pudo abrir el expediente. Intenta actualizar Pacientes.');
+   return false;
+  }
+  // El controlador original valida el ID y establece individualPatientId.
+  // No se crea un paciente, ni se modifica la cédula o el historial.
+  window.openPatient(pid);
+  const selected=findPatient();
+  if(!selected||String(selected.id)!==pid){
+   window.toast?.('No se encontró el expediente de este paciente.');
+   return false;
+  }
+  home.hidden=true;
+  if(form)form.hidden=true;
+  workspace.hidden=false;
+  // Mantener una pestaña nativa, nunca un modal ficticio sin datos.
+  window.renderPatientWorkspace?.();
+  window.showPatientTab?.('history');
+  renderWorkspace();
+  const scroller=document.querySelector('.app-shell .content');
+  if(scroller&&typeof scroller.scrollTo==='function')scroller.scrollTo({top:0,behavior:'auto'});
+  else window.scrollTo?.({top:0,behavior:'auto'});
+  return true;
  }
  function recentPatient(record){
   const dates=(record?.attentions||[]).map(x=>String(x.date||'').slice(0,10)).filter(Boolean).sort().reverse();
@@ -121,7 +149,7 @@
   const rows=Array.from(tbody.querySelectorAll('tr')).filter(tr=>tr.querySelector('button.link-button'));
   const fragment=document.createDocumentFragment();let count=0;
   for(const tr of rows){
-   const {patient,openButton}=pickRecord(tr),cells=tr.querySelectorAll('td');
+   const {id,patient}=pickRecord(tr),cells=tr.querySelectorAll('td');
    const visits=Number(cells[4]?.textContent)||0;
    if(directoryMode==='returning'&&visits<=1)continue;
    if(directoryMode==='recent'&&!recentPatient(patient))continue;
@@ -134,7 +162,7 @@
    const meta=el('span','pp-directory-meta',
     (visits+' '+(visits===1?'atención':'atenciones'))+' · Última: '+(cells[3]?.textContent?.trim()||'—'));
    info.append(meta);
-   const open=button('Ver expediente','pp-open-patient',()=>openButton?.click(),'chevron');
+   const open=button('Ver expediente','pp-open-patient',()=>openPatientRecord(id),'chevron');
    open.setAttribute('aria-label','Ver expediente de '+(cells[0]?.textContent?.trim()||'paciente'));
    card.append(avatar,info,open);fragment.append(card);
   }
@@ -288,30 +316,10 @@
    }
    if(!notes.children.length)notes.append(el('p','pp-empty','Todavía no hay notas registradas.'));
   }
-  // La línea temporal usa exclusivamente atenciones verdaderamente guardadas.
+  // El timeline nativo conserva ambas acciones: Ver y Editar atención.
+  // Únicamente se modifica su presentación mediante CSS.
   const timeline=$('patientHistoryTimeline');
-  if(timeline){
-   const arr=[...attentions].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
-   timeline.replaceChildren();
-   if(!arr.length)timeline.append(el('p','pp-empty','Este paciente todavía no tiene atenciones.'));
-   for(const a of arr){
-    const card=el('article','pp-timeline-row');
-    const date=el('div','pp-timeline-date');
-    date.append(el('strong','',localDate(a.date)));
-    if(a.time)date.append(el('span','',String(a.time)));
-    const content=el('div','pp-timeline-main');
-    content.append(el('strong','',a.type||'Atención'));
-    if(a.reason)content.append(el('small','',a.reason));
-    const names=(a.tests||[]).map(t=>typeof t==='string'?t:(t.name||'')).filter(Boolean).join(', ');
-    if(names)content.append(el('small','','Pruebas: '+names));
-    if(a.professional)content.append(el('small','','Responsable: '+a.professional));
-    const actions=el('div','pp-timeline-actions');
-    const see=button('Ver','pp-timeline-view',()=>nativeCall('showAttentionDetail',a.id),'chevron');
-    see.setAttribute('aria-label','Ver atención de '+localDate(a.date));
-    actions.append(see);
-    card.append(date,content,actions);timeline.append(card);
-   }
-  }
+  if(timeline)timeline.classList.add('pp-native-timeline');
  }
  function noteItem(label,value){
   const node=el('article','pp-note-item');
@@ -352,9 +360,11 @@
   wrap('renderPatientWorkspace',renderWorkspace);
   wrap('showPatientTab',activateTab);
   wrap('openPatient',()=>{
-   // Ver expediente abre el historial como en la referencia.
-   window.showPatientTab?.('history');
-   window.scrollTo?.({top:0,behavior:'auto'});
+   // Apertura nativa directa; el estado visual del expediente se sincroniza.
+   if(!$('patientWorkspace')?.hidden){
+    window.showPatientTab?.('history');
+    renderWorkspace();
+   }
   });
   const tbody=$('patientList');
   if(tbody)new MutationObserver(scheduleRefresh).observe(tbody,{childList:true});
@@ -363,5 +373,5 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
  else mount();
- window.FleboPatientsPremium={refresh:()=>{if(!ready)mount();refresh()},getDirectoryMode:()=>directoryMode};
+ window.FleboPatientsPremium={refresh:()=>{if(!ready)mount();refresh()},getDirectoryMode:()=>directoryMode,openPatientRecord};
 })();
