@@ -54,8 +54,18 @@ test('Pantallas grandes mantienen altura controlada y no muestran KPI enormes',(
  assert.match(css,/max-width:1040px!important/);
 });
 test('PWA v322 incluye la hoja final con consulta de caché única',()=>{
- assert.match(html,/patients-exact-proportions\.css\?v=20261113-patient5/);
- assert.match(html,/patients-activity-ui\.js\?v=20261113-patient5/);
+ assert.match(html,/patients-exact-proportions\.css\?v=20261113-patient6/);
+ assert.match(html,/patients-activity-ui\.js\?v=20261113-patient6/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/patients-exact-proportions\.css'/);
+});
+
+test('La referencia reforzada de Pacientes conserva 2 columnas y abre el expediente real',()=>{
+ assert.match(css,/v323 · Fidelidad visual reforzada/);
+ assert.match(css,/#view-patients\.pp-premium\.pp-integrated/);
+ assert.match(css,/height:71px!important/);
+ assert.match(css,/min-height:70px!important/);
+ assert.match(ui,/metricIcons=\['users','calendar','test','repeat'\]/);
+ assert.match(ui,/openPatientRecord\?\.\(person\.id\)/);
+ assert.doesNotMatch(css,/pp-expedient-dialog\[open\]/);
 });

@@ -75,7 +75,7 @@
     if(search)search.placeholder='Buscar por nombre, cédula o teléfono…';
     const chips=el('div','pp-list-chips');
     chips.setAttribute('role','group');chips.setAttribute('aria-label','Filtrar expedientes');
-    for(const [mode,label] of [['all','Todos'],['recent','Recientes (30 días)'],['returning','Recurrentes']]){
+    for(const [mode,label] of [['all','Todos'],['recent','Recientes'],['returning','Recurrentes']]){
      const b=button(label,'pp-chip',()=>{directoryMode=mode;renderDirectory()});
      b.dataset.ppListFilter=mode;chips.append(b);
     }

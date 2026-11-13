@@ -13,7 +13,9 @@
  const fileIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h6"/></svg>';
  const searchIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>';
  const testIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6M10 2v8l-6 9a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3l-6-9V2M7 16h10"/></svg>';
- const icon=(key)=>({calendar:calendarIcon,user:userIcon,file:fileIcon,test:testIcon,search:searchIcon})[key]||fileIcon;
+ const usersIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2 20v-2a6 6 0 0 1 12 0v2M15 16a5 5 0 0 1 7 4"/></svg>';
+ const repeatIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4M4 11V9a4 4 0 0 1 4-4h12M8 21l-4-4 4-4m12-4v2a4 4 0 0 1-4 4H4"/></svg>';
+ const icon=(key)=>({calendar:calendarIcon,user:userIcon,users:usersIcon,repeat:repeatIcon,file:fileIcon,test:testIcon,search:searchIcon})[key]||fileIcon;
  const localDate=value=>{
   const d=String(value||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(d))return '—';
   const obj=new Date(d+'T00:00:00');
@@ -31,6 +33,15 @@
   if(configured||!$('patientsHome'))return;
   configured=true;
   const root=$('view-patients');root?.classList.add('pp-integrated');
+   // Iconos vectoriales y textos de la referencia; los valores siguen siendo reales.
+   const metricIcons=['users','calendar','test','repeat'];
+   const metricLabels=['Total pacientes','Atenciones del mes','Pruebas realizadas','Recurrentes'];
+   $('patientsHome')?.querySelectorAll(':scope > .pp-home-kpis > .stat-card').forEach((card,i)=>{
+    const glyph=card.querySelector('.stat-icon');
+    if(glyph){glyph.innerHTML=icon(metricIcons[i]);glyph.setAttribute('aria-hidden','true')}
+    const label=card.querySelector('small');
+    if(label&&metricLabels[i])label.textContent=metricLabels[i];
+   });
   const heading=$('patientsHome')?.querySelector(':scope > .page-heading');
   if(heading&&!heading.querySelector('.pp-heading-icon')){
    const mark=elementIcon('user','pp-heading-icon');heading.prepend(mark);

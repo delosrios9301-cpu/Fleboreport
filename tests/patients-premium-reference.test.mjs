@@ -96,8 +96,8 @@ test('Layout horizontal y móvil oculta información antigua repetida sin afecta
  assert.match(css,/word-break:normal!important/);
 });
 test('Servicio PWA v322 carga los dos archivos del expediente premium',()=>{
- assert.match(html,/patients-premium-reference\.css\?v=20261113-patient5/);
- assert.match(html,/patients-premium-reference\.js\?v=20261113-patient5/);
+ assert.match(html,/patients-premium-reference\.css\?v=20261113-patient6/);
+ assert.match(html,/patients-premium-reference\.js\?v=20261113-patient6/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/patients-premium-reference\.css'/);
  assert.match(sw,/'\.\/patients-premium-reference\.js'/);
