@@ -78,7 +78,7 @@ test('Layout de filas horizontales, indicadores degradados, búsqueda compacta y
  assert.match(css,/\.fr2-catalog-item\.cpr-row\[hidden\]\{display:none!important\}/);
  assert.match(css,/calc\(116px \+ env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(css,/word-break:normal!important/);
- assert.match(oldStyle,/bubble-navigation/);
+ assert.match(oldStyle,/#sidebar \.nav-list/);
 });
 test('Publicación PWA v317 incluye la nueva capa premium',()=>{
  assert.match(html,/catalog-premium-reference\.css\?v=20261113-catalog1/);
