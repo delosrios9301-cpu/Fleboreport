@@ -31,14 +31,15 @@ test('Tarjetas legibles en móvil, gestos de gestión conservados',()=>{
  assert.match(ui,/function makeSwipeCard\(card,sample\)/);
  assert.match(ui,/card\.addEventListener\('touchmove'/);
 });
-test('Acceso a configuración restringido a admin',()=>{
- assert.match(ui,/configShortcut\.hidden=window\.FleboAuth\?\.membership\?\.role!=='admin'/);
- assert.match(ui,/window\.navigate\('settings','clinical-config'\)/);
- assert.match(ui,/window\.selectClinicalConfig\('studies'\)/);
+test('Procesamiento no duplica acceso a Configuración de estudios',()=>{
+ assert.doesNotMatch(ui,/configShortcut/);
+ assert.doesNotMatch(ui,/crx-process-config-shortcut/);
+ assert.match(ui,/panel\.insertBefore\(quickbar,sourceTable\)/);
+ assert.match(html,/id="settings-clinical-config"/);
  assert.doesNotThrow(()=>new Function(ui));
 });
 test('Cache y enlaces de rediseño actualizados',()=>{
- assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical5/);
+ assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical6/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical4/);
- assert.match(sw,/fleboreport-shell-v314/);
+ assert.match(sw,/fleboreport-shell-v315/);
 });
