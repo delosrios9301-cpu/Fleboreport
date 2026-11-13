@@ -1,0 +1,422 @@
+/* FleboReport · Estudios y Procesamiento · referencias visuales v303
+   Capa de interfaz: conserva el catálogo clínico, las bandejas originales,
+   los botones de transición y la sincronización existente. */
+(function(){
+ 'use strict';
+ const get=id=>document.getElementById(id);
+ const icon={
+  flask:'<path d="M9 3h6M10 3v7l-6 9a2 2 0 0 0 1.7 3h12.6a2 2 0 0 0 1.7-3l-6-9V3M7 16h10"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/>',
+  sliders:'<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="white"/><circle cx="16" cy="12" r="2" fill="white"/><circle cx="9" cy="18" r="2" fill="white"/>',
+  droplet:'<path d="M12 2s-7 8-7 13a7 7 0 0 0 14 0c0-5-7-13-7-13Z"/>',
+  tubes:'<path d="M9 3h6M10 3v11l-4 5a2 2 0 0 0 2 3h8a2 2 0 0 0 2-3l-4-5V3M9 16h6"/>',
+  layers:'<path d="m12 2 10 6-10 6L2 8l10-6ZM2 13l10 6 10-6M2 18l10 5 10-5"/>',
+  chevron:'<path d="m9 5 7 7-7 7"/>',
+  clipboard:'<rect x="4" y="5" width="16" height="17" rx="2"/><path d="M9 5V3h6v2M8 11h8M8 15h5"/>',
+  database:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
+  refresh:'<path d="M20 7v5h-5M4 17v-5h5"/><path d="M5 9a8 8 0 0 1 14-2l1 1M19 15a8 8 0 0 1-14 2l-1-1"/>',
+  filter:'<path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  user:'<circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/>',
+  boxes:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M8 10h8M12 6v12"/>'
+ };
+ function svg(name,klass){
+  const s=document.createElement('span');
+  s.className=klass||'crx-icon';
+  s.setAttribute('aria-hidden','true');
+  s.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">'+(icon[name]||icon.tubes)+'</svg>';
+  return s;
+ }
+ function node(tag,klass,text){
+  const e=document.createElement(tag);
+  if(klass)e.className=klass;
+  if(text!==undefined&&text!==null)e.textContent=String(text);
+  return e;
+ }
+ function data(){
+  try {return window.FleboAppState&&typeof window.FleboAppState.get==='function'?window.FleboAppState.get():null;}catch(_){return null}
+ }
+ function stateOf(sample){
+  if(sample.workflowStatus)return sample.workflowStatus;
+  return ({'Recibida':'REGISTRADO','En revisión':'EN_REVISION','Pendiente de procesamiento':'PENDIENTE_PROCESO','Procesando':'PROCESANDO','Procesada':'ALMACENAMIENTO_TEMPORAL','Almacenamiento temporal':'ALMACENAMIENTO_TEMPORAL','Almacenada':'CONGELADOR_DEFINITIVO'})[sample.status]||'REGISTRADO';
+ }
+ function makeHeader(title,subtitle,shape){
+  const bar=node('header','crx-page-header');
+  const row=node('div','crx-page-row');
+  const heading=node('div','crx-page-title');
+  heading.append(svg(shape,'crx-heading-symbol'),node('h1','',title));
+  const dots=node('div','crx-heading-dots');
+  dots.setAttribute('aria-hidden','true');
+  for(let n=0;n<3;n++)dots.append(node('span',n===0?'is-active':''));
+  row.append(heading,dots);
+  bar.appendChild(row);
+  if(subtitle)bar.append(node('p','crx-page-subtitle',subtitle));
+  return bar;
+ }
+ function setSection(root,klass){
+  const el=node('section',klass);
+  root.appendChild(el);
+  return el;
+ }
+ function pill(iconName,label){
+  const tag=node('span','crx-meta-pill');
+  tag.append(svg(iconName),node('span','',label));
+  return tag;
+ }
+ function matches(q,fields){return !q||fields.some(v=>String(v||'').toLocaleLowerCase('es').includes(q));}
+ function hasDeletePermission(){
+  return !!(window.FleboAuth&&window.FleboAuth.membership&&window.FleboAuth.membership.role==='admin');
+ }
+ function notify(message){
+  if(typeof window.toast==='function')window.toast(message);
+  else console.info('[FleboReport]',message);
+ }
+ function sampleIcon(type){
+  return /orina|urin|urine/i.test(type||'')?'droplet':'tubes';
+ }
+ function noData(message){return node('p','crx-empty',message);}
+ function primaryButton(original,override){
+  const b=node('button',/danger/i.test(original.className)?'crx-action danger':'crx-action',override||original.textContent.trim());
+  b.type='button';
+  b.disabled=!!original.disabled;
+  b.addEventListener('click',()=>{if(!original.isConnected){notify('La bandeja cambió. Actualiza la vista.');return;}original.click();});
+  return b;
+ }
+ function cardBase(theme){
+  const card=node('article','crx-card crx-'+(theme||'violet'));
+  return card;
+ }
+ // ESTUDIOS: tarjetas de protocolos reales y revisión de recepción.
+ let studyTab='todos',studyQ='',studyStatus='todos',pending=false;
+ let studiesInitialized=false;
+ function currentStudyTab(key){
+  studyTab=key;
+  const view=get('view-clinical-studies');
+  if(!view)return;
+  const catalog=get('crxStudyCatalog'),reception=get('crxStudyReception'),review=get('crxStudyReview');
+  if(catalog)catalog.hidden=key!=='todos'&&key!=='catalogo';
+  if(reception)reception.hidden=key!=='recepcion';
+  if(review)review.hidden=key!=='todos'&&key!=='revision';
+  view.querySelectorAll('.crx-study-tab').forEach(b=>{
+   const selected=b.dataset.tab===key;
+   b.classList.toggle('is-selected',selected);
+   b.setAttribute('aria-selected',String(selected));
+  });
+  renderStudyCards();
+  renderReviewCards();
+ }
+ function pickStudy(id){
+  currentStudyTab('recepcion');
+  const select=get('clinicalProcessStudy');
+  if(select&&Array.from(select.options).some(o=>String(o.value)===String(id))){
+   select.value=id;
+   select.dispatchEvent(new Event('change',{bubbles:true}));
+   if(typeof window.updateClinicalProtocolOptions==='function')window.updateClinicalProtocolOptions();
+  }
+  const target=get('crxStudyReception');
+  target&&target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+ }
+ function renderStudyCards(){
+  if(!studiesInitialized||pending)return;
+  const host=get('crxStudyCards');
+  if(!host)return;
+  const app=data(),studies=Array.isArray(app?.clinicalStudies)?app.clinicalStudies:[],
+   types=Array.isArray(app?.clinicalSampleTypes)?app.clinicalSampleTypes:[],
+   visits=Array.isArray(app?.clinicalVisits)?app.clinicalVisits:[];
+  const visible=studies.filter(s=>{
+   const status=String(s.status||'').toLocaleLowerCase('es');
+   return (studyStatus==='todos'||status===studyStatus)&&matches(studyQ,[s.name,s.protocol,s.client,s.sponsor,s.notes]);
+  });
+  const cards=document.createDocumentFragment();
+  if(!visible.length){
+   cards.append(noData(studies.length?'No hay estudios que coincidan con la búsqueda o el filtro.':'No hay protocolos clínicos configurados. Regístralos en Configuración → Registro de sujetos.'));
+  }
+  visible.forEach((study,index)=>{
+   const card=cardBase(index%2?'cyan':'violet');
+   card.classList.add('crx-study-card');
+   const emblem=node('span','crx-card-emblem');emblem.append(svg(index%3===1?'droplet':'flask'));
+   const info=node('div','crx-study-card-info');
+   info.append(node('strong','crx-card-title',study.name||study.protocol||'Estudio sin nombre'),
+    node('small','crx-card-subtitle',[study.protocol,study.client].filter(Boolean).join(' · ')||'Protocolo registrado'));
+   const meta=node('div','crx-card-meta');
+   const allowedTypes=(study.sampleTypeIds||[]).map(id=>types.find(t=>String(t.id)===String(id))).filter(Boolean);
+   const type=allowedTypes[0],spec=type&&study.sampleSpecs?.[type.id]||{};
+   const tube=spec.tube||type?.tube;
+   if(tube)meta.append(pill('tubes','Tubo: '+tube));
+   else if(type)meta.append(pill(sampleIcon(type.name),'Muestra: '+type.name));
+   else meta.append(pill('tubes','Tipos según protocolo'));
+   const visitCount=(study.visitIds||[]).length||visits.filter(v=>String(v.studyId)===String(study.id)).length;
+   if(visitCount)meta.append(pill('clock',visitCount+' visita'+(visitCount===1?'':'s')));
+   else meta.append(pill('check',study.status||'Configurado'));
+   info.appendChild(meta);
+   const arrow=node('span','crx-card-chevron');arrow.append(svg('chevron'));
+   const hit=node('button','crx-card-hit');
+   hit.type='button';hit.setAttribute('aria-label','Abrir recepción para '+(study.name||study.protocol));
+   hit.addEventListener('click',()=>pickStudy(study.id));
+   card.append(emblem,info,arrow,hit);cards.appendChild(card);
+  });
+  host.replaceChildren(cards);
+  const count=get('crxCatalogCount');if(count)count.textContent=visible.length+' estudios';
+ }
+ function cellText(cell){
+  return String(cell?.innerText||cell?.textContent||'').replace(/\s+/g,' ').trim();
+ }
+ function renderReviewCards(){
+  if(!studiesInitialized)return;
+  const host=get('crxReviewCards'),body=get('clinicalReviewRows');
+  if(!host||!body)return;
+  const rows=Array.from(body.querySelectorAll('tr'));
+  const frag=document.createDocumentFragment();
+  if(!rows.length)frag.append(noData('No hay muestras pendientes de revisión. Las aprobadas aparecen en Procesamiento.'));
+  rows.forEach((row,index)=>{
+   const tds=Array.from(row.children);
+   if(tds.length<7)return;
+   const status=cellText(tds[5]);
+   const card=cardBase(index%2?'cyan':'violet');card.classList.add('crx-review-card');
+   const emblem=node('span','crx-card-emblem');emblem.append(svg('clipboard'));
+   const info=node('div','crx-study-card-info');
+   info.append(node('strong','crx-card-title',cellText(tds[1])||'Estudio'),
+    node('small','crx-card-subtitle','Sujeto: '+(cellText(tds[2])||'—')));
+   const meta=node('div','crx-card-meta');
+   meta.append(pill('tubes',cellText(tds[3])||'Tipo de muestra'),pill('check',status||'Registrada'));
+   info.appendChild(meta);
+   const actions=node('div','crx-review-actions');
+   Array.from(tds[6].querySelectorAll('button')).forEach(original=>{
+    if(/eliminar|quitar local/i.test(original.textContent)&&!hasDeletePermission())return;
+    const b=primaryButton(original);
+    actions.appendChild(b);
+   });
+   card.append(emblem,info,actions);
+   frag.appendChild(card);
+  });
+  host.replaceChildren(frag);
+  const count=get('crxReviewCount');if(count)count.textContent=rows.length+' pendientes';
+ }
+ function initStudies(){
+  if(studiesInitialized||!get('view-clinical-studies'))return;
+  const root=get('view-clinical-studies');
+  const layout=root.querySelector('.clinical-layout'),review=get('clinicalReviewPanel'),
+   reception=layout&&Array.from(layout.children).find(x=>x.tagName==='SECTION'&&!x.hasAttribute('hidden')&&x.id!=='clinicalReviewPanel'),
+   history=layout?.querySelector('.clinical-history-study'),metrics=root.querySelector(':scope > .clinical-kpis');
+  if(!layout||!review||!reception||!metrics)return;
+  root.insertBefore(makeHeader('Estudios','Catálogo de protocolos, requisitos y recepción de muestras','flask'),root.firstChild);
+  const toolbar=node('div','crx-study-toolbar');
+  const search=node('div','crx-study-search');
+  search.append(svg('search'));
+  const input=node('input','crx-search-input');
+  input.type='search';input.placeholder='Buscar estudio...';input.setAttribute('aria-label','Buscar estudios por nombre, código o cliente');
+  input.addEventListener('input',()=>{studyQ=input.value.trim().toLocaleLowerCase('es');renderStudyCards();});
+  search.appendChild(input);
+  const extra=node('details','crx-study-filters');
+  const filterTrigger=node('summary','crx-filter-toggle');
+  filterTrigger.setAttribute('aria-label','Filtrar estudios');filterTrigger.append(svg('sliders'));
+  const filterBody=node('div','crx-filter-panel');
+  const statusLabel=node('label','', 'Estado del protocolo');
+  const select=node('select','crx-select');
+  for(const [value,title] of [['todos','Todos'],['activo','Activo'],['cerrado','Cerrado'],['suspendido','Suspendido']]){
+   const option=node('option','',title);option.value=value;select.appendChild(option);
+  }
+  select.addEventListener('change',()=>{studyStatus=select.value;renderStudyCards();});
+  filterBody.append(statusLabel,select);extra.append(filterTrigger,filterBody);
+  toolbar.append(search,extra);
+  const tabs=node('div','crx-study-tabs');tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Secciones de Estudios');
+  for(const [key,title,shape] of [['todos','Todos','layers'],['catalogo','Catálogo','flask'],['recepcion','Recepción','tubes'],['revision','Revisión','clipboard']]){
+   const b=node('button','crx-study-tab',title);b.type='button';b.dataset.tab=key;b.setAttribute('role','tab');
+   b.appendChild(svg(shape));
+   b.addEventListener('click',()=>currentStudyTab(key));
+   tabs.appendChild(b);
+  }
+  const catalog=setSection(root,'crx-catalog-stage');catalog.id='crxStudyCatalog';
+  const catHead=node('div','crx-stage-heading');
+  catHead.append(node('h2','','Estudios registrados'),node('span','crx-count','0 estudios'));catHead.lastChild.id='crxCatalogCount';
+  const cards=node('div','crx-study-cards');cards.id='crxStudyCards';catalog.append(catHead,cards);
+  const reviewStage=setSection(root,'crx-review-stage');reviewStage.id='crxStudyReview';
+  reviewStage.appendChild(review);
+  const reviewCards=node('div','crx-review-cards');reviewCards.id='crxReviewCards';
+  const counter=node('span','crx-count');counter.id='crxReviewCount';counter.textContent='0 pendientes';
+  const panelHead=review.querySelector('.panel-head');
+  if(panelHead)panelHead.appendChild(counter);
+  review.insertBefore(reviewCards,review.querySelector('.clinical-table-wrap'));
+  const receptionStage=setSection(root,'crx-reception-stage');receptionStage.id='crxStudyReception';
+  receptionStage.appendChild(reception);
+  const stats=node('details','crx-metrics-details');
+  const statsSummary=node('summary','','Indicadores de Estudios');
+  stats.append(statsSummary,metrics);
+  root.appendChild(stats);
+  if(history)root.appendChild(history);
+  root.insertBefore(toolbar,catalog);root.insertBefore(tabs,catalog);
+  root.classList.add('crx-ready');
+  studiesInitialized=true;
+  currentStudyTab('todos');
+  const nativeList=get('clinicalStudyList');
+  if(nativeList)new MutationObserver(()=>renderStudyCards()).observe(nativeList,{childList:true});
+  const reviewBody=get('clinicalReviewRows');
+  if(reviewBody)new MutationObserver(()=>renderReviewCards()).observe(reviewBody,{childList:true});
+  window.addEventListener('flebo:auth-changed',()=>{renderStudyCards();renderReviewCards();});
+  window.addEventListener('flebo:local-state-saved',()=>{renderStudyCards();renderReviewCards();});
+ }
+ // PROCESAMIENTO: las mismas filas y botones originales, presentados como tarjetas.
+ let processingInitialized=false;
+ function shortDate(raw){
+  const d=raw?new Date(raw):null;
+  return d&&!Number.isNaN(d.getTime())?d.toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'}):'';
+ }
+ function matchSampleForRow(row){
+  const tds=row.children,subject=tds[0]?.querySelector('strong')?.textContent.trim()||'';
+  const first=tds[7]?.querySelector('button:not(.danger)');
+  const m=first?.getAttribute('onclick')?.match(/\(['"]([^'"]+)['"]\)/);
+  const samples=data()?.clinicalSamples||[];
+  if(m)return samples.find(s=>String(s.id)===m[1]||String(s.cloudId)===m[1])||null;
+  const matches=samples.filter(s=>String(s.subjectCode||'')===subject&&stateOf(s)==='CONGELADOR_DEFINITIVO');
+  return matches.length===1?matches[0]:null;
+ }
+ function showSampleDetails(row,sample){
+  const tds=Array.from(row.children);
+  const modal=node('div','crx-detail-overlay');
+  modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
+  modal.setAttribute('aria-label','Detalle de muestra');
+  const card=node('section','crx-detail-dialog');
+  const top=node('div','crx-detail-head');
+  top.append(node('h2','','Detalle de la muestra'));
+  const dismiss=node('button','crx-close','×');dismiss.type='button';dismiss.setAttribute('aria-label','Cerrar detalle');
+  const close=()=>{modal.remove();document.removeEventListener('keydown',onKey);};
+  const onKey=e=>{if(e.key==='Escape')close();};
+  dismiss.addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close();});
+  document.addEventListener('keydown',onKey);
+  top.append(dismiss);card.append(top);
+  const names=['Estudio y sujeto','Visita y tipo de muestra','Toma y recepción','Recipientes','Alícuotas','Estado','Responsables y fechas'];
+  tds.slice(0,7).forEach((c,i)=>{
+   const r=node('div','crx-detail-row');
+   r.append(node('small','',names[i]||'Detalle'),node('strong','',cellText(c)||'—'));
+   card.append(r);
+  });
+  if(sample){
+   if(sample.processingNotes)card.append(node('p','crx-detail-notes',sample.processingNotes));
+   if(sample.notes)card.append(node('p','crx-detail-notes',sample.notes));
+  }
+  modal.append(card);document.body.appendChild(modal);dismiss.focus();
+ }
+ function renderProcessingCards(){
+  if(!processingInitialized)return;
+  const tbody=get('clinicalQueueRows'),host=get('crxProcessCards');
+  if(!tbody||!host)return;
+  const rows=Array.from(tbody.querySelectorAll('tr')),fragment=document.createDocumentFragment();
+  if(!rows.length)fragment.append(noData('No hay muestras para estos filtros. Las muestras aprobadas aparecen aquí.'));
+  rows.forEach((row,index)=>{
+   const c=Array.from(row.children);
+   if(c.length<8)return;
+   const sample=matchSampleForRow(row);
+   const raw=cellText(c[5]).toLocaleLowerCase('es');
+   const final=/definitiv|finalizad/.test(raw),temporary=/temporal/.test(raw),
+    processing=/procesando/.test(raw);
+   const theme=final?'mint':temporary?'cyan':processing?'violet':'blue';
+   const logo=final?'check':temporary?'database':'tubes';
+   const card=cardBase(theme);card.classList.add('crx-processing-card');
+   const emblem=node('span','crx-card-emblem');emblem.append(svg(logo));
+   const info=node('div','crx-process-identity');
+   const subject=c[0]?.querySelector('strong')?.textContent.trim()||'Sujeto';
+   const study=String(c[0]?.firstChild?.textContent||'').trim();
+   info.append(node('strong','crx-process-name',subject),node('small','crx-process-study',study||'Estudio clínico'));
+   const typeLines=String(c[1]?.innerText||c[1]?.textContent||'').trim().split(/\n/).map(x=>x.trim()).filter(Boolean);
+   info.append(node('small','crx-process-type','Tipo: '+(typeLines[typeLines.length-1]||'Muestra')));
+   const middle=node('div','crx-process-state');
+   const st=node('span','crx-state-pill');
+   st.append(svg(final?'check':temporary?'database':processing?'refresh':'clock'),
+    node('strong','',final?'Definitivo':temporary?'Almacenamiento temporal':processing?'Procesando':'Pendiente'));
+   middle.appendChild(st);
+   const rawTime=final?sample?.storedAt:temporary?sample?.processedAt:processing?sample?.processingStartedAt:sample?.reviewedAt;
+   const time=shortDate(rawTime);
+   const clock=node('span','crx-process-time');
+   clock.append(svg('clock'),node('span','',time?(final?'Fin: ':temporary?'Desde: ':processing?'Inicio: ':'Revisión: ')+time:'Información registrada'));
+   middle.appendChild(clock);
+   const actions=node('div','crx-process-actions');
+   const original=Array.from(c[7].querySelectorAll('button')).find(b=>!/danger/.test(b.className));
+   const label=final?'Revisar':temporary?'Actualizar estado':processing?'Pasar a temporal':'Iniciar';
+   if(original)actions.append(primaryButton(original,label));
+   else{
+    const b=node('button','crx-action','Revisar');b.type='button';b.addEventListener('click',()=>showSampleDetails(row,sample));
+    actions.appendChild(b);
+   }
+   const detail=node('button','crx-detail-link','Ver ficha');
+   detail.type='button';detail.addEventListener('click',()=>showSampleDetails(row,sample));
+   info.appendChild(detail);
+   card.append(emblem,info,middle,actions);fragment.append(card);
+  });
+  host.replaceChildren(fragment);
+  const count=get('crxProcessTotal');if(count)count.textContent='('+rows.length+')';
+  const pending=get('crxPendingCount');if(pending)pending.textContent=get('clinicalQueueKpiReceived')?.textContent||'0';
+  const updated=get('crxLastUpdated');if(updated)updated.textContent='Actualizado: '+new Date().toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'});
+ }
+ async function refreshSamples(){
+  const b=get('crxRefreshSamples');
+  if(b?.disabled)return;
+  if(b)b.disabled=true;
+  try{
+   if(!window.FleboClinicalCloud?.refreshSamples)throw new Error('La sincronización clínica no está disponible.');
+   await window.FleboClinicalCloud.refreshSamples();
+   if(typeof window.renderClinicalStudies==='function')window.renderClinicalStudies();
+  }catch(e){
+   notify(e?.message||'No se pudo actualizar la bandeja clínica.');
+  }finally{if(b)b.disabled=false;}
+ }
+ function initProcessing(){
+  if(processingInitialized||!get('view-clinical-processing'))return;
+  const root=get('view-clinical-processing');
+  const layout=root.querySelector('.clinical-layout'),panel=layout?.querySelector(':scope > section.panel'),
+   filters=panel?.querySelector('.clinical-filter'),
+   search=get('clinicalQueueSearch'),kpis=root.querySelector(':scope > .clinical-kpis');
+  if(!layout||!panel||!filters||!search||!kpis)return;
+  root.insertBefore(makeHeader('Procesamiento','','layers'),root.firstChild);
+  // Las métricas auténticas siguen siendo actualizadas por renderQueue().
+  kpis.classList.add('crx-process-kpis');
+  const images=['clock','database','check'];
+  Array.from(kpis.children).slice(1).forEach((metric,i)=>{
+   metric.insertBefore(svg(images[i],'crx-kpi-symbol'),metric.firstChild);
+  });
+  const toolbar=node('div','crx-process-toolbar');
+  const searchOuter=node('div','crx-process-search');
+  searchOuter.append(svg('search'));
+  const field=search.closest('.field');
+  if(!field)return;
+  field.classList.add('crx-search-field');search.placeholder='Buscar muestra (sujeto, estudio...)';
+  searchOuter.appendChild(field);
+  const details=node('details','crx-process-filters');
+  const summary=node('summary','crx-filter-button');
+  summary.append(svg('filter'),node('span','','Filtros'),svg('chevron'));
+  details.append(summary,filters);
+  toolbar.append(searchOuter,details);
+  const listbar=node('div','crx-process-listhead');
+  const left=node('div','crx-list-title');left.append(node('h2','','Muestras en proceso '));
+  const total=node('span','');total.id='crxProcessTotal';total.textContent='(0)';left.querySelector('h2').appendChild(total);
+  const stamp=node('div','crx-list-status');
+  const pending=node('span','crx-pending-pill');pending.append(node('span','','Pendientes: '));
+  const number=node('strong','','0');number.id='crxPendingCount';pending.appendChild(number);
+  const updated=node('span','crx-updated','Actualizado: —');updated.id='crxLastUpdated';
+  const refresh=node('button','crx-refresh');refresh.type='button';refresh.id='crxRefreshSamples';
+  refresh.setAttribute('aria-label','Actualizar muestras');refresh.title='Actualizar muestras';refresh.append(svg('refresh'));
+  refresh.addEventListener('click',refreshSamples);
+  stamp.append(pending,updated,refresh);
+  listbar.append(left,stamp);
+  const cards=node('div','crx-process-cards');cards.id='crxProcessCards';
+  const sourceTable=panel.querySelector('.clinical-table-wrap');
+  if(!sourceTable)return;
+  panel.insertBefore(toolbar,sourceTable);
+  panel.insertBefore(listbar,sourceTable);
+  panel.insertBefore(cards,sourceTable);
+  root.classList.add('crx-ready');
+  processingInitialized=true;
+  renderProcessingCards();
+  const body=get('clinicalQueueRows');
+  if(body)new MutationObserver(renderProcessingCards).observe(body,{childList:true});
+  const kpiValue=get('clinicalQueueKpiReceived');
+  if(kpiValue)new MutationObserver(()=>{const pill=get('crxPendingCount');if(pill)pill.textContent=kpiValue.textContent;}).observe(kpiValue,{childList:true,characterData:true,subtree:true});
+ }
+ function boot(){
+  initStudies();initProcessing();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+ else boot();
+ window.addEventListener('flebo:auth-changed',boot);
+})();
