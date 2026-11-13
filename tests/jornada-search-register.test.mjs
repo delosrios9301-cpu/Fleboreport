@@ -70,8 +70,62 @@ test('Conserva guardado real, cédula única y PWA con diseño táctil',()=>{
  assert.match(html,/normalizePatientDocument\(p\.document\|\|p\.cedula\)===docKey/);
  assert.equal((html.match(/class="btn primary journey-register-button"/g)||[]).length,1);
  assert.match(css,/@media screen and \(max-width:760px\)/);
- assert.match(html,/jornada-premium\.css\?v=20261113-jornada7/);
- assert.match(html,/jornada-premium\.js\?v=20261113-jornada6/);
- assert.match(sw,/fleboreport-shell-v312/);
+ assert.match(html,/jornada-premium\.css\?v=20261113-jornada8/);
+ assert.match(html,/jornada-premium\.js\?v=20261113-jornada7/);
+ assert.match(sw,/fleboreport-shell-v313/);
  assert.doesNotThrow(()=>new Function(ui));
+});
+test('Búsqueda se adapta al viewport visual cuando aparece el teclado móvil',()=>{
+ const start=ui.indexOf(' function updateLookupViewport(){');
+ const end=ui.indexOf(' const normalized=value=>',start);
+ assert.ok(start>=0&&end>start,'No se encontró el adaptador de teclado');
+ const layout=ui.slice(start,end);
+ function simulate({innerHeight=830,visualHeight=330,offsetTop=8,offsetLeft=0,baseline=830,focused=true}={}){
+  const styles={};const classes=new Set();
+  const lookupInput={},lookup={
+   hidden:false,
+   style:{setProperty:(key,value)=>{styles[key]=value;}},
+   classList:{toggle:(key,enabled)=>{if(enabled)classes.add(key);else classes.delete(key);}}
+  };
+  const context={
+   lookup,lookupInput,lookupBaselineHeight:baseline,
+   document:{activeElement:focused?lookupInput:{}},
+   window:{innerHeight,innerWidth:400,visualViewport:{
+    height:visualHeight,width:400,offsetTop,offsetLeft
+   }},
+   Math
+  };
+  vm.runInNewContext(layout,context);
+  context.updateLookupViewport();
+  return {styles,classes};
+ }
+ const normal=simulate({innerHeight:830,visualHeight:830,offsetTop:0,focused:false});
+ assert.equal(normal.styles['--jp-lookup-height'],'830px');
+ assert.equal(normal.classes.has('jp-lookup-keyboard'),false);
+ const keyboard=simulate();
+ assert.equal(keyboard.styles['--jp-lookup-top'],'8px');
+ assert.equal(keyboard.styles['--jp-lookup-height'],'330px');
+ assert.equal(keyboard.styles['--jp-lookup-width'],'400px');
+ assert.equal(keyboard.classes.has('jp-lookup-keyboard'),true);
+ assert.equal(keyboard.classes.has('jp-lookup-tight'),true);
+ const larger=simulate({visualHeight:440});
+ assert.equal(larger.classes.has('jp-lookup-keyboard'),true);
+ assert.equal(larger.classes.has('jp-lookup-tight'),false);
+ const unfocused=simulate({focused:false});
+ assert.equal(unfocused.classes.has('jp-lookup-keyboard'),false);
+});
+test('El cuadro permanece desplazable, legible y se restaura al cerrar el teclado',()=>{
+ assert.match(ui,/window\.visualViewport\.addEventListener\('resize',updateLookupViewport/);
+ assert.match(ui,/window\.visualViewport\.addEventListener\('scroll',updateLookupViewport/);
+ assert.match(ui,/window\.addEventListener\('resize',updateLookupViewport/);
+ assert.match(ui,/lookupInput\.addEventListener\('focus'/);
+ assert.match(ui,/lookupInput\.focus\(\{preventScroll:true\}\)/);
+ assert.match(ui,/lookup\.style\.removeProperty\(key\)/);
+ assert.match(css,/top:var\(--jp-lookup-top,0px\)!important/);
+ assert.match(css,/height:var\(--jp-lookup-height,100dvh\)!important/);
+ assert.match(css,/\.jp-lookup-overlay\.jp-lookup-keyboard:not\(\[hidden\]\)/);
+ assert.match(css,/\.jp-lookup-overlay\.jp-lookup-tight:not\(\[hidden\]\)/);
+ assert.match(css,/overflow-x:hidden!important;overflow-y:auto!important/);
+ assert.match(css,/touch-action:pan-y!important/);
+ assert.doesNotMatch(ui,/clearJourneyDraft\(\)/);
 });
