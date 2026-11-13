@@ -1,0 +1,136 @@
+/* FleboReport · asignación de tipos de muestra en Estudios · 2026-11-13.
+   Sustituye el SELECT múltiple poco usable en Android, sin tocar datos. */
+@media screen {
+ #settings-clinical-config #clinicalStudySamples.crx-native-type-select{
+  position:absolute!important;width:1px!important;height:1px!important;
+  min-width:1px!important;min-height:1px!important;
+  overflow:hidden!important;opacity:0!important;pointer-events:none!important;
+  clip-path:inset(50%)!important;margin:0!important;padding:0!important;
+ }
+ #settings-clinical-config .crx-type-picker{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+  margin:9px 0 14px!important;padding:14px!important;
+  border:1px solid #d6c7f5!important;border-radius:20px!important;
+  background:linear-gradient(160deg,#fff,#f9f5ff 65%,#f3fdff)!important;
+  box-shadow:0 6px 17px rgba(65,36,142,.10)!important;
+ }
+ #settings-clinical-config .crx-type-header{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:6px 10px!important;min-width:0!important;
+ }
+ #settings-clinical-config .crx-type-header>strong{
+  color:#2b1a65!important;font-size:clamp(14px,3.4vw,17px)!important;font-weight:850!important;
+ }
+ #settings-clinical-config .crx-type-count{
+  display:inline-flex!important;align-items:center!important;
+  min-height:28px!important;padding:5px 10px!important;border-radius:999px!important;
+  border:1px solid #d8c7f9!important;background:#efe7ff!important;
+  font-size:11px!important;font-weight:820!important;color:#5a32b2!important;
+ }
+ #settings-clinical-config .crx-type-controls{
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:stretch!important;gap:8px!important;min-width:0!important;
+ }
+ #settings-clinical-config input.crx-type-search{
+  display:block!important;max-width:100%!important;min-width:0!important;width:100%!important;
+  min-height:46px!important;height:auto!important;padding:9px 14px!important;
+  border-radius:999px!important;border:1px solid #cec0f0!important;
+  background:#fff!important;color:#352454!important;
+  font-size:clamp(12px,2.8vw,14px)!important;
+ }
+ #settings-clinical-config button.crx-type-add{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:46px!important;max-width:100%!important;
+  margin:0!important;padding:9px 14px!important;border-radius:999px!important;
+  border:1px solid #6f3ae2!important;
+  background:linear-gradient(130deg,#9344f2,#5720cd)!important;
+  color:#fff!important;font-size:12px!important;font-weight:820!important;line-height:1.2!important;
+  box-shadow:0 4px 11px rgba(83,30,186,.21)!important;cursor:pointer!important;
+ }
+ #settings-clinical-config .crx-type-add[hidden],
+ #settings-clinical-config .crx-type-empty[hidden]{
+  display:none!important;
+ }
+ #settings-clinical-config .crx-type-help{
+  padding:0!important;margin:0!important;color:#69597f!important;
+  font-size:clamp(11px,2.7vw,13px)!important;line-height:1.45!important;
+ }
+ #settings-clinical-config .crx-type-grid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:9px!important;min-width:0!important;
+  touch-action:pan-y!important;overscroll-behavior:contain!important;
+ }
+ #settings-clinical-config label.crx-type-option{
+  display:grid!important;grid-template-columns:22px 1fr!important;
+  grid-template-rows:auto!important;align-items:center!important;
+  gap:7px!important;position:relative!important;min-width:0!important;
+  min-height:69px!important;margin:0!important;padding:10px 11px!important;
+  border:1px solid #dcd1f1!important;border-radius:16px!important;
+  background:linear-gradient(135deg,#fff,#f9f6ff)!important;
+  box-shadow:0 3px 8px rgba(51,29,107,.055)!important;
+  color:#382e55!important;cursor:pointer!important;
+  transition:background .17s ease,transform .17s ease,border-color .17s ease!important;
+ }
+ #settings-clinical-config label.crx-type-option.is-selected{
+  border-color:#a47af0!important;
+  background:linear-gradient(135deg,#efe6ff,#e9fbfe)!important;
+  box-shadow:inset 0 0 0 1px #d1b8ff,0 4px 10px rgba(82,45,176,.12)!important;
+ }
+ #settings-clinical-config label.crx-type-option.is-inactive{
+  opacity:.68!important;
+ }
+ #settings-clinical-config .crx-type-checkbox{
+  position:absolute!important;left:9px!important;top:50%!important;
+  transform:translateY(-50%)!important;width:23px!important;height:23px!important;
+  opacity:0!important;cursor:inherit!important;
+ }
+ #settings-clinical-config .crx-type-check{
+  display:grid!important;place-items:center!important;flex:0 0 22px!important;
+  width:22px!important;height:22px!important;
+  border-radius:8px!important;border:2px solid #c3b4e7!important;background:#fff!important;
+  color:transparent!important;font-size:15px!important;font-weight:900!important;
+ }
+ #settings-clinical-config .crx-type-option.is-selected .crx-type-check{
+  border-color:#6430d9!important;background:linear-gradient(135deg,#9443ff,#5c1acb)!important;color:#fff!important;
+ }
+ #settings-clinical-config .crx-type-checkbox:focus-visible~.crx-type-check{
+  outline:3px solid #06c6d4!important;outline-offset:3px!important;
+ }
+ #settings-clinical-config .crx-type-description{
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  gap:3px!important;min-width:0!important;overflow-wrap:anywhere!important;
+ }
+ #settings-clinical-config .crx-type-description strong{
+  color:#271a4b!important;font-weight:830!important;font-size:clamp(12px,2.7vw,14px)!important;
+  line-height:1.2!important;white-space:normal!important;
+ }
+ #settings-clinical-config .crx-type-description small{
+  font-size:10px!important;font-weight:600!important;line-height:1.25!important;color:#635879!important;
+  white-space:normal!important;
+ }
+ #settings-clinical-config .crx-type-description .crx-type-warning{color:#90522a!important;}
+ #settings-clinical-config .crx-type-empty{
+  margin:0!important;padding:14px!important;
+  border:1px dashed #bda8ed!important;border-radius:13px!important;
+  background:#f7f2ff!important;color:#635283!important;
+  font-size:12px!important;line-height:1.45!important;
+ }
+ #settings-clinical-config .crx-type-picker :is(button,input):focus-visible{
+  outline:3px solid #0fbfc9!important;outline-offset:2px!important;
+ }
+ #settings-clinical-config #clinicalStudySampleSpecs{
+  width:100%!important;min-width:0!important;max-height:none!important;
+  overflow:visible!important;touch-action:pan-y!important;
+ }
+}
+@media screen and (max-width:640px){
+ #settings-clinical-config .crx-type-picker{padding:11px!important;gap:9px!important;}
+ #settings-clinical-config .crx-type-grid{grid-template-columns:minmax(0,1fr)!important;gap:8px!important;}
+ #settings-clinical-config .crx-type-controls{grid-template-columns:minmax(0,1fr)!important;}
+ #settings-clinical-config button.crx-type-add{width:100%!important;}
+ #settings-clinical-config label.crx-type-option{min-height:62px!important;}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ #settings-clinical-config label.crx-type-option{transition:none!important;}
+}
