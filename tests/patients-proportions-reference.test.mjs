@@ -37,7 +37,7 @@ test('Buscador, chips y filtros comparten una distribución compacta sin perder 
  assert.match(css,/\.pp-filter-row \.pp-chip/);
  assert.match(css,/height:29px!important/);
  assert.match(ui,/openPatientRecord\?\.\(person\.id\)/);
- assert.match(ui,/const date=String\(\$\('patientDateFilter'\)/);
+ assert.match(ui,/date=String\(\$\('patientDateFilter'\)/);
 });
 test('Los estilos nuevos solo cambian la pantalla principal, sin editar expedientes ni métricas',()=>{
  assert.match(css,/#patientsHome\.pp-strict-layout/);
