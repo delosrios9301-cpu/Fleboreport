@@ -178,13 +178,20 @@
   const full=personName(p);
   const first=String(p.firstName||'').trim()||full.split(/\s+/)[0]||'';
   const last=String(p.lastName||'').trim()||full.slice(first.length).trim();
-  const patch={name:first,lastName:last,document:documentId,birthDate:p.birthDate||'',sex:p.sex||'',search:''};
+  // Si cambia la identidad se limpian solo las pruebas aún sin guardar del
+  // formulario. Nunca se modifican pruebas ya registradas en la jornada.
+  const switchingPatient=existingDoc!==documentKey(documentId);
+  const previousTests=typeof window.readJourneyDraft==='function'
+   ?window.readJourneyDraft().selectedTestIds||[]:[];
+  const patch={name:first,lastName:last,document:documentId,birthDate:p.birthDate||'',sex:p.sex||'',search:'',
+   selectedTestIds:switchingPatient?[]:previousTests};
   const form={journeyPatientName:patch.name,journeyPatientLastName:patch.lastName,
    journeyPatientId:patch.document,journeyPatientBirth:patch.birthDate,journeyPatientSex:patch.sex,
    journeyPatientTestSearch:''};
   for(const [id,value] of Object.entries(form)){const n=byId(id);if(n)n.value=value;}
   if(typeof window.persistJourneyDraft==='function')window.persistJourneyDraft(patch);
   if(typeof window.lookupExistingJourneyPatient==='function')window.lookupExistingJourneyPatient();
+  if(typeof window.renderJourneyPatientChoices==='function')window.renderJourneyPatientChoices();
   closeLookup();
   openWorkspace(last?'tests':'patient');
   const hint=byId('journeyPatientLookupHint');
