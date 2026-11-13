@@ -14,7 +14,7 @@ test('Variante C es la última capa de presentación de FleboReport',()=>{
  assert.match(html,/variant-c-compact.js\?v=20261112-vc1/);
  assert.ok(html.lastIndexOf('variant-c-compact.css')>html.lastIndexOf('clinical-modern-workspace.css'));
  assert.ok(html.lastIndexOf('variant-c-compact.js')>html.lastIndexOf('clinical-modern-workspace.js'));
- assert.match(sw,/fleboreport-shell-v291/);
+ assert.match(sw,/fleboreport-shell-v292/);
  assert.match(sw,/'\.\/variant-c-compact.css'/);
  assert.match(sw,/'\.\/variant-c-compact.js'/);
 });
