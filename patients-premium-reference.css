@@ -569,3 +569,313 @@
   transition:none!important;animation:none!important;
  }
 }
+
+/* v319 · Réplica estructural de Catálogo Premium para Pacientes.
+   Prioridad explícita frente a los antiguos estilos fr5/variant-c:
+   elimina filas fantasma de la cuadrícula y cabeceras de altura heredada. */
+@media screen {
+ body.fr2-app-authorized.cm-workspace #cmContextBar[data-area="patients"]{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium{
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow-x:clip!important;padding:7px 2px calc(118px + env(safe-area-inset-bottom,0px))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"heading" "metrics" "directory" "advanced"!important;
+  grid-template-rows:auto auto auto auto!important;grid-auto-rows:min-content!important;
+  gap:11px!important;align-items:start!important;align-content:start!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  width:100%!important;min-width:0!important;margin:0!important;padding:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading[data-fr5-area="patient-heading"]{
+  grid-area:heading!important;grid-row:1!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  align-items:center!important;justify-items:stretch!important;
+  align-self:start!important;justify-self:stretch!important;
+  column-gap:12px!important;row-gap:7px!important;
+  width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:8px 6px 11px!important;
+  border:0!important;border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;overflow:visible!important;position:relative!important;
+  flex:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading::before,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading::after{
+  content:none!important;display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading>div{
+  grid-column:1!important;min-width:0!important;min-height:0!important;
+  flex:initial!important;align-self:center!important;
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  gap:3px!important;padding:0!important;margin:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading .eyebrow{
+  display:block!important;width:auto!important;min-height:0!important;
+  padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
+  background:none!important;color:#7564aa!important;
+  font-size:clamp(9px,1.7vw,11px)!important;font-weight:850!important;
+  letter-spacing:1px!important;line-height:1.3!important;white-space:normal!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading h1{
+  color:#211447!important;font-size:clamp(24px,4vw,33px)!important;
+  font-weight:940!important;letter-spacing:-.8px!important;line-height:1.1!important;
+  margin:0!important;padding:0!important;white-space:normal!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading p{
+  color:#665e7d!important;font-size:clamp(11px,1.8vw,14px)!important;
+  line-height:1.35!important;margin:2px 0 0!important;padding:0!important;
+  max-width:560px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading>button{
+  grid-column:2!important;justify-self:end!important;align-self:center!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  position:relative!important;flex:none!important;
+  width:auto!important;max-width:100%!important;min-width:147px!important;
+  min-height:49px!important;height:auto!important;
+  padding:10px 18px!important;margin:0!important;
+  color:#fff!important;background:linear-gradient(128deg,#af31ef,#6b16ce)!important;
+  border:1px solid #a755e3!important;border-radius:999px!important;
+  font-size:clamp(12px,2vw,15px)!important;font-weight:900!important;
+  white-space:nowrap!important;box-shadow:0 7px 16px #6826b24a,inset 0 2px 5px #ffffff46!important;
+ }
+ /* 4 KPI tarjetas premium con contenidos horizontales (2x2 en móvil). */
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis[data-fr5-area="patient-kpis"]{
+  grid-area:metrics!important;grid-row:2!important;align-self:start!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:9px!important;min-width:0!important;width:100%!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card{
+  display:flex!important;flex-direction:row!important;justify-content:flex-start!important;
+  align-items:center!important;gap:9px!important;position:relative!important;
+  min-width:0!important;min-height:86px!important;max-height:110px!important;
+  width:100%!important;height:auto!important;
+  padding:11px 10px!important;margin:0!important;overflow:hidden!important;
+  border:1px solid #ffffffb3!important;border-radius:17px!important;
+  background:linear-gradient(135deg,#9036e8,#4617af)!important;
+  box-shadow:0 6px 15px #5b23ad45!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card:nth-child(2){
+  background:linear-gradient(135deg,#08ccd0,#008fa8)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card:nth-child(3){
+  background:linear-gradient(135deg,#3a86fa,#1b4ccc)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card:nth-child(4){
+  background:linear-gradient(135deg,#ac31ec,#5e1bc3)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card::before{
+  content:none!important;display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card::after{
+  content:""!important;display:block!important;position:absolute!important;
+  width:95%!important;height:43px!important;right:-16%!important;bottom:-22px!important;
+  border-radius:90% 0 0 0!important;transform:rotate(-8deg)!important;
+  background:linear-gradient(130deg,#eee1ff21,#b2a4ff7b)!important;
+  pointer-events:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card>.stat-icon{
+  display:grid!important;place-items:center!important;
+  flex:0 0 40px!important;width:40px!important;height:40px!important;min-width:40px!important;
+  margin:0!important;padding:0!important;position:relative!important;z-index:1!important;
+  border-radius:12px!important;border:1px solid #ffffff9e!important;
+  background:#ffffff2d!important;color:#fff!important;
+  box-shadow:inset 0 2px 7px #ffffff5e,0 4px 8px #25105b30!important;
+  font-size:23px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card>div{
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;gap:4px!important;min-width:0!important;
+  position:relative!important;z-index:1!important;
+  padding:0!important;margin:0!important;text-align:left!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card strong{
+  order:2!important;display:block!important;color:#fff!important;
+  font-size:clamp(23px,3.6vw,32px)!important;line-height:1!important;
+  font-weight:950!important;margin:0!important;text-align:left!important;
+  font-variant-numeric:tabular-nums!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card small{
+  order:1!important;display:block!important;max-width:100%!important;
+  color:#fff!important;font-size:clamp(9px,1.65vw,12px)!important;
+  line-height:1.2!important;font-weight:800!important;margin:0!important;
+  text-align:left!important;word-break:normal!important;overflow-wrap:normal!important;
+ }
+ /* El listado arranca inmediatamente debajo de las métricas. */
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory[data-fr5-area="patient-directory"]{
+  grid-area:directory!important;grid-row:3!important;align-self:start!important;
+  margin:0!important;padding:0!important;min-height:0!important;
+  border:1px solid #d9c7ef!important;border-radius:21px!important;
+  background:#fff!important;box-shadow:0 7px 17px #4b268826!important;overflow:hidden!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory>.panel-head{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  min-height:76px!important;height:auto!important;gap:12px!important;
+  margin:0!important;padding:15px 17px!important;
+  border:0!important;border-radius:19px 19px 0 0!important;
+  background:linear-gradient(116deg,#46139f,#7123d7 73%,#6928d5)!important;
+  box-shadow:none!important;position:relative!important;isolation:isolate!important;
+  overflow:hidden!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory>.panel-head::after{
+  content:""!important;position:absolute!important;z-index:-1!important;
+  bottom:-29px!important;right:-5%!important;width:72%!important;height:72px!important;
+  transform:rotate(-8deg)!important;border-radius:90% 0 0 0!important;
+  background:linear-gradient(120deg,#99e8f9,#01d6dc)!important;pointer-events:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory>.panel-head h2{
+  color:#fff!important;text-shadow:0 1px 2px #36126952!important;
+  font-size:clamp(18px,3vw,24px)!important;font-weight:940!important;
+  margin:0!important;line-height:1.2!important;white-space:normal!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory>.panel-head #patientCount{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 auto!important;min-width:43px!important;min-height:34px!important;
+  padding:5px 9px!important;color:#fff!important;
+  border:1px solid #ffffff99!important;border-radius:999px!important;
+  background:#ffffff3b!important;font-size:13px!important;font-weight:900!important;
+  box-shadow:inset 0 1px 5px #ffffff3d!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-directory>.panel-body{
+  display:block!important;min-height:0!important;min-width:0!important;
+  padding:13px!important;margin:0!important;background:#fff!important;overflow:visible!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-search-fields{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(145px,.47fr)!important;
+  gap:9px!important;min-width:0!important;margin:0 0 6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-search-fields .field{
+  min-width:0!important;display:flex!important;flex-direction:column!important;gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout #patientSearch,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout #patientDateFilter{
+  width:100%!important;min-width:0!important;max-width:100%!important;min-height:45px!important;
+  border-radius:999px!important;border:1px solid #cdb5f0!important;
+  background:#fff!important;font-size:13px!important;color:#25194b!important;padding:9px 14px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-patient-cards{
+  display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-directory-card{
+  display:grid!important;grid-template-columns:54px minmax(0,1fr) auto!important;
+  align-items:center!important;gap:11px!important;min-height:93px!important;
+  padding:10px 12px!important;margin:0!important;
+  border:1px solid #d9d0ee!important;border-radius:18px!important;
+  background:linear-gradient(125deg,#fff,#f6f2fe)!important;
+  box-shadow:0 4px 11px #4b298416!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-directory-card:nth-child(even){
+  border-color:#bde7eb!important;background:linear-gradient(125deg,#fff,#ebfbff)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout button.pp-open-patient{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:39px!important;padding:8px 14px!important;gap:5px!important;
+  color:#5b1f9f!important;border-radius:999px!important;
+  border:1px solid #aa71dc!important;background:linear-gradient(125deg,#fff,#f2eaff)!important;
+  box-shadow:0 3px 9px #5c329f2c!important;font-size:12px!important;font-weight:900!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-advanced{
+  grid-area:advanced!important;grid-row:4!important;
+  width:100%!important;min-width:0!important;margin:0!important;align-self:start!important;
+ }
+ /* Expediente abierto: sin reglas de display heredadas que oculten la ficha. */
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace:not([hidden]){
+  display:block!important;visibility:visible!important;opacity:1!important;
+  height:auto!important;min-height:0!important;max-height:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome[hidden],
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientFormPanel[hidden],
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace[hidden]{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace>.panel-head,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace>.stats-grid{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace>.pp-record-hero{
+  display:flex!important;flex-direction:column!important;gap:12px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace>.pp-record-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  width:100%!important;gap:8px!important;min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace .pp-history-section .pp-native-timeline{
+  display:flex!important;flex-direction:column!important;gap:9px!important;
+  min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace .pp-native-timeline>.list-row{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:12px!important;
+  padding:14px!important;margin:0!important;min-height:74px!important;
+  border:1px solid #dac9f2!important;border-radius:16px!important;
+  background:linear-gradient(130deg,#fff,#f5efff)!important;
+  box-shadow:0 4px 11px #44258c16!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace .pp-native-timeline>.list-row>.list-actions{
+  display:flex!important;gap:7px!important;flex-wrap:wrap!important;
+  margin:0!important;justify-content:flex-start!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientWorkspace .pp-native-timeline>.list-row>.list-actions button{
+  min-height:34px!important;border:1px solid #ae81db!important;
+  border-radius:999px!important;color:#5824a0!important;
+  background:linear-gradient(140deg,#fff,#eee6fe)!important;
+  font-size:11px!important;font-weight:870!important;
+ }
+}
+@media screen and (max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis[data-fr5-area="patient-kpis"]{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card{
+  min-height:76px!important;max-height:90px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-search-fields{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading[data-fr5-area="patient-heading"]{
+  grid-template-columns:minmax(0,1fr) auto!important;
+  min-height:0!important;max-height:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading>button{
+  min-width:116px!important;min-height:43px!important;
+  padding:8px 11px!important;font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading h1{
+  font-size:clamp(21px,5vw,28px)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading p{
+  font-size:11px!important;line-height:1.3!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-directory-card{
+  grid-template-columns:47px minmax(0,1fr) auto!important;
+  padding:9px!important;min-height:82px!important;gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout button.pp-open-patient{
+  min-height:35px!important;font-size:10px!important;padding:7px 10px!important;
+ }
+}
+@media screen and (max-width:400px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading{
+  grid-template-columns:minmax(0,1fr) 120px!important;gap:8px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.page-heading .eyebrow{
+  font-size:8px!important;letter-spacing:.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card{
+  padding:9px!important;gap:7px!important;min-height:73px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card>.stat-icon{
+  flex-basis:33px!important;width:33px!important;min-width:33px!important;height:33px!important;font-size:20px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card strong{font-size:22px!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout>.pp-home-kpis>.stat-card small{font-size:9px!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-directory-card{
+  grid-template-columns:43px minmax(0,1fr)!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium #patientsHome.pp-strict-layout .pp-directory-card button.pp-open-patient{
+  grid-column:2!important;justify-self:start!important;min-height:34px!important;
+ }
+}
