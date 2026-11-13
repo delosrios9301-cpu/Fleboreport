@@ -90,5 +90,5 @@ test('No altera el flujo de guardado de paciente y publica versión PWA',()=>{
  assert.match(html,/persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\),search:''\}\)/);
  assert.match(html,/if\(search\)\{search\.value='';search\.blur\(\);\}/);
  assert.match(html,/renderJourneyPatientChoices\(\)/);
- assert.match(sw,/fleboreport-shell-v321/);
+ assert.match(sw,/fleboreport-shell-v322/);
 });
