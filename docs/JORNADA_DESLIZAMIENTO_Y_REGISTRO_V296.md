@@ -1,0 +1,3 @@
+# FleboReport Jornada v296
+
+Rediseño con tarjetas simétricas e información verticalmente centrada. «Jornada activa» abre dos paneles con deslizamiento horizontal (Registro y Seguimiento), flechas y cierre; no desplaza la pantalla principal hacia abajo. El campo original de cédula se restituye dentro del formulario real, conservando su ID, y ahora se registran nombres, apellidos, cédula única, fecha de nacimiento opcional y sexo opcional antes de seleccionar pruebas y guardar. El guardado sigue reutilizando pacientes por cédula normalizada; no añade duplicados ni reemplaza demografía contradictoria. Se amplía el borrador y se preserva el flujo PNG/PDF, permisos, RLS y sincronización existente. La nueva versión requiere validación visual en dispositivo real.

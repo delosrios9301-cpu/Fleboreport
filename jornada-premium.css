@@ -486,3 +486,177 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey #journeyReportSetu
   transition:none!important;animation:none!important;
  }
 }
+
+
+/* v296 · Área de Jornada con navegación lateral real.
+   El registro y el seguimiento son paneles vecinos con scroll-snap; la
+   portada ya no desplaza toda la página verticalmente al abrir Jornada. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-swipe-backdrop,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-swipe-header{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open .jp-swipe-backdrop{
+ position:fixed!important;inset:0!important;z-index:220!important;
+ display:block!important;background:rgba(24,16,67,.57)!important;
+ backdrop-filter:blur(5px)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open .jp-swipe-header{
+ position:fixed!important;left:50%!important;top:calc(15px + env(safe-area-inset-top,0px))!important;
+ transform:translateX(-50%)!important;z-index:223!important;
+ display:flex!important;align-items:center!important;gap:9px!important;
+ width:min(980px,calc(100vw - 22px))!important;max-width:calc(100vw - 22px)!important;
+ height:72px!important;padding:11px 13px!important;
+ border:1px solid rgba(214,196,255,.7)!important;border-radius:18px 18px 0 0!important;
+ background:linear-gradient(115deg,#2a186e,#5f32bd 75%,#176c8b)!important;
+ box-shadow:0 12px 30px rgba(22,13,64,.25)!important;color:#fff!important;
+ box-sizing:border-box!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-heading{
+ display:flex!important;flex:1 1 auto!important;flex-direction:column!important;gap:3px!important;
+ min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-heading strong{
+ font-size:15px!important;font-weight:850!important;line-height:1.2!important;color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-heading small{
+ font-size:10.5px!important;line-height:1.2!important;color:#e9e5ff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-header button{
+ min-width:44px!important;min-height:44px!important;flex:0 0 44px!important;
+ display:grid!important;place-items:center!important;
+ border:1px solid #ffffff81!important;border-radius:999px!important;
+ background:#ffffff21!important;color:#fff!important;
+ font-size:22px!important;font-weight:800!important;cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-header button:disabled{
+ opacity:.35!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-header button:focus-visible{
+ outline:3px solid #08d3d9!important;outline-offset:2px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-header #jpSwipePage{
+ font-size:10px!important;color:#fff!important;font-weight:800!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+ position:fixed!important;top:calc(86px + env(safe-area-inset-top,0px))!important;
+ left:50%!important;bottom:calc(15px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;z-index:222!important;
+ display:flex!important;flex-flow:row nowrap!important;
+ width:min(980px,calc(100vw - 22px))!important;max-width:calc(100vw - 22px)!important;
+ height:auto!important;min-height:0!important;min-width:0!important;
+ padding:0!important;gap:0!important;margin:0!important;
+ border:1px solid #e3dafa!important;border-radius:0 0 18px 18px!important;
+ background:#f7f5ff!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ scroll-snap-type:x mandatory!important;scroll-behavior:smooth!important;
+ overscroll-behavior-x:contain!important;-webkit-overflow-scrolling:touch!important;
+ scrollbar-width:none!important;box-sizing:border-box!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout::-webkit-scrollbar{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-side-column{
+ position:relative!important;display:flex!important;flex:0 0 100%!important;
+ flex-direction:column!important;align-items:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ height:100%!important;max-height:100%!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ scroll-snap-align:start!important;scroll-snap-stop:always!important;
+ overscroll-behavior-y:contain!important;
+ padding:13px 14px 24px!important;margin:0!important;gap:11px!important;
+ box-sizing:border-box!important;
+}
+/* La cédula queda dentro del MISMO formulario de paciente y no en una
+   tarjeta separada que impida registrar o buscar por identificación. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:start!important;gap:10px 12px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields>.field{
+ min-width:0!important;margin:0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields>.field.full{
+ grid-column:1/-1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields .field label{
+ display:block!important;margin:0 0 5px!important;
+ color:#34265e!important;font-size:12px!important;font-weight:780!important;
+ line-height:1.25!important;text-align:left!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields :is(
+ input:not([type="checkbox"]),select){
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ min-height:44px!important;border:1px solid #d8d0ee!important;
+ background:#fff!important;border-radius:11px!important;
+ padding:9px 11px!important;color:#2d244e!important;font-size:13px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-document-hint{
+ display:block!important;font-size:10.5px!important;line-height:1.35!important;
+ color:#64528d!important;margin-top:5px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-register-button{
+ width:100%!important;min-height:48px!important;border-radius:999px!important;
+ background:linear-gradient(120deg,#9752ee,#4d25c3)!important;
+ color:#fff!important;
+}
+/* Portada: «Cédula / identificación» ahora es acceso al campo real, centrado
+   con icono y texto; no se duplica el input. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-identity-card{
+ display:flex!important;align-items:center!important;min-height:72px!important;
+ cursor:pointer!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-identity-card .jp-identity-content{
+ display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+ justify-content:center!important;align-self:center!important;gap:4px!important;
+ margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-identity-card .jp-identity-content strong{
+ font-size:clamp(13px,2vw,17px)!important;line-height:1.2!important;color:#1c1734!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-identity-card .jp-identity-content small{
+ font-size:11px!important;line-height:1.25!important;color:#625d7b!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-identity-card .jp-action-chevron{
+ display:grid!important;place-items:center!important;align-self:center!important;flex:0 0 22px!important;
+}
+@media(max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open .jp-swipe-header{
+  top:calc(8px + env(safe-area-inset-top,0px))!important;
+  width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;
+  height:66px!important;padding:8px!important;gap:6px!important;
+  border-radius:15px 15px 0 0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+  top:calc(74px + env(safe-area-inset-top,0px))!important;
+  bottom:calc(8px + env(safe-area-inset-bottom,0px))!important;
+  width:calc(100vw - 12px)!important;max-width:calc(100vw - 12px)!important;
+  border-radius:0 0 15px 15px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-side-column{
+  padding:10px 11px 22px!important;gap:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .journey-patient-fields{
+  grid-template-columns:minmax(0,1fr)!important;gap:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-heading strong{
+  font-size:13.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-heading small{
+  font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-swipe-header button{
+  min-width:40px!important;min-height:44px!important;flex-basis:40px!important;
+ }
+}
+@media(max-width:370px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference .jp-swipe-heading small{
+  max-width:145px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+  scroll-behavior:auto!important;
+ }
+}
