@@ -977,6 +977,39 @@
   summary.append(svg('filter'),node('span','','Filtros'),svg('chevron'));
   details.append(summary,filters);
   toolbar.append(searchOuter,details);
+  // Los filtros de estudio, visita y tipo quedan siempre visibles y
+  // desplazables horizontalmente. Se reutilizan los SELECT auténticos.
+  const quickHeading=node('div','crx-process-quickheading');
+  quickHeading.append(node('strong','','Buscar por estudio, visita o muestra'),
+   node('small','','Desliza a los lados para ver los filtros'));
+  const quickbar=node('div','crx-process-quickstrip');
+  quickbar.setAttribute('role','group');
+  quickbar.setAttribute('aria-label','Filtros rápidos de procesamiento, desplazables horizontalmente');
+  ['clinicalQueueStudy','clinicalQueueVisit','clinicalQueueType'].forEach(id=>{
+   const control=get(id),group=control?.closest('.field');
+   if(!group)return;
+   group.classList.add('crx-quick-filter');
+   quickbar.appendChild(group);
+  });
+  const configShortcut=node('button','crx-process-config-shortcut','Configurar estudios');
+  configShortcut.type='button';
+  configShortcut.hidden=true;
+  configShortcut.appendChild(svg('chevron'));
+  configShortcut.setAttribute('aria-label','Abrir configuración de estudios clínicos');
+  configShortcut.addEventListener('click',()=>{
+   if(window.FleboAuth?.membership?.role!=='admin')return;
+   if(typeof window.navigate!=='function'||typeof window.selectClinicalConfig!=='function'){
+    notify('No está disponible el acceso a configuración.');return;
+   }
+   window.navigate('settings','clinical-config');
+   window.selectClinicalConfig('studies');
+  });
+  function updateConfigShortcut(){
+   configShortcut.hidden=window.FleboAuth?.membership?.role!=='admin';
+  }
+  updateConfigShortcut();
+  window.addEventListener('flebo:auth-changed',updateConfigShortcut);
+  quickbar.appendChild(configShortcut);
   const listbar=node('div','crx-process-listhead');
   const left=node('div','crx-list-title');left.append(node('h2','','Muestras en proceso '));
   const total=node('span','');total.id='crxProcessTotal';total.textContent='(0)';left.querySelector('h2').appendChild(total);
@@ -993,6 +1026,8 @@
   const sourceTable=panel.querySelector('.clinical-table-wrap');
   if(!sourceTable)return;
   panel.insertBefore(toolbar,sourceTable);
+  panel.insertBefore(quickHeading,sourceTable);
+  panel.insertBefore(quickbar,sourceTable);
   panel.insertBefore(listbar,sourceTable);
   panel.insertBefore(cards,sourceTable);
   root.classList.add('crx-ready');
