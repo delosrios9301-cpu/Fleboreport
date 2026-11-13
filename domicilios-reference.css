@@ -442,3 +442,69 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-visit>.
 body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-visit>.hv-ref-priority{
  position:relative!important;z-index:1!important;
 }
+
+
+/* v292 — «Nuevo domicilio» y «Filtros y opciones» usan la misma cápsula
+   del selector Pendientes/Aceptados: silueta ovalada, contorno lila,
+   degradado claro, relieve suave, foco y respuesta al toque. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new,.hv-ref-tools-toggle){
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;min-height:44px!important;
+ padding:9px 12px!important;gap:7px!important;
+ border:1px solid #d9d0f4!important;border-radius:999px!important;
+ background:linear-gradient(135deg,#fff 5%,#eeeaff 100%)!important;
+ color:#4b3185!important;font-size:11.5px!important;font-weight:800!important;
+ line-height:1.18!important;letter-spacing:0!important;text-align:center!important;
+ white-space:nowrap!important;text-shadow:none!important;
+ box-shadow:0 3px 7px #54328c25,inset 0 1px #fff!important;
+ transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease!important;
+ -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-new[hidden]{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new,.hv-ref-tools-toggle):active{
+ transform:scale(.97)!important;
+ box-shadow:inset 0 2px 6px #54328c26,0 1px 4px #54328c20!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new,.hv-ref-tools-toggle):focus-visible{
+ outline:3px solid #10b4d0!important;outline-offset:2px!important;
+}
+@media(hover:hover){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new,.hv-ref-tools-toggle):hover{
+  border-color:#aa91ed!important;box-shadow:0 5px 12px #54328c36,inset 0 1px #fff!important;
+ }
+}
+@media(max-width:420px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-heading{
+  gap:6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-heading-title{
+  gap:6px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-house{
+  width:35px!important;height:38px!important;flex:0 0 35px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-house svg{
+  width:35px!important;height:35px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-new{
+  padding:9px 10px!important;font-size:10.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-tools-toggle{
+  padding:9px 12px!important;font-size:10.5px!important;
+ }
+}
+@media(max-width:355px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-heading{
+  flex-wrap:wrap!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios .hv-ref-new{
+  margin-left:auto!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios :is(.hv-ref-new,.hv-ref-tools-toggle){
+  transition:none!important;animation:none!important;
+ }
+}
