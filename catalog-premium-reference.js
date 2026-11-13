@@ -54,7 +54,7 @@
     const chip=make('span','cpr-status cpr-active-tag','✓ Activa');
     tagBox.append(chip);
    }
-   if(vesselDefined&&!tagBox.querySelector('.cpr-vessel-tag')){
+   if(vesselDefined&&!tagBox.querySelector('.cpr-vessel-tag')&&!tagBox.querySelector('.badge')){
     // Mostrar una condición real, nunca atribuir categorías clínicas ficticias.
     tagBox.append(make('span','cpr-status cpr-vessel-tag','Con recipiente'));
    }
