@@ -77,8 +77,8 @@ test('No se sobrescribe silenciosamente fecha de nacimiento contradictoria',()=>
  assert.match(x.notice,/no coincide/);
 });
 test('v296 carga JS CSS renovados sin modificar exportación de jornada',()=>{
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada3/);
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada4" media="screen"/);
+ assert.match(html,/jornada-premium\.js\?v=20261113-jornada4/);
+ assert.match(html,/jornada-premium\.css\?v=20261113-jornada5" media="screen"/);
  assert.match(sw,/fleboreport-shell-v297/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
  assert.match(html,/function openJourneyReportSetup\(\)/);
