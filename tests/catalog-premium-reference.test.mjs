@@ -83,7 +83,7 @@ test('Layout de filas horizontales, indicadores degradados, búsqueda compacta y
 test('Publicación PWA v317 incluye la nueva capa premium',()=>{
  assert.match(html,/catalog-premium-reference\.css\?v=20261113-catalog1/);
  assert.match(html,/catalog-premium-reference\.js\?v=20261113-catalog1/);
- assert.match(sw,/fleboreport-shell-v321/);
+ assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/catalog-premium-reference\.css'/);
  assert.match(sw,/'\.\/catalog-premium-reference\.js'/);
 });
