@@ -31,7 +31,7 @@ test('Textos e iconos centrados verticalmente, identidad legible, reportes intac
  assert.match(align,/\.jp-identity-card\{\s*align-items:center!important/);
  assert.match(align,/\.jp-identity-content\{\s*display:flex!important;flex-direction:column!important/);
  assert.match(align,/\.journey-report-button\{\s*align-items:center!important;justify-content:center!important/);
- assert.match(js,/const idField=view\.querySelector/);
+ assert.match(js,/const idField=byId\('journeyPatientId'\)\?\.closest\('\.field'\)/);
  assert.match(js,/identityContent\.appendChild\(idField\)/);
  assert.match(html,/onclick="openJourneyReportSetup\(\)"/);
  assert.match(html,/onclick="registerJourneyPatient\(\)"/);
