@@ -1240,7 +1240,9 @@ test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsque
   assert.match(html, /if\(!term\)\{\s*panel\.hidden=true/);
   assert.match(html, /return tokens\.every\(function\(token\)\{return searchable\.includes\(token\)\}\)/);
   assert.match(html, /No se encontraron pruebas que coincidan con tu búsqueda/);
-  assert.match(html, /persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\)\}\)/);
+  assert.match(html, /persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\),search:''\}\)/);
+  assert.match(html, /if\(search\)\{search\.value='';search\.blur\(\);\}/);
+  assert.match(html, /if\(!term\)\{\s*panel\.hidden=true/);
   assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
