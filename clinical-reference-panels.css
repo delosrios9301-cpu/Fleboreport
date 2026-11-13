@@ -1403,3 +1403,37 @@ body.fr2-app-authorized.cm-workspace.vc-compact
   grid-template-columns:minmax(0,1fr)!important;
  }
 }
+
+
+/* v307b · Tarjetas de seguimiento legibles completas en pantallas pequeñas. */
+@media screen and (max-width:600px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card{
+  display:grid!important;
+  grid-template-columns:43px minmax(0,1fr) minmax(99px,.86fr)!important;
+  grid-template-areas:"icon info state" "icon info action"!important;
+  align-items:center!important;row-gap:5px!important;column-gap:7px!important;
+  min-height:118px!important;height:auto!important;
+  padding:10px 9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-card-emblem{
+  grid-area:icon!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-identity{
+  grid-area:info!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-state{
+  grid-area:state!important;align-items:center!important;min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready .crx-processing-card>.crx-process-actions{
+  grid-area:action!important;justify-content:center!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready
+ .crx-processing-card :is(.crx-process-study,.crx-process-type){
+  white-space:normal!important;overflow:visible!important;text-overflow:clip!important;
+  overflow-wrap:anywhere!important;line-height:1.24!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-clinical-processing.crx-ready
+ .crx-processing-card .crx-state-pill{
+  max-width:100%!important;padding:5px!important;
+ }
+}
