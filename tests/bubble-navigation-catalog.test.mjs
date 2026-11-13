@@ -25,7 +25,7 @@ test('Empresas deja de ser acceso duplicado pero se conservan gestión y datos',
  assert.doesNotMatch(html,/data-nav="companies"/);
  assert.match(html,/id="view-companies"/);
  assert.match(html,/function renderCompanies\(\)/);
- assert.match(html,/function saveClient\(\)/);
+ assert.match(html,/function addCompany\(\)/);
  assert.match(settings,/companies-module/);
  assert.match(settings,/title:'Empresas'/);
 });
