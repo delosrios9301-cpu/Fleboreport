@@ -63,9 +63,18 @@
    searchPanel.id='ppPatientSearchPanel';
    panel.before(searchPanel);
    searchPanel.append(fields);
-   if(chips)searchPanel.append(chips);
+   const filters=mk('div','pp-filter-row');
+   searchPanel.append(filters);
+   if(chips)filters.append(chips);
    const dateDetails=panel.querySelector('.pp-date-filter');
-   if(dateDetails)searchPanel.append(dateDetails);
+   if(dateDetails){
+    const summary=dateDetails.querySelector('summary');
+    if(summary){
+     summary.textContent='Fecha';
+     summary.setAttribute('aria-label','Filtrar atenciones por fecha');
+    }
+    filters.append(dateDetails);
+   }
   }
   if(panel&&!panel.querySelector('.pp-directory-head-icon')){
    const header=panel.querySelector(':scope > .panel-head');
