@@ -887,3 +887,112 @@
   display:none!important;
  }
 }
+
+/* v320 · Ver expediente es un cuadro flotante real, sin duplicar pacientes. */
+@media screen{
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog:not([open]){
+  display:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog[open]{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  box-sizing:border-box!important;position:fixed!important;inset:auto!important;
+  width:min(92vw,940px)!important;max-width:min(940px,calc(100vw - 24px))!important;
+  height:min(91dvh,940px)!important;max-height:calc(100dvh - 26px)!important;
+  min-width:0!important;min-height:0!important;
+  margin:auto!important;padding:0!important;
+  color:#24174e!important;background:linear-gradient(155deg,#fff,#f9f7ff 78%,#f2fdff)!important;
+  border:1px solid #dcc8f7!important;border-radius:25px!important;
+  box-shadow:0 25px 90px #21105291,0 3px 20px #6a3ea135,inset 0 2px 5px #fff!important;
+  overflow:hidden!important;overscroll-behavior:contain!important;z-index:10000!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog::backdrop{
+  background:rgba(16,10,43,.76)!important;
+  -webkit-backdrop-filter:blur(9px)!important;backdrop-filter:blur(9px)!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog>.pp-modal-toolbar{
+  position:relative!important;isolation:isolate!important;display:flex!important;
+  align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;flex:0 0 auto!important;min-height:69px!important;
+  margin:0!important;padding:13px 19px!important;overflow:hidden!important;
+  background:linear-gradient(115deg,#351386,#6124c9 63%,#4f21cb)!important;
+  border-bottom:1px solid #b495ef!important;
+  box-shadow:0 4px 14px #4e25852b!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog>.pp-modal-toolbar::after{
+  content:""!important;position:absolute!important;z-index:-1!important;right:-7%!important;
+  bottom:-38px!important;width:67%!important;height:77px!important;
+  border-radius:95% 0 0 0!important;transform:rotate(-9deg)!important;
+  background:linear-gradient(115deg,#85e5ff,#09d9da)!important;pointer-events:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog .pp-modal-brand{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  color:#fff!important;font-size:clamp(15px,2.8vw,21px)!important;
+  font-weight:910!important;line-height:1.2!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog .pp-modal-brand-glyph{
+  display:grid!important;place-items:center!important;flex:0 0 39px!important;
+  width:39px!important;height:39px!important;color:#fff!important;
+  border-radius:12px!important;background:#ffffff30!important;
+  border:1px solid #ffffff91!important;box-shadow:inset 0 2px 6px #ffffff4b!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog .pp-modal-brand-glyph svg{
+  width:24px!important;height:24px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog button.pp-modal-dismiss{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 auto!important;gap:5px!important;min-height:40px!important;
+  padding:8px 12px!important;margin:0!important;
+  color:#4d169c!important;font-size:12px!important;font-weight:860!important;
+  background:linear-gradient(130deg,#fff,#e9dfff)!important;border:1px solid #f4e7ff!important;
+  border-radius:999px!important;box-shadow:0 3px 11px #28125b3e!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog button.pp-modal-dismiss .pp-icon{
+  width:18px!important;height:18px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog #patientWorkspace:not([hidden]){
+  display:block!important;position:relative!important;
+  flex:1 1 auto!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+  min-height:0!important;height:auto!important;max-height:none!important;
+  margin:0!important;padding:17px!important;overflow-x:hidden!important;overflow-y:auto!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+  scrollbar-gutter:stable!important;touch-action:pan-y!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog #patientWorkspace[hidden]{
+  display:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog #patientWorkspace .pp-record-title{
+  margin:0 0 10px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog #patientWorkspace .pp-record-tabs{
+  position:sticky!important;top:0!important;z-index:4!important;
+  box-shadow:0 3px 10px #4c27991e!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog :is(button,input,summary):focus-visible{
+  outline:3px solid #08cad9!important;outline-offset:2px!important;
+ }
+}
+@media screen and (max-width:600px){
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog[open]{
+  width:calc(100vw - 14px)!important;max-width:calc(100vw - 14px)!important;
+  height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+  max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+  border-radius:22px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog>.pp-modal-toolbar{
+  min-height:60px!important;padding:10px 13px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog #patientWorkspace:not([hidden]){
+  padding:11px 10px 20px!important;scrollbar-gutter:auto!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog .pp-modal-brand{
+  font-size:15px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-expedient-dialog button.pp-modal-dismiss{
+  min-height:38px!important;padding:7px 9px!important;font-size:11px!important;
+ }
+}
+@media print{
+ #ppExpedientDialog{position:static!important;height:auto!important;max-height:none!important;box-shadow:none!important;border:0!important}
+ #ppExpedientDialog>.pp-modal-toolbar{display:none!important}
+}
