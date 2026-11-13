@@ -20,7 +20,11 @@ test('ÚNICO botón de guardado original reubicado al pie de Registro',()=>{
  assert.match(html,/onclick="registerJourneyPatient\(\)"/);
  assert.match(js,/const registerActions=intake\?\.querySelector\('\.journey-submit-actions'\)/);
  assert.match(js,/intake\.insertAdjacentElement\('afterend',registerActions\)/);
- assert.match(css,/position:sticky!important;bottom:0!important;z-index:5!important/);
+ // El botón queda como hermano fijo fuera del contenido con desplazamiento.
+ assert.match(css,/position:relative!important;bottom:auto!important;flex:0 0 auto!important/);
+ assert.match(css,/\.journey-entry-panel\{/);
+ assert.match(css,/flex:1 1 0!important;min-height:0!important;max-height:none!important/);
+ assert.match(css,/overflow-x:hidden!important;overflow-y:auto!important/);
  assert.match(css, /min-height:52px!important/);
  assert.match(css,/\.journey-main-column>\.journey-submit-actions/);
 });
@@ -95,10 +99,22 @@ test('Sin pruebas no registra un paciente incompleto',()=>{
  assert.match(x.notice,/Selecciona al menos una prueba/);
 });
 test('v297 actualiza JS, CSS y cache; mantiene formulario por cédula y reportes',()=>{
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada4" media="screen"/);
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada3/);
+ assert.match(html,/jornada-premium\.css\?v=20261113-jornada5" media="screen"/);
+ assert.match(html,/jornada-premium\.js\?v=20261113-jornada4/);
  assert.match(sw,/fleboreport-shell-v297/);
  assert.match(html,/id="journeyPatientId"/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
  assert.doesNotThrow(()=>new Function(js));
+});
+
+test('Formulario de Jornada se desplaza verticalmente, admite teclado y conserva swipe lateral',()=>{
+ assert.ok(css.includes('v298 — Registro en Jornada:'));
+ assert.match(css,/overscroll-behavior-y:contain!important/);
+ assert.match(css,/touch-action:auto!important/);
+ assert.ok(css.includes('var(--jp-keyboard-bottom,0px)'));
+ assert.match(js,/function updateWorkspaceViewport\(\)/);
+ assert.ok(js.includes("window.visualViewport.addEventListener('resize',updateWorkspaceViewport"));
+ assert.match(js,/function ensureFieldVisible\(field\)/);
+ assert.match(css,/scroll-snap-type:x mandatory/);
+ assert.equal((html.match(/class="btn primary journey-register-button"/g)||[]).length,1);
 });
