@@ -1,0 +1,54 @@
+/* FleboReport · Gesto administrativo en Pacientes · v326.
+   No aparece ningún control de eliminación para otros roles. */
+@media screen {
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-cards>.pp-patient-swipe{
+  position:relative;isolation:isolate;box-sizing:border-box;display:block;
+  flex:0 0 auto;width:100%;min-width:0;overflow:hidden;border-radius:19px;
+  box-shadow:0 4px 11px #48287920;touch-action:pan-y;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe>.pp-patient-ribbon{
+  position:relative;z-index:2;margin:0!important;max-width:100%!important;
+  transition:transform .20s cubic-bezier(.2,.8,.25,1);
+  backface-visibility:hidden;touch-action:pan-y;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe .pp-swipe-delete{
+  position:absolute;z-index:1;top:0;right:0;bottom:0;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  box-sizing:border-box;width:94px;padding:8px 5px;border:0;border-radius:0 18px 18px 0;
+  color:#fff;background:linear-gradient(135deg,#e53b60,#ae1641);
+  font-size:11px;font-weight:850;letter-spacing:0;
+  box-shadow:inset 1px 0 8px #ffffff2d;cursor:pointer;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe .pp-swipe-delete:disabled{
+  opacity:.72;cursor:wait;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-swipe-trash{
+  display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-swipe-trash svg{
+  display:block;width:23px;height:23px;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe.is-open .pp-patient-ribbon{
+  box-shadow:0 2px 7px #49287024!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe:nth-child(even) .pp-patient-ribbon{
+  background:linear-gradient(120deg,#fff,#fbfaff 65%,#fdffff)!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe:nth-child(even) .pp-directory-avatar{
+  border-color:#d3f2ee!important;
+  background:linear-gradient(140deg,#e7fcf5,#b7f1e8)!important;color:#008e8c!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe .pp-swipe-delete:focus-visible{
+  outline:3px solid #2be9dc;outline-offset:-4px;
+ }
+}
+@media (pointer:fine) {
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe .pp-swipe-delete{
+  display:none;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe>.pp-patient-ribbon{
+  transition:none!important;
+ }
+}

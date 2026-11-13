@@ -48,6 +48,6 @@ test('Navegación y KPIs no escriben atributos idénticos durante scroll',()=>{
  assert.doesNotThrow(()=>new Function(compact));
  assert.match(html,/clinical-modern-workspace\.js\?v=20261113-cmw5/);
  assert.match(html,/variant-c-compact\.js\?v=20261113-vc3/);
- assert.match(html,/patients-activity-ui\.js\?v=20261113-patient8/);
+ assert.match(html,/patients-activity-ui\.js\?v=20261113-patient9/);
  assert.match(worker,/fluidez v325/i);
 });

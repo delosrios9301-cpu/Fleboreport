@@ -28,7 +28,80 @@
  function sourceModel(id){
   const m=model();return m?.byId?.(id)||null;
  }
- let listMode='all',configured=false,rendering=false,lastDirectorySignature='';
+ let listMode='all',configured=false,rendering=false,lastDirectorySignature='',openSwipeShell=null,gesture=null;
+ const canArchive=()=>{
+  const auth=window.FleboAuth,m=auth?.membership;
+  return !!(auth?.user&&m?.active===true&&m?.role==='admin');
+ };
+ const setSwipe=(shell,opened)=>{
+  if(!shell)return;
+  shell.classList.toggle('is-open',opened);
+  const card=shell.querySelector('.pp-patient-ribbon'),button=shell.querySelector('.pp-swipe-delete');
+  if(card)card.style.transform=opened?'translate3d(-94px,0,0)':'translate3d(0,0,0)';
+  if(button){button.tabIndex=opened?0:-1;button.setAttribute('aria-hidden',String(!opened))}
+  if(opened)openSwipeShell=shell;else if(openSwipeShell===shell)openSwipeShell=null;
+ };
+ function bindSwipeHost(host){
+  if(host.dataset.ppSwipeReady)return;
+  host.dataset.ppSwipeReady='1';
+  host.addEventListener('pointerdown',event=>{
+   if(!canArchive()||!['touch','pen'].includes(event.pointerType))return;
+   if(event.target.closest('button,a,input,select,textarea'))return;
+   const shell=event.target.closest('.pp-patient-swipe');
+   if(!shell||!host.contains(shell))return;
+   if(openSwipeShell&&openSwipeShell!==shell)setSwipe(openSwipeShell,false);
+   gesture={shell,card:shell.querySelector('.pp-patient-ribbon'),
+    id:event.pointerId,x:event.clientX,y:event.clientY,
+    wasOpen:shell.classList.contains('is-open'),horizontal:false,vertical:false};
+  },{passive:true});
+  host.addEventListener('pointermove',event=>{
+   const g=gesture;if(!g||g.id!==event.pointerId||g.vertical)return;
+   const dx=event.clientX-g.x,dy=event.clientY-g.y;
+   if(!g.horizontal){
+    if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>8){g.vertical=true;return}
+    if(Math.abs(dx)<9||Math.abs(dx)<Math.abs(dy)*1.15)return;
+    g.horizontal=true;
+   }
+   if(event.cancelable)event.preventDefault();
+   const distance=Math.max(-94,Math.min(0,dx-(g.wasOpen?94:0)));
+   g.card.style.transform='translate3d('+distance+'px,0,0)';
+  },{passive:false});
+  const finish=event=>{
+   const g=gesture;if(!g||g.id!==event.pointerId)return;
+   gesture=null;
+   if(!g.horizontal){if(g.vertical)return;return}
+   const dx=event.clientX-g.x;
+   setSwipe(g.shell,g.wasOpen?dx<34:dx<-43);
+  };
+  host.addEventListener('pointerup',finish);
+  host.addEventListener('pointercancel',event=>{
+   const g=gesture;if(!g||g.id!==event.pointerId)return;
+   gesture=null;setSwipe(g.shell,g.wasOpen);
+  });
+  host.addEventListener('click',event=>{
+   if(openSwipeShell&&openSwipeShell.isConnected&&!event.target.closest('.pp-patient-swipe.is-open')){
+    setSwipe(openSwipeShell,false);
+   }
+  });
+ }
+ async function archivePatientFromRibbon(person,shell,button){
+  if(!canArchive()){window.toast?.('Solo el administrador puede eliminar pacientes.');return}
+  if(!window.FleboPatientCloud?.ready||typeof window.FleboPatientCloud.archivePatient!=='function'){
+   window.toast?.('Conecta la cuenta administrativa a la nube antes de eliminar.');setSwipe(shell,false);return;
+  }
+  if(!window.confirm('¿Retirar a '+(person.name||'este paciente')+' (cédula '+(person.document||'sin cédula')+') del listado? Su historial clínico se conservará en la base de datos y quedará auditado.')){setSwipe(shell,false);return}
+  button.disabled=true;
+  try{
+   await window.FleboPatientCloud.archivePatient(person.id);
+   lastDirectorySignature='';
+   window.FleboPatientsPremium?.refresh?.();
+   window.toast?.('Paciente retirado del listado. Historial conservado.');
+  }catch(error){
+   console.error('[FleboReport] No se pudo archivar el expediente:',error);
+   window.toast?.(String(error?.message||'No se pudo eliminar. Comprueba la conexión.'));
+   setSwipe(shell,false);
+  }finally{button.disabled=false}
+ }
  function configure(){
   if(configured||!$('patientsHome'))return;
   configured=true;
@@ -105,7 +178,7 @@
  function renderDirectory(){
   if(rendering||!$('view-patients')?.classList.contains('active'))return;
   const host=$('ppPatientCards'),m=model();if(!host||!m)return;
-  configure();rendering=true;
+  configure();bindSwipeHost(host);rendering=true;
   try{
    const search=norm($('patientSearch')?.value),date=String($('patientDateFilter')?.value||'').slice(0,10);
    const chips=$('patientsHome')?.querySelectorAll('[data-pp-list-filter]')||[];
@@ -123,7 +196,8 @@
    });
    // El modelo puede sincronizarse sin modificar lo que se muestra. Evitar
    // reemplazar todas las tarjetas si los datos visibles son idénticos.
-   const signature=JSON.stringify([listMode,search,date,m.summary,
+   const isAdmin=canArchive();
+   const signature=JSON.stringify([listMode,search,date,isAdmin,m.summary,
     rows.map(p=>[p.id,p.name,p.document,p.lastDate,p.visits,p.testsPerformed,p.recurrent])]);
    if(signature===lastDirectorySignature&&host.childElementCount===Math.max(1,rows.length))return;
    lastDirectorySignature=signature;
@@ -148,10 +222,19 @@
     });
     open.setAttribute('aria-label','Ver expediente de '+person.name);
     card.append(avatar,info,visits,open);
-    frag.append(card);
+    if(isAdmin){
+     const shell=mk('div','pp-patient-swipe');
+     const remove=control('Eliminar','pp-swipe-delete',()=>archivePatientFromRibbon(person,shell,remove));
+     remove.setAttribute('aria-label','Eliminar paciente '+person.name+' del listado');
+     remove.setAttribute('aria-hidden','true');remove.tabIndex=-1;
+     const trash=mk('span','pp-swipe-trash');trash.setAttribute('aria-hidden','true');
+     trash.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 4h4M7 7l1 14h8l1-14M10 11v6M14 11v6"/></svg>';
+     remove.prepend(trash);
+     shell.append(card,remove);frag.append(shell);
+    }else frag.append(card);
    }
    if(!rows.length)frag.append(mk('p','pp-empty','No hay pacientes que coincidan con los filtros.'));
-   host.replaceChildren(frag);
+   openSwipeShell=null;gesture=null;host.replaceChildren(frag);
    const count=$('patientCount');if(count)count.textContent=rows.length+' registros';
    const values={
     individualPatientsTotal:m.summary.totalPatients,
@@ -301,6 +384,9 @@
   // Mantener fallback si la capa premium no está instalada.
   window.addEventListener('flebo:cloud-state-applied',()=>{
    if(!window.FleboPatientsPremium?.getDirectoryMode)refresh();
+  });
+  window.addEventListener('flebo:auth-changed',()=>{
+   lastDirectorySignature='';if($('view-patients')?.classList.contains('active'))renderDirectory();
   });
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});

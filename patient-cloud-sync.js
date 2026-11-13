@@ -25,7 +25,7 @@ function fromRow(r){
   fullName:d.fullName||d.name||[r.first_name,r.last_name].filter(Boolean).join(' '),
   document:r.document_number||d.document||d.cedula||'',cedula:r.document_number||d.cedula||d.document||'',
   birthDate:d.birthDate||r.birth_date||'',sex:d.sex||r.sex||'',phone:d.phone||r.phone||'',
-  email:d.email||r.email||'',address:d.address||r.address||'',updatedAt:r.updated_at||d.updatedAt||''};
+  email:d.email||r.email||'',address:d.address||r.address||'',updatedAt:r.updated_at||d.updatedAt||'',archivedAt:r.archived_at||null};
 }
 function mergePatientDetails(local,remote){
  const mergeRows=(a,b,keyName)=>{
@@ -54,8 +54,12 @@ function mergePatientDetails(local,remote){
  return merged;
 }
 function merge(local,remote){
- const map=new Map();(local||[]).forEach(p=>map.set(keyOf(p),p));
- (remote||[]).forEach(r=>{const k=keyOf(r),old=map.get(k);if(!old){map.set(k,r);return}
+ // Tumbas clínicas: no reconstruir expedientes archivados desde caches antiguos.
+ const tombstones=new Set((remote||[]).filter(p=>p.archivedAt).map(keyOf));
+ const archivedIds=new Set((remote||[]).filter(p=>p.archivedAt).flatMap(p=>[String(p.id||''),String(p.cloudPatientId||'')]).filter(Boolean));
+ const blocked=p=>tombstones.has(keyOf(p))||archivedIds.has(String(p.cloudPatientId||''))||archivedIds.has(String(p.id||''));
+ const map=new Map();(local||[]).forEach(p=>{if(!blocked(p))map.set(keyOf(p),p)});
+ (remote||[]).forEach(r=>{if(r.archivedAt)return;const k=keyOf(r),old=map.get(k);if(!old){map.set(k,r);return}
   const localTime=Date.parse(old.updatedAt||old.createdAt||0)||0,remoteTime=Date.parse(r.updatedAt||0)||0;
   const hasLocalClinicalData=['attentions','generalNotes','emergency','photo','company','companyId','journeyId','testIds','testStatuses','notes','module','journeyHistory'].some(k=>old[k]!=null);
   const winner=!r.cloudDataPresent&&hasLocalClinicalData?old:(remoteTime>localTime?r:old),other=winner===r?old:r;
@@ -64,13 +68,37 @@ function merge(local,remote){
  return Array.from(map.values());
 }
 async function fetchAll(){
- const {data,error}=await client.from(TABLE).select('id,legacy_id,document_number,first_name,last_name,birth_date,sex,phone,email,address,app_data,updated_at').eq('workspace_id',workspaceId).order('updated_at',{ascending:false}).limit(5000);
+ const {data,error}=await client.from(TABLE).select('id,legacy_id,document_number,first_name,last_name,birth_date,sex,phone,email,address,app_data,updated_at,archived_at').eq('workspace_id',workspaceId).order('updated_at',{ascending:false}).limit(5000);
  if(error)throw error;return(data||[]).map(fromRow);
 }
 async function pushOne(p){
  const data=payloadOf(p),result=await client.rpc('sync_workspace_patient',{p_workspace_id:workspaceId,p_legacy_id:String(p.id||''),p_data:data});
  if(result.error)throw result.error;const row=Array.isArray(result.data)?result.data[0]:result.data;
  if(row){p.cloudPatientId=row.patient_id;p.updatedAt=row.updated_at||data.updatedAt}
+}
+async function archivePatient(patientId){
+ const auth=window.FleboAuth,m=auth?.membership;
+ if(!auth?.user||m?.role!=='admin'||m?.active!==true||m.workspace_id!==workspaceId)
+  throw new Error('Solo el administrador puede eliminar pacientes.');
+ if(!ready||!client||!workspaceId||!navigator.onLine)
+  throw new Error('Se requiere una conexión activa con la nube.');
+ const current=(app()?.patients||[]).find(p=>String(p.id)===String(patientId));
+ if(!current)throw new Error('No se encontró el paciente en el sistema.');
+ const cloudId=/^[a-f\d]{8}-[a-f\d]{4}-[1-8][a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i.test(String(current.cloudPatientId||''))
+  ?current.cloudPatientId:null;
+ const {data,error}=await client.rpc('archive_workspace_patient',{
+  p_workspace_id:workspaceId,p_patient_id:cloudId,p_legacy_id:String(current.id)
+ });
+ if(error)throw error;
+ if(data!==true)throw new Error('El servidor no confirmó el archivado.');
+ const removedKey=keyOf(current);
+ pendingKeys.delete(removedKey);lastContent.delete(removedKey);
+ const remaining=(app()?.patients||[]).filter(p=>keyOf(p)!==removedKey&&String(p.id)!==String(current.id));
+ saveList(remaining);
+ if(typeof window.renderPatients==='function')window.renderPatients();
+ if(!busy)syncNow({remote:true});
+ else remoteRefreshQueued=true;
+ return true;
 }
 function saveList(list){
  const s=app();if(!s)return false;
@@ -216,5 +244,5 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine){if(ready)scheduleRemoteRefresh(250);else connect()}},40000);
 function boot(){if(window.FleboAuth&&window.FleboAuth.user)connect();else window.addEventListener('flebo:auth-changed',connect,{once:true})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else setTimeout(boot,0);
-window.FleboPatientCloud={syncNow,connect,get ready(){return ready},get workspaceId(){return workspaceId}};
+window.FleboPatientCloud={syncNow,connect,archivePatient,get ready(){return ready},get workspaceId(){return workspaceId}};
 })();
