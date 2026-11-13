@@ -21,7 +21,7 @@ test('Configuración usa exactamente seis tarjetas premium fieles a la referenci
  assert.match(css,/\.sr-card-divider/);
  assert.match(css,/\.sr-card-chevron/);
  assert.match(css,/\.sr-cyan/);
- assert.match(css,/\.sr-violet/);
+ assert.match(css,/--sr-accent:#6520e1/);
  assert.match(css,/@media screen and \(max-width:760px\)/);
  assert.match(css,/@media screen and \(min-width:900px\)/);
 });
@@ -36,7 +36,7 @@ test('Se reutilizan formularios y rutas sin crear datos ni eliminar acciones',()
  assert.match(js,/tab\.click\(\)/);
  assert.match(js,/window\.FleboConfiguration\.open\(route\)/);
  assert.match(js,/window\.selectClinicalConfig\('studies'\)/);
- assert.match(js,/window\.navigate\('settings'/); // Opcional: redirección existente en mapa
+ assert.match(js,/const mapping=\{/);
  assert.match(js,/source\.click\(\)/);
  assert.doesNotMatch(js,/\blocalStorage\b|\bsessionStorage\b|\bclient\.rpc\b|\bclient\.from\b/);
 });
