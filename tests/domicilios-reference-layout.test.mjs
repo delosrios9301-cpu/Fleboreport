@@ -41,7 +41,7 @@ test('todas las herramientas siguen disponibles y responsive sin cuadros grandes
  assert.match(dom,/appendChild\(tabs\)/);
  assert.match(dom,/appendChild\(actions\)/);
  assert.match(dom,/hv-ref-tools-open/);
- assert.match(dom,/id='hvRefNew'/);
+ assert.match(dom,/id="hvRefNew"/);
  assert.match(css,/#hvWorkspace > #hvKpis/);
  assert.match(css,/\.hv-premium-section-intro/);
  assert.match(css,/#hvAgendaPanel \.hv-premium-filters/);
