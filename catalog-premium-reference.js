@@ -84,12 +84,12 @@
     (filter==='vessel'&&row.dataset.cprVessel==='true');
    row.hidden=!display;if(display)shown++;
   }
-  const empty=v.querySelector('#cprFilterEmpty');
-  if(empty)empty.remove();
-  if(rows.length&&!shown){
-   const message=make('p','cpr-filter-empty','No hay pruebas que coincidan con este filtro.');
-   message.id='cprFilterEmpty';list.append(message);
+  let empty=v.querySelector('#cprFilterEmpty');
+  if(rows.length&&!shown&&!empty){
+   empty=make('p','cpr-filter-empty','No hay pruebas que coincidan con este filtro.');
+   empty.id='cprFilterEmpty';list.append(empty);
   }
+  if(empty)empty.hidden=!(rows.length&&!shown);
   const count=v.querySelector('.cpr-count-label');
   const native=v.querySelector('#catalogCount');
   if(count)count.textContent=(native?.textContent||rows.length)+' pruebas en el catálogo';
