@@ -17,10 +17,32 @@
   scan:icon('<path d="M4 9V5a1 1 0 0 1 1-1h4m6 0h4a1 1 0 0 1 1 1v4M4 15v4a1 1 0 0 0 1 1h4m6 0h4a1 1 0 0 0 1-1v-4"/>')
  };
  function motionReduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+ function ensureFieldVisible(field){
+  const scroller=field?.closest?.('.journey-entry-panel');
+  if(!scroller)return;
+  const targetRect=field.getBoundingClientRect();
+  const visibleRect=scroller.getBoundingClientRect();
+  const space=18;
+  if(targetRect.bottom>visibleRect.bottom-space)
+   scroller.scrollTop+=targetRect.bottom-visibleRect.bottom+space;
+  else if(targetRect.top<visibleRect.top+space)
+   scroller.scrollTop-=visibleRect.top+space-targetRect.top;
+ }
+ function updateWorkspaceViewport(){
+  const view=byId('view-journey');
+  if(!view?.classList.contains('jp-workspace-open'))return;
+  const viewport=window.visualViewport;
+  const occluded=viewport?Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop):0;
+  view.style.setProperty('--jp-keyboard-bottom',Math.ceil(occluded)+'px');
+  const active=document.activeElement;
+  if(active&&view.contains(active)&&active.closest?.('.journey-entry-panel'))
+   requestAnimationFrame(()=>ensureFieldVisible(active));
+ }
  function closeWorkspace(){
   const view=byId('view-journey');if(!view)return;
   view.classList.remove('jp-workspace-open');
   document.body.classList.remove('jp-workspace-modal-open');
+  view.style.removeProperty('--jp-keyboard-bottom');
   byId('jpJourneyActiveButton')?.focus({preventScroll:true});
  }
  function syncNavState(){
@@ -45,10 +67,16 @@
   if(!view)return;
   view.classList.add('jp-workspace-open');
   document.body.classList.add('jp-workspace-modal-open');
+  updateWorkspaceViewport();
   requestAnimationFrame(()=>{
    swipeToPane(mode==='patients'?1:0,false);
    const focusId=mode==='patient'?'journeyPatientName':mode==='identity'?'journeyPatientId':mode==='tests'?'journeyPatientTestSearch':null;
-   if(focusId)requestAnimationFrame(()=>byId(focusId)?.focus({preventScroll:true}));
+   if(focusId)requestAnimationFrame(()=>{
+    const field=byId(focusId);
+    if(!field)return;
+    ensureFieldVisible(field);
+    field.focus({preventScroll:true});
+   });
   });
  }
  function updatePreview(){
@@ -166,6 +194,10 @@
   if(chips)new MutationObserver(updatePreview).observe(chips,{childList:true,subtree:true,characterData:true});
   const inProgress=byId('journeyKpiInProgress');
   if(inProgress)new MutationObserver(updatePreview).observe(inProgress,{characterData:true,childList:true,subtree:true});
+  if(window.visualViewport){
+   window.visualViewport.addEventListener('resize',updateWorkspaceViewport,{passive:true});
+   window.visualViewport.addEventListener('scroll',updateWorkspaceViewport,{passive:true});
+  }
   updatePreview();syncNavState();
   new MutationObserver(syncNavState).observe(view,{attributes:true,attributeFilter:['class']});
  }
