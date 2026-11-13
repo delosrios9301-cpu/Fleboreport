@@ -237,12 +237,16 @@
   const scroll=node('div','crx-review-scroll');
   const identity=node('div','crx-review-subject');
   identity.append(svg('user'),node('span','','Número de sujeto'));
-  identity.append(node('strong','',sample.subjectCode||sample.subjectId||'—'));
+  const identityValue=node('strong','',sample.subjectCode||sample.subjectId||'—');
+  identity.append(identityValue);
   const status=node('span','crx-review-status');
   const details=node('div','crx-review-details');
+  const readValues=new Map();
   function field(label,value){
    const item=node('div','crx-review-field');
-   item.append(node('small','',label),node('strong','',value==null||String(value).trim()===''?'—':String(value)));
+   const strong=node('strong','',value==null||String(value).trim()===''?'—':String(value));
+   item.append(node('small','',label),strong);
+   readValues.set(label,strong);
    details.appendChild(item);
   }
   field('Estudio',study?[study.protocol,study.name].filter(Boolean).join(' · '):(sample.study||sample.studyId||'—'));
@@ -252,11 +256,11 @@
   field('Fecha y hora de recepción',reviewDateTime(sample.receivedAt,sample.date,sample.time));
   field('Tubos / recipientes',sample.tubes==null?'—':sample.tubes);
   field('Responsable de recepción',sample.receivedBy||'—');
-  if(sample.notes||sample.observations){
-   const note=node('div','crx-review-notes');
-   note.append(node('small','','Observaciones registradas'),node('p','',sample.notes||sample.observations));
-   scroll.appendChild(note);
-  }
+  const note=node('div','crx-review-notes');
+  const noteValue=node('p','',sample.notes||sample.observations||'');
+  note.append(node('small','','Observaciones registradas'),noteValue);
+  note.hidden=!(sample.notes||sample.observations);
+  scroll.appendChild(note);
   const guidance=node('p','crx-review-guidance','Confirma que el estudio, la visita, el tipo de muestra y las fechas corresponden al sujeto registrado.');
   scroll.prepend(identity,status,details,guidance);
   const feedback=node('p','crx-review-feedback');
@@ -264,11 +268,151 @@
   feedback.hidden=true;
   const actions=node('footer','crx-review-footer');
   const cancel=node('button','crx-review-cancel','Cerrar');cancel.type='button';
+  const editButton=node('button','crx-review-edit-trigger','Editar datos');editButton.type='button';
+  editButton.hidden=true;
   const approve=node('button','crx-review-approve','Aprobar y enviar a proceso');approve.type='button';
-  actions.append(cancel,approve);
+  actions.append(cancel,editButton,approve);
   card.append(hero,scroll,feedback,actions);
   overlay.appendChild(card);
-  let busy=false,closed=false;
+  let busy=false,closed=false,editMode=false,canEdit=false;
+  const editor=node('section','crx-review-editor');
+  editor.hidden=true;
+  const editorTitle=node('h3','','Modificar datos antes de aprobar');
+  const editorHint=node('p','crx-review-edit-hint',
+   'Verifica los valores correctos. El estudio permanece asociado al protocolo original.');
+  const editorGrid=node('div','crx-review-edit-grid');
+  function inputField(label,control,full){
+   const group=node('label','crx-review-edit-field');
+   if(full)group.classList.add('full');
+   group.append(node('span','',label),control);
+   editorGrid.appendChild(group);
+   return control;
+  }
+  const subjectInput=node('input','crx-review-edit-input');
+  subjectInput.type='text';subjectInput.required=true;subjectInput.maxLength=128;
+  inputField('Número de sujeto',subjectInput,true);
+  const visitInput=node('select','crx-review-edit-input');visitInput.required=true;
+  inputField('Visita',visitInput);
+  const sampleTypeInput=node('select','crx-review-edit-input');sampleTypeInput.required=true;
+  inputField('Tipo de muestra',sampleTypeInput);
+  const collectionInput=node('input','crx-review-edit-input');
+  collectionInput.type='datetime-local';collectionInput.required=true;
+  inputField('Fecha y hora de toma',collectionInput);
+  const receptionInput=node('input','crx-review-edit-input');
+  receptionInput.type='datetime-local';receptionInput.required=true;
+  inputField('Fecha y hora de recepción',receptionInput);
+  const tubesInput=node('input','crx-review-edit-input');
+  tubesInput.type='number';tubesInput.min='1';tubesInput.max='10000';
+  tubesInput.step='1';tubesInput.required=true;
+  inputField('Cantidad de recipientes',tubesInput);
+  const notesInput=node('textarea','crx-review-edit-input crx-review-edit-notes');
+  notesInput.rows=2;notesInput.maxLength=4000;
+  inputField('Observaciones de la muestra',notesInput,true);
+  const reasonInput=node('textarea','crx-review-edit-input crx-review-edit-reason');
+  reasonInput.rows=2;reasonInput.required=true;reasonInput.minLength=5;
+  reasonInput.placeholder='Indica qué dato se corrigió y por qué';
+  inputField('Motivo de la corrección (obligatorio)',reasonInput,true);
+  editor.append(editorTitle,editorHint,editorGrid);
+  scroll.insertBefore(editor,notesInput.isConnected?null:note);
+  const setText=(label,value)=>{
+   const el=readValues.get(label);
+   if(el)el.textContent=value==null||String(value).trim()===''?'—':String(value);
+  };
+  function updateReadOnly(){
+   const fresh=reviewSample(sampleId);
+   if(!fresh)return;
+   const appNow=data()||{};
+   const studyNow=(appNow.clinicalStudies||[]).find(x=>String(x.id)===String(fresh.studyId));
+   identityValue.textContent=fresh.subjectCode||'—';
+   setText('Estudio',studyNow?[studyNow.protocol,studyNow.name].filter(Boolean).join(' · '):fresh.studyId);
+   setText('Visita',fresh.visit||'—');
+   setText('Tipo de muestra',fresh.sampleType||'—');
+   setText('Fecha y hora de toma',reviewDateTime(fresh.collectedAt,fresh.collectionDate,fresh.collectionTime));
+   setText('Fecha y hora de recepción',reviewDateTime(fresh.receivedAt,fresh.date,fresh.time));
+   setText('Tubos / recipientes',fresh.tubes);
+   setText('Responsable de recepción',fresh.receivedBy||'—');
+   noteValue.textContent=fresh.notes||'';
+   note.hidden=!fresh.notes;
+  }
+  function populateEditor(){
+   const fresh=reviewSample(sampleId);
+   if(!fresh)return false;
+   const appNow=data()||{};
+   const list=(items)=>Array.isArray(items)?items.filter(item=>
+    String(item.studyId)===String(fresh.studyId)&&item.active!==false&&item.cloudId):[];
+   const fillSelect=(select,items,current)=>{
+    select.replaceChildren();
+    for(const item of items){
+     const opt=node('option','',([item.code,item.name].filter(Boolean).join(' · ')||item.name||'Sin nombre'));
+     opt.value=String(item.id);
+     select.appendChild(opt);
+    }
+    select.value=String(current||'');
+   };
+   fillSelect(visitInput,list(appNow.clinicalVisits),fresh.visitId);
+   fillSelect(sampleTypeInput,list(appNow.clinicalSampleTypes),fresh.sampleTypeId);
+   subjectInput.value=fresh.subjectCode||'';
+   collectionInput.value=localInputTime(fresh.collectedAt);
+   receptionInput.value=localInputTime(fresh.receivedAt);
+   tubesInput.value=String(fresh.tubes||'');
+   notesInput.value=fresh.notes||'';
+   reasonInput.value='';
+   return !!visitInput.value&&!!sampleTypeInput.value&&!!collectionInput.value&&!!receptionInput.value;
+  }
+  function toggleEditor(active){
+   editMode=active;
+   editor.hidden=!active;
+   details.hidden=active;
+   guidance.hidden=active;
+   note.hidden=active||!noteValue.textContent;
+   approve.hidden=active;
+   cancel.textContent=active?'Cancelar edición':'Cerrar';
+   editButton.textContent=active?'Guardar correcciones':'Editar datos';
+   refreshModal();
+  }
+  async function saveReviewEdits(){
+   if(busy||!editMode||!canEdit)return;
+   const cloud=window.FleboClinicalCloud;
+   const fresh=reviewSample(sampleId);
+   if(!fresh||!['REGISTRADO','EN_REVISION'].includes(stateOf(fresh))){
+    message('La muestra avanzó de etapa. Actualiza la ficha antes de continuar.',true);return;
+   }
+   const appNow=data()||{};
+   const visit=(appNow.clinicalVisits||[]).find(x=>String(x.id)===visitInput.value&&
+    String(x.studyId)===String(fresh.studyId)&&x.active!==false);
+   const type=(appNow.clinicalSampleTypes||[]).find(x=>String(x.id)===sampleTypeInput.value&&
+    String(x.studyId)===String(fresh.studyId)&&x.active!==false);
+   const subject=subjectInput.value.trim();
+   const tubes=Number(tubesInput.value);
+   const collectionAt=new Date(collectionInput.value);
+   const receptionAt=new Date(receptionInput.value);
+   const reason=reasonInput.value.trim();
+   if(!subject||!visit?.cloudId||!type?.cloudId||!collectionInput.value||!receptionInput.value||
+    !Number.isInteger(tubes)||tubes<1||tubes>10000||!Number.isFinite(collectionAt.getTime())||
+    !Number.isFinite(receptionAt.getTime())){
+    message('Completa sujeto, visita, tipo, fechas y cantidad válida de recipientes.',true);return;
+   }
+   if(receptionAt<collectionAt){message('La recepción no puede ser anterior a la toma.',true);return;}
+   if(reason.length<5){message('Indica el motivo de corrección (al menos cinco caracteres).',true);return;}
+   if(!cloud?.ready||typeof cloud.correctReviewSample!=='function'){
+    message('No hay conexión con el registro clínico en la nube.',true);return;
+   }
+   busy=true;editButton.disabled=true;cancel.disabled=true;closeButton.disabled=true;
+   message('Guardando correcciones en Supabase...');
+   try{
+    await cloud.correctReviewSample(fresh,{
+     subjectCode:subject,visit,sampleType:type,collectedAt:collectionAt.toISOString(),
+     receivedAt:receptionAt.toISOString(),tubes,notes:notesInput.value,reason
+    });
+    busy=false;cancel.disabled=false;closeButton.disabled=false;
+    updateReadOnly();toggleEditor(false);
+    message('Correcciones guardadas y auditadas. Verifica los datos antes de aprobar.');
+   }catch(e){
+    busy=false;cancel.disabled=false;closeButton.disabled=false;
+    message(e?.message||'No se pudieron guardar los cambios.',true);
+    refreshModal();
+   }
+  }
   const handleKeys=e=>{
    if(e.key==='Escape'&&!busy){e.preventDefault();dismiss();}
    if(e.key!=='Tab')return;
@@ -296,7 +440,9 @@
     return false;
    }
    status.textContent=phase==='EN_REVISION'?'En revisión':'Registrada';
-   approve.disabled=busy||phase!=='EN_REVISION'||!reviewAllowed();
+   approve.disabled=busy||editMode||phase!=='EN_REVISION'||!reviewAllowed();
+   editButton.disabled=busy;
+   editButton.hidden=!canEdit;
    return true;
   }
   async function transition(next,notes){
@@ -314,7 +460,7 @@
    return !!confirmed&&stateOf(confirmed)===target;
   }
   approve.addEventListener('click',async()=>{
-   if(busy||!refreshModal())return;
+   if(busy||editMode||!refreshModal()||approve.disabled)return;
    busy=true;approve.disabled=true;cancel.disabled=true;closeButton.disabled=true;
    message('Confirmando aprobación con el sistema...');
    try{
@@ -329,12 +475,35 @@
    }
   });
   closeButton.addEventListener('click',dismiss);
-  cancel.addEventListener('click',dismiss);
+  cancel.addEventListener('click',()=>{
+   if(busy)return;
+   if(editMode){toggleEditor(false);message('Edición cancelada; no se guardaron cambios.');}
+   else dismiss();
+  });
+  editButton.addEventListener('click',()=>{
+   if(busy||!canEdit)return;
+   if(editMode){saveReviewEdits();return;}
+   if(!populateEditor()){
+    message('Faltan visitas, tipos de muestra o fechas sincronizadas. Actualiza el catálogo.',true);return;
+   }
+   message('');toggleEditor(true);subjectInput.focus({preventScroll:true});
+  });
   overlay.addEventListener('click',e=>{if(e.target===overlay)dismiss();});
   document.body.appendChild(overlay);
   document.addEventListener('keydown',handleKeys);
   refreshModal();
   closeButton.focus({preventScroll:true});
+  Promise.resolve().then(async()=>{
+   const cloud=window.FleboClinicalCloud;
+   if(!cloud?.ready||typeof cloud.getReviewEditPermission!=='function')return false;
+   return await cloud.getReviewEditPermission();
+  }).then(ok=>{
+   if(closed||!overlay.isConnected)return;
+   canEdit=ok===true;
+   refreshModal();
+  }).catch(e=>{
+   console.warn('[FleboReport] No se pudieron verificar permisos de edición clínica:',e);
+  });
   if(current==='REGISTRADO'){
    busy=true;cancel.disabled=true;closeButton.disabled=true;approve.disabled=true;
    message('Registrando el inicio de revisión...');
