@@ -7,11 +7,11 @@ const [html,css,js,sw,shortcuts]=await Promise.all([
  file('service-worker.js'),file('variant-c-compact.js')
 ]);
 test('Inicio v300 se publica como ultima capa, tambien para PWA sin eliminar modulos',()=>{
- assert.ok(html.includes('inicio-premium.css?v=20261113-inicio2'));
+ assert.ok(html.includes('inicio-premium.css?v=20261113-inicio3'));
  assert.ok(html.includes('inicio-premium.js?v=20261113-inicio1'));
  assert.ok(html.lastIndexOf('inicio-premium.css')>html.lastIndexOf('jornada-premium.css'));
  assert.ok(html.lastIndexOf('inicio-premium.js')>html.lastIndexOf('variant-c-compact.js'));
- assert.ok(sw.includes('fleboreport-shell-v301'));
+ assert.ok(sw.includes('fleboreport-shell-v302'));
  assert.ok(sw.includes("'./inicio-premium.css'"));
  assert.ok(sw.includes("'./inicio-premium.js'"));
 });
@@ -58,9 +58,11 @@ test('Presentacion solamente; no toca datos clinicos ni permisos',()=>{
 
 test('v301: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
  assert.match(html,/inicio-premium\.css\?v=20261113-inicio2/);
- assert.match(sw,/fleboreport-shell-v301/);
+ assert.match(sw,/fleboreport-shell-v302/);
  assert.match(css,/\.hp-donuts-group \.op-donut::after/);
- assert.match(css,/inset:33%!important/);
+ assert.match(css,/inset:13%!important/);
+ assert.ok(!css.includes('inset:33%!important'), 'No volver a estrechar el hueco central');
+ assert.ok((100-2*13)>=70,'El hueco circular debe ocupar al menos 70% del diámetro');
  assert.match(css,/width:min\(120px,94%\)!important/);
  assert.match(css,/drop-shadow\(0 3px 5px rgba\(65,38,138,\.12\)\)/);
  assert.match(html,/function dashDonut\(entries,centerLabel\)/);

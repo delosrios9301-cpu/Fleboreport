@@ -850,8 +850,8 @@ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashSys
  }
  body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
  #view-home .hp-donuts-group .op-donut::after{
-  /* Antes inset:25%; mayor apertura = aro 32% más fino. */
-  inset:33%!important;
+  /* Un inset menor crea un hueco mayor: 74% del diámetro interior, aro del 13%. */
+  inset:13%!important;
   border-radius:50%!important;
   background:linear-gradient(160deg,#fff 15%,#fcfaff 100%)!important;
   box-shadow:0 1px 4px rgba(47,29,104,.07),inset 0 0 0 1px rgba(255,255,255,.96)!important;
