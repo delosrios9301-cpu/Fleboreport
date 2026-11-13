@@ -469,11 +469,25 @@
  }
  function matchSampleForRow(row){
   const tds=row.children,subject=tds[0]?.querySelector('strong')?.textContent.trim()||'';
-  const first=tds[7]?.querySelector('button:not(.danger)');
-  const m=first?.getAttribute('onclick')?.match(/\(['"]([^'"]+)['"]\)/);
+  const command=tds[7]?.querySelector('button[onclick]');
+  const m=command?.getAttribute('onclick')?.match(/\(['"]([^'"]+)['"]\)/);
   const samples=data()?.clinicalSamples||[];
   if(m)return samples.find(s=>String(s.id)===m[1]||String(s.cloudId)===m[1])||null;
-  const matches=samples.filter(s=>String(s.subjectCode||'')===subject&&stateOf(s)==='CONGELADOR_DEFINITIVO');
+  // Algunos permisos no muestran acciones originales: resolver por campos
+  // de la fila y exigir coincidencia única para evitar editar otro tubo.
+  const rowStudy=String(tds[0]?.firstChild?.textContent||'').trim();
+  const visitType=String(tds[1]?.textContent||'');
+  const rowSubject=subject;
+  const studyList=data()?.clinicalStudies||[];
+  const matches=samples.filter(s=>{
+   if(String(s.subjectCode||'')!==rowSubject||!storedSample(s))return false;
+   const study=studyList.find(st=>String(st.id)===String(s.studyId));
+   const title=study?[study.protocol,study.name].filter(Boolean).join(' · '):'';
+   if(title&&rowStudy&&title!==rowStudy)return false;
+   if(s.visit&&!visitType.includes(s.visit))return false;
+   if(s.sampleType&&!visitType.includes(s.sampleType))return false;
+   return true;
+  });
   return matches.length===1?matches[0]:null;
  }
  function showSampleDetails(row,sample){
@@ -820,14 +834,19 @@
   const kpiValue=get('clinicalQueueKpiReceived');
   if(kpiValue)new MutationObserver(()=>{const pill=get('crxPendingCount');if(pill)pill.textContent=kpiValue.textContent;}).observe(kpiValue,{childList:true,characterData:true,subtree:true});
  }
- let permissionRetries=0;
+ let permissionRetries=0,permissionRetryTimer=null;
+ function pollPermissions(){
+  if(window.FleboClinicalCloud?.ready){permissionRetries=0;loadManagementPermissions();return;}
+  if(permissionRetries>=12)return;
+  permissionRetries+=1;
+  clearTimeout(permissionRetryTimer);
+  permissionRetryTimer=setTimeout(pollPermissions,700);
+ }
  function boot(){
   initStudies();initProcessing();
   management={can_edit:false,can_delete:false};
   renderProcessingCards();
-  loadManagementPermissions();
-  if(!window.FleboClinicalCloud?.ready&&permissionRetries++<8)
-   setTimeout(loadManagementPermissions,700+permissionRetries*400);
+  pollPermissions();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
