@@ -107,9 +107,9 @@ test('Visual aprobado: KPI 2x2, búsqueda fuera del listado, filas horizontales 
  assert.match(css,/\.pp-activity-test/);
  assert.match(css,/@media screen and \(max-width:760px\)/);
  assert.match(css,/@media screen and \(max-width:360px\)/);
- assert.match(html,/patients-activity-model\.js\?v=20261113-patient6/);
- assert.match(html,/patients-activity-ui\.js\?v=20261113-patient6/);
- assert.match(html,/patients-activity-ui\.css\?v=20261113-patient6/);
+ assert.match(html,/patients-activity-model\.js\?v=20261113-patient7/);
+ assert.match(html,/patients-activity-ui\.js\?v=20261113-patient7/);
+ assert.match(html,/patients-activity-ui\.css\?v=20261113-patient7/);
  assert.match(sw,/fleboreport-shell-v322/);
  for(const path of ['patients-activity-model.js','patients-activity-ui.js','patients-activity-ui.css'])
   assert.ok(sw.includes("'./"+path+"'"),'Falta precache '+path);

@@ -123,7 +123,7 @@
    });
    const frag=document.createDocumentFragment();
    for(const person of rows){
-    const card=mk('article','pp-directory-card pp-integrated-card');
+    const card=mk('article','pp-directory-card pp-integrated-card pp-patient-ribbon');
     card.dataset.patientId=person.id;
     const avatar=elementIcon('user','pp-directory-avatar');
     const info=mk('div','pp-directory-info');
@@ -136,7 +136,7 @@
     info.append(last);
     const visits=mk('div','pp-patient-visits');
     visits.append(mk('span','','Atenciones'),mk('strong','',person.visits));
-    const open=control('Ver expediente ›','pp-open-patient',()=>{
+    const open=control('Ver expediente','pp-open-patient',()=>{
      const successful=window.FleboPatientsPremium?.openPatientRecord?.(person.id);
      if(!successful)window.toast?.('No fue posible abrir el expediente de este paciente.');
     });
