@@ -46,7 +46,7 @@ test('Versiones y sintaxis',()=>{
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical3/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical2/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync3/);
- assert.match(sw,/fleboreport-shell-v305/);
+ assert.match(sw,/fleboreport-shell-v306/);
  assert.doesNotThrow(()=>new Function(ui));
  assert.doesNotThrow(()=>new Function(cloud));
 });
