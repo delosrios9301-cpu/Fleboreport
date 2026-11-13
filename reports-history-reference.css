@@ -557,7 +557,15 @@
   display:block!important;overflow:visible!important;max-height:none!important;
   border:0!important;box-shadow:none!important;margin:0!important;padding:0!important;
  }
- #view-audit.rhr-ready .rhr-audit-shell{display:none!important}
+ #view-audit.rhr-ready .rhr-audit-shell{display:block!important;overflow:visible!important}
+ #view-audit.rhr-ready .rhr-title,
+ #view-audit.rhr-ready .rhr-history-search,
+ #view-audit.rhr-ready .rhr-history-chips,
+ #view-audit.rhr-ready .rhr-audit-recent,
+ #view-audit.rhr-ready #auditArchivedReports,
+ #view-audit.rhr-ready #reportHistoryPreview{display:none!important}
+ #view-audit.rhr-ready .rhr-history-advanced,
+ #view-audit.rhr-ready .rhr-history-advanced>.page-heading{display:block!important}
  #view-audit.rhr-ready .audit-table-wrap{display:block!important}
  #view-audit.rhr-ready .audit-table-wrap .audit-table{min-width:0!important}
 }
