@@ -11,7 +11,7 @@ test('El rediseño se carga después del procesamiento original y se publica en 
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical5/);
  assert.ok(html.lastIndexOf('clinical-reference-panels.js')>html.lastIndexOf('clinical-processing-simple.js'));
  assert.ok(html.lastIndexOf('clinical-reference-panels.css')>html.lastIndexOf('inicio-premium.css'));
- assert.match(sw,/fleboreport-shell-v312/);
+ assert.match(sw,/fleboreport-shell-v313/);
  assert.ok(sw.includes("'./clinical-reference-panels.css'"));
  assert.ok(sw.includes("'./clinical-reference-panels.js'"));
 });
