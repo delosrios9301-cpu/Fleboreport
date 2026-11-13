@@ -573,3 +573,37 @@
  #view-reports.rhr-ready button,
  #view-audit.rhr-ready button{transition:none!important;animation:none!important}
 }
+
+
+/* La tabla, los indicadores y el archivo de auditoría permanecen accesibles
+   debajo de la presentación premium, sin mostrar dos portadas duplicadas. */
+@media screen{
+ body.fr2-app-authorized #view-audit.rhr-ready>.audit-stats{display:none!important}
+ body.fr2-app-authorized #view-audit.rhr-ready .rhr-history-advanced>.audit-stats{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:9px!important;min-width:0!important;margin:10px 12px!important;
+ }
+ body.fr2-app-authorized #view-audit.rhr-ready>.rhr-archive-disclosure{
+  display:block!important;margin:16px 0!important;
+  border:1px solid #d9caf2!important;border-radius:19px!important;
+  background:linear-gradient(155deg,#fff,#faf6ff)!important;
+  box-shadow:0 5px 12px #55368d21!important;overflow:hidden!important;
+ }
+ body.fr2-app-authorized #view-audit.rhr-ready>.rhr-archive-disclosure>summary{
+  padding:14px 17px!important;cursor:pointer!important;color:#5733a2!important;
+  font-size:13px!important;font-weight:830!important;min-height:51px!important;
+ }
+ body.fr2-app-authorized #view-audit.rhr-ready>.rhr-archive-disclosure>#auditArchivedReports{
+  margin:0!important;border:0!important;border-top:1px solid #e5d8f5!important;
+  border-radius:0!important;box-shadow:none!important;
+ }
+}
+@media screen and (max-width:480px){
+ body.fr2-app-authorized #view-audit.rhr-ready .rhr-history-advanced>.audit-stats{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+@media print{
+ #view-audit.rhr-ready .rhr-history-advanced>.audit-stats,
+ #view-audit.rhr-ready>.rhr-archive-disclosure{display:none!important}
+}
