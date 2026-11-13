@@ -11,7 +11,7 @@ const files={
 test('Variante C es la última capa de presentación de FleboReport',()=>{
  const {html,sw}=files;
  assert.match(html,/variant-c-compact.css\?v=20261112-vc1/);
- assert.match(html,/variant-c-compact.js\?v=20261113-vc2/);
+ assert.match(html,/variant-c-compact.js\?v=20261113-vc3/);
  assert.ok(html.lastIndexOf('variant-c-compact.css')>html.lastIndexOf('clinical-modern-workspace.css'));
  assert.ok(html.lastIndexOf('variant-c-compact.js')>html.lastIndexOf('clinical-modern-workspace.js'));
  assert.match(sw,/fleboreport-shell-v322/);
@@ -35,7 +35,7 @@ test('accesos rápidos usan la navegación ya autorizada, nunca generan jornadas
  assert.match(js,/for\(const key of \['journey','patients','domicilios','clinical-studies','clinical-processing','audit','reports','settings'\]\)/);
  assert.match(js,/if\(!permitted\(key\)\)return/);
  assert.match(js,/source\.click\(\)/);
- assert.match(js,/button\.hidden=!permitted\(button\.dataset\.vcNav\)/);
+ assert.match(js,/button\.hidden!==hide\)button\.hidden=hide/);
  assert.doesNotMatch(js,/newJourney\(|supabase|localStorage|sessionStorage|\.insert\(|\.update\(/i);
  assert.doesNotThrow(()=>new Function(js));
 });
