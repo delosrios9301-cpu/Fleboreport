@@ -278,6 +278,8 @@
   const summary=el('summary','','Filtros avanzados y exportación');
   advanced.append(summary);
   advanced.append(header);
+  const stats=view.querySelector(':scope > .audit-stats');
+  if(stats)advanced.append(stats);
   advanced.append(filters);
   if(rootPanel.querySelector('.form-actions'))advanced.append(rootPanel.querySelector('.form-actions'));
   const error=$('auditGeneralError'),empty=$('auditGeneralEmpty');
@@ -285,6 +287,13 @@
   if(empty)advanced.append(empty);
   shell.append(advanced);
   rootPanel.insertBefore(shell,rootPanel.firstChild);
+  const archive=$('auditArchivedReports');
+  const preview=$('reportHistoryPreview');
+  if(archive&&!archive.closest('.rhr-archive-disclosure')){
+   const disclosure=el('details','rhr-archive-disclosure');
+   disclosure.append(el('summary','','Reportes de jornada archivados'),archive);
+   view.insertBefore(disclosure,preview||null);
+  }
   view.classList.add('rhr-ready');
   auditReady=true;
   const observer=new MutationObserver(renderAuditCards);
