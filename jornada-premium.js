@@ -16,19 +16,40 @@
   chevron:icon('<path d="m9 5 7 7-7 7"/>'),
   scan:icon('<path d="M4 9V5a1 1 0 0 1 1-1h4m6 0h4a1 1 0 0 1 1 1v4M4 15v4a1 1 0 0 0 1 1h4m6 0h4a1 1 0 0 0 1-1v-4"/>')
  };
+ function motionReduced(){return !!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);}
+ function closeWorkspace(){
+  const view=byId('view-journey');if(!view)return;
+  view.classList.remove('jp-workspace-open');
+  document.body.classList.remove('jp-workspace-modal-open');
+  byId('jpJourneyActiveButton')?.focus({preventScroll:true});
+ }
  function syncNavState(){
   const view=byId('view-journey');
-  document.body.classList.toggle('jp-journey-active',!!(view&&view.classList.contains('active')));
+  const active=!!(view&&view.classList.contains('active'));
+  document.body.classList.toggle('jp-journey-active',active);
+  if(!active&&view?.classList.contains('jp-workspace-open'))closeWorkspace();
+ }
+ function swipeToPane(index,animate=true){
+  const layout=byId('view-journey')?.querySelector('.journey-layout');
+  if(!layout)return;
+  const maxIndex=Math.max(0,layout.children.length-1);
+  const next=Math.max(0,Math.min(index,maxIndex));
+  layout.scrollTo({left:next*layout.clientWidth,behavior:animate&&!motionReduced()?'smooth':'auto'});
+  const label=byId('jpSwipePage');if(label)label.textContent=(next+1)+' / '+(maxIndex+1);
+  const prev=byId('jpSwipePrev'),right=byId('jpSwipeNext');
+  if(prev)prev.disabled=next===0;
+  if(right)right.disabled=next===maxIndex;
  }
  function openWorkspace(mode){
   const view=byId('view-journey');
   if(!view)return;
   view.classList.add('jp-workspace-open');
-  const entry=mode==='patient'||mode==='tests';
-  const target=entry?view.querySelector('.journey-entry-panel'):mode==='patients'?view.querySelector('.journey-list-panel'):view.querySelector('.journey-tests-panel');
-  if(target)requestAnimationFrame(()=>target.scrollIntoView({behavior:window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));
-  if(mode==='patient')requestAnimationFrame(()=>byId('journeyPatientName')?.focus({preventScroll:true}));
-  if(mode==='tests')requestAnimationFrame(()=>byId('journeyPatientTestSearch')?.focus({preventScroll:true}));
+  document.body.classList.add('jp-workspace-modal-open');
+  requestAnimationFrame(()=>{
+   swipeToPane(mode==='patients'?1:0,false);
+   const focusId=mode==='patient'?'journeyPatientName':mode==='identity'?'journeyPatientId':mode==='tests'?'journeyPatientTestSearch':null;
+   if(focusId)requestAnimationFrame(()=>byId(focusId)?.focus({preventScroll:true}));
+  });
  }
  function updatePreview(){
   const chips=byId('journeySelectedTestChips');
@@ -69,19 +90,21 @@
    if(kpiIcons[index])node.innerHTML=kpiIcons[index];
   });
   const active=document.createElement('button');
-  active.type='button';active.className='jp-active-card';
+  active.type='button';active.className='jp-active-card';active.id='jpJourneyActiveButton';
   active.setAttribute('aria-label','Ver controles de la jornada activa');
   active.innerHTML='<span class="jp-action-icon jp-active-icon">'+icons.active+'</span><span class="jp-action-copy"><strong>Jornada activa</strong><small id="jpJourneyCurrentLabel">Jornada en curso</small></span><span class="jp-current-status"><i></i> En curso</span><span class="jp-action-chevron">'+icons.chevron+'</span>';
-  active.addEventListener('click',()=>openWorkspace('patient'));
+  active.addEventListener('click',()=>openWorkspace('overview'));
   kpis.insertAdjacentElement('afterend',active);
   const actions=document.createElement('div');actions.className='jp-actions';
   const search=makeCard(()=>openWorkspace('patient'),'Buscar paciente','Nombre, cédula o identificación',icons.search,'search');
   actions.appendChild(search);
-  const identity=document.createElement('section');
-  identity.className='jp-identity-card jp-aqua';
-  identity.innerHTML='<span class="jp-action-icon">'+icons.id+'</span><div class="jp-identity-content"></div><span class="jp-scan-mark" aria-hidden="true">'+icons.scan+'</span>';
-  const identityContent=identity.querySelector('.jp-identity-content');
-  identityContent.appendChild(idField);
+  // La cédula es la clave única del paciente. Nunca mover el input original
+  // fuera del formulario: registrar o buscar necesita nombre + identificación.
+  const identity=document.createElement('button');
+  identity.type='button';identity.className='jp-identity-card jp-aqua';
+  identity.setAttribute('aria-label','Abrir registro para ingresar cédula o identificación');
+  identity.innerHTML='<span class="jp-action-icon">'+icons.id+'</span><span class="jp-action-copy jp-identity-content"><strong>Cédula / identificación</strong><small>Ingresa el número único del paciente</small></span><span class="jp-action-chevron">'+icons.chevron+'</span>';
+  identity.addEventListener('click',()=>openWorkspace('identity'));
   const input=byId('journeyPatientId');
   if(input){input.placeholder='Ingresa la cédula o identificación';input.setAttribute('aria-label','Cédula o identificación del paciente');}
   actions.appendChild(identity);
@@ -102,13 +125,37 @@
   details.appendChild(summary);
   details.appendChild(oldHeading);
   layout.insertAdjacentElement('afterend',details);
+  const backdrop=document.createElement('div');
+  backdrop.className='jp-swipe-backdrop';
+  backdrop.setAttribute('aria-hidden','true');
+  backdrop.addEventListener('click',closeWorkspace);
+  layout.insertAdjacentElement('beforebegin',backdrop);
+  const swipeHeader=document.createElement('nav');
+  swipeHeader.className='jp-swipe-header';
+  swipeHeader.setAttribute('aria-label','Controles del espacio de jornada');
+  swipeHeader.innerHTML='<button class="jp-swipe-close" type="button" aria-label="Cerrar espacio de jornada">×</button><span class="jp-swipe-heading"><strong>Jornada activa</strong><small>Desliza a los lados para cambiar de sección</small></span><button class="jp-swipe-arrow" id="jpSwipePrev" type="button" aria-label="Sección anterior">‹</button><span id="jpSwipePage" aria-live="polite">1 / 2</span><button class="jp-swipe-arrow" id="jpSwipeNext" type="button" aria-label="Siguiente sección">›</button>';
+  backdrop.insertAdjacentElement('afterend',swipeHeader);
+  swipeHeader.querySelector('.jp-swipe-close').addEventListener('click',closeWorkspace);
+  byId('jpSwipePrev').addEventListener('click',()=>swipeToPane(Math.round(layout.scrollLeft/Math.max(layout.clientWidth,1))-1));
+  byId('jpSwipeNext').addEventListener('click',()=>swipeToPane(Math.round(layout.scrollLeft/Math.max(layout.clientWidth,1))+1));
+  let swipeTick=false;
+  layout.addEventListener('scroll',()=>{
+   if(swipeTick)return;swipeTick=true;
+   requestAnimationFrame(()=>{
+    swipeTick=false;
+    const current=Math.round(layout.scrollLeft/Math.max(layout.clientWidth,1));
+    const label=byId('jpSwipePage'),prev=byId('jpSwipePrev'),next=byId('jpSwipeNext');
+    if(label)label.textContent=(current+1)+' / '+layout.children.length;
+    if(prev)prev.disabled=current===0;
+    if(next)next.disabled=current===layout.children.length-1;
+   });
+  },{passive:true});
+  layout.setAttribute('role','region');
+  layout.setAttribute('aria-label','Registro y seguimiento de la jornada, deslizable horizontalmente');
   const workspaceToggle=document.createElement('button');
   workspaceToggle.type='button';workspaceToggle.className='jp-collapse-workspace';
   workspaceToggle.textContent='Cerrar detalles de jornada';
-  workspaceToggle.addEventListener('click',()=>{
-   view.classList.remove('jp-workspace-open');
-   heading.scrollIntoView({behavior:'auto',block:'start'});
-  });
+  workspaceToggle.addEventListener('click',closeWorkspace);
   layout.insertAdjacentElement('afterend',workspaceToggle);
   const chips=byId('journeySelectedTestChips');
   if(chips)new MutationObserver(updatePreview).observe(chips,{childList:true,subtree:true,characterData:true});
