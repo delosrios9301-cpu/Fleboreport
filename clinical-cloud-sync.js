@@ -436,6 +436,36 @@ async function registerSample(sample){
   throw new Error('Falló '+stage+': '+(error&&error.message?error.message:String(error)));
  }
 }
+async function getReviewEditPermission(){
+ requireReady(['admin','clinician','reception']);
+ const response=await client.rpc('clinical_review_edit_permission',{p_workspace_id:workspaceId});
+ if(response.error)fail(response.error);
+ const result=Array.isArray(response.data)?response.data[0]:response.data;
+ return result?.can_edit===true;
+}
+async function correctReviewSample(sample,changes){
+ requireReady(['admin','clinician','reception']);
+ if(!sample?.cloudId)throw new Error('La muestra no está vinculada al registro de Supabase.');
+ if(!['REGISTRADO','EN_REVISION'].includes(sample.workflowStatus))
+  throw new Error('Solo es posible editar la muestra antes de aprobarla.');
+ if(!changes?.visit?.cloudId||!changes?.sampleType?.cloudId)
+  throw new Error('Selecciona una visita y un tipo de muestra válidos y sincronizados.');
+ const result=await client.rpc('correct_clinical_sample_in_review',{
+  p_workspace_id:workspaceId,p_sample_id:sample.cloudId,
+  p_subject_code:String(changes.subjectCode||'').trim(),
+  p_visit_id:changes.visit.cloudId,p_sample_type_id:changes.sampleType.cloudId,
+  p_collection_at:changes.collectedAt,p_received_at:changes.receivedAt,
+  p_container_count:Number(changes.tubes),p_notes:String(changes.notes||''),
+  p_reason:String(changes.reason||'').trim(),
+  p_expected_updated_at:sample.updatedAt||null
+ });
+ if(result.error)fail(result.error);
+ const data=Array.isArray(result.data)?result.data[0]:result.data;
+ if(data?.ok!==true||data.status!==sample.workflowStatus)
+  throw new Error('Supabase no confirmó las correcciones o el estado cambió.');
+ await refreshSamples();
+ return data;
+}
 async function getManagementPermissions(){
  requireReady();
  const result=await client.rpc('clinical_sample_management_permissions',{p_workspace_id:workspaceId});
@@ -527,7 +557,7 @@ async function syncStorageConfiguration(){
  return true;
 }
 async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);if(syncPromise){await syncPromise;return true}clinicalSyncCursor=null;await loadRemoteConfiguration();await loadRemoteSamples();lastClinicalFullVerificationAt=Date.now();lastClinicalConfigVerificationAt=Date.now();refreshClinicalViewSafely();scheduleClinicalPoll(20000);return true;}
-window.FleboClinicalCloud={connect,getManagementPermissions,correctSample:trackClinicalMutation(correctSample),syncConfiguration,saveConfiguration:trackClinicalMutation(saveConfiguration),syncStorageConfiguration:trackClinicalMutation(syncStorageConfiguration),refreshSamples,registerSample:trackClinicalMutation(registerSample),deleteSample:trackClinicalMutation(deleteSample),transition:trackClinicalMutation(transition),saveAliquots:trackClinicalMutation(saveAliquots),registerCryovial:trackClinicalMutation(registerCryovial),moveCryovial:trackClinicalMutation(moveCryovial),get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,getReviewEditPermission,correctReviewSample:trackClinicalMutation(correctReviewSample),getManagementPermissions,correctSample:trackClinicalMutation(correctSample),syncConfiguration,saveConfiguration:trackClinicalMutation(saveConfiguration),syncStorageConfiguration:trackClinicalMutation(syncStorageConfiguration),refreshSamples,registerSample:trackClinicalMutation(registerSample),deleteSample:trackClinicalMutation(deleteSample),transition:trackClinicalMutation(transition),saveAliquots:trackClinicalMutation(saveAliquots),registerCryovial:trackClinicalMutation(registerCryovial),moveCryovial:trackClinicalMutation(moveCryovial),get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect();else scheduleClinicalIncrementalRefresh()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ready)scheduleClinicalIncrementalRefresh();scheduleClinicalPoll(30000)});
