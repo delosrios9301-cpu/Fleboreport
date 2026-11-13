@@ -1315,9 +1315,11 @@ function renderJourneyPatientChoices(){
   input.onchange=function(){
    const current=readJourneyDraft(),ids=new Set((Array.isArray(current.selectedTestIds)?current.selectedTestIds:[]).map(String));
    if(input.checked)ids.add(String(input.value));else ids.delete(String(input.value));
-   persistJourneyDraft({selectedTestIds:Array.from(ids)});
-   input.closest('.test-choice').classList.toggle('selected',input.checked);
-   updateJourneyPatientTestSummary();
+   // La selección ya se incorporó al borrador del paciente: cerrar el
+   // autocompletado sin esperar a Guardar paciente ni descartar otras pruebas.
+   persistJourneyDraft({selectedTestIds:Array.from(ids),search:''});
+   if(search){search.value='';search.blur();}
+   renderJourneyPatientChoices();
   };
  });
  updateJourneyPatientTestSummary();
