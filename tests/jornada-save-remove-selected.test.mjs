@@ -99,8 +99,8 @@ test('Sin pruebas no registra un paciente incompleto',()=>{
  assert.match(x.notice,/Selecciona al menos una prueba/);
 });
 test('v297 actualiza JS, CSS y cache; mantiene formulario por cédula y reportes',()=>{
- assert.match(html,/jornada-premium\.css\?v=20261113-jornada5" media="screen"/);
- assert.match(html,/jornada-premium\.js\?v=20261113-jornada4/);
+ assert.match(html,/jornada-premium\.css\?v=20261113-jornada6" media="screen"/);
+ assert.match(html,/jornada-premium\.js\?v=20261113-jornada5/);
  assert.match(sw,/fleboreport-shell-v297/);
  assert.match(html,/id="journeyPatientId"/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
@@ -117,4 +117,17 @@ test('Formulario de Jornada se desplaza verticalmente, admite teclado y conserva
  assert.match(js,/function ensureFieldVisible\(field\)/);
  assert.match(css,/scroll-snap-type:x mandatory/);
  assert.equal((html.match(/class="btn primary journey-register-button"/g)||[]).length,1);
+});
+
+test('v299: botón Guardar visible sobre dock inferior sin ocultar la navegación móvil',()=>{
+ assert.match(css,/v299 · La barra inferior permanece visible/);
+ assert.ok(css.includes('var(--jp-viewport-clearance,96px)'));
+ assert.ok(css.includes('flex-shrink:0!important'));
+ assert.match(js,/const dock=mobile\?byId\('cmMobileDock'\):null/);
+ assert.match(js,/const clearance=Math.max\(keyboardClearance,dockClearance\)/);
+ assert.match(js,/dock\.getBoundingClientRect\(\)/);
+ assert.ok(js.includes("view.style.setProperty('--jp-viewport-clearance'"));
+ assert.match(css,/overflow-x:hidden!important;overflow-y:auto!important/);
+ assert.match(css,/scroll-snap-type:x mandatory/);
+ assert.ok(!js.includes("byId('cmMobileDock')?.remove()"));
 });
