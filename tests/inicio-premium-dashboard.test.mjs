@@ -54,3 +54,16 @@ test('Presentacion solamente; no toca datos clinicos ni permisos',()=>{
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/aria/);
 });
+
+
+test('v301: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
+ assert.match(html,/inicio-premium\.css\?v=20261113-inicio2/);
+ assert.match(sw,/fleboreport-shell-v301/);
+ assert.match(css,/\.hp-donuts-group \.op-donut::after/);
+ assert.match(css,/inset:33%!important/);
+ assert.match(css,/width:min\(120px,94%\)!important/);
+ assert.match(css,/drop-shadow\(0 3px 5px rgba\(65,38,138,\.12\)\)/);
+ assert.match(html,/function dashDonut\(entries,centerLabel\)/);
+ assert.match(html,/--donut:conic-gradient/);
+ assert.match(html,/class="op-legend"/);
+});
