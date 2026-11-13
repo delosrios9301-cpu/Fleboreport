@@ -147,6 +147,7 @@
     records,visits:visits.length,lastDate,testsPerformed,results,
     recurrent:visits.length>1,
     monthlyVisits:visits.filter(x=>x.date.startsWith(currentMonth())).length,
+    visitsRecent:!!lastDate&&(() => {const d=new Date(lastDate+'T00:00:00');const age=Date.now()-d.getTime();return !Number.isNaN(age)&&age>=0&&age<=30*86400000})(),
     allTests,hasJourneyRecords:records.some(x=>x.source==='journey')
    });
   }

@@ -195,6 +195,7 @@
   return age>=0&&age<=30*24*60*60*1000;
  }
  function renderDirectory(){
+  if(window.FleboPatientActivityUI?.renderDirectory)return window.FleboPatientActivityUI.renderDirectory();
   const host=$('ppPatientCards'),tbody=$('patientList');if(!host||!tbody)return;
   for(const chip of document.querySelectorAll('[data-pp-list-filter]')){
    const active=chip.dataset.ppListFilter===directoryMode;
@@ -311,6 +312,7 @@
   else space.append(footer);
  }
  function renderWorkspace(){
+  if(window.FleboPatientActivityUI?.renderWorkspace)return window.FleboPatientActivityUI.renderWorkspace();
   const p=findPatient();if(!p||!$('ppRecordHero'))return;
   $('ppRecordName').textContent=p.name||p.fullName||'Paciente';
   $('ppRecordDocument').textContent='Cédula: '+(p.document||p.cedula||'—');
