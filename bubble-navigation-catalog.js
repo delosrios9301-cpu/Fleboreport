@@ -8,6 +8,15 @@
   if(!sidebar||sidebar.dataset.bubbleMenuMounted==='true')return;
   sidebar.dataset.bubbleMenuMounted='true';
   sidebar.classList.add('bubble-navigation');
+  const atmosphere=document.createElement('div');
+  atmosphere.className='bubble-atmosphere';
+  atmosphere.setAttribute('aria-hidden','true');
+  for(const place of ['top','middle','bottom']){
+   const orb=document.createElement('span');
+   orb.className='bubble-atmosphere-orb '+place;
+   atmosphere.appendChild(orb);
+  }
+  sidebar.insertBefore(atmosphere,sidebar.firstChild);
   const head=sidebar.querySelector('.module-menu-head');
   const close=head?.querySelector('.module-menu-close');
   if(head&&close&&!head.querySelector('.bubble-notification')){
@@ -36,6 +45,9 @@
    });
   }
   const update=()=>{
+   // Historial general es único: el shell controla la ruta y el permiso.
+   const history=[...sidebar.querySelectorAll('button[data-nav="audit"]')];
+   if(history.length>1)history.slice(1).forEach(item=>item.remove());
    sidebar.querySelectorAll('button[data-nav]').forEach(item=>{
     if(item.classList.contains('active')&&!item.hidden)item.setAttribute('aria-current','page');
     else item.removeAttribute('aria-current');

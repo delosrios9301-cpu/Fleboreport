@@ -12,8 +12,7 @@ function actionName(a,r){if(r&&r.entity_table==='app_activity')return String(r.d
 
 function ensureMarkup(){
  if(document.getElementById('view-audit'))return;
- const settingsNav=document.querySelector('[data-nav="settings"]');
- if(settingsNav){const b=document.createElement('button');b.type='button';b.dataset.nav='audit';b.innerHTML='<span class="nav-icon">▤</span><span class="nav-copy">Historial General</span>';b.onclick=()=>window.navigate('audit');b.hidden=!(window.fleboCan&&window.fleboCan('audit','view'));settingsNav.parentNode.insertBefore(b,settingsNav);}
+ // La navegación de Historial se registra una única vez en Informes, en el shell.
  const content=document.querySelector('.main>.content');if(!content)return;
  const section=document.createElement('section');section.className='view fr5-screen';section.id='view-audit';
  section.innerHTML=`

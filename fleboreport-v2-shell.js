@@ -19,9 +19,17 @@
  function addHistoryNavigation(){
   const groups=[...document.querySelectorAll('#sidebar .nav-group')];
   const group=groups.find(g=>(g.querySelector('summary')?.textContent||'').toLowerCase().includes('informes'));
-  if(!group||group.querySelector('[data-nav="audit"]'))return;
+  if(!group)return;
   const list=group.querySelector('.nav-group-items');if(!list)return;
-  const button=document.createElement('button');button.type='button';button.dataset.nav='audit';button.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7M3.5 4.5v4.8h4.8M12 7v5l3.3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-copy">Historial general</span>';
+  const existing=[...document.querySelectorAll('#sidebar [data-nav="audit"]')];
+  if(existing.length){
+   const original=existing[0];
+   list.appendChild(original);
+   existing.slice(1).forEach(duplicate=>duplicate.remove());
+   return;
+  }
+  const button=document.createElement('button');button.type='button';button.dataset.nav='audit';
+  button.hidden=!(window.fleboCan&&window.fleboCan('audit','view'));button.innerHTML='<span class="nav-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7M3.5 4.5v4.8h4.8M12 7v5l3.3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-copy">Historial general</span>';
   button.addEventListener('click',()=>window.navigate&&window.navigate('audit'));list.appendChild(button);
  }
  function labelCurrentView(){
