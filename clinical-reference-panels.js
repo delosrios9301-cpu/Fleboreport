@@ -313,7 +313,7 @@
   reasonInput.placeholder='Indica qué dato se corrigió y por qué';
   inputField('Motivo de la corrección (obligatorio)',reasonInput,true);
   editor.append(editorTitle,editorHint,editorGrid);
-  scroll.insertBefore(editor,notesInput.isConnected?null:note);
+  scroll.insertBefore(editor,note);
   const setText=(label,value)=>{
    const el=readValues.get(label);
    if(el)el.textContent=value==null||String(value).trim()===''?'—':String(value);
