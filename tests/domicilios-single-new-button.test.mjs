@@ -6,7 +6,7 @@ const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
 const sw=await readFile(new URL('../service-worker.js',import.meta.url),'utf8');
 
 test('Domicilios has exactly one Nuevo domicilio button in generated markup',()=>{
- assert.equal((dom.match(/id="hvRefNew" hidden>＋ Nuevo domicilio<\/button>/g)||[]).length,1);
+ assert.equal((dom.match(/id="hvRefNew" class="hv-ref-new" hidden>＋ Nuevo domicilio<\/button>/g)||[]).length,1);
  assert.doesNotMatch(dom,/id="hvPremiumCreate"|id="hvCreateTab"/);
  assert.doesNotMatch(dom,/>\s*＋ Crear domicilio<\/button>/);
  assert.equal((dom.match(/Nuevo domicilio<\/button>/g)||[]).length,1);
@@ -27,6 +27,6 @@ test('other sections and export remain navigable without a redundant Create tab'
  assert.doesNotMatch(dom,/hvPremiumCreate|hvCreateTab/);
 });
 test('version v291 delivers updated Domicilios code, not stale PWA markup',()=>{
- assert.match(html,/domicilios\.js\?v=20261112-reference2/);
- assert.match(sw,/fleboreport-shell-v292/);
+ assert.match(html,/domicilios\.js\?v=20261112-reference3/);
+ assert.match(sw,/fleboreport-shell-v293/);
 });

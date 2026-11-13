@@ -27,15 +27,23 @@ test('Alineación compacta y gestos táctiles sin afectar accesibilidad',()=>{
  assert.match(rules,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(rules,/\.hv-ref-new\[hidden\]/);
 });
+test('REGRESIÓN: la clase del botón existe y coincide con el selector CSS real',()=>{
+ const markup=dom.match(/<button type="button" id="hvRefNew" class="([^"]+)" hidden>＋ Nuevo domicilio<\/button>/);
+ assert.ok(markup,'La clase CSS debe existir en el HTML real generado por Domicilios');
+ assert.ok(markup[1].split(/\s+/).includes('hv-ref-new'),'Sin la clase el botón queda rectangular');
+ assert.match(css,/#view-domicilios :is\(#hvRefNew\.hv-ref-new,#hvRefToggleTools\.hv-ref-tools-toggle\)/);
+ assert.match(css,/#hvRefNew\.hv-ref-new\[hidden\]/);
+ assert.match(css,/border-radius:999px!important/);
+});
 test('Sigue habiendo un solo botón y su flujo de creación no se modifica',()=>{
- assert.equal((dom.match(/id="hvRefNew" hidden>＋ Nuevo domicilio<\/button>/g)||[]).length,1);
+ assert.equal((dom.match(/id="hvRefNew" class="hv-ref-new" hidden>＋ Nuevo domicilio<\/button>/g)||[]).length,1);
  assert.doesNotMatch(dom,/hvPremiumCreate|hvCreateTab/);
  assert.match(dom,/if\(target\.id==='hvRefNew'\)\{setTab\('create'\);return\}/);
  assert.match(dom,/if\(createRef\)createRef\.hidden=!manager\|\|technician/);
  assert.doesNotThrow(()=>new Function(dom));
 });
 test('Se publica CSS renovado y caché PWA v292 sin cambiar lógica clínica',()=>{
- assert.match(html,/domicilios-reference\.css\?v=20261112-reference2" media="screen"/);
- assert.match(sw,/fleboreport-shell-v292/);
+ assert.match(html,/domicilios-reference\.css\?v=20261112-reference3" media="screen"/);
+ assert.match(sw,/fleboreport-shell-v293/);
  assert.match(sw,/'\.\/domicilios-reference.css'/);
 });
