@@ -60,7 +60,7 @@ test('Servicio PWA incluye archivos del rediseño y fuerza actualización de cac
  assert.match(html,/bubble-navigation-catalog\.css\?v=20261113-bubble2/);
  assert.match(html,/bubble-navigation-catalog\.js\?v=20261113-bubble2/);
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical6/);
- assert.match(sw,/fleboreport-shell-v317/);
+ assert.match(sw,/fleboreport-shell-v318/);
  assert.match(sw,/'\.\/bubble-navigation-catalog\.css'/);
  assert.match(sw,/'\.\/bubble-navigation-catalog\.js'/);
 });
