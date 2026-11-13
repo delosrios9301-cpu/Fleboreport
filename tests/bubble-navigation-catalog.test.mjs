@@ -57,10 +57,10 @@ test('No habilita módulos restringidos ni altera persistencia de pacientes',()=
  assert.doesNotMatch(bubbleJs,/localStorage|sessionStorage|\.rpc\(|\.insert\(|\.update\(/);
 });
 test('Servicio PWA incluye archivos del rediseño y fuerza actualización de caché',()=>{
- assert.match(html,/bubble-navigation-catalog\.css\?v=20261113-bubble1/);
- assert.match(html,/bubble-navigation-catalog\.js\?v=20261113-bubble1/);
+ assert.match(html,/bubble-navigation-catalog\.css\?v=20261113-bubble2/);
+ assert.match(html,/bubble-navigation-catalog\.js\?v=20261113-bubble2/);
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical6/);
- assert.match(sw,/fleboreport-shell-v315/);
+ assert.match(sw,/fleboreport-shell-v316/);
  assert.match(sw,/'\.\/bubble-navigation-catalog\.css'/);
  assert.match(sw,/'\.\/bubble-navigation-catalog\.js'/);
 });
