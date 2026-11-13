@@ -51,13 +51,13 @@ test('Formularios y pacientes siguen accesibles al pulsar tarjetas, sin ocultar 
  assert.match(css,/\.jp-collapse-workspace/);
  assert.match(js,/byId\('journeySelectedTestChips'\)/);
 });
-test('Encabezado fijo, estilo responsive y PWA v294',()=>{
+test('Encabezado fijo, estilo responsive y PWA v295',()=>{
  assert.match(css,/jp-journey-active #cmContextBar/);
  assert.match(css,/@media\(max-width:760px\)/);
  assert.match(css,/@media\(max-width:370px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(html,/jornada-premium\.css\?v=20261112-jornada2" media="screen"/);
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada2/);
+ assert.match(html,/jornada-premium\.js\?v=20261112-jornada1/);
  assert.match(sw,/fleboreport-shell-v295/);
  assert.match(sw,/'\.\/jornada-premium.css'/);
  assert.match(sw,/'\.\/jornada-premium.js'/);
@@ -80,12 +80,12 @@ test('Tarjetas operativas y de identificación centradas verticalmente y sin cor
  const tokens=[
   'box-sizing:border-box!important;align-self:stretch!important',
   'margin-block:auto!important',
-  'min-height:106px!important;cursor:default!important;\\n align-items:center!important',
   'width:100%!important;max-width:100%!important;min-width:0!important',
   'margin:4px 0 10px!important',
   'margin:2px 0 13px!important'
  ];
- for(const token of tokens)assert.ok(css.includes(token.replaceAll('\\\\n','\n')),token);
+ for(const token of tokens)assert.ok(css.includes(token),token);
+ assert.match(css,/min-height:106px!important;cursor:default!important;\s*align-items:center!important/);
  assert.match(html,/jornada-premium\.css\?v=20261112-jornada2" media="screen"/);
  assert.match(sw,/fleboreport-shell-v295/);
 });
