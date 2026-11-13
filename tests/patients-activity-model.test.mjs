@@ -89,7 +89,7 @@ test('Vista de Pacientes y expediente utilizan agregador real, no la tabla de at
  assert.match(ui,/model\(\)/);
  assert.match(ui,/person\.visits/);
  assert.match(ui,/person\.records/);
- assert.match(ui,/person\.testsPerformed/);
+ assert.match(ui,/p\.testsPerformed/);
  assert.match(ui,/p\.records/);
  assert.match(ui,/test\.performed/);
  assert.match(ui,/record\.source==='journey'/);
