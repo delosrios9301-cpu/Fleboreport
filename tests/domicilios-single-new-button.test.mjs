@@ -28,5 +28,5 @@ test('other sections and export remain navigable without a redundant Create tab'
 });
 test('version v291 delivers updated Domicilios code, not stale PWA markup',()=>{
  assert.match(html,/domicilios\.js\?v=20261112-reference3/);
- assert.match(sw,/fleboreport-shell-v297/);
+ assert.match(sw,/fleboreport-shell-v300/);
 });
