@@ -973,6 +973,7 @@ body.fr2-app-authorized.cm-workspace.vc-compact
   touch-action:pan-y!important;overscroll-behavior-y:contain!important;
  }
  body.fr2-app-authorized .jp-lookup-overlay.jp-lookup-keyboard:not([hidden]){
+  flex-direction:column!important;
   align-items:center!important;justify-content:flex-start!important;
   padding:6px 8px!important;
  }
