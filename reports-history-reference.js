@@ -41,7 +41,7 @@
  function button(label,klass,fn,shape){
   const b=el('button',klass);b.type='button';
   if(shape)b.append(icon(shape));
-  b.append(el('span','',label));
+  if(label)b.append(el('span','',label));
   if(fn)b.addEventListener('click',fn);
   return b;
  }
@@ -120,7 +120,7 @@
   content.append(el('h2','','Generar reporte'),el('p','','Crea, personaliza y exporta tu reporte de jornada.'));
   const exports=el('div','rhr-export-actions');
   const png=button('PNG','rhr-export rhr-png',()=>{const source=header?.querySelector('button[onclick="downloadPNG()"]');if(source&&!source.hidden)source.click();},'image');
-  const pdf=button('PDF','rhr-export rhr-pdf',()=>{const source=header?.querySelector('button[onclick="generateReportPDF()"]');if(source&&!source.hidden)source.click();},'file');
+  const pdf=button('PDF','rhr-export rhr-pdf',()=>{const source=header?.querySelector('button[onclick="generateReportPDF()"]');if(source&&!source.hidden){const preview=$('rhrReportPreview');if(preview)preview.open=true;source.click();}},'file');
   exports.append(png,pdf);content.append(exports);
   const openPreview=button('','rhr-banner-more',()=>{
    const details=$('rhrReportPreview');
@@ -341,6 +341,20 @@
  });
  window.addEventListener('flebo:local-state-saved',updateReports);
  window.addEventListener('flebo:cloud-state-applied',updateReports);
+ // Garantiza que la hoja original esté expandida durante una impresión PDF.
+ // La tabla oficial de auditoría se mantiene disponible en modo impresión.
+ let beforePrintOpen=null;
+ window.addEventListener('beforeprint',()=>{
+  const preview=$('rhrReportPreview');
+  if(preview){beforePrintOpen=preview.open;preview.open=true;}
+  const advanced=document.querySelector('#view-audit.rhr-ready .rhr-history-advanced');
+  if(advanced)advanced.open=true;
+ });
+ window.addEventListener('afterprint',()=>{
+  const preview=$('rhrReportPreview');
+  if(preview&&beforePrintOpen!==null)preview.open=beforePrintOpen;
+  beforePrintOpen=null;
+ });
  // El archivo se actualiza al guardar un reporte, conservando el render nativo.
  const nativeRender=window.renderReportHistory;
  if(typeof nativeRender==='function'){
