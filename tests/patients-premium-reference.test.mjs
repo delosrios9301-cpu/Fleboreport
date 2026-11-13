@@ -48,7 +48,8 @@ test('Nuevas tarjetas no crean resultados, estatus, pacientes o documentos ficti
  assert.match(js,/p\.generalNotes/);
  assert.match(js,/a\.notes/);
  assert.match(js,/a\.conclusions/);
- assert.match(js,/const arr=\[\.\.\.attentions\]\.sort/);
+ assert.match(js,/timeline\.classList\.add\('pp-native-timeline'\)/);
+ assert.match(html,/function editAttention\(id\)/);
  assert.match(js,/localDate\(a\.date\)/);
  assert.doesNotMatch(js,/Completada|Validada|Resultado positivo|Resultado negativo/);
  assert.doesNotMatch(js,/state\.patients\.push|state\.patients\.splice|localStorage\.setItem|supabase\.from|\.rpc\(/);
@@ -69,7 +70,8 @@ test('Los filtros del directorio son funcionales y distinguen pacientes recurren
  assert.match(js,/directoryMode==='returning'&&visits<=1/);
  assert.match(js,/directoryMode==='recent'&&!recentPatient\(patient\)/);
  assert.match(js,/el\('div','pp-patient-cards'\)/);
- assert.match(js,/openButton\?\.click\(\)/);
+ assert.match(js,/openPatientRecord\(id\)/);
+ assert.doesNotMatch(js,/openButton\?\.click\(\)/);
  const from=js.indexOf(' function recentPatient(record){'),end=js.indexOf(' function renderDirectory(){',from);
  assert.ok(from>=0&&end>from);
  const code=js.slice(from,end);
@@ -93,10 +95,54 @@ test('Layout horizontal y móvil oculta información antigua repetida sin afecta
  assert.match(css,/touch-action:pan-x!important/);
  assert.match(css,/word-break:normal!important/);
 });
-test('Servicio PWA v318 carga los dos archivos del expediente premium',()=>{
- assert.match(html,/patients-premium-reference\.css\?v=20261113-patient1/);
- assert.match(html,/patients-premium-reference\.js\?v=20261113-patient1/);
- assert.match(sw,/fleboreport-shell-v318/);
+test('Servicio PWA v319 carga los dos archivos del expediente premium',()=>{
+ assert.match(html,/patients-premium-reference\.css\?v=20261113-patient2/);
+ assert.match(html,/patients-premium-reference\.js\?v=20261113-patient2/);
+ assert.match(sw,/fleboreport-shell-v319/);
  assert.match(sw,/'\.\/patients-premium-reference\.css'/);
  assert.match(sw,/'\.\/patients-premium-reference\.js'/);
+});
+
+test('Ver expediente llama directamente con ID real y cambia la vista visible',()=>{
+ const begin=js.indexOf(' function openPatientRecord(id){');
+ const end=js.indexOf(' function recentPatient(record){',begin);
+ assert.ok(begin>=0&&end>begin);
+ const code=js.slice(begin,end);
+ const elements={
+  patientsHome:{hidden:false},patientWorkspace:{hidden:true},patientFormPanel:{hidden:false}
+ };
+ const events=[];let selected=null;
+ const ctx={
+  $,window:{openPatient:id=>{selected=id;events.push('native:'+id)},
+   renderPatientWorkspace:()=>events.push('render'),
+   showPatientTab:key=>events.push('tab:'+key),
+   toast:message=>events.push('error:'+message)},
+  findPatient:()=>selected?{id:selected}:null,
+  renderWorkspace:()=>events.push('premium'),
+  document:{querySelector:()=>({scrollTo:()=>events.push('scroll')})},String
+ };
+ ctx.$=id=>elements[id];
+ vm.runInNewContext(code,ctx);
+ assert.equal(ctx.openPatientRecord('patient-123'),true);
+ assert.equal(selected,'patient-123');
+ assert.equal(elements.patientsHome.hidden,true);
+ assert.equal(elements.patientFormPanel.hidden,true);
+ assert.equal(elements.patientWorkspace.hidden,false);
+ assert.ok(events.includes('render'));
+ assert.ok(events.includes('premium'));
+ assert.ok(events.includes('tab:history'));
+ assert.ok(events.includes('scroll'));
+});
+test('La estructura compacta no deja cuadrícula fantasma, duplica encabezados ni esconde expediente abierto',()=>{
+ assert.match(css,/grid-template-areas:"heading" "metrics" "directory" "advanced"!important/);
+ assert.match(css,/grid-template-rows:auto auto auto auto!important/);
+ assert.match(css,/grid-auto-rows:min-content!important/);
+ assert.match(css,/#cmContextBar\[data-area="patients"\]/);
+ assert.match(css,/\.page-heading\[data-fr5-area="patient-heading"\]/);
+ assert.match(css,/\.pp-directory>\.panel-head/);
+ assert.match(css,/#patientWorkspace:not\(\[hidden\]\)/);
+ assert.match(css,/#patientWorkspace\[hidden\]/);
+ assert.match(js,/home\.classList\.add\('pp-strict-layout'\)/);
+ assert.match(js,/const id=match\?\.\[1\]/);
+ assert.match(js,/const selected=findPatient\(\)/);
 });
