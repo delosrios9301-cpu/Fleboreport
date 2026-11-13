@@ -5,8 +5,12 @@
  const paths={
   journey:{title:'Jornada',subtitle:'Registro de tomas',icon:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 10h7M9 14h7M9 18h5"/>'},
   domicilios:{title:'Domicilios',subtitle:'Visitas asignadas',icon:'<path d="m3 10 9-7 9 7v11H3zM9 21v-7h6v7"/>'},
+  patients:{title:'Pacientes',subtitle:'Gestión y datos',icon:'<circle cx="9" cy="8" r="3"/><path d="M3 21v-2a6 6 0 0 1 12 0v2M17 7a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5"/>'},
   'clinical-studies':{title:'Estudios',subtitle:'Catálogo y pruebas',icon:'<path d="M9 3h6M10 3v7l-5.5 8.4A2 2 0 0 0 6.2 21h11.6a2 2 0 0 0 1.7-2.6L14 10V3M8 15h8"/>'},
-  reports:{title:'Reportes',subtitle:'Resultados y control',icon:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 16v-3m4 3V8m4 8v-5"/>'}
+  'clinical-processing':{title:'Procesamiento',subtitle:'Estado de las muestras',icon:'<path d="m12 2 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/>'},
+  audit:{title:'Historial',subtitle:'Trazabilidad de casos',icon:'<path d="M3 7a3 3 0 0 1 3-3h5l2 2h6a2 2 0 0 1 2 2v12H3V7Z"/>'},
+  reports:{title:'Reportes',subtitle:'Resultados y control',icon:'<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 16v-3m4 3V8m4 8v-5"/>'},
+  settings:{title:'Configuración',subtitle:'Parámetros del sistema',icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l-2 2a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5h-2.9a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-2-2a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 5.8 14H4v-3h1.8a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l2-2a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 11.9 5h2.9a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l2 2a1.7 1.7 0 0 0-.3 1.9A1.7 1.7 0 0 0 21 11v3a1.7 1.7 0 0 0-1.6 1Z"/>'}
  };
  const glyph=source=>'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+source+'</svg>';
  const chevron=glyph('<path d="m9 5 7 7-7 7"/>');
@@ -73,7 +77,7 @@
   if(!host||$('.vc-launch-grid',host))return;
   const grid=document.createElement('div');grid.className='vc-launch-grid';
   grid.setAttribute('aria-label','Acceso rápido a módulos');
-  for(const key of ['journey','domicilios','clinical-studies','reports']){
+  for(const key of ['journey','patients','domicilios','clinical-studies','clinical-processing','audit','reports','settings']){
    const item=paths[key],button=document.createElement('button');
    button.type='button';button.className='vc-shortcut';button.dataset.vcNav=key;
    const ic=document.createElement('span');ic.className='vc-shortcut-icon';ic.innerHTML=glyph(item.icon);
