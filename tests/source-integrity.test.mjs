@@ -1462,7 +1462,7 @@ test('sincronización clínica evita consultas por técnico sin privilegios de l
 
 test('integración de seguridad por rol usa recursos versión 281',()=>{
   assert.match(html,/cloud-state-sync\.js\?v=20261112-modules1/);
-  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync3/);
+  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
   assert.match(serviceWorker,/fleboreport-shell-v306/);
 });
 
@@ -1491,7 +1491,7 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
  assert.match(visits,/\.eq\('entity','domiciles'\)/);
  assert.match(visits,/sync_change_log/);
  assert.match(html,/patient-cloud-sync\.js\?v=20261112-sync2/);
- assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync3/);
+ assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
  assert.match(html,/domicilios\.js\?v=20261112-reference3/);
  assert.match(serviceWorker,/fleboreport-shell-v306/);
  assert.doesNotThrow(()=>new Function(visits));

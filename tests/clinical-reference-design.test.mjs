@@ -7,8 +7,8 @@ const [html,css,js,old,processing,sw]=await Promise.all([
  file('clinical-cloud-sync.js'),file('clinical-processing-simple.js'),file('service-worker.js')
 ]);
 test('El rediseño se carga después del procesamiento original y se publica en PWA',()=>{
- assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical2/);
- assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical3/);
+ assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical3/);
+ assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical4/);
  assert.ok(html.lastIndexOf('clinical-reference-panels.js')>html.lastIndexOf('clinical-processing-simple.js'));
  assert.ok(html.lastIndexOf('clinical-reference-panels.css')>html.lastIndexOf('inicio-premium.css'));
  assert.match(sw,/fleboreport-shell-v306/);
