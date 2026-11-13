@@ -1227,7 +1227,15 @@ function updateJourneyPatientTestSummary(){
  if(host){
   const catalog=Array.isArray(state.catalog)?state.catalog:[];
   const chips=selectedIds.map(function(id){return catalog.find(function(t){return String(t.id)===id})}).filter(Boolean);
-  host.innerHTML=chips.length?chips.map(function(t){return '<span class="journey-test-chip"><span class="journey-test-chip-icon">'+vesselSvg(t)+'</span><strong>'+esc(t.name||'Prueba')+'</strong></span>'}).join(''):'<span class="journey-no-tests">Todavía no has seleccionado pruebas.</span>';
+  host.innerHTML=chips.length?chips.map(function(t){return '<span class="journey-test-chip"><span class="journey-test-chip-icon">'+vesselSvg(t)+'</span><strong>'+esc(t.name||'Prueba')+'</strong><button type="button" class="journey-test-chip-remove" data-remove-journey-test="'+esc(String(t.id))+'" aria-label="Quitar prueba '+esc(t.name||'Prueba')+'" title="Quitar prueba">×</button></span>'}).join(''):'<span class="journey-no-tests">Todavía no has seleccionado pruebas.</span>';
+  host.onclick=function(event){
+   const button=event.target.closest('button[data-remove-journey-test]');
+   if(!button||!host.contains(button))return;
+   const id=String(button.dataset.removeJourneyTest||'');
+   const next=readJourneyDraft().selectedTestIds.filter(function(selected){return String(selected)!==id});
+   persistJourneyDraft({selectedTestIds:next});
+   renderJourneyPatientChoices();
+  };
  }
 }
 function renderJourneyPatientChoices(){
@@ -1321,7 +1329,7 @@ function lookupExistingJourneyPatient(){
  if(Object.keys(patch).length)persistJourneyDraft(patch);
 }
 function registerJourneyPatient(){
- const firstName=$('journeyPatientName').value.trim().replace(/\s+/g,' '),lastName=$('journeyPatientLastName').value.trim().replace(/\s+/g,' '),name=[firstName,lastName].filter(Boolean).join(' '),documentId=$('journeyPatientId').value.trim(),docKey=normalizePatientDocument(documentId),birthDate=$('journeyPatientBirth').value,sex=$('journeyPatientSex').value,requested=Array.from(document.querySelectorAll('input[name="journeyPatientTest"]:checked')).map(function(el){return el.value});
+ const firstName=$('journeyPatientName').value.trim().replace(/\s+/g,' '),lastName=$('journeyPatientLastName').value.trim().replace(/\s+/g,' '),name=[firstName,lastName].filter(Boolean).join(' '),documentId=$('journeyPatientId').value.trim(),docKey=normalizePatientDocument(documentId),birthDate=$('journeyPatientBirth').value,sex=$('journeyPatientSex').value,draftTests=readJourneyDraft().selectedTestIds||[],requested=Array.from(new Set(draftTests.map(String))).filter(function(id){return (state.catalog||[]).some(function(t){return t&&t.active!==false&&String(t.id)===id})});
  if(!firstName){toast('Escribe el nombre del paciente.');$('journeyPatientName').focus();return}
  if(!lastName){toast('Escribe los apellidos del paciente.');$('journeyPatientLastName').focus();return}
  if(!docKey){toast('Escribe la cédula o identificación única del paciente.');$('journeyPatientId').focus();return}
@@ -3467,6 +3475,6 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./domicilios-reference.css?v=20261112-reference3" media="screen">
 <script src="./variant-c-compact.js?v=20261112-vc1"></script>
 <script src="./domicilios-premium-gestures.js?v=20261112-gestures1"></script>
-<link rel="stylesheet" href="./jornada-premium.css?v=20261112-jornada3" media="screen">
-<script src="./jornada-premium.js?v=20261112-jornada2"></script>
+<link rel="stylesheet" href="./jornada-premium.css?v=20261112-jornada4" media="screen">
+<script src="./jornada-premium.js?v=20261112-jornada3"></script>
 </body></html>

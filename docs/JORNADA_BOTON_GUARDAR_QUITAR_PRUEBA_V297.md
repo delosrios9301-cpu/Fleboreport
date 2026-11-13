@@ -1,0 +1,7 @@
+# Jornada v297 — Guardar paciente y quitar pruebas sin perder la selección
+
+**Problemas confirmados:** el botón real de guardado había quedado al fondo del formulario deslizable; las cápsulas de pruebas seleccionadas no permitían quitar una prueba equivocada; y el guardado tomaba los IDs solamente de checkboxes visibles en la búsqueda, por lo que al cambiar o vaciar el texto el paciente se guardaba sin pruebas seleccionadas, o era rechazado.
+
+**Corrección:** se reutiliza el mismo botón `registerJourneyPatient()` sin duplicarlo, se reubica después del formulario como acción de pie visible mientras se opera en la página de Registro, con estilo premium y área táctil adecuada. Cada cápsula de prueba tiene una «×» con etiqueta accesible que retira únicamente esa prueba del borrador de selección; el catálogo y su búsqueda se actualizan sin borrar las demás. Al registrar se leen los IDs seleccionados del borrador persistente y se verifican contra el catálogo activo, independiente de la visibilidad de los resultados de búsqueda. El borrador se vacía solo cuando se registra correctamente.
+
+Sin cambios en RLS, base de datos, roles, resultados tomados o exportación PNG/PDF. Conservar la navegación horizontal v296, los datos demográficos y cédula única. La verificación automatizada comprueba el botón único, quitar prueba, búsqueda vacía y rechazo sin pruebas. Requiere verificar el acabado exacto en dispositivo Android.

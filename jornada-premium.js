@@ -117,6 +117,11 @@
   active.insertAdjacentElement('afterend',actions);
   // Reubicamos la acción REAL de reportes: mantiene openJourneyReportSetup().
   actions.insertAdjacentElement('afterend',report);
+  // El botón real de registro se conserva (sin duplicados) y se fija al
+  // fondo del panel deslizante, en lugar de quedar oculto tras el formulario.
+  const intake=view.querySelector('.journey-entry-panel');
+  const registerActions=intake?.querySelector('.journey-submit-actions');
+  if(intake&&registerActions)intake.insertAdjacentElement('afterend',registerActions);
   // Nueva jornada y resumen permanecen accesibles en herramientas, sin
   // ocupar la portada visual y sin eliminar ninguna función.
   const details=document.createElement('details');
