@@ -105,7 +105,7 @@ test('Servicio PWA v320 carga los dos archivos del expediente premium',()=>{
 
 test('Ver expediente llama directamente con ID real y cambia la vista visible',()=>{
  const begin=js.indexOf(' function openPatientRecord(id){');
- const end=js.indexOf(' function recentPatient(record){',begin);
+ const end=js.indexOf(' function initPatientDialog(){',begin);
  assert.ok(begin>=0&&end>begin);
  const code=js.slice(begin,end);
  const elements={
