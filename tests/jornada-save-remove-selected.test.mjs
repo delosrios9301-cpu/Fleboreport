@@ -101,7 +101,7 @@ test('Sin pruebas no registra un paciente incompleto',()=>{
 test('v297 actualiza JS, CSS y cache; mantiene formulario por cédula y reportes',()=>{
  assert.match(html,/jornada-premium\.css\?v=20261113-jornada8" media="screen"/);
  assert.match(html,/jornada-premium\.js\?v=20261113-jornada7/);
- assert.match(sw,/fleboreport-shell-v320/);
+ assert.match(sw,/fleboreport-shell-v321/);
  assert.match(html,/id="journeyPatientId"/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
  assert.doesNotThrow(()=>new Function(js));
