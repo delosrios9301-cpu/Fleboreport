@@ -1,0 +1,478 @@
+/* FleboReport — Jornada, pantalla premium Variante C (referencia fotográfica)
+   Presentación 100% visual; controles reales preservados. Solo media="screen". */
+body.fr2-app-authorized.cm-workspace.vc-compact.jp-journey-active #cmContextBar{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference{
+ --jp-ink:#211944;--jp-violet:#6030d8;--jp-cyan:#04b9cc;
+ --jp-border:#dcd7f1;--jp-wave:#8458ee;
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:0!important;min-width:0!important;
+ padding:10px 1px 5px!important;background:transparent!important;
+ color:var(--jp-ink)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference:not(.active){
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading{
+ display:flex!important;align-items:center!important;gap:11px!important;
+ min-height:63px!important;margin:0 0 12px!important;padding:3px 6px!important;
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-icon{
+ display:grid!important;place-items:center!important;
+ flex:0 0 41px!important;width:41px!important;height:44px!important;
+ color:#5030df!important;filter:drop-shadow(0 3px 3px #6c3dc334);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-icon svg{
+ width:36px!important;height:36px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-copy{
+ display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-copy h1{
+ margin:0!important;color:#1b1735!important;
+ font-size:clamp(21px,2.8vw,28px)!important;font-weight:900!important;
+ line-height:1.07!important;letter-spacing:-.7px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-copy p{
+ margin:0!important;color:#5e5879!important;font-size:11.5px!important;
+ line-height:1.2!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots{
+ display:inline-flex!important;align-items:center!important;gap:7px!important;margin-left:auto!important;
+ align-self:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots i{
+ display:block!important;width:8px!important;height:8px!important;
+ border-radius:50%!important;background:#c2c1d8!important;
+ box-shadow:inset 0 1px #fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots i:first-child{
+ background:#6331e5!important;box-shadow:0 0 0 2px #e6dfff!important;
+}
+
+/* Cuatro KPIs en una sola franja, degradados saturados y onda turquesa. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ width:100%!important;max-width:none!important;min-width:0!important;
+ gap:7px!important;padding:2px 1px 7px!important;margin:0 0 11px!important;
+ overflow:visible!important;align-items:stretch!important;scroll-snap-type:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi{
+ --jp-kpi-bg:linear-gradient(145deg,#3559fc 0%,#1840c7 79%,#0877e2 100%);
+ position:relative!important;isolation:isolate!important;
+ display:flex!important;flex-direction:column!important;
+ justify-content:center!important;align-items:center!important;
+ gap:3px!important;min-width:0!important;width:auto!important;max-width:none!important;
+ min-height:112px!important;max-height:none!important;flex:1 1 0!important;
+ padding:10px 4px 12px!important;overflow:hidden!important;
+ border:1px solid #ffffff60!important;border-radius:18px!important;
+ background:var(--jp-kpi-bg)!important;
+ box-shadow:inset 0 1px 1px #ffffff8c,0 6px 12px #4136a830!important;
+ color:#fff!important;text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(2){
+ --jp-kpi-bg:linear-gradient(145deg,#04d0d7 0%,#009eaa 68%,#03d3d9 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(3){
+ --jp-kpi-bg:linear-gradient(135deg,#bb50fd 0%,#7631dc 70%,#8c37ee 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(4){
+ --jp-kpi-bg:linear-gradient(135deg,#aa25e7 0%,#7b18be 62%,#a129d3 100%);
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi::before{
+ content:none!important;display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi::after{
+ content:"";position:absolute!important;z-index:0!important;
+ inset:auto 0 0!important;width:100%!important;height:23px!important;
+ border:0!important;border-radius:0!important;pointer-events:none!important;
+ background:linear-gradient(105deg,#ffffff0a,#4bfaff78)!important;
+ clip-path:polygon(0 88%,24% 72%,48% 90%,77% 22%,100% 38%,100% 100%,0 100%)!important;
+ opacity:1!important;transform:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon{
+ position:relative!important;z-index:1!important;display:grid!important;place-items:center!important;
+ width:27px!important;height:27px!important;flex:0 0 27px!important;
+ margin:0!important;padding:0!important;border:0!important;
+ background:transparent!important;box-shadow:none!important;color:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon svg{
+ width:26px!important;height:26px!important;stroke:#fff!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy{
+ position:relative!important;z-index:1!important;
+ display:flex!important;flex-direction:column!important;gap:2px!important;
+ align-items:center!important;justify-content:center!important;
+ width:100%!important;min-width:0!important;padding:0!important;
+ text-align:center!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy strong{
+ order:0!important;font-weight:900!important;font-size:clamp(22px,3.1vw,32px)!important;
+ line-height:1.06!important;letter-spacing:-.5px!important;color:#fff!important;
+ font-variant-numeric:tabular-nums!important;width:auto!important;
+ text-align:center!important;word-break:normal!important;text-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy small{
+ order:1!important;display:block!important;
+ color:#fff!important;font-size:clamp(9px,1.8vw,11px)!important;
+ font-weight:660!important;line-height:1.15!important;max-width:100%!important;
+ white-space:normal!important;word-break:normal!important;overflow-wrap:normal!important;
+ text-align:center!important;text-shadow:none!important;letter-spacing:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy em{
+ display:none!important;
+}
+
+/* Tarjeta activa y accesos: mismo estilo de contorno/ondas de la referencia. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-card,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card{
+ --jp-bg:linear-gradient(130deg,#fff,#f5f0ff 90%);
+ --jp-outline:#d8d0f4;--jp-glow:#8b43ea;
+ position:relative!important;isolation:isolate!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ gap:12px!important;width:100%!important;min-width:0!important;
+ min-height:72px!important;margin:0 0 9px!important;padding:10px 13px!important;
+ overflow:hidden!important;white-space:normal!important;
+ border:1px solid var(--jp-outline)!important;border-radius:19px!important;
+ background:var(--jp-bg)!important;box-shadow:0 5px 12px rgba(59,37,158,.11),inset 0 1px #fff!important;
+ text-align:left!important;color:var(--jp-ink)!important;
+ cursor:pointer!important;transition:transform .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-patients,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-aqua{
+ --jp-bg:linear-gradient(130deg,#f5ffff 0%,#e9fafc 75%,#e6f7fa 100%);
+ --jp-outline:#afe5e9;--jp-glow:#06cbd5;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-card::after,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card::after,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card::after{
+ content:"";position:absolute!important;z-index:0!important;bottom:0;right:0;
+ width:58%;height:23px!important;pointer-events:none;
+ background:linear-gradient(95deg,transparent,rgba(182,136,255,.48),var(--jp-glow))!important;
+ clip-path:polygon(0 92%,36% 84%,70% 45%,100% 8%,100% 100%,0 100%);
+ opacity:.83;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card,.jp-identity-card)>*{
+ position:relative!important;z-index:1!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon{
+ display:grid!important;place-items:center!important;
+ width:48px!important;height:48px!important;flex:0 0 48px!important;
+ border-radius:15px!important;border:1px solid #cbb8ff!important;
+ background:linear-gradient(145deg,#eee7ff,#f8f6ff)!important;
+ color:#6237d7!important;box-shadow:inset 0 1px #fff,0 2px 7px #7c4ddb1c!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-aqua,.jp-patients) .jp-action-icon{
+ color:#0797a4!important;background:linear-gradient(145deg,#dcfbfb,#f0ffff)!important;
+ border-color:#bceced!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-icon{
+ background:linear-gradient(140deg,#bbf8f5,#e4ffff)!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon svg{
+ width:29px!important;height:29px!important;stroke:currentColor!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy{
+ flex:1 1 auto!important;min-width:0!important;
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ gap:4px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy strong{
+ display:block!important;font-size:clamp(14px,2vw,17px)!important;line-height:1.15!important;
+ color:#1c1734!important;letter-spacing:-.25px!important;font-weight:860!important;
+ word-break:normal!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy small{
+ display:block!important;font-size:11px!important;line-height:1.25!important;
+ color:#625d7b!important;white-space:normal!important;overflow-wrap:anywhere!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-chevron{
+ display:grid!important;place-items:center!important;flex:0 0 19px!important;
+ color:#4f416d!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-chevron svg{
+ width:21px!important;height:21px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card .jp-current-status{
+ display:inline-flex!important;align-items:center!important;gap:5px!important;
+ flex:0 0 auto!important;max-width:100px!important;
+ padding:7px 9px!important;border-radius:999px!important;
+ background:#b8f2df!important;color:#006b57!important;
+ font-size:10px!important;line-height:1.15!important;font-weight:840!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-current-status i{
+ width:7px!important;height:7px!important;flex:0 0 7px!important;
+ border-radius:50%!important;background:#00bb36!important;box-shadow:0 0 6px #00cc4080!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card .jp-action-chevron{
+ flex-basis:16px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-actions{
+ display:flex!important;flex-direction:column!important;gap:0!important;
+ width:100%!important;min-width:0!important;
+}
+/* Cédula: se mueve el campo real, con su identificador y autosync originales. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card{
+ min-height:106px!important;cursor:default!important;
+ align-items:flex-start!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card .jp-action-icon{
+ margin-top:2px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content{
+ flex:1 1 auto!important;min-width:0!important;
+ display:block!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content .field{
+ display:flex!important;flex-direction:column!important;gap:6px!important;min-width:0!important;
+ width:100%!important;margin:0!important;padding:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content label{
+ color:#1e193e!important;font-size:clamp(13px,2vw,17px)!important;
+ font-weight:850!important;line-height:1.18!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey #journeyPatientId{
+ width:100%!important;min-width:0!important;min-height:44px!important;
+ padding:10px 40px 10px 12px!important;
+ border:1px solid #beb7df!important;border-radius:12px!important;
+ color:#282248!important;background:#fff!important;
+ font-size:12px!important;line-height:1.3!important;
+ box-shadow:inset 0 1px 2px #50408012,0 2px 5px #6b55bc18!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-scan-mark{
+ display:grid!important;place-items:center!important;position:absolute!important;
+ right:24px!important;bottom:22px!important;z-index:2!important;
+ color:#5134d8!important;pointer-events:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-scan-mark svg{
+ width:22px!important;height:22px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content input:focus{
+ outline:3px solid #17c2d2!important;outline-offset:1px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card):focus-visible{
+ outline:3px solid #0fb7cc!important;outline-offset:2px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card):active{
+ transform:scale(.992)!important;
+}
+@media(hover:hover){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card):hover{
+  border-color:#ae90f2!important;box-shadow:0 8px 17px #4932a52c!important;
+ }
+}
+
+/* CTA usa el botón original: se conserva la ventana previa a PNG/PDF. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-report-footer{
+ display:block!important;position:relative!important;
+ border:0!important;margin:4px 2px 10px!important;
+ padding:0!important;min-height:0!important;background:transparent!important;
+ border-radius:999px!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-report-footer>div{
+ position:absolute!important;width:1px!important;height:1px!important;
+ overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:12px!important;width:100%!important;min-height:65px!important;
+ margin:0!important;padding:12px 16px!important;
+ border:1px solid #8755e5!important;border-radius:999px!important;
+ background:linear-gradient(140deg,#a347fb 0%,#6f23e6 61%,#4a17d1 100%)!important;
+ color:#fff!important;font-size:clamp(15px,2.2vw,20px)!important;font-weight:870!important;
+ line-height:1.2!important;letter-spacing:-.2px!important;
+ box-shadow:inset 0 2px 2px #ffffff72,0 7px 12px #5638be4d,0 2px 0 #fff!important;
+ text-align:center!important;transition:transform .16s ease,box-shadow .16s ease!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button span{
+ display:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button::before{
+ content:"";display:inline-block;width:26px;height:26px;flex:0 0 26px;
+ background:currentColor;
+ -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 2h10l4 4v16H5V2zm10 0v5h4M8 17v-3m4 3V9m4 8v-5' stroke='%23000' fill='none' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+ mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 2h10l4 4v16H5V2zm10 0v5h4M8 17v-3m4 3V9m4 8v-5' stroke='%23000' fill='none' stroke-width='1.7' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button:active{
+ transform:scale(.986)!important;box-shadow:inset 0 2px 6px #30128854,0 4px 8px #5638be39!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button:focus-visible{
+ outline:3px solid #0ebed0!important;outline-offset:3px!important;
+}
+/* El registro completo sigue siendo plenamente operativo bajo acceso rápido. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-layout{
+ display:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:start!important;gap:11px!important;margin:0 0 10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+ display:grid!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-main-column,
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-side-column{
+ display:flex!important;flex-direction:column!important;gap:10px!important;min-width:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-layout .panel{
+ padding:12px!important;margin:0!important;border:1px solid #ded8f3!important;
+ border-radius:15px!important;background:linear-gradient(145deg,#fff,#faf8ff)!important;
+ box-shadow:0 4px 12px #4932a51c!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-layout .journey-panel-heading{
+ display:flex!important;gap:8px!important;justify-content:space-between!important;
+ padding:7px 6px 10px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-layout .journey-panel-heading h2{
+ font-size:16px!important;color:#251b4d!important;margin:4px 0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-layout :is(
+ .field input,.field select,.field textarea,.btn,.sample-toggle){
+ min-height:44px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-collapse-workspace{
+ display:none!important;align-items:center!important;justify-content:center!important;
+ margin:0 auto 14px!important;padding:9px 14px!important;
+ min-height:44px!important;border:1px solid #d3c4f1!important;
+ border-radius:999px!important;color:#5633ac!important;
+ background:#f3efff!important;font-size:11px!important;font-weight:800!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-workspace-open>.jp-collapse-workspace{
+ display:flex!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools{
+ margin:2px 3px 13px!important;border:1px solid #e2dcf5!important;
+ border-radius:14px!important;background:#faf8ff!important;
+ padding:0!important;overflow:hidden!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools>summary{
+ padding:12px 14px!important;min-height:44px!important;
+ font-weight:800!important;font-size:12px!important;color:#5940aa!important;
+ cursor:pointer!important;list-style-position:inside!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools>.page-heading{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:9px!important;min-height:0!important;
+ padding:10px 13px!important;margin:0!important;
+ background:#fff!important;border:0!important;box-shadow:none!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools>.page-heading h1{
+ font-size:15px!important;margin:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools>.page-heading p{
+ font-size:11px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools .heading-actions{
+ display:flex!important;flex-wrap:wrap!important;gap:8px!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools .heading-actions .btn{
+ flex:1 1 160px!important;min-height:44px!important;
+}
+/* Report modal / print: preserve the original report content and dialog. */
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey #journeyReportSetup:not([hidden]){
+ position:fixed!important;z-index:190!important;inset:0!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-journey #journeyReportSetup[hidden]{
+ display:none!important;
+}
+/* Áreas táctiles y responsive. */
+@media(max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference{
+  padding:7px 0 4px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading{
+  min-height:58px!important;margin-bottom:10px!important;padding:2px 3px!important;gap:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-icon{
+  width:36px!important;height:39px!important;flex-basis:36px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-icon svg{
+  width:32px!important;height:32px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-copy h1{
+  font-size:22px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-copy p{
+  font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots{
+  gap:5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots i{
+  width:7px!important;height:7px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis{
+  gap:5px!important;margin:0 0 9px!important;padding:1px 0 5px!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi{
+  min-width:0!important;min-height:99px!important;padding:8px 2px 9px!important;
+  flex:1 1 0!important;max-width:none!important;border-radius:14px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon{
+  width:22px!important;height:22px!important;flex:0 0 22px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon svg{
+  width:21px!important;height:21px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy strong{
+  font-size:24px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy small{
+  font-size:9px!important;line-height:1.15!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card,.jp-identity-card){
+  min-height:67px!important;margin:0 0 8px!important;padding:9px 10px!important;gap:9px!important;
+  border-radius:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon{
+  width:39px!important;height:39px!important;flex-basis:39px!important;border-radius:13px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon svg{
+  width:25px!important;height:25px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy strong{
+  font-size:14px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy small{
+  font-size:10.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card .jp-current-status{
+  padding:6px 8px!important;font-size:9px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card{
+  min-height:102px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content label{
+  font-size:13.2px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey #journeyPatientId{
+  font-size:11px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-report-button{
+  min-height:62px!important;font-size:17px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+  display:flex!important;flex-direction:column!important;gap:9px!important;
+ }
+}
+@media(max-width:370px){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis{
+  gap:4px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy small{
+  font-size:8.5px!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots{
+  display:none!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card .jp-current-status{
+  padding:5px 6px!important;font-size:8.6px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-card,.jp-action-card,.journey-report-button){
+  transition:none!important;animation:none!important;
+ }
+}
