@@ -436,8 +436,32 @@ async function registerSample(sample){
   throw new Error('Falló '+stage+': '+(error&&error.message?error.message:String(error)));
  }
 }
+async function getManagementPermissions(){
+ requireReady();
+ const result=await client.rpc('clinical_sample_management_permissions',{p_workspace_id:workspaceId});
+ if(result.error)fail(result.error);
+ const d=Array.isArray(result.data)?result.data[0]:result.data;
+ return {can_edit:d?.can_edit===true,can_delete:d?.can_delete===true};
+}
+async function correctSample(sample,visit,collectionAt,receivedAt,reason){
+ requireReady(['admin','clinician']);
+ if(!sample?.cloudId||!visit?.cloudId)throw new Error('La muestra o visita no está vinculada a Supabase.');
+ if(!['ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'].includes(sample.workflowStatus))
+  throw new Error('Solo se pueden corregir muestras almacenadas.');
+ const result=await client.rpc('correct_clinical_sample',{
+  p_workspace_id:workspaceId,p_sample_id:sample.cloudId,p_visit_id:visit.cloudId,
+  p_collection_at:collectionAt,p_received_at:receivedAt,p_reason:String(reason||'').trim(),
+  p_expected_updated_at:sample.updatedAt||null
+ });
+ if(result.error)fail(result.error);
+ const d=Array.isArray(result.data)?result.data[0]:result.data;
+ if(!d||d.ok!==true||d.status!==sample.workflowStatus)
+  throw new Error('Supabase no confirmó la corrección de esta muestra.');
+ await refreshSamples();
+ return d;
+}
 async function deleteSample(sample,reason){
- requireReady(['admin']);
+ requireReady(['admin','clinician']);
  if(role!=='admin')throw new Error('Solo el administrador puede eliminar muestras.');
  if(!sample||!sample.cloudId)throw new Error('La muestra no está vinculada al registro clínico de Supabase.');
  const result=await client.rpc('delete_clinical_sample',{p_workspace_id:workspaceId,p_sample_id:sample.cloudId,p_reason:String(reason||'').trim()});
@@ -502,7 +526,7 @@ async function syncStorageConfiguration(){
  return true;
 }
 async function refreshSamples(){requireReady(['admin','clinician','technician','reception']);if(syncPromise){await syncPromise;return true}clinicalSyncCursor=null;await loadRemoteConfiguration();await loadRemoteSamples();lastClinicalFullVerificationAt=Date.now();lastClinicalConfigVerificationAt=Date.now();refreshClinicalViewSafely();scheduleClinicalPoll(20000);return true;}
-window.FleboClinicalCloud={connect,syncConfiguration,saveConfiguration:trackClinicalMutation(saveConfiguration),syncStorageConfiguration:trackClinicalMutation(syncStorageConfiguration),refreshSamples,registerSample:trackClinicalMutation(registerSample),deleteSample:trackClinicalMutation(deleteSample),transition:trackClinicalMutation(transition),saveAliquots:trackClinicalMutation(saveAliquots),registerCryovial:trackClinicalMutation(registerCryovial),moveCryovial:trackClinicalMutation(moveCryovial),get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
+window.FleboClinicalCloud={connect,getManagementPermissions,correctSample:trackClinicalMutation(correctSample),syncConfiguration,saveConfiguration:trackClinicalMutation(saveConfiguration),syncStorageConfiguration:trackClinicalMutation(syncStorageConfiguration),refreshSamples,registerSample:trackClinicalMutation(registerSample),deleteSample:trackClinicalMutation(deleteSample),transition:trackClinicalMutation(transition),saveAliquots:trackClinicalMutation(saveAliquots),registerCryovial:trackClinicalMutation(registerCryovial),moveCryovial:trackClinicalMutation(moveCryovial),get ready(){return ready},get workspaceId(){return workspaceId},get role(){return role}};
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth&&window.FleboAuth.user)connect().then(function(){if(ready)syncConfiguration().catch(function(e){console.error('[FleboReport Clinical Cloud]',e)})});else ready=false});
 window.addEventListener('online',()=>{if(!ready)connect();else scheduleClinicalIncrementalRefresh()});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&ready)scheduleClinicalIncrementalRefresh();scheduleClinicalPoll(30000)});
