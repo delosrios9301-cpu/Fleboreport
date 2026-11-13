@@ -168,6 +168,187 @@
  function cellText(cell){
   return String(cell?.innerText||cell?.textContent||'').replace(/\s+/g,' ').trim();
  }
+
+ // Revisión clínica: ficha modal vinculada al mismo identificador único.
+ // Nunca se cambia un estado en el cliente sin confirmación de la RPC.
+ function reviewAllowed(){
+  const role=window.FleboClinicalCloud?.role;
+  return ['admin','clinician','reception'].includes(role);
+ }
+ function reviewSample(id){
+  return (data()?.clinicalSamples||[]).find(s=>String(s.id)===String(id)||String(s.cloudId)===String(id))||null;
+ }
+ function reviewRowSample(row){
+  const native=Array.from(row.lastElementChild?.querySelectorAll('button')||[])
+    .find(b=>/iniciar revisión|aprobar y enviar a proceso/i.test(b.textContent||''));
+  const raw=native?.getAttribute('onclick')||'';
+  const match=raw.match(/setClinicalSampleStatus\('([^']+)'/);
+  return match?{sample:reviewSample(match[1]),id:match[1]}:null;
+ }
+ function reviewDateTime(value,date,time){
+  const raw=value||(date?(date+(time?'T'+time:'')):'');
+  if(!raw)return '—';
+  // La cadena local de toma se conserva en hora local (sin conversión UTC).
+  if(!value&&date){
+   const ds=String(date).split('-');
+   if(ds.length===3&&ds.every(Boolean)){
+    const clock=String(time||'').slice(0,5);
+    return ds[2]+'/'+ds[1]+'/'+ds[0]+(clock?' · '+clock:'');
+   }
+  }
+  const parsed=new Date(raw);
+  if(Number.isNaN(parsed.getTime()))return String(raw);
+  return parsed.toLocaleString('es-PA',{dateStyle:'medium',timeStyle:'short'});
+ }
+ function openClinicalReviewCard(sampleId){
+  const sample=reviewSample(sampleId);
+  if(!sample){notify('La muestra ya no está disponible en la bandeja de revisión.');return;}
+  if(!reviewAllowed()){notify('Tu rol no tiene permiso para revisar o aprobar muestras.');return;}
+  const current=stateOf(sample);
+  if(!['REGISTRADO','EN_REVISION'].includes(current)){
+   notify('Esta muestra ya avanzó de etapa. Actualiza la bandeja.');
+   return;
+  }
+  const previous=document.activeElement;
+  get('clinicalReviewModal')?.remove();
+  const app=data()||{};
+  const lookup=(collection,id)=>Array.isArray(collection)?collection.find(item=>String(item.id)===String(id)):null;
+  const study=lookup(app.clinicalStudies,sample.studyId);
+  const visit=lookup(app.clinicalVisits,sample.visitId);
+  const sampleType=lookup(app.clinicalSampleTypes,sample.sampleTypeId);
+  const overlay=node('div','crx-review-overlay');
+  overlay.id='clinicalReviewModal';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-labelledby','clinicalReviewModalTitle');
+  overlay.setAttribute('aria-describedby','clinicalReviewModalDescription');
+  const card=node('section','crx-review-dialog');
+  card.setAttribute('tabindex','-1');
+  const hero=node('div','crx-review-hero');
+  const emblem=node('span','crx-review-hero-icon');emblem.append(svg('clipboard'));
+  const titleArea=node('div','crx-review-headlines');
+  const title=node('h2','','Revisión de muestra');title.id='clinicalReviewModalTitle';
+  const subtitle=node('p','','Verifica los datos registrados antes de autorizar el procesamiento.');
+  subtitle.id='clinicalReviewModalDescription';
+  titleArea.append(title,subtitle);
+  const closeButton=node('button','crx-review-close','×');
+  closeButton.type='button';closeButton.setAttribute('aria-label','Cerrar ficha de revisión');
+  hero.append(emblem,titleArea,closeButton);
+  const scroll=node('div','crx-review-scroll');
+  const identity=node('div','crx-review-subject');
+  identity.append(svg('user'),node('span','','Número de sujeto'));
+  identity.append(node('strong','',sample.subjectCode||sample.subjectId||'—'));
+  const status=node('span','crx-review-status');
+  const details=node('div','crx-review-details');
+  function field(label,value){
+   const item=node('div','crx-review-field');
+   item.append(node('small','',label),node('strong','',value==null||String(value).trim()===''?'—':String(value)));
+   details.appendChild(item);
+  }
+  field('Estudio',study?[study.protocol,study.name].filter(Boolean).join(' · '):(sample.study||sample.studyId||'—'));
+  field('Visita',sample.visit||visit?.name||visit?.code||'—');
+  field('Tipo de muestra',sample.sampleType||sampleType?.name||'—');
+  field('Fecha y hora de toma',reviewDateTime(sample.collectedAt,sample.collectionDate,sample.collectionTime));
+  field('Fecha y hora de recepción',reviewDateTime(sample.receivedAt,sample.date,sample.time));
+  field('Tubos / recipientes',sample.tubes==null?'—':sample.tubes);
+  field('Responsable de recepción',sample.receivedBy||'—');
+  if(sample.notes||sample.observations){
+   const note=node('div','crx-review-notes');
+   note.append(node('small','','Observaciones registradas'),node('p','',sample.notes||sample.observations));
+   scroll.appendChild(note);
+  }
+  const guidance=node('p','crx-review-guidance','Confirma que el estudio, la visita, el tipo de muestra y las fechas corresponden al sujeto registrado.');
+  scroll.prepend(identity,status,details,guidance);
+  const feedback=node('p','crx-review-feedback');
+  feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+  feedback.hidden=true;
+  const actions=node('footer','crx-review-footer');
+  const cancel=node('button','crx-review-cancel','Cerrar');cancel.type='button';
+  const approve=node('button','crx-review-approve','Aprobar y enviar a proceso');approve.type='button';
+  actions.append(cancel,approve);
+  card.append(hero,scroll,feedback,actions);
+  overlay.appendChild(card);
+  let busy=false,closed=false;
+  const handleKeys=e=>{
+   if(e.key==='Escape'&&!busy){e.preventDefault();dismiss();}
+   if(e.key!=='Tab')return;
+   const items=Array.from(card.querySelectorAll('button:not([disabled])'));
+   if(!items.length)return;
+   const first=items[0],last=items[items.length-1];
+   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+   else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+  };
+  function dismiss(){
+   if(busy||closed)return;
+   closed=true;document.removeEventListener('keydown',handleKeys);
+   overlay.remove();if(previous&&previous.isConnected&&typeof previous.focus==='function')previous.focus({preventScroll:true});
+  }
+  function message(text,isError){
+   feedback.hidden=!text;
+   feedback.textContent=text||'';
+   feedback.classList.toggle('is-error',!!isError);
+  }
+  function refreshModal(){
+   const now=reviewSample(sampleId),phase=now?stateOf(now):'';
+   if(!now||!['REGISTRADO','EN_REVISION'].includes(phase)){
+    approve.disabled=true;status.textContent='Estado actualizado fuera de revisión';
+    if(!busy)message('La muestra cambió de estado. Cierra la ficha y actualiza la bandeja.',true);
+    return false;
+   }
+   status.textContent=phase==='EN_REVISION'?'En revisión':'Registrada';
+   approve.disabled=busy||phase!=='EN_REVISION'||!reviewAllowed();
+   return true;
+  }
+  async function transition(next,notes){
+   const now=reviewSample(sampleId);
+   if(!now||!reviewAllowed())throw new Error('No se encuentra la muestra o no tienes permiso de revisión.');
+   const from=stateOf(now);
+   const expected=next==='En revisión'?'REGISTRADO':'EN_REVISION';
+   if(from!==expected)throw new Error('La muestra cambió de estado. Actualiza la revisión antes de continuar.');
+   if(typeof window.setClinicalSampleStatus!=='function')throw new Error('La transición clínica no está disponible.');
+   await window.setClinicalSampleStatus(now.id,next,notes);
+   // La función existente confirma la RPC antes de actualizar el estado;
+   // si falló, permanece en la etapa anterior y se mantiene la ficha.
+   const confirmed=reviewSample(sampleId);
+   const target=next==='En revisión'?'EN_REVISION':'PENDIENTE_PROCESO';
+   return !!confirmed&&stateOf(confirmed)===target;
+  }
+  approve.addEventListener('click',async()=>{
+   if(busy||!refreshModal())return;
+   busy=true;approve.disabled=true;cancel.disabled=true;closeButton.disabled=true;
+   message('Confirmando aprobación con el sistema...');
+   try{
+    const ok=await transition('Pendiente de procesamiento','Aprobada en ficha de revisión y enviada a procesamiento');
+    if(!ok)throw new Error('No se confirmó el envío a procesamiento. Comprueba la conexión y los datos obligatorios.');
+    busy=false;cancel.disabled=false;closeButton.disabled=false;
+    dismiss();
+    notify('Muestra aprobada y enviada a Procesamiento.');
+   }catch(e){
+    message(e?.message||'No se pudo aprobar la muestra.',true);
+    busy=false;cancel.disabled=false;closeButton.disabled=false;refreshModal();
+   }
+  });
+  closeButton.addEventListener('click',dismiss);
+  cancel.addEventListener('click',dismiss);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)dismiss();});
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown',handleKeys);
+  refreshModal();
+  closeButton.focus({preventScroll:true});
+  if(current==='REGISTRADO'){
+   busy=true;cancel.disabled=true;closeButton.disabled=true;approve.disabled=true;
+   message('Registrando el inicio de revisión...');
+   transition('En revisión','Revisión iniciada desde la ficha clínica')
+   .then(ok=>{
+    if(!ok)throw new Error('El servidor no confirmó el inicio de revisión. Comprueba tu conexión.');
+    message('Revisión iniciada. Comprueba los datos y, si todo está correcto, aprueba la muestra.');
+   })
+   .catch(e=>message(e?.message||'No se pudo iniciar la revisión.',true))
+   .finally(()=>{
+    busy=false;cancel.disabled=false;closeButton.disabled=false;refreshModal();
+   });
+  }
+ }
  function renderReviewCards(){
   if(!studiesInitialized)return;
   const host=get('crxReviewCards'),body=get('clinicalReviewRows');
@@ -188,10 +369,19 @@
    meta.append(pill('tubes',cellText(tds[3])||'Tipo de muestra'),pill('check',status||'Registrada'));
    info.appendChild(meta);
    const actions=node('div','crx-review-actions');
+   const reference=reviewRowSample(row);
    Array.from(tds[6].querySelectorAll('button')).forEach(original=>{
     if(/eliminar|quitar local/i.test(original.textContent)&&!hasDeletePermission())return;
-    const b=primaryButton(original);
-    actions.appendChild(b);
+    if(/iniciar revisión|aprobar y enviar a proceso/i.test(original.textContent||'')){
+     if(!reviewAllowed()||!reference?.sample)return;
+     const open=node('button','crx-action','Iniciar revisión');
+     open.type='button';
+     open.setAttribute('aria-label','Abrir ficha de revisión del sujeto '+(reference.sample.subjectCode||''));
+     open.addEventListener('click',()=>openClinicalReviewCard(reference.id));
+     actions.appendChild(open);
+    }else{
+     actions.appendChild(primaryButton(original));
+    }
    });
    card.append(emblem,info,actions);
    frag.appendChild(card);
