@@ -7,11 +7,11 @@ const [html,css,js,sw,shortcuts]=await Promise.all([
  file('service-worker.js'),file('variant-c-compact.js')
 ]);
 test('Inicio v300 se publica como ultima capa, tambien para PWA sin eliminar modulos',()=>{
- assert.ok(html.includes('inicio-premium.css?v=20261113-inicio1'));
+ assert.ok(html.includes('inicio-premium.css?v=20261113-inicio2'));
  assert.ok(html.includes('inicio-premium.js?v=20261113-inicio1'));
  assert.ok(html.lastIndexOf('inicio-premium.css')>html.lastIndexOf('jornada-premium.css'));
  assert.ok(html.lastIndexOf('inicio-premium.js')>html.lastIndexOf('variant-c-compact.js'));
- assert.ok(sw.includes('fleboreport-shell-v300'));
+ assert.ok(sw.includes('fleboreport-shell-v301'));
  assert.ok(sw.includes("'./inicio-premium.css'"));
  assert.ok(sw.includes("'./inicio-premium.js'"));
 });
