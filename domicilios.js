@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
-let activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
+let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
 let homeVisitSyncCursor=null,homeVisitCacheActive=false;
@@ -709,6 +709,111 @@ async function reviewAdditionalPatient(id,status){
   say(status==='approved'?'Paciente aprobado y vinculado al expediente central.':'Paciente adicional rechazado.');
  }catch(e){say('No se pudo guardar la revisión: '+(e.message||'error'));cloudNotice('Error al revisar paciente adicional: '+(e.message||'error'),true)}
 }
+
+/* Variante C referencia: estado real, privacidad y acciones clínicas originales. */
+const hvReferenceStatusGroups={
+ pending:['Pendiente de asignación','Pendiente de aceptación'],
+ accepted:['Aceptado'],
+ route:['En camino']
+};
+function hvReferenceSetQuick(value){
+ if(!Object.hasOwn(hvReferenceStatusGroups,value))return;
+ referenceQuickStatus=referenceQuickStatus===value?'':value;
+ activeTab='agenda';
+ render();
+}
+function hvReferenceRoute(id){
+ const v=visits.find(x=>x.id===id);if(!v)return;
+ if(cloud.role==='technician'&&v.assignmentStatus!=='accepted'){
+  say('La ruta estará disponible después de aceptar este domicilio.');return;
+ }
+ if(!v.address){say('Esta visita todavía no tiene dirección confirmada.');return;}
+ window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(v.address),
+  '_blank','noopener,noreferrer');
+}
+function hvReferenceStatus(s){
+ if(['Pendiente de aceptación','Pendiente de asignación'].includes(s))return ['Pendiente','pending'];
+ if(s==='Aceptado')return ['Aceptado','accepted'];
+ if(s==='En camino')return ['En camino','route'];
+ if(s==='En domicilio')return ['En domicilio','arrived'];
+ if(s==='Muestras tomadas'||s==='Finalizado')return [s,'done'];
+ return [s||'Sin estado','other'];
+}
+function hvReferenceHour(time){
+ const m=/^(\d{1,2}):(\d{2})/.exec(String(time||''));
+ if(!m)return String(time||'Hora pendiente');
+ const hour=Number(m[1]);if(hour>23)return String(time);
+ return String(hour%12||12).padStart(2,'0')+':'+m[2]+(hour>=12?' p. m.':' a. m.');
+}
+function hvReferenceVisitCard(v,technician){
+ const privatePending=technician&&v.assignmentStatus==='invited'&&v.status==='Pendiente de aceptación';
+ const name=privatePending?'Visita por confirmar':String(v.patientName||'Paciente');
+ const subtitle=privatePending?'Asignación pendiente':String(v.tests?.[0]?.name||'Toma de muestra');
+ const initial=privatePending?'✦':(name.trim().charAt(0)||'P').toUpperCase();
+ const status=hvReferenceStatus(v.status);
+ const address=privatePending?'':String(v.address||'').trim();
+ const hasRoute=!privatePending&&!(technician&&v.assignmentStatus!=='accepted')&&Boolean(address);
+ const highPriority=priorityDb(v.priority)!=='normal';
+ const svg=paths=>'<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';
+ const icons={
+  pending:'<rect x="5" y="5" width="14" height="17" rx="2"/><path d="M9 5V3h6v2M9 11h6M9 15h6M9 19h3"/>',
+  accepted:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  route:'<path d="M3 7h11v10H3zM14 10h4l3 4v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>',
+  arrived:'<path d="m3 11 9-7 9 7v10H3zM9 21v-7h6v7"/>',
+  done:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  other:'<circle cx="12" cy="12" r="9"/>'
+ };
+ const clock=svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
+ const pin=svg('<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>');
+ const chat=svg('<path d="M4 4h16v12H9l-5 4V4Z"/><path d="M8 10h8"/>');
+ const id=esc(v.id),key=status[1];
+ return '<article class="hv-premium-visit hv-ref-visit" data-hv-reference-state="'+key+'">'
+  +'<div class="hv-ref-top"><div class="hv-ref-avatar" aria-hidden="true">'+esc(initial)+'</div>'
+  +'<div class="hv-ref-head"><strong>'+esc(name)+'</strong><span>'+esc(subtitle)+'</span><small>'+esc(dateLabel(v.scheduledDate))+'</small></div>'
+  +'<span class="hv-ref-state hv-ref-state-'+key+'">'+svg(icons[key]||icons.other)+' '+esc(status[0])+'</span></div>'
+  +'<div class="hv-ref-meta"><span>'+clock+' <strong>'+esc(hvReferenceHour(v.scheduledTime))+'</strong></span>'
+  +'<i class="hv-ref-separator" aria-hidden="true"></i><span>'+pin+' <span class="hv-ref-location" title="'+esc(address)+'">'+(privatePending?'Ubicación tras aceptar':esc(address||'Ubicación por confirmar'))+'</span></span></div>'
+  +(highPriority?'<span class="hv-ref-priority">'+esc(priorityLabel(v.priority))+'</span>':'')
+  +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
+  +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
+  +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div></article>';
+}
+function enhanceReferenceVisitLayout(){
+ const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
+ workspace.dataset.referenceCards='1';
+ const head=document.createElement('header');head.className='hv-ref-heading';
+ head.innerHTML='<div class="hv-ref-heading-title"><span class="hv-ref-house" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15 16 5l13 10v13H3V15Z"/><path d="M11 28V17h10v11"/></svg></span><div><h1>Domicilios</h1><p>Visitas domiciliarias asignadas</p></div></div><button type="button" id="hvRefNew" hidden>＋ Nuevo</button>';
+ workspace.prepend(head);
+ const statusBar=document.createElement('nav');statusBar.id='hvRefQuick';statusBar.className='hv-ref-quick';statusBar.setAttribute('aria-label','Filtrar domicilios por estado');
+ head.insertAdjacentElement('afterend',statusBar);
+ const toolbar=document.createElement('div');toolbar.id='hvRefTools';toolbar.className='hv-ref-tools';
+ toolbar.innerHTML='<button type="button" class="hv-ref-tools-toggle" id="hvRefToggleTools" aria-expanded="false" aria-controls="hvRefToolsPanel">Filtros y opciones</button><div class="hv-ref-tools-panel" id="hvRefToolsPanel"></div>';
+ statusBar.insertAdjacentElement('afterend',toolbar);
+ const tabs=workspace.querySelector('.hv-module-tabs');
+ if(tabs)toolbar.querySelector('.hv-ref-tools-panel').appendChild(tabs);
+ const actions=document.querySelector('#view-domicilios .hv-premium-hero-actions');
+ if(actions)toolbar.querySelector('.hv-ref-tools-panel').appendChild(actions);
+ workspace.addEventListener('click',event=>{
+  const target=event.target.closest('button');
+  if(!target)return;
+  if(target.id==='hvRefNew'){setTab('create');return}
+  if(target.id==='hvRefToggleTools'){
+   const expanded=workspace.classList.toggle('hv-ref-tools-open');
+   target.setAttribute('aria-expanded',String(expanded));
+   target.textContent=expanded?'Ocultar opciones':'Filtros y opciones';
+   return;
+  }
+  if(target.hasAttribute('data-hv-ref-quick')){
+   hvReferenceSetQuick(target.dataset.hvRefQuick);return;
+  }
+  if(target.hasAttribute('data-hv-ref-route')){
+   hvReferenceRoute(target.dataset.hvRefRoute);return;
+  }
+  if(target.hasAttribute('data-hv-ref-details')){
+   window.hvSelect(target.dataset.hvRefDetails);
+  }
+ });
+}
 function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;render();}
 window.hvSetTab=setTab;
 function render(){
@@ -739,26 +844,23 @@ function render(){
   const historyMatches=v=>(!historyQuery||normalizeSearch([v.patientName,v.document,v.id,v.address,v.assignedTo].join(' ')).includes(historyQuery))&&(!historyDate||v.scheduledDate===historyDate);
   const historyStatuses=['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'];
   const sortVisits=(a,b)=>priorityRank(a.priority)-priorityRank(b.priority)||a.scheduledDate.localeCompare(b.scheduledDate)||a.scheduledTime.localeCompare(b.scheduledTime)||String(b.createdAtDb||b.createdAt||'').localeCompare(String(a.createdAtDb||a.createdAt||''));
-  const activeList=visits.filter(v=>!historyStatuses.includes(v.status)&&matches(v)).sort(sortVisits);
+  const activeList=visits.filter(v=>!historyStatuses.includes(v.status)&&matches(v)&&(!referenceQuickStatus||hvReferenceStatusGroups[referenceQuickStatus].includes(v.status))).sort(sortVisits);
   const historyList=visits.filter(v=>historyStatuses.includes(v.status)&&historyMatches(v)).sort((a,b)=>b.scheduledDate.localeCompare(a.scheduledDate)||b.scheduledTime.localeCompare(a.scheduledTime));
   const todayList=visits.filter(v=>v.scheduledDate===today());
+
+  const quickBar=$('hvRefQuick');
+  if(quickBar){
+   quickBar.innerHTML=[['pending','Pendientes','☷'],['accepted','Aceptados','✓'],['route','En camino','↗']].map(([key,label,glyph])=>{
+    const n=visits.filter(v=>!historyStatuses.includes(v.status)&&hvReferenceStatusGroups[key].includes(v.status)).length;
+    const active=referenceQuickStatus===key;
+    return '<button type="button" data-hv-ref-quick="'+key+'" aria-pressed="'+active+'" class="hv-ref-pill hv-ref-pill-'+key+(active?' is-active':'')+'"><span aria-hidden="true" class="hv-ref-pill-icon">'+glyph+'</span>'+label+' ('+n+')</button>';
+   }).join('');
+   quickBar.hidden=activeTab!=='agenda';
+  }
+  const createRef=$('hvRefNew');if(createRef)createRef.hidden=!manager||technician;
+
   if(kpis)kpis.innerHTML=[['Hoy',todayList.length,'calendar'],['Pendientes',visits.filter(v=>['Pendiente de asignación','Pendiente de aceptación'].includes(v.status)).length,'waiting'],['En proceso',visits.filter(v=>['Aceptado','En camino','En domicilio'].includes(v.status)).length,'working'],['Finalizados',visits.filter(v=>v.status==='Finalizado').length,'done']].map(x=>'<div class="hv-kpi hv-premium-kpi hv-premium-kpi-'+x[2]+'"><span class="hv-premium-kpi-label">'+esc(x[0])+'</span><span class="hv-premium-kpi-bottom"><b>'+x[1]+'</b><span class="hv-premium-kpi-symbol" aria-hidden="true">'+({calendar:'◷',waiting:'◉',working:'↗',done:'✓'}[x[2]])+'</span></span></div>').join('');
-  const rowHtml=v=>{
-    const privatePending=technician&&v.assignmentStatus==='invited'&&v.status==='Pendiente de aceptación';
-    const name=privatePending?'Nuevo domicilio asignado':String(v.patientName||'Paciente');
-    const initial=privatePending?'✦':(name.trim().charAt(0)||'P').toUpperCase();
-    const assignee=privatePending?'Esperando tu respuesta':(v.assignedTo||'Sin asignar');
-    const location=privatePending?'':String(v.address||'');
-    const day=dateLabel(v.scheduledDate);
-    const priority=priorityDb(v.priority);
-    return '<button type="button" class="hv-visit hv-premium-visit '+(selected===v.id?'selected':'')+'" onclick="hvSelect(\''+esc(v.id)+'\')" aria-label="Ver domicilio: '+esc(name)+'">'
-      +'<span class="hv-premium-visit-top"><span class="hv-premium-visit-avatar" aria-hidden="true">'+esc(initial)+'</span><span class="hv-premium-visit-heading"><b>'+esc(name)+'</b><small>'+esc(day)+' · '+esc(v.scheduledTime)+'</small></span><span class="hv-premium-visit-chevron" aria-hidden="true">›</span></span>'
-      +'<span class="hv-premium-visit-meta"><span class="hv-priority-label hv-priority-'+priority+'">'+priorityLabel(v.priority)+'</span>'+statusBadge(v.status)+'</span>'
-      +'<span class="hv-premium-visit-assignee">'+(privatePending?'◷':'◎')+' '+esc(assignee)+'</span>'
-      +(privatePending?'<span class="hv-premium-visit-privacy">Confirma la asignación para acceder a los datos del paciente.</span>':(location?'<span class="hv-premium-visit-address">⌖ '+esc(location)+'</span>':''))
-      +'<span class="hv-premium-visit-action">Ver seguimiento <span aria-hidden="true">→</span></span>'
-      +'</button>';
-  };
+  const rowHtml=v=>hvReferenceVisitCard(v,technician);
   $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">No hay domicilios activos para estos filtros.</div>';
   const historyHost=$('hvHistoryRows');if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):'<div class="hv-empty">Todavía no hay domicilios en el historial.</div>';
   const historyCount=$('hvHistoryCount');if(historyCount)historyCount.textContent=String(historyList.length);
@@ -898,7 +1000,7 @@ if(!document.getElementById('hv-responsive-agenda-v2')){
  style.textContent+='.hv-detail-backdrop{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(10,28,42,.66);}.hv-detail-dialog{position:relative;width:min(920px,96vw);max-height:min(90vh,900px);overflow:auto;padding:24px;border:1px solid #dce8ed;border-radius:18px;background:#fff;box-shadow:0 24px 80px #071b2b55;overscroll-behavior:contain}.hv-detail-close{position:sticky;top:0;float:right;z-index:2;display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin:-10px -10px 8px 12px;border:1px solid #dce7ed;border-radius:50%;background:#fff;color:#25465c;font-size:27px;line-height:1;cursor:pointer}.hv-detail-close:hover{background:#edf5f7}.hv-detail-dialog .hv-detail-head{padding-right:38px}.hv-detail-dialog .hv-timeline{max-height:260px;overflow:auto}@media(max-width:700px){.hv-detail-backdrop{align-items:flex-end;padding:0}.hv-detail-dialog{width:100%;max-height:94dvh;max-height:94vh;border-radius:20px 20px 0 0;padding:18px 14px calc(20px + env(safe-area-inset-bottom));}.hv-detail-close{width:42px;height:42px;margin:-5px -3px 8px 10px}.hv-detail-dialog .hv-detail-head{padding-right:42px}.hv-detail-dialog .hv-info{grid-template-columns:1fr}.hv-detail-dialog .hv-info .wide{grid-column:auto}}';style.textContent+="#hvWorkspace>.hv-module-tabs{grid-column:1/-1;order:-2;display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 2px;padding:5px;border:1px solid #e1eaf0;border-radius:14px;background:#f7fafc}#hvWorkspace>.hv-module-tabs .hv-module-tab{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;padding:9px 14px;border:1px solid transparent;border-radius:10px;background:transparent;color:#456176;font-weight:750;cursor:pointer}#hvWorkspace>.hv-module-tabs .hv-module-tab.active{background:#fff;color:#126f69;border-color:#cfe4e0;box-shadow:0 1px 3px #17394a12}#hvWorkspace>#hvKpis{order:-1}#hvWorkspace>#hvAgendaPanel{grid-column:1;order:1}#hvWorkspace>.hv-detail-panel{grid-column:2;order:2;position:sticky;top:12px;max-height:calc(100vh - 28px);overflow:auto}#hvWorkspace>#hvCreatePanel{grid-column:1/-1;order:3}#hvWorkspace>.hv-history-panel{grid-column:1/-1;order:4}#hvWorkspace>.hv-calendar-panel{grid-column:1/-1;order:5}#hvWorkspace .hv-section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}#hvWorkspace .hv-section-heading h2{margin:0}#hvWorkspace .hv-section-heading p{margin:5px 0 0;color:#718596;font-size:13px}#hvWorkspace>#hvAgendaPanel[hidden],#hvWorkspace>.hv-detail-panel[hidden],#hvWorkspace>#hvCreatePanel[hidden],#hvWorkspace>.hv-history-panel[hidden],#hvWorkspace>.hv-calendar-panel[hidden]{display:none!important}#hvWorkspace .hv-detail-panel{min-width:0}#hvWorkspace .hv-detail-panel .hv-info{grid-template-columns:repeat(2,minmax(0,1fr))}#hvWorkspace .hv-detail-panel .hv-info .wide{grid-column:1/-1}@media(max-width:900px){#hvWorkspace>#hvAgendaPanel{grid-column:1/-1;order:1}#hvWorkspace>.hv-detail-panel{grid-column:1/-1;order:2;position:static;max-height:none;overflow:visible}#hvWorkspace>#hvCreatePanel,#hvWorkspace>.hv-history-panel,#hvWorkspace>.hv-calendar-panel{grid-column:1/-1}#hvWorkspace>.hv-module-tabs{overflow-x:auto;flex-wrap:nowrap}#hvWorkspace>.hv-module-tabs .hv-module-tab{white-space:nowrap}}";
  document.head.appendChild(style);
 }
-main.appendChild(view);enhanceHomeVisitComposition();window.dispatchEvent(new Event('flebo:domicilios-mounted'));let p=document.querySelector('[data-nav="patients"]');if(p&&!document.querySelector('[data-nav="domicilios"]')){let n=document.createElement('button');n.type='button';n.dataset.nav='domicilios';n.innerHTML='<span>⌂</span>Domicilios';n.onclick=()=>window.navigate('domicilios');p.parentNode.insertBefore(n,p.nextSibling)}const lookupPatient=async()=>{const q=$('hvPatientLookup').value.trim()||$('hvDoc').value.trim();const status=$('hvPatientLookupStatus');if(!q){status.textContent='Escribe una cédula o nombre para buscar.';return}if(!cloud.ready||!cloud.client){status.textContent='La conexión con el laboratorio aún no está lista.';return}status.textContent='Buscando expediente…';try{const result=await cloud.client.rpc('search_workspace_patients',{p_workspace_id:cloud.workspaceId,p_query:q});if(result.error)throw result.error;const rows=result.data?(Array.isArray(result.data)?result.data:[result.data]):[];if(rows.length===1){const p=rows[0],data=p.app_data||{},attentions=Array.isArray(data.attentions)?data.attentions:[],journeys=Array.isArray(data.journeyHistory)?data.journeyHistory:[];$('hvPatientId').value=p.id;$('hvName').value=[p.first_name,p.last_name].filter(Boolean).join(' ');$('hvDoc').value=p.document_number||'';$('hvBirthDate').value=p.birth_date||'';$('hvSex').value=p.sex||'';$('hvPhone').value=p.phone||'';$('hvEmail').value=p.email||'';$('hvAddress').value=p.address||'';let homeRows=[];try{const resultVisits=await cloud.client.from('home_visits').select('id,scheduled_at,address,status').eq('workspace_id',cloud.workspaceId).eq('patient_id',p.id).order('scheduled_at',{ascending:false}).limit(20);if(resultVisits.error)throw resultVisits.error;homeRows=resultVisits.data||[]}catch(e){console.warn('No se pudo cargar el historial de domicilios:',e)}const dateLabel=v=>{if(!v)return'Fecha no registrada';try{return new Intl.DateTimeFormat('es-PA',{dateStyle:'medium',timeZone:'America/Panama'}).format(new Date(v))}catch(_){return String(v)}};const statusLabel=v=>({'pending_assignment':'Pendiente de asignación','pending_acceptance':'Pendiente de aceptación','accepted':'Aceptado','on_the_way':'En camino','arrived':'En domicilio','samples_collected':'Muestras tomadas','completed':'Finalizado','rejected':'Rechazado','cancelled':'Cancelado','rescheduled':'Reprogramado','not_done':'No realizado'}[v]||v||'Sin estado');const attentionHtml=attentions.length?attentions.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(a=>'<article class="hv-patient-history-item"><b>'+esc(a.type||'Atención médica')+' · '+esc(dateLabel(a.date))+'</b><small>Profesional: '+esc(a.professional||'No registrado')+'</small>'+(a.reason?'<p><b>Motivo:</b> '+esc(a.reason)+'</p>':'')+((a.tests||[]).length?'<div class="hv-patient-history-tests">'+a.tests.map(t=>'<span>'+esc(t.name||t.testName||'Prueba')+(t.result?' · Resultado: '+esc(t.result):'')+(t.status?' · '+esc(t.status):'')+'</span>').join('')+'</div>':'')+(a.notes?'<p><b>Observaciones:</b> '+esc(a.notes)+'</p>':'')+(a.conclusions?'<p><b>Conclusiones:</b> '+esc(a.conclusions)+'</p>':'')+'</article>').join(''):'<small>Sin atenciones médicas registradas en el expediente sincronizado.</small>';const journeyHtml=journeys.length?journeys.slice().sort((a,b)=>String(b.journeyDate||'').localeCompare(String(a.journeyDate||''))).map(j=>'<article class="hv-patient-history-item"><b>Jornada · '+esc(dateLabel(j.journeyDate||j.date))+'</b><small>'+(Array.isArray(j.testIds)?j.testIds.length:0)+' pruebas asociadas · '+esc(j.status||'Registro de jornada')+'</small></article>').join(''):'<small>Sin jornadas previas registradas en el expediente sincronizado.</small>';const homeHtml=homeRows.length?homeRows.map(v=>'<article class="hv-patient-history-item"><b>Domicilio · '+esc(dateLabel(v.scheduled_at))+'</b><small>'+esc(statusLabel(v.status))+'</small><p>'+esc(v.address||'Sin dirección registrada')+'</p></article>').join(''):'<small>Sin domicilios previos vinculados a este paciente.</small>';const history=$('hvPatientHistory');if(history){history.hidden=false;history.innerHTML='<div class="hv-patient-history-head"><b>Expediente central encontrado</b><span>Información sincronizada</span></div><div class="hv-patient-history-grid"><span><b>'+attentions.length+'</b><small>Atenciones médicas</small></span><span><b>'+journeys.length+'</b><small>Registros de jornada</small></span><span><b>'+homeRows.length+'</b><small>Domicilios recientes</small></span></div><div class="hv-patient-history-section"><b>Datos del expediente</b><p>'+esc([data.company?'Empresa: '+data.company:'',data.emergency?'Contacto de emergencia: '+data.emergency:'',data.emergencyPhone?'Teléfono de emergencia: '+data.emergencyPhone:''].filter(Boolean).join(' · ')||'Sin datos adicionales del expediente.')+'</p>'+(data.generalNotes||data.notes?'<p><b>Notas generales:</b> '+esc(data.generalNotes||data.notes)+'</p>':'')+'</div><details class="hv-patient-history-details" open><summary>Historial de atenciones médicas</summary>'+attentionHtml+'</details><details class="hv-patient-history-details"><summary>Historial de jornadas</summary>'+journeyHtml+'</details><details class="hv-patient-history-details"><summary>Historial de domicilios</summary>'+homeHtml+'</details><small>El domicilio actual quedará vinculado al mismo expediente central.</small>'}status.textContent='Expediente encontrado. Se vinculará al domicilio.'}else if(rows.length>1){status.textContent='Se encontraron varios resultados. Refina la búsqueda con la cédula completa.'}else{$('hvPatientId').value='';if(/^[0-9A-Za-z-]{4,}$/.test(q)&&!q.includes(' '))$('hvDoc').value=q;status.textContent='No existe un expediente con esos datos. Completa la información y se creará al guardar el domicilio.'}}catch(e){status.textContent='No se pudo buscar el paciente: '+(e.message||'Error');}};$('hvFindPatient').addEventListener('click',lookupPatient);$('hvPatientLookup').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();lookupPatient()}});$('hvDoc').addEventListener('change',()=>{if($('hvDoc').value.trim()){$('hvPatientLookup').value=$('hvDoc').value.trim();lookupPatient()}});bindProfessionalPicker();['hvSearch','hvFilterDate','hvFilterStatus','hvHistorySearch','hvHistoryDate'].forEach(id=>{$(id).oninput=render;$(id).onchange=render});$('hvDate').min=today();['hvTests','hvMoreTests'].forEach(prefix=>{let input=$(prefix+'Search'),host=$(prefix+'Choices'),dropdown=$(prefix+'Dropdown');if(input){input.addEventListener('focus',()=>drawTestPicker(prefix,input.value,true));input.addEventListener('input',()=>drawTestPicker(prefix,input.value,true));input.addEventListener('keydown',e=>{if(e.key==='Escape'&&dropdown){dropdown.hidden=true;input.setAttribute('aria-expanded','false')}})}if(host)host.dataset.bound='1'});document.addEventListener('click',e=>{let add=e.target.closest('[data-add-test]');if(add){toggleTest(add.dataset.prefix,add.dataset.addTest);return}let remove=e.target.closest('[data-remove-test]');if(remove){let prefix=remove.dataset.prefix,ids=prefix==='hvTests'?newTestSelection:moreTestSelection;let at=ids.indexOf(remove.dataset.removeTest);if(at>=0)ids.splice(at,1);drawTestPicker(prefix,$(prefix+'Search')?.value||'',false)}});document.addEventListener('click',e=>{['hvTests','hvMoreTests'].forEach(prefix=>{let wrap=document.querySelector('#'+prefix+'Search')?.closest('.hv-test-picker'),dropdown=$(prefix+'Dropdown'),input=$(prefix+'Search');if(wrap&&dropdown&&!wrap.contains(e.target)){dropdown.hidden=true;if(input)input.setAttribute('aria-expanded','false')}})});drawTestPicker('hvTests','');render();syncPushActivationUI();connectCloud()}
+main.appendChild(view);enhanceHomeVisitComposition();enhanceReferenceVisitLayout();window.dispatchEvent(new Event('flebo:domicilios-mounted'));let p=document.querySelector('[data-nav="patients"]');if(p&&!document.querySelector('[data-nav="domicilios"]')){let n=document.createElement('button');n.type='button';n.dataset.nav='domicilios';n.innerHTML='<span>⌂</span>Domicilios';n.onclick=()=>window.navigate('domicilios');p.parentNode.insertBefore(n,p.nextSibling)}const lookupPatient=async()=>{const q=$('hvPatientLookup').value.trim()||$('hvDoc').value.trim();const status=$('hvPatientLookupStatus');if(!q){status.textContent='Escribe una cédula o nombre para buscar.';return}if(!cloud.ready||!cloud.client){status.textContent='La conexión con el laboratorio aún no está lista.';return}status.textContent='Buscando expediente…';try{const result=await cloud.client.rpc('search_workspace_patients',{p_workspace_id:cloud.workspaceId,p_query:q});if(result.error)throw result.error;const rows=result.data?(Array.isArray(result.data)?result.data:[result.data]):[];if(rows.length===1){const p=rows[0],data=p.app_data||{},attentions=Array.isArray(data.attentions)?data.attentions:[],journeys=Array.isArray(data.journeyHistory)?data.journeyHistory:[];$('hvPatientId').value=p.id;$('hvName').value=[p.first_name,p.last_name].filter(Boolean).join(' ');$('hvDoc').value=p.document_number||'';$('hvBirthDate').value=p.birth_date||'';$('hvSex').value=p.sex||'';$('hvPhone').value=p.phone||'';$('hvEmail').value=p.email||'';$('hvAddress').value=p.address||'';let homeRows=[];try{const resultVisits=await cloud.client.from('home_visits').select('id,scheduled_at,address,status').eq('workspace_id',cloud.workspaceId).eq('patient_id',p.id).order('scheduled_at',{ascending:false}).limit(20);if(resultVisits.error)throw resultVisits.error;homeRows=resultVisits.data||[]}catch(e){console.warn('No se pudo cargar el historial de domicilios:',e)}const dateLabel=v=>{if(!v)return'Fecha no registrada';try{return new Intl.DateTimeFormat('es-PA',{dateStyle:'medium',timeZone:'America/Panama'}).format(new Date(v))}catch(_){return String(v)}};const statusLabel=v=>({'pending_assignment':'Pendiente de asignación','pending_acceptance':'Pendiente de aceptación','accepted':'Aceptado','on_the_way':'En camino','arrived':'En domicilio','samples_collected':'Muestras tomadas','completed':'Finalizado','rejected':'Rechazado','cancelled':'Cancelado','rescheduled':'Reprogramado','not_done':'No realizado'}[v]||v||'Sin estado');const attentionHtml=attentions.length?attentions.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(a=>'<article class="hv-patient-history-item"><b>'+esc(a.type||'Atención médica')+' · '+esc(dateLabel(a.date))+'</b><small>Profesional: '+esc(a.professional||'No registrado')+'</small>'+(a.reason?'<p><b>Motivo:</b> '+esc(a.reason)+'</p>':'')+((a.tests||[]).length?'<div class="hv-patient-history-tests">'+a.tests.map(t=>'<span>'+esc(t.name||t.testName||'Prueba')+(t.result?' · Resultado: '+esc(t.result):'')+(t.status?' · '+esc(t.status):'')+'</span>').join('')+'</div>':'')+(a.notes?'<p><b>Observaciones:</b> '+esc(a.notes)+'</p>':'')+(a.conclusions?'<p><b>Conclusiones:</b> '+esc(a.conclusions)+'</p>':'')+'</article>').join(''):'<small>Sin atenciones médicas registradas en el expediente sincronizado.</small>';const journeyHtml=journeys.length?journeys.slice().sort((a,b)=>String(b.journeyDate||'').localeCompare(String(a.journeyDate||''))).map(j=>'<article class="hv-patient-history-item"><b>Jornada · '+esc(dateLabel(j.journeyDate||j.date))+'</b><small>'+(Array.isArray(j.testIds)?j.testIds.length:0)+' pruebas asociadas · '+esc(j.status||'Registro de jornada')+'</small></article>').join(''):'<small>Sin jornadas previas registradas en el expediente sincronizado.</small>';const homeHtml=homeRows.length?homeRows.map(v=>'<article class="hv-patient-history-item"><b>Domicilio · '+esc(dateLabel(v.scheduled_at))+'</b><small>'+esc(statusLabel(v.status))+'</small><p>'+esc(v.address||'Sin dirección registrada')+'</p></article>').join(''):'<small>Sin domicilios previos vinculados a este paciente.</small>';const history=$('hvPatientHistory');if(history){history.hidden=false;history.innerHTML='<div class="hv-patient-history-head"><b>Expediente central encontrado</b><span>Información sincronizada</span></div><div class="hv-patient-history-grid"><span><b>'+attentions.length+'</b><small>Atenciones médicas</small></span><span><b>'+journeys.length+'</b><small>Registros de jornada</small></span><span><b>'+homeRows.length+'</b><small>Domicilios recientes</small></span></div><div class="hv-patient-history-section"><b>Datos del expediente</b><p>'+esc([data.company?'Empresa: '+data.company:'',data.emergency?'Contacto de emergencia: '+data.emergency:'',data.emergencyPhone?'Teléfono de emergencia: '+data.emergencyPhone:''].filter(Boolean).join(' · ')||'Sin datos adicionales del expediente.')+'</p>'+(data.generalNotes||data.notes?'<p><b>Notas generales:</b> '+esc(data.generalNotes||data.notes)+'</p>':'')+'</div><details class="hv-patient-history-details" open><summary>Historial de atenciones médicas</summary>'+attentionHtml+'</details><details class="hv-patient-history-details"><summary>Historial de jornadas</summary>'+journeyHtml+'</details><details class="hv-patient-history-details"><summary>Historial de domicilios</summary>'+homeHtml+'</details><small>El domicilio actual quedará vinculado al mismo expediente central.</small>'}status.textContent='Expediente encontrado. Se vinculará al domicilio.'}else if(rows.length>1){status.textContent='Se encontraron varios resultados. Refina la búsqueda con la cédula completa.'}else{$('hvPatientId').value='';if(/^[0-9A-Za-z-]{4,}$/.test(q)&&!q.includes(' '))$('hvDoc').value=q;status.textContent='No existe un expediente con esos datos. Completa la información y se creará al guardar el domicilio.'}}catch(e){status.textContent='No se pudo buscar el paciente: '+(e.message||'Error');}};$('hvFindPatient').addEventListener('click',lookupPatient);$('hvPatientLookup').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();lookupPatient()}});$('hvDoc').addEventListener('change',()=>{if($('hvDoc').value.trim()){$('hvPatientLookup').value=$('hvDoc').value.trim();lookupPatient()}});bindProfessionalPicker();['hvSearch','hvFilterDate','hvFilterStatus','hvHistorySearch','hvHistoryDate'].forEach(id=>{$(id).oninput=render;$(id).onchange=render});$('hvDate').min=today();['hvTests','hvMoreTests'].forEach(prefix=>{let input=$(prefix+'Search'),host=$(prefix+'Choices'),dropdown=$(prefix+'Dropdown');if(input){input.addEventListener('focus',()=>drawTestPicker(prefix,input.value,true));input.addEventListener('input',()=>drawTestPicker(prefix,input.value,true));input.addEventListener('keydown',e=>{if(e.key==='Escape'&&dropdown){dropdown.hidden=true;input.setAttribute('aria-expanded','false')}})}if(host)host.dataset.bound='1'});document.addEventListener('click',e=>{let add=e.target.closest('[data-add-test]');if(add){toggleTest(add.dataset.prefix,add.dataset.addTest);return}let remove=e.target.closest('[data-remove-test]');if(remove){let prefix=remove.dataset.prefix,ids=prefix==='hvTests'?newTestSelection:moreTestSelection;let at=ids.indexOf(remove.dataset.removeTest);if(at>=0)ids.splice(at,1);drawTestPicker(prefix,$(prefix+'Search')?.value||'',false)}});document.addEventListener('click',e=>{['hvTests','hvMoreTests'].forEach(prefix=>{let wrap=document.querySelector('#'+prefix+'Search')?.closest('.hv-test-picker'),dropdown=$(prefix+'Dropdown'),input=$(prefix+'Search');if(wrap&&dropdown&&!wrap.contains(e.target)){dropdown.hidden=true;if(input)input.setAttribute('aria-expanded','false')}})});drawTestPicker('hvTests','');render();syncPushActivationUI();connectCloud()}
 function bindProfessionalPicker(){
  const input=$('hvAssignee'),results=$('hvProfessionalResults'),hint=$('hvProfessionalHint');
  if(!input||!results||input.dataset.professionalBound==='1')return;
