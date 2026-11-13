@@ -8,10 +8,10 @@ const [html,css,js,old,processing,sw]=await Promise.all([
 ]);
 test('El rediseño se carga después del procesamiento original y se publica en PWA',()=>{
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical1/);
- assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical1/);
+ assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical2/);
  assert.ok(html.lastIndexOf('clinical-reference-panels.js')>html.lastIndexOf('clinical-processing-simple.js'));
  assert.ok(html.lastIndexOf('clinical-reference-panels.css')>html.lastIndexOf('inicio-premium.css'));
- assert.match(sw,/fleboreport-shell-v303/);
+ assert.match(sw,/fleboreport-shell-v304/);
  assert.ok(sw.includes("'./clinical-reference-panels.css'"));
  assert.ok(sw.includes("'./clinical-reference-panels.js'"));
 });
@@ -62,8 +62,13 @@ test('Los datos mostrados se obtienen del sistema; no se escriben estados ni se 
  assert.ok(processing.includes('await cloud.transition'));
  assert.ok(!js.includes('MST-004872'),'No se deben usar datos ficticios');
 });
-test('Al registrar una muestra se abre revisión automáticamente cuando aumenta el contador',()=>{
- assert.match(js,/if\(studyTab==='recepcion'&&count>lastCount\)/);
+test('Recepción terminada abre Revisión; sincronizaciones externas no interrumpen el formulario',()=>{
+ assert.match(js,/review\.classList\.contains\('clinical-review-highlight'\)/);
  assert.match(js,/currentStudyTab\('revision'\)/);
+ assert.ok(!js.includes('count>lastCount'));
  assert.match(js,/original\.isConnected/);
+});
+test('No se permite registrar en protocolos inactivos',()=>{
+ assert.match(js,/hit\.disabled=!active/);
+ assert.match(js,/crx-unavailable/);
 });

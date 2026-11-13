@@ -152,8 +152,14 @@
    info.appendChild(meta);
    const arrow=node('span','crx-card-chevron');arrow.append(svg('chevron'));
    const hit=node('button','crx-card-hit');
-   hit.type='button';hit.setAttribute('aria-label','Abrir recepción para '+(study.name||study.protocol));
-   hit.addEventListener('click',()=>pickStudy(study.id));
+   const active=String(study.status||'').toLocaleLowerCase('es')==='activo';
+   hit.type='button';
+   hit.disabled=!active;
+   hit.setAttribute('aria-label',active?'Abrir recepción para '+(study.name||study.protocol):'Protocolo no activo: '+(study.name||study.protocol));
+   if(!active){
+    card.classList.add('crx-unavailable');
+    meta.append(pill('clock','No activo'));
+   }else hit.addEventListener('click',()=>pickStudy(study.id));
    card.append(emblem,info,arrow,hit);cards.appendChild(card);
   });
   host.replaceChildren(cards);
@@ -252,20 +258,16 @@
   const nativeList=get('clinicalStudyList');
   if(nativeList)new MutationObserver(()=>renderStudyCards()).observe(nativeList,{childList:true});
   const reviewBody=get('clinicalReviewRows');
-  if(reviewBody){
-   let lastCount=reviewBody.querySelectorAll('tr').length;
-   new MutationObserver(()=>{
-    renderReviewCards();
-    const count=reviewBody.querySelectorAll('tr').length;
-    if(studyTab==='recepcion'&&count>lastCount){
-     currentStudyTab('revision');
-     requestAnimationFrame(()=>{
-      get('crxStudyReview')?.scrollIntoView({behavior:'smooth',block:'start'});
-     });
-    }
-    lastCount=count;
-   }).observe(reviewBody,{childList:true});
-  }
+  if(reviewBody)new MutationObserver(renderReviewCards).observe(reviewBody,{childList:true});
+  // La recepción confirmada marca el panel nativo de revisión. No navegar
+  // por nuevos registros remotos mientras el usuario está llenando su ficha.
+  new MutationObserver(()=>{
+   if(studyTab!=='recepcion'||!review.classList.contains('clinical-review-highlight'))return;
+   currentStudyTab('revision');
+   requestAnimationFrame(()=>{
+    get('crxStudyReview')?.scrollIntoView({behavior:'smooth',block:'start'});
+   });
+  }).observe(review,{attributes:true,attributeFilter:['class']});
   window.addEventListener('flebo:auth-changed',()=>{renderStudyCards();renderReviewCards();});
   window.addEventListener('flebo:local-state-saved',()=>{renderStudyCards();renderReviewCards();});
  }
