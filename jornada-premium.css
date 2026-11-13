@@ -7,8 +7,9 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference{
  --jp-ink:#211944;--jp-violet:#6030d8;--jp-cyan:#04b9cc;
  --jp-border:#dcd7f1;--jp-wave:#8458ee;
  display:flex!important;flex-direction:column!important;align-items:stretch!important;
- gap:0!important;min-width:0!important;
- padding:10px 1px 5px!important;background:transparent!important;
+ gap:0!important;min-width:0!important;width:100%!important;max-width:100%!important;
+ box-sizing:border-box!important;margin-inline:0!important;
+ padding:10px 0 5px!important;background:transparent!important;
  color:var(--jp-ink)!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference:not(.active){
@@ -56,17 +57,19 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-heading-dots i
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis{
  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
  width:100%!important;max-width:none!important;min-width:0!important;
- gap:7px!important;padding:2px 1px 7px!important;margin:0 0 11px!important;
+ gap:7px!important;padding:2px 0 7px!important;margin:0 0 11px!important;
+ box-sizing:border-box!important;justify-items:stretch!important;grid-auto-rows:1fr!important;
  overflow:visible!important;align-items:stretch!important;scroll-snap-type:none!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi{
  --jp-kpi-bg:linear-gradient(145deg,#3559fc 0%,#1840c7 79%,#0877e2 100%);
  position:relative!important;isolation:isolate!important;
- display:flex!important;flex-direction:column!important;
- justify-content:center!important;align-items:center!important;
- gap:3px!important;min-width:0!important;width:auto!important;max-width:none!important;
- min-height:112px!important;max-height:none!important;flex:1 1 0!important;
- padding:10px 4px 12px!important;overflow:hidden!important;
+ display:grid!important;grid-template-rows:auto auto!important;
+ place-content:center!important;place-items:center!important;row-gap:4px!important;
+ align-self:stretch!important;justify-self:stretch!important;
+ min-width:0!important;width:100%!important;max-width:100%!important;
+ min-height:112px!important;max-height:none!important;flex:initial!important;
+ box-sizing:border-box!important;margin:0!important;padding:10px 4px!important;overflow:hidden!important;
  border:1px solid #ffffff60!important;border-radius:18px!important;
  background:var(--jp-kpi-bg)!important;
  box-shadow:inset 0 1px 1px #ffffff8c,0 6px 12px #4136a830!important;
@@ -94,8 +97,9 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.jour
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon{
  position:relative!important;z-index:1!important;display:grid!important;place-items:center!important;
- width:27px!important;height:27px!important;flex:0 0 27px!important;
- margin:0!important;padding:0!important;border:0!important;
+ width:27px!important;height:27px!important;flex:initial!important;
+ align-self:center!important;justify-self:center!important;
+ margin:0 auto!important;padding:0!important;border:0!important;
  background:transparent!important;box-shadow:none!important;color:#fff!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-icon svg{
@@ -105,8 +109,9 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.jour
  position:relative!important;z-index:1!important;
  display:flex!important;flex-direction:column!important;gap:2px!important;
  align-items:center!important;justify-content:center!important;
- width:100%!important;min-width:0!important;padding:0!important;
- text-align:center!important;
+ align-self:center!important;justify-self:stretch!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ margin:0!important;padding:0!important;text-align:center!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-kpis .journey-kpi-copy strong{
  order:0!important;font-weight:900!important;font-size:clamp(22px,3.1vw,32px)!important;
@@ -133,7 +138,8 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card{
  --jp-outline:#d8d0f4;--jp-glow:#8b43ea;
  position:relative!important;isolation:isolate!important;
  display:flex!important;align-items:center!important;justify-content:flex-start!important;
- gap:12px!important;width:100%!important;min-width:0!important;
+ gap:12px!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box!important;align-self:stretch!important;
  min-height:72px!important;margin:0 0 9px!important;padding:10px 13px!important;
  overflow:hidden!important;white-space:normal!important;
  border:1px solid var(--jp-outline)!important;border-radius:19px!important;
@@ -160,8 +166,9 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-car
  position:relative!important;z-index:1!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon{
- display:grid!important;place-items:center!important;
+ display:grid!important;place-items:center!important;align-self:center!important;
  width:48px!important;height:48px!important;flex:0 0 48px!important;
+ margin-block:auto!important;
  border-radius:15px!important;border:1px solid #cbb8ff!important;
  background:linear-gradient(145deg,#eee7ff,#f8f6ff)!important;
  color:#6237d7!important;box-shadow:inset 0 1px #fff,0 2px 7px #7c4ddb1c!important;
@@ -177,9 +184,9 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-icon sv
  width:29px!important;height:29px!important;stroke:currentColor!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy{
- flex:1 1 auto!important;min-width:0!important;
+ flex:1 1 auto!important;min-width:0!important;align-self:center!important;
  display:flex!important;flex-direction:column!important;justify-content:center!important;
- gap:4px!important;
+ margin-block:auto!important;gap:4px!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy strong{
  display:block!important;font-size:clamp(14px,2vw,17px)!important;line-height:1.15!important;
@@ -191,8 +198,8 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-copy sm
  color:#625d7b!important;white-space:normal!important;overflow-wrap:anywhere!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-chevron{
- display:grid!important;place-items:center!important;flex:0 0 19px!important;
- color:#4f416d!important;
+ display:grid!important;place-items:center!important;align-self:center!important;
+ flex:0 0 19px!important;color:#4f416d!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-action-chevron svg{
  width:21px!important;height:21px!important;
@@ -213,15 +220,16 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-active-card .j
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-actions{
  display:flex!important;flex-direction:column!important;gap:0!important;
- width:100%!important;min-width:0!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box!important;margin-inline:0!important;align-self:stretch!important;
 }
 /* Cédula: se mueve el campo real, con su identificador y autosync originales. */
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card{
  min-height:106px!important;cursor:default!important;
- align-items:flex-start!important;
+ align-items:center!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-card .jp-action-icon{
- margin-top:2px!important;
+ margin-top:0!important;margin-bottom:0!important;align-self:center!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-identity-content{
  flex:1 1 auto!important;min-width:0!important;
@@ -269,7 +277,8 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey :is(.jp-active-car
 /* CTA usa el botón original: se conserva la ventana previa a PNG/PDF. */
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference>.journey-report-footer{
  display:block!important;position:relative!important;
- border:0!important;margin:4px 2px 10px!important;
+ border:0!important;margin:4px 0 10px!important;
+ width:100%!important;max-width:100%!important;box-sizing:border-box!important;
  padding:0!important;min-height:0!important;background:transparent!important;
  border-radius:999px!important;box-shadow:none!important;
 }
@@ -342,7 +351,8 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-workspace-open>
  display:flex!important;
 }
 body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .jp-tools{
- margin:2px 3px 13px!important;border:1px solid #e2dcf5!important;
+ margin:2px 0 13px!important;width:100%!important;box-sizing:border-box!important;
+ border:1px solid #e2dcf5!important;
  border-radius:14px!important;background:#faf8ff!important;
  padding:0!important;overflow:hidden!important;
 }

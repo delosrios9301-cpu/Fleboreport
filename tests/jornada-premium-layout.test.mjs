@@ -56,9 +56,36 @@ test('Encabezado fijo, estilo responsive y PWA v294',()=>{
  assert.match(css,/@media\(max-width:760px\)/);
  assert.match(css,/@media\(max-width:370px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada1" media="screen"/);
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada1/);
- assert.match(sw,/fleboreport-shell-v294/);
+ assert.match(html,/jornada-premium\.css\?v=20261112-jornada2" media="screen"/);
+ assert.match(html,/jornada-premium\.js\?v=20261112-jornada2/);
+ assert.match(sw,/fleboreport-shell-v295/);
  assert.match(sw,/'\.\/jornada-premium.css'/);
  assert.match(sw,/'\.\/jornada-premium.js'/);
+});
+
+test('Jornada KPI centrado horizontal y vertical, iconos y cifras sin desplazamiento',()=>{
+ const grid=css.match(/#view-journey\.jp-reference>\.journey-kpis\s*\{([\s\S]*?)\}/)?.[1]||'';
+ const card=css.match(/#view-journey\.jp-reference>\.journey-kpis \.journey-kpi\s*\{([\s\S]*?)\}/)?.[1]||'';
+ const copy=css.match(/#view-journey\.jp-reference>\.journey-kpis \.journey-kpi-copy\s*\{([\s\S]*?)\}/)?.[1]||'';
+ assert.match(grid,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)!important/);
+ assert.match(grid,/grid-auto-rows:1fr!important/);
+ assert.match(grid,/box-sizing:border-box!important/);
+ assert.match(card,/display:grid!important/);
+ assert.match(card,/place-content:center!important;place-items:center!important/);
+ assert.match(card,/justify-self:stretch!important/);
+ assert.match(card,/width:100%!important;max-width:100%!important/);
+ assert.match(copy,/align-self:center!important;justify-self:stretch!important/);
+});
+test('Tarjetas operativas y de identificación centradas verticalmente y sin corrimiento lateral',()=>{
+ const tokens=[
+  'box-sizing:border-box!important;align-self:stretch!important',
+  'margin-block:auto!important',
+  'min-height:106px!important;cursor:default!important;\\n align-items:center!important',
+  'width:100%!important;max-width:100%!important;min-width:0!important',
+  'margin:4px 0 10px!important',
+  'margin:2px 0 13px!important'
+ ];
+ for(const token of tokens)assert.ok(css.includes(token.replaceAll('\\\\n','\n')),token);
+ assert.match(html,/jornada-premium\.css\?v=20261112-jornada2" media="screen"/);
+ assert.match(sw,/fleboreport-shell-v295/);
 });
