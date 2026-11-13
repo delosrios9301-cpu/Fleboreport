@@ -47,7 +47,7 @@ test('La capa visual no modifica datos directamente',()=>{
 test('Publicación y caché PWA v309',()=>{
  assert.match(html,/clinical-sample-assignment\.css\?v=20261113-sample1/);
  assert.match(html,/clinical-sample-assignment\.js\?v=20261113-sample1/);
- assert.match(sw,/fleboreport-shell-v311/);
+ assert.match(sw,/fleboreport-shell-v312/);
  assert.ok(sw.includes("'./clinical-sample-assignment.css'"));
  assert.ok(sw.includes("'./clinical-sample-assignment.js'"));
 });
