@@ -943,7 +943,8 @@ test('Domicilios separa agenda, historial, calendario y creación con detalle ju
   assert.match(domicilios, /data-hv-tab="agenda"/);
   assert.match(domicilios, /data-hv-tab="history"/);
   assert.match(domicilios, /data-hv-tab="calendar"/);
-  assert.match(domicilios, /data-hv-tab="create"/);
+  assert.match(domicilios, /if\(target\.id==='hvRefNew'\)\{setTab\('create'\);return\}/);
+  assert.doesNotMatch(domicilios, /data-hv-tab="create"/);
   assert.match(domicilios, /id="hvHistoryPanel"/);
   assert.match(domicilios, /id="hvHistoryRows"/);
   assert.doesNotMatch(domicilios, /id="hvAgendaPanel"[\s\S]{0,2500}hvHistoryDetails/);
