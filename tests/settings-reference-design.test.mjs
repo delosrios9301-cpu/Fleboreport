@@ -65,7 +65,7 @@ test('Publicación v308 agrega recursos a PWA y los carga después del diseño c
  assert.match(html,/settings-reference-panels\.css\?v=20261113-settings1/);
  assert.match(html,/settings-reference-panels\.js\?v=20261113-settings1/);
  assert.ok(html.lastIndexOf('settings-reference-panels.js')>html.lastIndexOf('clinical-reference-panels.js'));
- assert.match(worker,/fleboreport-shell-v316/);
+ assert.match(worker,/fleboreport-shell-v317/);
  assert.ok(worker.includes("'./settings-reference-panels.js'"));
  assert.ok(worker.includes("'./settings-reference-panels.css'"));
  assert.doesNotThrow(()=>new Function(js));
