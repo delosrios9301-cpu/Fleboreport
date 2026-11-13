@@ -991,25 +991,6 @@
    group.classList.add('crx-quick-filter');
    quickbar.appendChild(group);
   });
-  const configShortcut=node('button','crx-process-config-shortcut','Configurar estudios');
-  configShortcut.type='button';
-  configShortcut.hidden=true;
-  configShortcut.appendChild(svg('chevron'));
-  configShortcut.setAttribute('aria-label','Abrir configuración de estudios clínicos');
-  configShortcut.addEventListener('click',()=>{
-   if(window.FleboAuth?.membership?.role!=='admin')return;
-   if(typeof window.navigate!=='function'||typeof window.selectClinicalConfig!=='function'){
-    notify('No está disponible el acceso a configuración.');return;
-   }
-   window.navigate('settings','clinical-config');
-   window.selectClinicalConfig('studies');
-  });
-  function updateConfigShortcut(){
-   configShortcut.hidden=window.FleboAuth?.membership?.role!=='admin';
-  }
-  updateConfigShortcut();
-  window.addEventListener('flebo:auth-changed',updateConfigShortcut);
-  quickbar.appendChild(configShortcut);
   const listbar=node('div','crx-process-listhead');
   const left=node('div','crx-list-title');left.append(node('h2','','Muestras en proceso '));
   const total=node('span','');total.id='crxProcessTotal';total.textContent='(0)';left.querySelector('h2').appendChild(total);

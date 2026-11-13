@@ -476,3 +476,13 @@
    transition:none!important;animation:none!important;
  }
 }
+
+/* Respeta los controles de acceso del sistema y los grupos plegables. */
+@media screen{
+ body.fr2-app-authorized #sidebar .nav-list button[data-nav][hidden],
+ body.fr2-app-authorized #sidebar .nav-list button[data-nav][aria-hidden="true"],
+ body.fr2-app-authorized #sidebar .nav-list button[data-nav][disabled],
+ body.fr2-app-authorized #sidebar .nav-list button[data-nav][data-flebo-permission-hidden],
+ body.fr2-app-authorized #sidebar .nav-group[hidden],
+ body.fr2-app-authorized #sidebar .nav-group:not([open])>.nav-group-items{display:none!important}
+}
