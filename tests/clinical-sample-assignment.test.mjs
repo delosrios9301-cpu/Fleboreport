@@ -41,7 +41,7 @@ test('La capa visual no modifica datos directamente',()=>{
  assert.doesNotThrow(()=>new Function(js));
  assert.match(cloud,/async function saveConfiguration\(\)/);
  assert.match(cloud,/for\(const type of linkedTypes\)await saveSampleType/);
- for(const forbidden of ['localStorage','sessionStorage','.insert(','.update(','.delete(','.rpc(', 'deleteClinicalStudy'])
+ for(const forbidden of ['localStorage','sessionStorage','client.from(','.insert(','.update(','.rpc(', 'deleteClinicalStudy'])
   assert.ok(!js.includes(forbidden),forbidden);
 });
 test('Publicación y caché PWA v309',()=>{
