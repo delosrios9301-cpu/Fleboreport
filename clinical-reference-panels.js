@@ -502,6 +502,209 @@
   }
   modal.append(card);document.body.appendChild(modal);dismiss.focus();
  }
+
+ // Gestión de muestras almacenadas. Estos permisos los determina Supabase,
+ // no la apariencia ni los valores editables de la cuenta en el navegador.
+ let management={can_edit:false,can_delete:false};
+ let permissionsLoading=false;
+ async function loadManagementPermissions(){
+  if(permissionsLoading)return;
+  const cloud=window.FleboClinicalCloud;
+  if(!cloud?.ready||typeof cloud.getManagementPermissions!=='function')return;
+  permissionsLoading=true;
+  try{
+   const checked=await cloud.getManagementPermissions();
+   management={can_edit:checked.can_edit===true,can_delete:checked.can_delete===true};
+  }catch(e){management={can_edit:false,can_delete:false};console.error('[FleboReport] Permisos de muestras:',e)}
+  finally{permissionsLoading=false;renderProcessingCards();}
+ }
+ function storedSample(sample){
+  return !!(sample?.cloudId&&['ALMACENAMIENTO_TEMPORAL','CONGELADOR_DEFINITIVO'].includes(stateOf(sample)));
+ }
+ function localInputTime(value){
+  if(!value)return '';
+  const d=new Date(value);
+  if(Number.isNaN(d.getTime()))return '';
+  const pad=v=>String(v).padStart(2,'0');
+  return [d.getFullYear(),pad(d.getMonth()+1),pad(d.getDate())].join('-')+'T'+[pad(d.getHours()),pad(d.getMinutes())].join(':');
+ }
+ function administrativeDialog(kind,sample){
+  if(!storedSample(sample)||!management[kind==='correct'?'can_edit':'can_delete']){
+   notify('No tienes permiso para esta operación o la muestra cambió de estado.');return;
+  }
+  const past=document.activeElement;
+  get('crxAdministrationModal')?.remove();
+  const modal=node('div','crx-admin-overlay');modal.id='crxAdministrationModal';
+  modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
+  modal.setAttribute('aria-labelledby','crxAdminTitle');
+  const content=node('section','crx-admin-card');
+  const heading=node('div','crx-admin-heading');
+  heading.append(svg(kind==='correct'?'clipboard':'filter','crx-admin-heading-icon'));
+  const title=node('h2','','');
+  title.id='crxAdminTitle';
+  title.textContent=kind==='correct'?'Corregir datos de muestra':'Eliminar muestra de la bandeja';
+  const dismiss=node('button','crx-admin-close','×');
+  dismiss.type='button';dismiss.setAttribute('aria-label','Cerrar');
+  heading.append(title,dismiss);
+  const details=node('div','crx-admin-body');
+  const summary=node('div','crx-admin-identity');
+  summary.append(node('strong','','Sujeto '+(sample.subjectCode||'—')),node('small','',sample.sampleType||'Muestra clínica'));
+  details.append(summary);
+  const oldState=node('p','crx-admin-state','Estado conservado: '+(stateOf(sample)==='CONGELADOR_DEFINITIVO'?'Almacenamiento definitivo':'Almacenamiento temporal'));
+  details.append(oldState);
+  let visitField,collectionField,receivedField,reasonField;
+  function field(label,el){
+   const group=node('label','crx-admin-field');
+   group.append(node('span','',label),el);
+   details.append(group);return el;
+  }
+  if(kind==='correct'){
+   const state=data()||{};
+   const available=(state.clinicalVisits||[]).filter(v=>
+     String(v.studyId)===String(sample.studyId)&&v.active!==false
+   );
+   visitField=node('select','crx-admin-input');visitField.required=true;
+   for(const visit of available){
+    const option=node('option','',([visit.code,visit.name].filter(Boolean).join(' · ')||visit.name));
+    option.value=String(visit.id);
+    option.selected=String(visit.id)===String(sample.visitId);
+    visitField.append(option);
+   }
+   field('Visita',visitField);
+   collectionField=node('input','crx-admin-input');collectionField.type='datetime-local';
+   collectionField.value=localInputTime(sample.collectedAt);
+   collectionField.required=true;
+   field('Fecha y hora de toma',collectionField);
+   receivedField=node('input','crx-admin-input');receivedField.type='datetime-local';
+   receivedField.value=localInputTime(sample.receivedAt);
+   receivedField.required=true;
+   field('Fecha y hora de recepción',receivedField);
+   details.append(node('p','crx-admin-hint','Se corregirán los datos administrativos sin reiniciar el procesamiento ni perder las alícuotas almacenadas.'));
+  }else{
+   details.append(node('p','crx-admin-warning','Esta acción retira la muestra de las bandejas activas. No borra físicamente sus datos ni el historial; quedará registrada en la auditoría.'));
+  }
+  reasonField=node('textarea','crx-admin-input crx-admin-reason');
+  reasonField.rows=3;reasonField.required=true;reasonField.minLength=5;
+  reasonField.placeholder=kind==='correct'?'Explica el dato ingresado incorrectamente':'Indica el motivo de eliminación';
+  field('Motivo obligatorio (mínimo 5 caracteres)',reasonField);
+  const feedback=node('p','crx-admin-feedback');feedback.hidden=true;feedback.setAttribute('role','alert');
+  const footer=node('footer','crx-admin-footer');
+  const cancel=node('button','crx-admin-cancel','Cancelar');cancel.type='button';
+  const confirm=node('button','crx-admin-confirm',kind==='correct'?'Guardar corrección':'Confirmar eliminación');confirm.type='button';
+  if(kind==='delete')confirm.classList.add('is-danger');
+  footer.append(cancel,confirm);
+  content.append(heading,details,feedback,footer);modal.append(content);
+  let saving=false;
+  const onKey=e=>{if(e.key==='Escape'&&!saving){e.preventDefault();close();}};
+  function close(){
+   if(saving)return;
+   document.removeEventListener('keydown',onKey);
+   modal.remove();
+   if(past?.isConnected&&typeof past.focus==='function')past.focus({preventScroll:true});
+  }
+  dismiss.addEventListener('click',close);cancel.addEventListener('click',close);
+  modal.addEventListener('click',e=>{if(e.target===modal)close();});
+  function error(message){feedback.hidden=false;feedback.textContent=message;}
+  confirm.addEventListener('click',async()=>{
+   if(saving)return;
+   const reason=reasonField.value.trim();
+   if(reason.length<5){error('Indica un motivo de al menos cinco caracteres.');reasonField.focus();return;}
+   const cloud=window.FleboClinicalCloud;
+   if(!cloud?.ready){error('No hay conexión clínica. Vuelve a intentarlo después de sincronizar.');return;}
+   const fresh=reviewSample(sample.id);
+   if(!storedSample(fresh)){error('Esta muestra cambió de estado. Actualiza la bandeja.');return;}
+   let visit;
+   if(kind==='correct'){
+    visit=(data()?.clinicalVisits||[]).find(v=>String(v.id)===visitField.value);
+    if(!visit?.cloudId||!collectionField.value||!receivedField.value){
+     error('Completa una visita sincronizada y ambas fechas y horas.');return;
+    }
+    if(new Date(receivedField.value).getTime()<new Date(collectionField.value).getTime()){
+     error('La recepción no puede ser anterior a la toma.');return;
+    }
+   }
+   saving=true;confirm.disabled=true;cancel.disabled=true;dismiss.disabled=true;
+   feedback.hidden=false;feedback.textContent='Guardando y verificando en la nube...';
+   try{
+    if(kind==='correct'){
+     if(!management.can_edit)throw new Error('No tienes permiso de edición.');
+     await cloud.correctSample(fresh,visit,new Date(collectionField.value).toISOString(),new Date(receivedField.value).toISOString(),reason);
+    }else{
+     if(!management.can_delete)throw new Error('No tienes permiso de eliminación.');
+     await cloud.deleteSample(fresh,reason);
+     await cloud.refreshSamples();
+    }
+    saving=false;cancel.disabled=false;dismiss.disabled=false;
+    close();renderProcessingCards();
+    notify(kind==='correct'?'Corrección registrada con auditoría.':'Muestra retirada con trazabilidad.');
+   }catch(e){
+    saving=false;confirm.disabled=false;cancel.disabled=false;dismiss.disabled=false;
+    error(e?.message||'No se pudo confirmar la operación en Supabase.');
+   }
+  });
+  document.body.appendChild(modal);document.addEventListener('keydown',onKey);
+  dismiss.focus({preventScroll:true});
+ }
+ function makeSwipeCard(card,sample){
+  if(!storedSample(sample)||(!management.can_edit&&!management.can_delete))return card;
+  const container=node('div','crx-swipe-frame');
+  const underneath=node('div','crx-swipe-actions');
+  function action(side,name,onClick){
+   const b=node('button','crx-swipe-reveal crx-swipe-'+side,name);
+   b.type='button';b.setAttribute('aria-label',name+' muestra del sujeto '+sample.subjectCode);
+   b.addEventListener('click',onClick);
+   underneath.append(b);
+   return b;
+  }
+  if(management.can_edit)action('right','Corregir',()=>administrativeDialog('correct',sample));
+  if(management.can_delete)action('left','Eliminar',()=>administrativeDialog('delete',sample));
+  const help=node('small','crx-swipe-hint',
+   [management.can_edit?'→ corregir':null,management.can_delete?'← eliminar':null].filter(Boolean).join(' · '));
+  card.querySelector('.crx-process-identity')?.append(help);
+  container.append(underneath,card);
+  let startX=0,startY=0,dx=0,horizontal=false,tracking=false;
+  const max=104;
+  function reset(){
+   card.style.transform='';
+   container.classList.remove('crx-swiping');
+   tracking=false;horizontal=false;dx=0;
+  }
+  card.addEventListener('touchstart',e=>{
+   if(e.touches.length!==1||e.target.closest('button,input,select,textarea'))return;
+   startX=e.touches[0].clientX;startY=e.touches[0].clientY;
+   dx=0;horizontal=false;tracking=true;
+  },{passive:true});
+  card.addEventListener('touchmove',e=>{
+   if(!tracking||e.touches.length!==1)return;
+   const x=e.touches[0].clientX-startX,y=e.touches[0].clientY-startY;
+   if(!horizontal&&Math.abs(y)>Math.abs(x)) {tracking=false;return;}
+   if(!horizontal&&Math.abs(x)>15&&Math.abs(x)>Math.abs(y)*1.4)horizontal=true;
+   if(!horizontal)return;
+   if(e.cancelable)e.preventDefault();
+   const allowed=(x>0&&management.can_edit)||(x<0&&management.can_delete);
+   dx=allowed?Math.max(-max,Math.min(max,x)):0;
+   container.classList.add('crx-swiping');
+   card.style.transform='translate3d('+dx+'px,0,0)';
+  },{passive:false});
+  card.addEventListener('touchend',()=>{
+   if(!tracking)return;
+   const chosen=dx>76?'correct':dx< -76?'delete':null;
+   reset();
+   if(chosen)administrativeDialog(chosen,sample);
+  },{passive:true});
+  card.addEventListener('touchcancel',reset,{passive:true});
+  const desktop=node('div','crx-swipe-desktop-actions');
+  if(management.can_edit){
+   const b=node('button','','Corregir');b.type='button';
+   b.addEventListener('click',()=>administrativeDialog('correct',sample));desktop.append(b);
+  }
+  if(management.can_delete){
+   const b=node('button','','Eliminar');b.type='button';
+   b.addEventListener('click',()=>administrativeDialog('delete',sample));desktop.append(b);
+  }
+  card.querySelector('.crx-process-actions')?.append(desktop);
+  return container;
+ }
  function renderProcessingCards(){
   if(!processingInitialized)return;
   const tbody=get('clinicalQueueRows'),host=get('crxProcessCards');
@@ -546,7 +749,7 @@
    const detail=node('button','crx-detail-link','Ver ficha');
    detail.type='button';detail.addEventListener('click',()=>showSampleDetails(row,sample));
    info.appendChild(detail);
-   card.append(emblem,info,middle,actions);fragment.append(card);
+   card.append(emblem,info,middle,actions);fragment.append(makeSwipeCard(card,sample));
   });
   host.replaceChildren(fragment);
   const count=get('crxProcessTotal');if(count)count.textContent='('+rows.length+')';
@@ -617,10 +820,19 @@
   const kpiValue=get('clinicalQueueKpiReceived');
   if(kpiValue)new MutationObserver(()=>{const pill=get('crxPendingCount');if(pill)pill.textContent=kpiValue.textContent;}).observe(kpiValue,{childList:true,characterData:true,subtree:true});
  }
+ let permissionRetries=0;
  function boot(){
   initStudies();initProcessing();
+  management={can_edit:false,can_delete:false};
+  renderProcessingCards();
+  loadManagementPermissions();
+  if(!window.FleboClinicalCloud?.ready&&permissionRetries++<8)
+   setTimeout(loadManagementPermissions,700+permissionRetries*400);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
  else boot();
- window.addEventListener('flebo:auth-changed',boot);
+ window.addEventListener('flebo:auth-changed',()=>{permissionRetries=0;boot();});
+ document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')loadManagementPermissions();
+ });
 })();
