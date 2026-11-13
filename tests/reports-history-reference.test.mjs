@@ -28,7 +28,7 @@ test('Historial usa la búsqueda y la tabla de auditoría originales, con filtro
  for(const id of ['auditQuery','auditModule','auditGeneralRows','auditGeneralModal'])
   assert.ok(audit.includes(id),'Debe conservar '+id);
  assert.match(js,/const view=\$\('view-audit'\)/);
- assert.match(js,/rootPanel\.querySelector\('\.audit-table-wrap'\)/);
+ assert.match(js,/rootPanel\?\.querySelector\('\.audit-table-wrap'\)/);
  assert.match(js,/queryField=\$\('auditQuery'\)\?\.closest\('\.field'\)/);
  assert.match(js,/window\.FleboAuditHistory\?\.apply\?\.\(\)/);
  assert.match(js,/row\.click\(\)/);
@@ -41,7 +41,7 @@ test('Historial usa la búsqueda y la tabla de auditoría originales, con filtro
 test('Diseño fiel a imágenes, responsive y sin alterar impresión original',()=>{
  for(const p of ['.rhr-kpis','.rhr-banner','.rhr-report-tiles',
  '.rhr-archive-card','.rhr-history-search','.rhr-history-chips',
- '.rhr-history-card','.rhr-history-status','.rhr-native-preview'])
+ '.rhr-history-card','.rhr-history-status','#rhrReportPreview'])
    assert.ok(css.includes(p),'Falta '+p);
  assert.match(css,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
  assert.match(css,/@media screen and \(max-width:760px\)/);
