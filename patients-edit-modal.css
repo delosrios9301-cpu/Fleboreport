@@ -1,0 +1,166 @@
+/* FleboReport · Formulario flotante de pacientes v327.
+   Reutiliza los campos y acciones clínicos existentes. */
+@media screen {
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog:not([open]){
+  display:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog[open]{
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+  position:fixed!important;inset:auto!important;margin:auto!important;
+  width:min(92vw,780px)!important;max-width:calc(100vw - 20px)!important;
+  height:min(86dvh,830px)!important;max-height:calc(100dvh - 22px)!important;
+  min-width:0!important;min-height:0!important;overflow:hidden!important;
+  padding:0!important;border:1px solid #dcccf6!important;
+  border-radius:23px!important;
+  color:#211849!important;
+  background:linear-gradient(155deg,#fffeff,#f8f5ff 75%,#effdfe)!important;
+  box-shadow:0 25px 90px #1d0d48a1,0 5px 19px #58309640!important;
+  z-index:10020!important;overscroll-behavior:contain!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog::backdrop{
+  background:rgba(12,7,40,.60)!important;
+  -webkit-backdrop-filter:blur(5px)!important;backdrop-filter:blur(5px)!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-toolbar{
+  box-sizing:border-box!important;position:relative!important;isolation:isolate!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;flex:0 0 auto!important;min-height:62px!important;
+  padding:12px 18px!important;margin:0!important;overflow:hidden!important;
+  background:linear-gradient(115deg,#38118e,#6329ca 68%,#5023c5)!important;
+  border-bottom:1px solid #ad90e8!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-toolbar::after{
+  content:""!important;position:absolute!important;z-index:-1!important;
+  right:-25px!important;bottom:-49px!important;width:55%!important;height:88px!important;
+  border-radius:95% 0 0 0!important;transform:rotate(-10deg)!important;
+  background:linear-gradient(110deg,#99f4f2,#00cfc8)!important;pointer-events:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-brand{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  font-weight:880!important;font-size:clamp(14px,3vw,19px)!important;
+  color:#fff!important;letter-spacing:-.1px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-icon{
+  display:grid!important;place-items:center!important;
+  flex:0 0 36px!important;width:36px!important;height:36px!important;
+  border-radius:12px!important;background:#ffffff2e!important;
+  border:1px solid #ffffff80!important;box-shadow:inset 0 2px 5px #ffffff35!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-icon svg{
+  width:23px!important;height:23px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium button.pp-form-modal-dismiss{
+  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  gap:6px!important;min-height:36px!important;height:36px!important;
+  margin:0!important;padding:6px 13px!important;
+  border:1px solid #ffffff8a!important;border-radius:999px!important;
+  background:linear-gradient(155deg,#ffffff40,#ffffff16)!important;color:#fff!important;
+  font-size:12px!important;font-weight:840!important;cursor:pointer!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium button.pp-form-modal-dismiss svg{
+  width:16px!important;height:16px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel{
+  box-sizing:border-box!important;display:block!important;
+  flex:1 1 auto!important;min-height:0!important;min-width:0!important;width:100%!important;
+  max-width:100%!important;height:auto!important;max-height:none!important;
+  padding:16px 19px 20px!important;margin:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel[hidden]{
+  display:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel>.panel-head{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px!important;padding:0 0 12px!important;margin:0!important;
+  border:0!important;box-shadow:none!important;background:none!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium #patientFormTitle{
+  color:#25134f!important;font-size:clamp(19px,3.8vw,26px)!important;
+  line-height:1.16!important;font-weight:900!important;margin:0!important;white-space:normal!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel>.panel-head>button{
+  min-height:34px!important;border:1px solid #bca0e9!important;border-radius:99px!important;
+  color:#5125a1!important;background:#f6f0ff!important;font-size:12px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .section-description{
+  max-width:100%!important;margin:0 0 14px!important;
+  font-size:12px!important;line-height:1.42!important;color:#74678e!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .fields{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:start!important;gap:11px 13px!important;width:100%!important;min-width:0!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .fields>.field{
+  display:flex!important;flex-direction:column!important;gap:5px!important;
+  width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .fields>.field.full{
+  grid-column:1/-1!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .field label{
+  color:#302052!important;font-size:12px!important;font-weight:790!important;line-height:1.22!important;
+  word-break:normal!important;overflow-wrap:normal!important;white-space:normal!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .field :is(input,select,textarea){
+  box-sizing:border-box!important;display:block!important;min-width:0!important;width:100%!important;
+  max-width:100%!important;min-height:41px!important;margin:0!important;
+  padding:10px 12px!important;border:1px solid #d5c9ee!important;border-radius:11px!important;
+  background:#fff!important;color:#281b4e!important;font-size:13px!important;line-height:1.3!important;
+  word-break:normal!important;overflow-wrap:break-word!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .field textarea{
+  min-height:84px!important;resize:vertical!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .field :is(input,select,textarea):focus-visible{
+  outline:2px solid #8b5bdb!important;outline-offset:0!important;
+  border-color:#8b5bdb!important;box-shadow:0 0 0 3px #d5c6f25c!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .form-actions{
+  display:flex!important;justify-content:flex-end!important;align-items:center!important;
+  gap:9px!important;flex-wrap:wrap!important;
+  position:sticky!important;bottom:-20px!important;
+  margin:16px -19px -20px!important;padding:13px 19px 17px!important;
+  background:linear-gradient(180deg,#faf8ffed,#f9f6ff)!important;
+  border-top:1px solid #e1d7f2!important;z-index:2!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .form-actions button{
+  box-sizing:border-box!important;min-height:42px!important;margin:0!important;
+  padding:8px 18px!important;border-radius:999px!important;
+  font-size:12px!important;font-weight:850!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .form-actions .primary{
+  border-color:#6f30ce!important;color:#fff!important;
+  background:linear-gradient(120deg,#7730d7,#4916ab)!important;
+  box-shadow:0 4px 10px #5125a144!important;
+ }
+}
+@media screen and (max-width:600px){
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog[open]{
+  width:calc(100vw - 14px)!important;max-width:calc(100vw - 14px)!important;
+  height:min(90dvh,900px)!important;max-height:calc(100dvh - 14px)!important;
+  border-radius:18px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium .pp-form-modal-toolbar{
+  min-height:54px!important;padding:9px 12px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel{
+  padding:12px 11px 16px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .fields{
+  grid-template-columns:minmax(0,1fr)!important;gap:10px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .form-actions{
+  margin:16px -11px -16px!important;padding:11px!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog .form-actions button{
+  flex:1 1 auto!important;padding:9px 12px!important;min-height:44px!important;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog *{
+  transition:none!important;animation:none!important;
+ }
+}

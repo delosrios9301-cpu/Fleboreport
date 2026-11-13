@@ -96,8 +96,8 @@ test('Layout horizontal y móvil oculta información antigua repetida sin afecta
  assert.match(css,/word-break:normal!important/);
 });
 test('Servicio PWA v322 carga los dos archivos del expediente premium',()=>{
- assert.match(html,/patients-premium-reference\.css\?v=20261113-patient9/);
- assert.match(html,/patients-premium-reference\.js\?v=20261113-patient9/);
+ assert.match(html,/patients-premium-reference\.css\?v=20261113-patient10/);
+ assert.match(html,/patients-premium-reference\.js\?v=20261113-patient10/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/patients-premium-reference\.css'/);
  assert.match(sw,/'\.\/patients-premium-reference\.js'/);
@@ -158,7 +158,7 @@ test('Ver expediente despliega un cuadro flotante real con todos los paneles exi
  assert.match(js,/dialog\.addEventListener\('close'/);
  assert.match(js,/const selected=findPatient\(\)/);
  assert.match(js,/showPatientModal\(\)/);
- assert.match(js,/wrap\('openPatientForm',dismissPatientModal\)/);
+ assert.match(js,/wrap\('openPatientForm',showPatientFormModal\)/);
  assert.match(js,/wrap\('closePatientWorkspace',dismissPatientModal\)/);
  assert.match(css,/dialog\.pp-expedient-dialog\[open\]/);
  assert.match(css,/dialog\.pp-expedient-dialog::backdrop/);

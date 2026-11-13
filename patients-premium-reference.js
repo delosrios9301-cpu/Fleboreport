@@ -3,7 +3,7 @@
    resultados, documentos ni cambios de datos automáticamente. */
 (function(){
  'use strict';
- let ready=false,directoryMode='all',paintQueued=false,patientDialog=null;
+ let ready=false,directoryMode='all',paintQueued=false,patientDialog=null,patientFormDialog=null,formFromRecord=false;
  const $=id=>document.getElementById(id);
  const el=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n};
  const icon=key=>{
@@ -186,6 +186,74 @@
   if(dialog?.open)dialog.close();
   document.body.classList.remove('pp-expedient-open');
  }
+
+ // El formulario clínico original se mueve sin copiar sus campos ni listeners.
+ // Se admite una ventana modal encima de "Ver expediente" sin cerrar esa ficha.
+ function initPatientFormDialog(){
+  if(patientFormDialog)return patientFormDialog;
+  const view=$('view-patients'),form=$('patientFormPanel');
+  if(!view||!form)return null;
+  const dialog=el('dialog','pp-patient-form-dialog');
+  dialog.id='ppPatientFormDialog';
+  dialog.setAttribute('aria-label','Formulario de paciente');
+  const toolbar=el('div','pp-form-modal-toolbar');
+  const brand=el('div','pp-form-modal-brand');
+  const glyph=el('span','pp-form-modal-icon');glyph.innerHTML=icon('pen');
+  brand.append(glyph,el('strong','','Datos del paciente'));
+  const close=button('Cerrar','pp-form-modal-dismiss',()=>window.closePatientForm?.(),'back');
+  close.setAttribute('aria-label','Cerrar formulario sin guardar');
+  toolbar.append(brand,close);
+  form.before(dialog);
+  dialog.append(toolbar,form);
+  dialog.addEventListener('cancel',event=>{
+   event.preventDefault();
+   window.closePatientForm?.();
+  });
+  dialog.addEventListener('close',()=>{
+   document.body.classList.remove('pp-patient-form-open');
+   if(!form.hidden)window.closePatientForm?.();
+  });
+  patientFormDialog=dialog;
+  return dialog;
+ }
+ function showPatientFormModal(){
+  const dialog=initPatientFormDialog(),form=$('patientFormPanel'),home=$('patientsHome'),space=$('patientWorkspace');
+  if(!dialog||!form||form.hidden)return false;
+  formFromRecord=!!patientDialog?.open;
+  // El controlador original oculta la pantalla. Recuperarla detrás del modal.
+  if(home)home.hidden=false;
+  if(formFromRecord&&space)space.hidden=false;
+  dialog.setAttribute('aria-label',formFromRecord?'Editar datos del paciente':'Formulario de paciente');
+  if(!dialog.open){
+   try{dialog.showModal()}
+   catch(error){
+    console.warn('[FleboReport] Modal de paciente sin showModal:',error);
+    dialog.setAttribute('open','');
+   }
+  }
+  document.body.classList.add('pp-patient-form-open');
+  dialog.querySelector('.pp-form-modal-dismiss')?.focus({preventScroll:true});
+  return true;
+ }
+ function dismissPatientFormModal(saved=false){
+  const dialog=patientFormDialog,form=$('patientFormPanel');
+  const returning=formFromRecord&&!!patientDialog?.open;
+  formFromRecord=false;
+  if(form)form.hidden=true;
+  if(dialog?.open)dialog.close();
+  document.body.classList.remove('pp-patient-form-open');
+  const home=$('patientsHome'),space=$('patientWorkspace');
+  if(home)home.hidden=false;
+  if(returning&&space){
+   space.hidden=false;
+   window.renderPatientWorkspace?.();
+   renderWorkspace();
+  }else if(saved&&space&&!space.hidden){
+   // Después de crear un paciente, abrir su ficha sin abandonar Pacientes.
+   showPatientModal();
+  }
+ }
+
  function recentPatient(record){
   const dates=(record?.attentions||[]).map(x=>String(x.date||'').slice(0,10)).filter(Boolean).sort().reverse();
   if(!dates.length)return false;
@@ -411,7 +479,7 @@
   if(!home||!space||typeof window.renderPatients!=='function'||typeof window.renderPatientWorkspace!=='function')return;
   ready=true;
   const v=$('view-patients');v?.classList.add('pp-premium');
-  createHome();createWorkspace();initPatientDialog();
+  createHome();createWorkspace();initPatientDialog();initPatientFormDialog();
   wrap('renderPatients',scheduleRefresh);
   wrap('renderPatientWorkspace',renderWorkspace);
   wrap('showPatientTab',activateTab);
@@ -422,10 +490,18 @@
     showPatientModal();
    }
   });
-  // Al cambiar a edición, conservar el formulario y cerrar solamente el cuadro.
-  wrap('openPatientForm',dismissPatientModal);
+  // Alta y edición comparten el mismo formulario, ahora siempre flotante.
+  // El guardado nativo sigue validando y sincronizando exactamente igual.
+  wrap('openPatientForm',showPatientFormModal);
+  wrap('closePatientForm',()=>dismissPatientFormModal(false));
+  wrap('saveIndividualPatient',()=>{
+   if($('patientFormPanel')?.hidden===true)dismissPatientFormModal(true);
+  });
   wrap('closePatientWorkspace',dismissPatientModal);
-  wrap('navigate',dismissPatientModal);
+  wrap('navigate',()=>{
+   if(patientFormDialog?.open)dismissPatientFormModal(false);
+   dismissPatientModal();
+  });
   // renderPatients ya avisa mediante el wrapper; observar el mismo tbody
   // duplicaría los repintados ante cada actualización de la nube.
   window.addEventListener('flebo:cloud-state-applied',scheduleRefresh);
