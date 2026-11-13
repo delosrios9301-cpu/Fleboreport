@@ -42,7 +42,7 @@ const screenModels = await readFile(new URL('../clinical-premium-screen-models.c
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
   assert.match(html, /fleboreport-v2\.css\?v=20261112-clinical-premium7/);
-  assert.match(html, /fleboreport-v2-shell\.js\?v=20261111-redesign4/);
+  assert.match(html, /fleboreport-v2-shell\.js\?v=20261113-bubble2/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
   assert.match(redesignShell, /const notificationBell=\$\('frNotifBell'\)/);
@@ -1449,7 +1449,7 @@ test('Push de domicilios evita modificar suscripciones idénticas', async () => 
 });
 
 test('la revisión operativa se distribuye mediante la nueva caché v280', () => {
-  assert.match(html,/audit-history\.js\?v=20261112-audit1/);
+  assert.match(html,/audit-history\.js\?v=20261113-one-history/);
   assert.match(html,/app-activity-cloud\.js\?v=20261112-audit1/);
   assert.match(serviceWorker,/fleboreport-shell-v316/);
 });
