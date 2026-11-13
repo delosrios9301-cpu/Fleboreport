@@ -225,7 +225,7 @@ test('la sincronización general comparte el estado por espacio y conserva permi
 
 test('los expedientes se sincronizan en la tabla maestra compartida del espacio', () => {
   assert.doesNotThrow(() => new Function(patientCloudSync), 'patient-cloud-sync.js debe tener sintaxis válida');
-  assert.ok(html.includes('src="./patient-cloud-sync.js?v=20261112-sync2"'));
+  assert.ok(html.includes('src="./patient-cloud-sync.js?v=20261113-remove1"'));
   assert.match(patientCloudMigration, /add column if not exists app_data jsonb/i);
   assert.match(patientCloudMigration, /sync_workspace_patient/i);
   assert.match(patientCloudMigration, /supabase_realtime/i);
@@ -260,7 +260,7 @@ test('la búsqueda del expediente muestra su historial completo y la coincidenci
 });
 
 test('la PWA renueva la caché para instalar la última versión de Domicilios y expedientes', () => {
-  const serviceWorker = html.includes('src="./patient-cloud-sync.js?v=20261112-sync2"');
+  const serviceWorker = html.includes('src="./patient-cloud-sync.js?v=20261113-remove1"');
   assert.ok(serviceWorker, 'el HTML carga la sincronización de pacientes');
 });
 
@@ -1156,7 +1156,8 @@ test('la sincronización conserva pacientes locales y recupera los vínculos de 
   assert.match(patientCloudSync, /const combined=merge\(currentPatients,latest\)/);
   assert.match(html, /Array\.isArray\(p\.journeyHistory\)\?p\.journeyHistory:\[\]/);
   assert.match(html, /patientRecordId:p\.id/);
-  assert.match(html, /entries\.filter\(function\(e\)\{return e&&e\.journeyId===state\.journey\.id\}\)/);
+  assert.match(html, /const activeEntries=entries\.filter\(function\(e\)\{return inJourney\(e\)&&!e\.removedAt\}\)/);
+  assert.match(html, /const removedPatientIds=new Set\(entries\.filter/);
 });
 
 
@@ -1461,7 +1462,7 @@ test('sincronización clínica evita consultas por técnico sin privilegios de l
 });
 
 test('integración de seguridad por rol usa recursos versión 281',()=>{
-  assert.match(html,/cloud-state-sync\.js\?v=20261112-modules1/);
+  assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
   assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
   assert.match(serviceWorker,/fleboreport-shell-v311/);
 });
@@ -1490,7 +1491,7 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
  assert.match(visits,/scheduleCloudVisitsRefresh\(\);\s*\},60000\)/);
  assert.match(visits,/\.eq\('entity','domiciles'\)/);
  assert.match(visits,/sync_change_log/);
- assert.match(html,/patient-cloud-sync\.js\?v=20261112-sync2/);
+ assert.match(html,/patient-cloud-sync\.js\?v=20261113-remove1/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
  assert.match(html,/domicilios\.js\?v=20261112-reference3/);
  assert.match(serviceWorker,/fleboreport-shell-v311/);
@@ -1498,7 +1499,7 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
 });
 
 test('PWA v283 versiona la escritura parcial sin alterar los módulos',()=>{
- assert.match(html,/cloud-state-sync\.js\?v=20261112-modules1/);
+ assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
  assert.match(serviceWorker,/fleboreport-shell-v311/);
 });
 
@@ -1510,7 +1511,7 @@ test('modular sync v284 reads independent tables and guards concurrent module ed
  assert.match(js,/Number\(row\.revision\)>Number\(expected\)\+1/);
  assert.match(js,/result\.authoritativeState\|\|merged/);
  assert.match(js,/modularReadFallbacks/);
- assert.match(html,/cloud-state-sync\.js\?v=20261112-modules1/);
+ assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
  assert.match(serviceWorker,/fleboreport-shell-v311/);
  assert.doesNotThrow(()=>new Function(js));
 });
