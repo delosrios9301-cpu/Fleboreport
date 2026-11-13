@@ -734,3 +734,34 @@ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
   max-width:100%!important;
  }
 }
+
+/* v298 — Registro en Jornada: área de formulario desplazable, acción fija y
+   navegación horizontal conservada. No altera la lógica del registro. */
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+ bottom:calc(15px + env(safe-area-inset-bottom,0px) + var(--jp-keyboard-bottom,0px))!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column{
+ overflow-x:hidden!important;overflow-y:hidden!important;
+ min-height:0!important;touch-action:auto!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column>.journey-entry-panel{
+ flex:1 1 0!important;min-height:0!important;max-height:none!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ overscroll-behavior-y:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:auto!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-main-column>.journey-submit-actions{
+ position:relative!important;bottom:auto!important;flex:0 0 auto!important;
+ z-index:6!important;
+}
+@media(max-width:760px){
+ body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+  bottom:calc(8px + env(safe-area-inset-bottom,0px) + var(--jp-keyboard-bottom,0px))!important;
+ }
+}
