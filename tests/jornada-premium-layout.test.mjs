@@ -56,9 +56,9 @@ test('Encabezado fijo, estilo responsive y PWA v295',()=>{
  assert.match(css,/@media\(max-width:760px\)/);
  assert.match(css,/@media\(max-width:370px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada3" media="screen"/);
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada2/);
- assert.match(sw,/fleboreport-shell-v296/);
+ assert.match(html,/jornada-premium\.css\?v=20261112-jornada4" media="screen"/);
+ assert.match(html,/jornada-premium\.js\?v=20261112-jornada3/);
+ assert.match(sw,/fleboreport-shell-v297/);
  assert.match(sw,/'\.\/jornada-premium.css'/);
  assert.match(sw,/'\.\/jornada-premium.js'/);
 });
@@ -87,5 +87,5 @@ test('Tarjetas operativas y de identificación centradas verticalmente y sin cor
  for(const token of tokens)assert.ok(css.includes(token),token);
  assert.match(css,/min-height:106px!important;cursor:default!important;\s*align-items:center!important/);
  assert.match(html,/jornada-premium\.css\?v=20261112-jornada3" media="screen"/);
- assert.match(sw,/fleboreport-shell-v296/);
+ assert.match(sw,/fleboreport-shell-v297/);
 });
