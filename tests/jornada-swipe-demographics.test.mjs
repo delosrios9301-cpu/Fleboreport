@@ -44,9 +44,9 @@ function register(opts={}){
   journeyPatientSex:{value:opts.sex??'Femenino'},
   journeyPatientTestSearch:{value:''},journeyPatientLookupHint:{textContent:''}
  };
- const state={patients:opts.patients??[],journeyEntries:[],journey:{id:'j-1',date:'2026-11-12'},selected:[]};
+ const state={patients:opts.patients??[],journeyEntries:[],journey:{id:'j-1',date:'2026-11-12'},selected:[],catalog:[{id:'hcg',active:true}]};
  let saves=0,notice='';
- const ctx={state,$:id=>elements[id],document:{querySelectorAll:()=>[{value:'hcg'}]},
+ const ctx={state,$:id=>elements[id],document:{querySelectorAll:()=>[]},readJourneyDraft:()=>({selectedTestIds:opts.selectedTestIds??['hcg']}),
   journeySnapshot:()=>JSON.stringify(state),touchJourney:()=>{},save:()=>{saves++;return true},
   restoreJourneySnapshot:()=>{},clearJourneyDraft:()=>{},renderAll:()=>{},toast:t=>{notice=t},
   persistJourneyDraft:()=>{}};
@@ -77,9 +77,9 @@ test('No se sobrescribe silenciosamente fecha de nacimiento contradictoria',()=>
  assert.match(x.notice,/no coincide/);
 });
 test('v296 carga JS CSS renovados sin modificar exportación de jornada',()=>{
- assert.match(html,/jornada-premium\.js\?v=20261112-jornada2/);
- assert.match(html,/jornada-premium\.css\?v=20261112-jornada3" media="screen"/);
- assert.match(sw,/fleboreport-shell-v296/);
+ assert.match(html,/jornada-premium\.js\?v=20261112-jornada3/);
+ assert.match(html,/jornada-premium\.css\?v=20261112-jornada4" media="screen"/);
+ assert.match(sw,/fleboreport-shell-v297/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
  assert.match(html,/function openJourneyReportSetup\(\)/);
  assert.doesNotThrow(()=>new Function(js));
