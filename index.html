@@ -788,6 +788,7 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
  <article class="journey-kpi"><span class="journey-kpi-icon patients">♙</span><span class="journey-kpi-copy"><small>Pacientes</small><strong id="journeyKpiPatients">0</strong><em>registrados</em></span></article>
  <article class="journey-kpi"><span class="journey-kpi-icon tests">⚗</span><span class="journey-kpi-copy"><small>Pruebas</small><strong id="journeyKpiTests">0</strong><em>acumuladas</em></span></article>
  <article class="journey-kpi"><span class="journey-kpi-icon complete">✓</span><span class="journey-kpi-copy"><small>Completados</small><strong id="journeyKpiCompleted">0</strong><em>pacientes con todas sus muestras</em></span></article>
+ <article class="journey-kpi"><span class="journey-kpi-icon in-take">◷</span><span class="journey-kpi-copy"><small>En toma</small><strong id="journeyKpiInProgress">0</strong><em>pacientes con muestras pendientes</em></span></article>
 </div>
 
 <div class="journey-layout">
@@ -1177,8 +1178,11 @@ function patientsForJourney(){
 function updateJourneySummary(){
  const patients=patientsForJourney();
  const completed=patients.filter(function(p){const ids=Array.isArray(p.testIds)?p.testIds:[];return ids.length>0&&ids.every(function(id){return p.testStatuses&&p.testStatuses[id]==='tomada'})}).length;
- const values={journeyKpiPatients:patients.length,journeyKpiTests:totalTests(),journeyKpiCompleted:completed};
+ const inProgress=patients.filter(function(p){const ids=Array.isArray(p.testIds)?p.testIds:[];return ids.length>0&&ids.some(function(id){return !(p.testStatuses&&p.testStatuses[id]==='tomada')})}).length;
+ const values={journeyKpiPatients:patients.length,journeyKpiTests:totalTests(),journeyKpiCompleted:completed,journeyKpiInProgress:inProgress};
  Object.keys(values).forEach(function(id){const node=$(id);if(node)node.textContent=String(values[id])});
+ const activeLabel=$('jpJourneyCurrentLabel'),date=state.journey&&state.journey.date||'';
+ if(activeLabel)activeLabel.textContent=date?'Jornada del '+String(date).split('-').reverse().join('/'):'Jornada en curso';
  const summary=$('journeyReportSummary');
  if(summary)summary.textContent=patients.length+' paciente'+(patients.length===1?'':'s')+' · '+totalTests()+' prueba'+(totalTests()===1?'':'s')+' acumulada'+(totalTests()===1?'':'s');
 }
@@ -3442,4 +3446,6 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./domicilios-reference.css?v=20261112-reference3" media="screen">
 <script src="./variant-c-compact.js?v=20261112-vc1"></script>
 <script src="./domicilios-premium-gestures.js?v=20261112-gestures1"></script>
+<link rel="stylesheet" href="./jornada-premium.css?v=20261112-jornada1" media="screen">
+<script src="./jornada-premium.js?v=20261112-jornada1"></script>
 </body></html>

@@ -55,7 +55,7 @@
   const kpis=view.querySelector(':scope > .journey-kpis');
   const layout=view.querySelector(':scope > .journey-layout');
   const report=view.querySelector(':scope > .journey-report-footer');
-  const idField=view.querySelector('.journey-patient-fields .field:has(#journeyPatientId)');
+  const idField=byId('journeyPatientId')?.closest('.field');
   if(!oldHeading||!kpis||!layout||!report||!idField)return;
   view.dataset.jpReference='1';
   view.classList.add('jp-reference');
