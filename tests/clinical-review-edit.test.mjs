@@ -45,10 +45,10 @@ test('Corrección está autenticada y audita los valores anteriores sin mover la
  assert.doesNotMatch(sql,/\btruncate\b|\bdrop table\b|\bdelete from public\.clinical_samples\b/i);
 });
 test('Versión PWA y sintaxis actualizadas',()=>{
- assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical5/);
+ assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical6/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical4/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
- assert.match(sw,/fleboreport-shell-v314/);
+ assert.match(sw,/fleboreport-shell-v315/);
  assert.doesNotThrow(()=>new Function(ui));
  assert.doesNotThrow(()=>new Function(cloud));
 });
