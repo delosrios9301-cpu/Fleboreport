@@ -1,3 +1,4 @@
+// 2026-11-13 · Fluidez v325: eventos y renders visibles sin tocar canal de avisos.
 // 2026-11-13 · Cintas pacientes v324: fondo ondulado y proporciones sin alterar registros ni notificaciones.
 // 2026-11-13 · Revisar recursos Pacientes v323 en PWA, misma política de push.
 const CACHE_NAME='fleboreport-shell-v322';

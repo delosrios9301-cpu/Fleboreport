@@ -54,8 +54,8 @@ test('Pantallas grandes mantienen altura controlada y no muestran KPI enormes',(
  assert.match(css,/max-width:1040px!important/);
 });
 test('PWA v322 incluye la hoja final con consulta de caché única',()=>{
- assert.match(html,/patients-exact-proportions\.css\?v=20261113-patient7/);
- assert.match(html,/patients-activity-ui\.js\?v=20261113-patient7/);
+ assert.match(html,/patients-exact-proportions\.css\?v=20261113-patient8/);
+ assert.match(html,/patients-activity-ui\.js\?v=20261113-patient8/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/patients-exact-proportions\.css'/);
 });

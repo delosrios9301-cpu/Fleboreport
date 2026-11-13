@@ -28,7 +28,7 @@
  function sourceModel(id){
   const m=model();return m?.byId?.(id)||null;
  }
- let listMode='all',configured=false,rendering=false;
+ let listMode='all',configured=false,rendering=false,lastDirectorySignature='';
  function configure(){
   if(configured||!$('patientsHome'))return;
   configured=true;
@@ -103,7 +103,7 @@
   }
  }
  function renderDirectory(){
-  if(rendering)return;
+  if(rendering||!$('view-patients')?.classList.contains('active'))return;
   const host=$('ppPatientCards'),m=model();if(!host||!m)return;
   configure();rendering=true;
   try{
@@ -121,6 +121,12 @@
      r.type,r.company,...r.tests.map(t=>t.name)])].join(' ');
     return !search||norm(hay).includes(search);
    });
+   // El modelo puede sincronizarse sin modificar lo que se muestra. Evitar
+   // reemplazar todas las tarjetas si los datos visibles son idénticos.
+   const signature=JSON.stringify([listMode,search,date,m.summary,
+    rows.map(p=>[p.id,p.name,p.document,p.lastDate,p.visits,p.testsPerformed,p.recurrent])]);
+   if(signature===lastDirectorySignature&&host.childElementCount===Math.max(1,rows.length))return;
+   lastDirectorySignature=signature;
    const frag=document.createDocumentFragment();
    for(const person of rows){
     const card=mk('article','pp-directory-card pp-integrated-card pp-patient-ribbon');
@@ -283,12 +289,19 @@
   const modal=$('ppExpedientDialog');
   if(modal)modal.setAttribute('aria-label','Expediente de '+p.name);
  }
- function refresh(){configure();renderDirectory();if(!$('patientWorkspace')?.hidden)renderWorkspace()}
+ function refresh(){
+  if(!$('view-patients')?.classList.contains('active'))return;
+  configure();renderDirectory();if(!$('patientWorkspace')?.hidden)renderWorkspace();
+ }
  function init(){
   if(configured)return;
   configure();
   refresh();
-  window.addEventListener('flebo:cloud-state-applied',refresh);
+  // La capa premium consolida el aviso de nube y la pintura por frame.
+  // Mantener fallback si la capa premium no está instalada.
+  window.addEventListener('flebo:cloud-state-applied',()=>{
+   if(!window.FleboPatientsPremium?.getDirectoryMode)refresh();
+  });
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});
  else init();

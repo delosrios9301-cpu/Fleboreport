@@ -125,22 +125,22 @@
     const key = active ? active.id.replace(/^view-/,'') : 'home';
     const label = labels[key] || key;
     const context = $('#cmContextTitle');
-    if (context) context.textContent = label;
+    if (context && context.textContent !== label) context.textContent = label;
     const bar = $('#cmContextBar');
-    if (bar) bar.setAttribute('data-area',key);
+    if (bar && bar.getAttribute('data-area') !== key) bar.setAttribute('data-area',key);
     document.querySelectorAll('[data-cm-nav]').forEach(function(button){
       const item = button.dataset.cmNav;
       const selected = item === key && item !== 'more';
-      button.classList.toggle('is-active',selected);
-      if (selected) button.setAttribute('aria-current','page');
-      else button.removeAttribute('aria-current');
-      button.hidden = item !== 'more' && !isPermitted(item);
+      if(button.classList.contains('is-active')!==selected)button.classList.toggle('is-active',selected);
+      if(selected){if(button.getAttribute('aria-current')!=='page')button.setAttribute('aria-current','page')}
+      else if(button.hasAttribute('aria-current'))button.removeAttribute('aria-current');
+      const hide=item!=='more'&&!isPermitted(item);if(button.hidden!==hide)button.hidden=hide;
     });
     document.querySelectorAll('[data-cm-launch]').forEach(function(button){
-      button.hidden = !isPermitted(button.dataset.cmLaunch);
+      const hide = !isPermitted(button.dataset.cmLaunch);if(button.hidden!==hide)button.hidden=hide;
     });
     const onlyMenuOpener = $('#cmMobileDock [data-cm-nav="more"]');
-    if (onlyMenuOpener) onlyMenuOpener.setAttribute('aria-expanded',String(!!$('#sidebar.open')));
+    if (onlyMenuOpener){const expanded=String(!!$('#sidebar.open'));if(onlyMenuOpener.getAttribute('aria-expanded')!==expanded)onlyMenuOpener.setAttribute('aria-expanded',expanded);}
   }
   let queued = false;
   function queueSync() {

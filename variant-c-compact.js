@@ -35,7 +35,7 @@
    brand.innerHTML='<svg viewBox="0 0 40 40" aria-hidden="true"><g transform="rotate(30 18 17)" fill="none" stroke="#5a31cc" stroke-width="2.9" stroke-linejoin="round" stroke-linecap="round"><path d="M13 5h12M17 5v6L12 24a6 6 0 0 0 11 4l4-12-6-5V5"/><path d="M14 23h11" stroke="#08c7db" stroke-width="3"/></g><path d="M30 26c-2 3-4 5.2-4 7.5a4 4 0 1 0 8 0C34 31.2 32 29 30 26Z" fill="#05c6d7"/></svg>';
   }
   const subtitle=$('.topbar .fr2-brand-copy small');
-  if(subtitle)subtitle.textContent='Panel clínico';
+  if(subtitle&&subtitle.textContent!=='Panel clínico')subtitle.textContent='Panel clínico';
  }
  function mountKpis(){
   const home=$('#view-home'),kpis=$('#operationalKpis');
@@ -63,13 +63,21 @@
     const label=card.querySelector('.op-kpi-label')?.textContent?.trim();
     const trend=card.querySelector('.op-kpi-trend')?.textContent?.trim();
     const description=[label,value,trend].filter(Boolean).join(' · ');
-    if(description){card.setAttribute('aria-label',description);card.title=description;}
+    if(description){
+     if(card.getAttribute('aria-label')!==description)card.setAttribute('aria-label',description);
+     if(card.title!==description)card.title=description;
+    }
    });
   };
-  kpis.addEventListener('scroll',sync,{passive:true});
-  new ResizeObserver(sync).observe(kpis);
-  new MutationObserver(sync).observe(kpis,{childList:true});
-  requestAnimationFrame(sync);
+  let scrollFrame=0;
+  const scheduleKpiSync=()=>{
+   if(scrollFrame)return;
+   scrollFrame=requestAnimationFrame(()=>{scrollFrame=0;sync()});
+  };
+  kpis.addEventListener('scroll',scheduleKpiSync,{passive:true});
+  if(typeof ResizeObserver==='function')new ResizeObserver(scheduleKpiSync).observe(kpis);
+  new MutationObserver(scheduleKpiSync).observe(kpis,{childList:true});
+  scheduleKpiSync();
  }
  function mountShortcuts(){
   const section=$('#view-home .cm-launchpad');
@@ -96,14 +104,14 @@
  }
  function refreshPermissions(){
   for(const button of document.querySelectorAll('.vc-shortcut[data-vc-nav]')){
-   button.hidden=!permitted(button.dataset.vcNav);
+   const hide=!permitted(button.dataset.vcNav);if(button.hidden!==hide)button.hidden=hide;
   }
  }
  let queued=false;
  function updateContext(){
   const bar=$('#cmContextBar');
   if(bar?.dataset.area==='home'){
-   const title=$('#cmContextTitle');if(title)title.textContent='Panel de hoy';
+   const title=$('#cmContextTitle');if(title&&title.textContent!=='Panel de hoy')title.textContent='Panel de hoy';
   }
   refreshPermissions();
  }

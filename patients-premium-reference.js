@@ -388,7 +388,7 @@
   }
  }
  function refresh(){
-  if(!ready)return;
+  if(!ready||!$('view-patients')?.classList.contains('active'))return;
   renderDirectory();
   if(!$('patientWorkspace')?.hidden)renderWorkspace();
  }
@@ -426,8 +426,8 @@
   wrap('openPatientForm',dismissPatientModal);
   wrap('closePatientWorkspace',dismissPatientModal);
   wrap('navigate',dismissPatientModal);
-  const tbody=$('patientList');
-  if(tbody)new MutationObserver(scheduleRefresh).observe(tbody,{childList:true});
+  // renderPatients ya avisa mediante el wrapper; observar el mismo tbody
+  // duplicaría los repintados ante cada actualización de la nube.
   window.addEventListener('flebo:cloud-state-applied',scheduleRefresh);
   refresh();
  }
