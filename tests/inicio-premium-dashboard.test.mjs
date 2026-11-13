@@ -56,8 +56,8 @@ test('Presentacion solamente; no toca datos clinicos ni permisos',()=>{
 });
 
 
-test('v301: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
- assert.match(html,/inicio-premium\.css\?v=20261113-inicio2/);
+test('v302: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
+ assert.match(html,/inicio-premium\.css\?v=20261113-inicio3/);
  assert.match(sw,/fleboreport-shell-v302/);
  assert.match(css,/\.hp-donuts-group \.op-donut::after/);
  assert.match(css,/inset:13%!important/);
