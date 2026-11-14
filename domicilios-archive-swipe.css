@@ -60,6 +60,16 @@
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-open>button.hv-archive-action{
   pointer-events:auto;
  }
+ /* El botón destructivo no debe asomarse durante redibujos ni al cerrar el seguimiento.
+    Sólo aparece durante un gesto horizontal real o una ficha ya abierta. */
+ body.fr2-app-authorized #view-domicilios #hvWorkspace
+ .hv-swipe-row:not(.is-open):not(.is-dragging)>button.hv-archive-action{
+  visibility:hidden;opacity:0;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace
+ .hv-swipe-row:is(.is-open,.is-dragging)>button.hv-archive-action{
+  visibility:visible;opacity:1;
+ }
 }
 @media screen and (prefers-reduced-motion:reduce){
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content{
