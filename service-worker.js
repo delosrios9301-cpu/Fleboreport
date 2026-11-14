@@ -1,3 +1,4 @@
+// 2026-11-14 · Inicio v303: alinear verticalmente reloj SVG y fecha sin modificar métricas.
 // 2026-11-13 · Paciente editar en cuadro flotante v327.
 // FleboReport 2026-11-13 · admin swipe v326 (PWA shell revalidation)
 // 2026-11-13 · Fluidez v325: eventos y renders visibles sin tocar canal de avisos.

@@ -895,3 +895,72 @@ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home #dashSys
   width:min(114px,93%)!important;
  }
 }
+
+
+/* v303 · Fecha de "Panel de hoy": icono y texto centrados en el eje vertical.
+   El anterior glifo ◷ dependía de la línea base de cada fuente y quedaba bajo.
+   SVG ópticamente equilibrado, sin cambiar medidas ni datos de la fecha. */
+@media screen {
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .hp-home-heading {
+  align-items:center!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .fr2-home-date.hp-date-pill {
+  display:inline-flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  box-sizing:border-box!important;
+  gap:7px!important;
+  min-height:40px!important;
+  vertical-align:middle!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .fr2-home-date.hp-date-pill .fr2-home-date-mark {
+  display:inline-flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  align-self:center!important;
+  box-sizing:border-box!important;
+  flex:0 0 20px!important;
+  width:20px!important;
+  min-width:20px!important;
+  height:20px!important;
+  min-height:20px!important;
+  padding:0!important;
+  margin:0!important;
+  line-height:0!important;
+  font-size:0!important;
+  position:static!important;
+  transform:none!important;
+  vertical-align:middle!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .fr2-home-date.hp-date-pill .fr2-home-date-mark svg.hp-date-clock-svg {
+  display:block!important;
+  flex:none!important;
+  box-sizing:border-box!important;
+  width:19px!important;
+  height:19px!important;
+  min-width:19px!important;
+  min-height:19px!important;
+  margin:0!important;
+  padding:0!important;
+  vertical-align:middle!important;
+  transform:none!important;
+  overflow:visible!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .fr2-home-date.hp-date-pill b#dashboardToday {
+  display:block!important;
+  align-self:center!important;
+  margin:0!important;
+  padding:0!important;
+  min-width:0!important;
+  line-height:1.18!important;
+  vertical-align:middle!important;
+  text-align:center!important;
+ }
+}

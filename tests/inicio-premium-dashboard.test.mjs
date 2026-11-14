@@ -7,7 +7,7 @@ const [html,css,js,sw,shortcuts]=await Promise.all([
  file('service-worker.js'),file('variant-c-compact.js')
 ]);
 test('Inicio v300 se publica como ultima capa, tambien para PWA sin eliminar modulos',()=>{
- assert.ok(html.includes('inicio-premium.css?v=20261113-inicio3'));
+ assert.ok(html.includes('inicio-premium.css?v=20261114-inicio4'));
  assert.ok(html.includes('inicio-premium.js?v=20261113-inicio1'));
  assert.ok(html.lastIndexOf('inicio-premium.css')>html.lastIndexOf('jornada-premium.css'));
  assert.ok(html.lastIndexOf('inicio-premium.js')>html.lastIndexOf('variant-c-compact.js'));
@@ -57,7 +57,7 @@ test('Presentacion solamente; no toca datos clinicos ni permisos',()=>{
 
 
 test('v302: donas de Inicio más finas sin alterar segmentos, cifras ni leyendas',()=>{
- assert.match(html,/inicio-premium\.css\?v=20261113-inicio3/);
+ assert.match(html,/inicio-premium\.css\?v=20261114-inicio4/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(css,/\.hp-donuts-group \.op-donut::after/);
  assert.match(css,/inset:13%!important/);
