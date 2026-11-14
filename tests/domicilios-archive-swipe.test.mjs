@@ -47,8 +47,8 @@ test('Nube omite archivados; mantiene historiales clínicos',()=>{
  assert.match(js,/archivedAt:row\.archived_at\|\|null/);
  assert.match(js,/visits=visits\.filter\(v=>String\(v\.id\)!==String\(id\)\)/);
  assert.match(js,/saveHomeVisitCache\(\);render\(\);scheduleCloudVisitsRefresh\(\)/);
- assert.match(html,/domicilios\.js\?v=20261114-vol2/);
- assert.match(html,/domicilios-archive-swipe\.css\?v=20261114-archive2/);
+ assert.match(html,/domicilios\.js\?v=20261114-closefix1/);
+ assert.match(html,/domicilios-archive-swipe\.css\?v=20261114-archive3/);
  assert.match(sw,/'\.\/domicilios-archive-swipe\.css'/);
  assert.doesNotThrow(()=>new Function(js));
 });

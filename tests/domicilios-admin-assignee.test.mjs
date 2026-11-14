@@ -8,7 +8,7 @@ test('Administrador y miembros activos se eligen por directorio de laboratorio',
  assert.match(js,/assign_home_visit_member/);
  assert.match(js,/selectedProfessional\?\.user_id/);
  assert.match(js,/assignedUserId:v\.assignedUserId/);
- assert.match(html,/domicilios\.js\?v=20261114-vol2/);
+ assert.match(html,/domicilios\.js\?v=20261114-closefix1/);
 });
 test('Admin asignado tiene controles de campo solo para su propia asignación',()=>{
  assert.match(js,/function isMyAssignedDomicile\(v\)/);
@@ -22,5 +22,5 @@ test('No exige perfil de flebotomista antes de provisionar un administrador',()=
  const rpc=js.indexOf("if(v.assignedUserId&&!v.assignmentId)");
  const legacy=js.indexOf("if(!prof||!prof.user_id)");
  assert.ok(rpc>0&&legacy>rpc,'La RPC debe asignar antes de validar perfiles preexistentes');
- assert.match(html,/domicilios\.js\?v=20261114-vol2/);
+ assert.match(html,/domicilios\.js\?v=20261114-closefix1/);
 });
