@@ -32,7 +32,7 @@ test('Guardar desde otro módulo conserva el guardado inmediato sin recalcular g
  assert.equal(dashboards,1);
 });
 
-test('La PWA responde con recursos versionados en caché mientras revalida sin bloquear',async()=>{
+test('La PWA responde con estilos versionados en caché mientras revalida sin bloquear',async()=>{
  const worker=await read('service-worker.js');
  const listeners={};
  const cached={source:'cache'};
@@ -48,7 +48,7 @@ test('La PWA responde con recursos versionados en caché mientras revalida sin b
  vm.runInNewContext(worker,context);
  assert.equal(typeof listeners.fetch,'function');
  let responsePromise,completion;
- const request={method:'GET',url:'https://example.org/example.js?v=20261114',destination:'script'};
+ const request={method:'GET',url:'https://example.org/example.css?v=20261114',destination:'style'};
  listeners.fetch({request,respondWith:p=>{responsePromise=p},waitUntil:p=>{completion=p}});
  assert.equal(await responsePromise,cached,'El recurso cacheado no espera a la red');
  resolveNetwork({ok:true,clone:()=>({source:'new'}),source:'network'});
