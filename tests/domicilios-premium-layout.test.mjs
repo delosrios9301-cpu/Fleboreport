@@ -62,7 +62,7 @@ test('mismo diseño premium, sin ocultar información y usable en Android tablet
 });
 test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
  assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
- assert.match(html,/domicilios\.js\?v=20261114-vol1/);
+ assert.match(html,/domicilios\.js\?v=20261114-vol2/);
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/domicilios-premium.css'/);
 });
