@@ -764,7 +764,7 @@ function hvReferenceHour(time){
  return String(hour%12||12).padStart(2,'0')+':'+m[2]+(hour>=12?' p. m.':' a. m.');
 }
 
-const HV_ARCHIVE_STATES=new Set(['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado']);
+const HV_ARCHIVE_STATES=new Set(['Pendiente de asignación','Pendiente de aceptación','Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado']);
 function canArchiveVisit(v){
  return !!(v&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&HV_ARCHIVE_STATES.has(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','delete'))));
@@ -787,8 +787,9 @@ async function archiveVisitFromCard(id){
  if(!canArchiveVisit(visit)){say('No tienes permiso para eliminar este domicilio o su estado no lo permite.');return}
  if(!cloud.ready||!cloud.client||!navigator.onLine){say('Conecta el laboratorio a Internet antes de eliminar un domicilio.');return}
  const hasSamples=visit.status==='Muestras tomadas'||visit.status==='Finalizado';
+ const pendingVisit=visit.status==='Pendiente de asignación'||visit.status==='Pendiente de aceptación';
  const confirmation='¿Retirar el domicilio de '+(visit.patientName||'este paciente')+' ('+visit.status+') de la agenda y del historial visible?\n\n'
-  +(hasSamples?'Se conservarán todas las muestras tomadas, las pruebas, los resultados, los documentos y la trazabilidad clínica.':'Se conservarán la visita, los datos del paciente y la auditoría.');
+  +(pendingVisit?'La solicitud dejará de aparecer en la agenda y las invitaciones. La visita y su auditoría se conservarán.':hasSamples?'Se conservarán todas las muestras tomadas, las pruebas, los resultados, los documentos y la trazabilidad clínica.':'Se conservarán la visita, los datos del paciente y la auditoría.');
  if(!window.confirm(confirmation)){
   if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);
   return;
