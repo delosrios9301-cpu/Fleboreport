@@ -2,7 +2,7 @@
    Solamente colores y sombras. Nunca modificar tamaños, layout, gestos o lógica.
    Se aplica exclusivamente a pantalla para no alterar reportes PDF/impresión. */
 @media screen {
- :root {
+ html:root {
   --navy:#2B3137!important; --navy2:#384B5B!important; --blue:#536F85!important;
   --teal:#8FB9D4!important; --mint:#E9EEF2!important; --ink:#2B3137!important;
   --muted:#6E7F8D!important; --line:#D3DEE7!important; --bg:#E9EEF2!important;
