@@ -43,7 +43,7 @@ test('En móvil el control rojo sólo se muestra al deslizar o abrir la ficha',(
 });
 
 test('Los recursos de la corrección tienen versión nueva sin modificar el servicio push',()=>{
- assert.match(html,/domicilios\.js\?v=20261114-closefix1/);
+ assert.match(html,/domicilios\.js\?v=20261114-pending1/);
  assert.match(html,/domicilios-archive-swipe\.css\?v=20261114-archive3/);
  assert.doesNotThrow(()=>new Function(js));
 });
