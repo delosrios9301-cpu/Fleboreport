@@ -873,7 +873,6 @@ function hvReferenceVisitCard(v,technician){
   +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
   +' aria-label="'+esc(accessibility)+'"><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
 }
-}
 function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
  workspace.dataset.referenceCards='1';
