@@ -43,15 +43,22 @@ Deno.serve(async (req: Request) => {
       if (!alert || alert.resolved_at) return reply({ ok: true, skipped: "alert_not_active" });
       const { data: subs, error: subsError } = await admin.from("home_visit_push_subscriptions").select("id,endpoint,p256dh,auth_secret").eq("user_id", alert.recipient_user_id).eq("workspace_id", alert.workspace_id).eq("active", true);
       if (subsError) throw subsError;
-      const labels: Record<string,string> = { acceptance_pending: "Domicilio pendiente de aceptación: revisa la asignación", departure_due: "Inicia el desplazamiento del domicilio", departure_followup: "Seguimiento: aún no estás en camino", departure_overdue: "Domicilio fuera de hora: inicia el desplazamiento", sample_registered: "Nueva muestra registrada: pendiente de revisión", sample_received: "Muestra aprobada: pendiente de procesamiento", sample_24h: "Muestra próxima a vencer: quedan 24 horas", sample_20m: "Alerta crítica: quedan 20 minutos para procesar la muestra", sample_overdue: "Muestra fuera del plazo de 72 horas", coagulation_minimum: "Muestra: tiempo mínimo de coagulación alcanzado", coagulation_near_maximum: "Alerta: la muestra se acerca al máximo de coagulación", coagulation_maximum: "Alerta crítica: tiempo máximo de coagulación alcanzado" };
+      const labels: Record<string,string> = { volunteer_available: "Domicilio disponible · Asignación voluntaria", volunteer_claimed: "Domicilio asignado voluntariamente", acceptance_pending: "Domicilio pendiente de aceptación: revisa la asignación", departure_due: "Inicia el desplazamiento del domicilio", departure_followup: "Seguimiento: aún no estás en camino", departure_overdue: "Domicilio fuera de hora: inicia el desplazamiento", sample_registered: "Nueva muestra registrada: pendiente de revisión", sample_received: "Muestra aprobada: pendiente de procesamiento", sample_24h: "Muestra próxima a vencer: quedan 24 horas", sample_20m: "Alerta crítica: quedan 20 minutos para procesar la muestra", sample_overdue: "Muestra fuera del plazo de 72 horas", coagulation_minimum: "Muestra: tiempo mínimo de coagulación alcanzado", coagulation_near_maximum: "Alerta: la muestra se acerca al máximo de coagulación", coagulation_maximum: "Alerta crítica: tiempo máximo de coagulación alcanzado" };
       const title = labels[alert.alert_code] || "Alerta de seguimiento · FleboReport";
       const subjectText = alert.entity === "home_visit" ? "domicilio" : "muestra clínica";
-      const bodyText = alert.alert_code === "sample_registered" ? "Se registró una muestra y está pendiente de revisión. Ingresa al módulo Estudios Clínicos para verificarla." : alert.alert_code === "sample_received" ? "La muestra fue revisada y aprobada. Ya está disponible en el módulo Procesamiento." : alert.severity === "overdue" ? "El plazo ya venció. Revisa el seguimiento del " + subjectText + "." : alert.severity === "critical" ? "Atención inmediata. El plazo está por agotarse. Revisa el " + subjectText + "." : "Se aproxima el límite de tiempo. Revisa el " + subjectText + ".";
+      const bodyText = alert.alert_code === "volunteer_available"
+        ? "Hay un domicilio sin responsable. Puedes asignártelo voluntariamente desde FleboReport. Los datos privados se mostrarán solo después de aceptarlo."
+        : alert.alert_code === "volunteer_claimed"
+        ? (alert.metadata?.actor_user_id === alert.recipient_user_id
+          ? "Has asumido voluntariamente un domicilio. Coordinación ha recibido el aviso."
+          : (String(alert.metadata?.actor_name || "Un usuario") + " se asignó voluntariamente un domicilio. Revisa la agenda."))
+        : alert.alert_code === "sample_registered" ? "Se registró una muestra y está pendiente de revisión. Ingresa al módulo Estudios Clínicos para verificarla." : alert.alert_code === "sample_received" ? "La muestra fue revisada y aprobada. Ya está disponible en el módulo Procesamiento." : alert.severity === "overdue" ? "El plazo ya venció. Revisa el seguimiento del " + subjectText + "." : alert.severity === "critical" ? "Atención inmediata. El plazo está por agotarse. Revisa el " + subjectText + "." : "Se aproxima el límite de tiempo. Revisa el " + subjectText + ".";
       webpush.setVapidDetails(subject, publicVapid, privateVapid);
       let sent = 0, failed = 0;
       for (const sub of subs || []) {
         try {
-          await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } }, JSON.stringify({ title, body: bodyText, url: alert.entity === "home_visit" ? "./?view=domicilios" : "./?view=clinical-processing", tag: "fleboreport-sla-" + alert.id }));
+          await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth_secret } }, JSON.stringify({ title, body: bodyText, url: alert.alert_code === "volunteer_available" ? "./?view=domicilios&available=" + encodeURIComponent(alert.record_id) :
+          alert.entity === "home_visit" ? "./?view=domicilios" : "./?view=clinical-processing", tag: "fleboreport-sla-" + alert.id }));
           sent++;
         } catch (e) {
           failed++;
@@ -350,16 +357,17 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "dispatch") {
-      if (!["admin", "clinician", "reception"].includes(membership.role))
-        return reply({ error: "No tienes permiso para asignar domicilios" }, 403);
+      const managerCanDispatch = ["admin", "clinician", "reception"].includes(membership.role);
       const assignmentId = String(body.assignment_id || "");
       if (!assignmentId) return reply({ error: "Falta assignment_id" }, 400);
 
       const { data: assignment, error: assignmentError } = await admin.from("home_visit_assignments")
-        .select("id,workspace_id,home_visit_id,assigned_user_id,status,home_visits(id,scheduled_at,notes,priority)")
+        .select("id,workspace_id,home_visit_id,assigned_user_id,created_by,status,home_visits(id,scheduled_at,notes,priority)")
         .eq("id", assignmentId).eq("workspace_id", membership.workspace_id).single();
       if (assignmentError || !assignment || !assignment.assigned_user_id)
         return reply({ error: "No se encontró la asignación con usuario asignado" }, 404);
+      if (!managerCanDispatch && assignment.created_by !== user.id)
+        return reply({ error: "Solo el asignador autorizado puede emitir este aviso" }, 403);
 
       const visit = assignment.home_visits as { scheduled_at?: string; notes?: string; priority?: string } | null;
       const when = visit?.scheduled_at
