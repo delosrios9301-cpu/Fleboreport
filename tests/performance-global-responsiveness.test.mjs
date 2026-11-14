@@ -60,7 +60,7 @@ test('La PWA responde con recursos versionados en caché mientras revalida sin b
 
 test('La caché conserva la estrategia de autenticación y las escrituras no son interceptadas',async()=>{
  const worker=await read('service-worker.js');
- assert.match(worker,/const CACHE_NAME='fleboreport-shell-v334'/);
+ assert.match(worker,/const CACHE_NAME='fleboreport-shell-v322'/);
  assert.match(worker,/if\(request.method!=='GET'\)return/);
  assert.match(worker,/url.pathname.endsWith\('\/supabase-auth.js'\)/);
  assert.match(worker,/request.mode==='navigate'/);
