@@ -110,6 +110,7 @@ async function invokeDomicileNotifications(body){
  return result.data||{};
 }
 function decodeMeta(value){try{const x=JSON.parse(value||'{}');return x&&x.flebo_meta===true?x:{}}catch(_){return{}}}
+window.FleboHomePatientHistory={get:()=>visits};
 function dbVisit(row){
  const meta=decodeMeta(row.notes),assignment=(row.home_visit_assignments||[]).slice().sort((a,b)=>new Date(b.assigned_at||0)-new Date(a.assigned_at||0))[0]||{},professional=assignment.professionals||{},tests=(row.home_visit_tests||[]).map(t=>{const z=t.catalog_snapshot||{};return{id:t.id,testId:t.service_id||'',serviceId:t.service_id||null,quantity:t.quantity||1,addedById:t.added_by||null,addedAt:t.added_at||null,catalogSnapshot:t.catalog_snapshot||{},name:t.test_name,sample:z.sample||'',vessel:t.vessel||z.vessel||'',colorName:z.colorName||'',fasting:z.fasting||'',conditions:z.conditions||'',instructions:z.instructions||'',volume:z.volume||'',method:z.method||'',color:z.color||'',shape:z.shape||'tube',status:testFromDb[t.status]||'Pendiente',source:t.source==='additional'?'adicional':'original',notes:t.notes||'',addedBy:'Equipo'}}),dt=new Date(row.scheduled_at);
  const fmt=opts=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Panama',...opts}).format(dt);
@@ -938,6 +939,7 @@ function enhanceReferenceVisitLayout(){
 function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;render();}
 window.hvSetTab=setTab;
 function render(){
+ window.dispatchEvent(new Event('flebo:home-history-changed'));
   const technician=cloud.role==='technician';
   if(technician&&!selected&&visits.length)selected=visits[0].id;
   const createPanel=$('hvCreatePanel'),kpis=$('hvKpis'),detailPanel=$('hvDetail'),calendarPanel=$('hvCalendar')?.closest('.hv-calendar-panel'),agendaPanel=$('hvAgendaPanel');

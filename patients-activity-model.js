@@ -110,7 +110,7 @@
     for(const attention of arr(p.attentions)){
      if(!attention||typeof attention!=='object')continue;
      const identity=str(attention.id)||[isoDate(attention.date),str(attention.type),str(attention.createdAt)].join('|');
-     if(!unique.has(identity))unique.set(identity,attention);
+     if(!unique.has(identity))unique.set(identity,{...attention,ownerId:str(p.id)});
     }
    }
    const individual=[...unique.values()].map(a=>{
@@ -118,17 +118,30 @@
      const obj=typeof t==='object'?t:{name:str(t)};
      const status=str(obj.status||'Registrada');
      return {id:str(obj.id||''),name:str(obj.name||obj.testName)||'Prueba',
-      status,performed:!['pendiente','cancelada','anulada'].includes(norm(status)),
+      status,performed:statusTaken(status)||!!str(obj.result),
       result:str(obj.result),source:'individual'};
     });
     return {key:'individual:'+str(a.id||a.createdAt||a.date),id:str(a.id),
-     type:str(a.type||'Atención individual'),source:'individual',
+     type:str(a.type||'Atención individual'),source:'individual',ownerId:a.ownerId,
      date:isoDate(a.date),time:str(a.time||''),status:'Atención registrada',
      performed:true,tests,company:str(a.company||primary.company),
      professional:str(a.professional),createdAt:str(a.createdAt),
      notes:str(a.notes),conclusions:str(a.conclusions),original:a};
    });
-   const records=individual.concat(journeyByGroup.get(group.key)||[])
+   const homes=arr(state.homeVisits).filter(v=>{
+    const id=str(v.patientId),doc=norm(documentOf(v));
+    return id ? group.people.some(p=>str(p.cloudPatientId)===id||str(p.id)===id) :
+      !!doc&&doc===norm(group.document);
+   }).map(v=>{
+    const tests=arr(v.tests).map(t=>({id:str(t.id),name:str(t.name||'Prueba'),
+     status:str(t.status),performed:statusTaken(t.status),result:str(t.result),source:'home'}));
+    return {key:'home:'+v.id,id:str(v.id),source:'home',type:'Domicilio',
+     date:isoDate(v.scheduledDate),time:str(v.scheduledTime),status:str(v.status),
+     performed:tests.some(t=>t.performed)||!!v.completedAt,tests,
+     company:'',professional:str(v.assignedTo),createdAt:str(v.createdAt),
+     notes:str(v.reason),address:str(v.address),original:v};
+   });
+   const records=individual.concat(journeyByGroup.get(group.key)||[],homes)
     .sort((a,b)=>str(b.date).localeCompare(str(a.date))||
       str(b.createdAt).localeCompare(str(a.createdAt)));
    const visits=records.filter(x=>x.performed);

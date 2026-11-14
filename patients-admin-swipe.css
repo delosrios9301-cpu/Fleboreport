@@ -44,7 +44,7 @@
 }
 @media (pointer:fine) {
  body.fr2-app-authorized #view-patients.pp-integrated .pp-patient-swipe .pp-swipe-delete{
-  display:none;
+  display:flex;position:relative;width:94px;min-height:44px;border-radius:12px;margin:6px 0 6px auto;
  }
 }
 @media screen and (prefers-reduced-motion:reduce){

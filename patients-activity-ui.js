@@ -5,7 +5,7 @@
  'use strict';
  const $=id=>document.getElementById(id);
  const state=()=>window.FleboAppState?.get?.()||{};
- const model=()=>window.FleboPatientActivity?.build?.(state());
+ const model=()=>window.FleboPatientActivity?.build?.({...state(),homeVisits:window.FleboHomePatientHistory?.get?.()||[]});
  const mk=(tag,cls,text)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x};
  const norm=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
  const calendarIcon='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v5M16 2v5M3 10h18"/></svg>';
@@ -226,7 +226,8 @@
      const shell=mk('div','pp-patient-swipe');
      const remove=control('Eliminar','pp-swipe-delete',()=>archivePatientFromRibbon(person,shell,remove));
      remove.setAttribute('aria-label','Eliminar paciente '+person.name+' del listado');
-     remove.setAttribute('aria-hidden','true');remove.tabIndex=-1;
+     const desktop=window.matchMedia('(pointer:fine)').matches;
+     remove.setAttribute('aria-hidden',String(!desktop));remove.tabIndex=desktop?0:-1;
      const trash=mk('span','pp-swipe-trash');trash.setAttribute('aria-hidden','true');
      trash.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 4h4M7 7l1 14h8l1-14M10 11v6M14 11v6"/></svg>';
      remove.prepend(trash);
@@ -253,14 +254,15 @@
   const text=mk('div','pp-event-info');
   text.append(mk('strong','',record.type));
   if(record.tests.length)text.append(mk('span','','Pruebas: '+record.tests.map(t=>t.name).join(', ')));
-  if(record.company)text.append(mk('span','','Empresa: '+record.company));
+  if(record.address)text.append(mk('span','','Dirección: '+record.address));
+   if(record.company)text.append(mk('span','','Empresa: '+record.company));
   if(record.professional)text.append(mk('span','','Responsable: '+record.professional));
   const status=mk('span','pp-event-status',record.status);
   if(record.source==='journey'&&record.status==='Muestras tomadas')status.classList.add('is-complete');
   const action=mk('div','pp-event-action');
   if(record.source==='individual'&&record.id){
-   action.append(control('Ver ›','pp-event-open',()=>window.showAttentionDetail?.(record.id)));
-   action.append(control('Editar','pp-event-edit',()=>window.editAttention?.(record.id)));
+   action.append(control('Ver ›','pp-event-open',()=>{window.openPatient?.(record.ownerId);window.showAttentionDetail?.(record.id)}));
+   if(window.fleboCan?.('patients','edit'))action.append(control('Editar','pp-event-edit',()=>{window.openPatient?.(record.ownerId);window.editAttention?.(record.id)}));
   }else{
    const details=mk('details','pp-event-details');
    details.append(mk('summary','','Ver pruebas ›'));
@@ -300,7 +302,7 @@
   const nativeEdit=$('patient-tab-personal')?.querySelector('button[onclick*="editIndividualPatient"]');
   const edit=$('ppRecordHero')?.querySelector('.pp-outline-edit');
   if(edit){
-   const denied=!nativeEdit||nativeEdit.hidden||nativeEdit.disabled||
+   const denied=!window.fleboCan?.('patients','edit')||!nativeEdit||nativeEdit.hidden||nativeEdit.disabled||
     window.getComputedStyle(nativeEdit).display==='none';
    edit.hidden=denied;
   }
@@ -328,7 +330,7 @@
      content.append(mk('strong','',test.name));
      content.append(mk('small','','Fecha: '+localDate(record.date)+' · '+record.type));
      item.append(content,mk('span','pp-activity-test-status',test.performed?
-       (record.source==='journey'?'Muestra tomada':'Registrada'):
+       (test.status||'Realizada'):
        (test.status||'Pendiente')));
      frag.append(item);
     }
@@ -349,7 +351,28 @@
    if(!frag.childNodes.length)frag.append(mk('p','pp-empty','No hay resultados informados en este expediente.'));
    results.replaceChildren(frag);
   }
-  const notes=$('ppNoteList');
+  const documents=$('patientEvidenceList');
+   if(documents){
+    const fragment=document.createDocumentFragment(),seen=new Set();
+    for(const record of p.records){
+     const files=record.source==='home'?record.original.documents:record.original.attachments;
+     for(const file of (files||[])){
+      const identity=record.key+'|'+(file.id||file.data||file.name);
+      if(seen.has(identity))continue;seen.add(identity);
+      const item=mk('article','list-row');
+      item.append(mk('strong','',file.name||file.file_name||'Documento'));
+      if(record.source==='home'){
+       item.append(control('Abrir','btn small',()=>window.hvOpenDocument?.(record.id,file.id)));
+      }else if(typeof file.data==='string'&&/^(https:\/\/|data:application\/pdf;base64,|data:image\/(png|jpeg|webp);base64,)/i.test(file.data)){
+       const link=mk('a','btn small','Abrir');link.href=file.data;link.target='_blank';link.rel='noopener';item.append(link);
+      }
+      fragment.append(item);
+     }
+    }
+    if(!fragment.childNodes.length)fragment.append(mk('p','pp-empty','Sin archivos adjuntos.'));
+    documents.replaceChildren(fragment);
+   }
+   const notes=$('ppNoteList');
   if(notes){
    const frag=document.createDocumentFragment();
    for(const record of p.records){
@@ -359,9 +382,8 @@
      item.append(mk('strong','',label+' · '+localDate(record.date)),mk('p','',value));frag.append(item);
     }
    }
-   const key=window.FleboPatientActivity?.normalizeDocument?.(p.document);
-   for(const candidate of (state().patients||[])){
-    if(window.FleboPatientActivity?.normalizeDocument?.(candidate.document||candidate.cedula)!==key)continue;
+      for(const candidate of (state().patients||[])){
+    if(!p.ids.includes(String(candidate.id)))continue;
     if(!candidate.generalNotes)continue;
     const item=mk('article','pp-note-item');
     item.append(mk('strong','','Observaciones generales'),mk('p','',candidate.generalNotes));frag.append(item);
@@ -385,6 +407,7 @@
   window.addEventListener('flebo:cloud-state-applied',()=>{
    if(!window.FleboPatientsPremium?.getDirectoryMode)refresh();
   });
+  window.addEventListener('flebo:home-history-changed',refresh);
   window.addEventListener('flebo:auth-changed',()=>{
    lastDirectorySignature='';if($('view-patients')?.classList.contains('active'))renderDirectory();
   });
