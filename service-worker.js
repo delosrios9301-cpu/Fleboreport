@@ -1,3 +1,4 @@
+// 2026-11-14 · Admin asignable y campo por asignación aceptada v330.
 // 2026-11-14 · Domicilios: archivado con gestos táctiles y botón PC (v328).
 // 2026-11-14 · Inicio v303: alinear verticalmente reloj SVG y fecha sin modificar métricas.
 // 2026-11-13 · Paciente editar en cuadro flotante v327.

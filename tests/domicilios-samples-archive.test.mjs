@@ -21,7 +21,7 @@ test('Swipe táctil funciona también al iniciarse sobre el botón de seguimient
  assert.match(style,/touch-action:pan-y!important/);
  assert.match(app,/hvIgnoreCardClickUntil=Date\.now\(\)\+350/);
  assert.match(app,/event\.stopImmediatePropagation\(\)/);
- assert.match(index,/domicilios\.js\?v=20261114-archive2/);
+ assert.match(index,/domicilios\.js\?v=20261114-vol1/);
  assert.match(index,/domicilios-archive-swipe\.css\?v=20261114-archive2/);
  assert.doesNotThrow(()=>new Function(app));
 });
