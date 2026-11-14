@@ -747,7 +747,7 @@ function hvReferenceHour(time){
  return String(hour%12||12).padStart(2,'0')+':'+m[2]+(hour>=12?' p. m.':' a. m.');
 }
 
-const HV_ARCHIVE_STATES=new Set(['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma']);
+const HV_ARCHIVE_STATES=new Set(['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado']);
 function canArchiveVisit(v){
  return !!(v&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&HV_ARCHIVE_STATES.has(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','delete'))));
@@ -768,7 +768,10 @@ async function archiveVisitFromCard(id){
  const visit=visits.find(v=>String(v.id)===String(id));
  if(!canArchiveVisit(visit)){say('No tienes permiso para eliminar este domicilio o su estado no lo permite.');return}
  if(!cloud.ready||!cloud.client||!navigator.onLine){say('Conecta el laboratorio a Internet antes de eliminar un domicilio.');return}
- if(!window.confirm('¿Retirar el domicilio de '+(visit.patientName||'este paciente')+' ('+visit.status+') de la agenda y del historial visible? La visita y su trazabilidad permanecerán en la base de datos.')){
+ const hasSamples=visit.status==='Muestras tomadas'||visit.status==='Finalizado';
+ const confirmation='¿Retirar el domicilio de '+(visit.patientName||'este paciente')+' ('+visit.status+') de la agenda y del historial visible?\n\n'
+  +(hasSamples?'Se conservarán todas las muestras tomadas, las pruebas, los resultados, los documentos y la trazabilidad clínica.':'Se conservarán la visita, los datos del paciente y la auditoría.');
+ if(!window.confirm(confirmation)){
   if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);
   return;
  }
@@ -794,7 +797,7 @@ function setupHomeVisitSwipe(workspace){
  workspace.dataset.hvArchiveSwipeReady='1';
  workspace.addEventListener('pointerdown',event=>{
   if(!isTouchSwipeMode()||!['touch','pen'].includes(event.pointerType))return;
-  if(!(event.target instanceof Element)||event.target.closest('button,a,input,select,textarea'))return;
+  if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,input,select,textarea'))return;
   const row=event.target.closest('.hv-swipe-row');
   if(!row||!workspace.contains(row))return;
   if(hvOpenedSwipe&&hvOpenedSwipe!==row)setHomeVisitSwipe(hvOpenedSwipe,false);

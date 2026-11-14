@@ -66,3 +66,13 @@
   transition:none!important;
  }
 }
+
+
+/* v329 · El arrastre puede comenzar también en "Ver ruta" o
+   "Ver seguimiento"; el botón conserva el clic normal sin arrastrar. */
+@media screen and (pointer:coarse) {
+ body.fr2-app-authorized #view-domicilios #hvWorkspace
+ .hv-swipe-row .hv-swipe-content :is(button,.hv-ref-visit,.hv-ref-actions) {
+  touch-action:pan-y!important;
+ }
+}
