@@ -7,7 +7,7 @@ const [js,css,html,sw]=await Promise.all([
  read('index.html'),read('service-worker.js')
 ]);
 test('Solo admin o permiso domicilios.delete ven Eliminar; solo en visitas no realizadas',()=>{
- assert.match(js,/HV_ARCHIVE_STATES=new Set\(\['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
+ assert.match(js,/HV_ARCHIVE_STATES=new Set\(\['Pendiente de asignación','Pendiente de aceptación','Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
  assert.match(js,/cloud\.role==='admin'\|\|\(typeof window\.fleboCan==='function'&&window\.fleboCan\('domicilios','delete'\)\)/);
  assert.match(js,/if\(!canArchiveVisit\(v\)\)return card/);
  assert.match(js,/data-hv-archive/);
@@ -47,7 +47,7 @@ test('Nube omite archivados; mantiene historiales clínicos',()=>{
  assert.match(js,/archivedAt:row\.archived_at\|\|null/);
  assert.match(js,/visits=visits\.filter\(v=>String\(v\.id\)!==String\(id\)\)/);
  assert.match(js,/saveHomeVisitCache\(\);render\(\);scheduleCloudVisitsRefresh\(\)/);
- assert.match(html,/domicilios\.js\?v=20261114-closefix1/);
+ assert.match(html,/domicilios\.js\?v=20261114-pending1/);
  assert.match(html,/domicilios-archive-swipe\.css\?v=20261114-archive3/);
  assert.match(sw,/'\.\/domicilios-archive-swipe\.css'/);
  assert.doesNotThrow(()=>new Function(js));
