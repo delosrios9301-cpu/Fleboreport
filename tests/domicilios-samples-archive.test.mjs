@@ -5,7 +5,7 @@ const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');
 const [app,style,index]=await Promise.all([read('domicilios.js'),read('domicilios-archive-swipe.css'),read('index.html')]);
 
 test('Muestras tomadas: el paciente de la captura dispone de acción para autorizados',()=>{
- assert.match(app,/HV_ARCHIVE_STATES=new Set\(\['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
+ assert.match(app,/HV_ARCHIVE_STATES=new Set\(\['Pendiente de asignación','Pendiente de aceptación','Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
  assert.match(app,/if\(!canArchiveVisit\(v\)\)return card/);
  assert.match(app,/cloud\.role==='admin'\|\|/);
  assert.match(app,/window\.fleboCan\('domicilios','delete'\)/);
@@ -21,7 +21,7 @@ test('Swipe táctil funciona también al iniciarse sobre el botón de seguimient
  assert.match(style,/touch-action:pan-y!important/);
  assert.match(app,/hvIgnoreCardClickUntil=Date\.now\(\)\+350/);
  assert.match(app,/event\.stopImmediatePropagation\(\)/);
- assert.match(index,/domicilios\.js\?v=20261114-closefix1/);
+ assert.match(index,/domicilios\.js\?v=20261114-pending1/);
  assert.match(index,/domicilios-archive-swipe\.css\?v=20261114-archive3/);
  assert.doesNotThrow(()=>new Function(app));
 });
