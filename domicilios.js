@@ -774,6 +774,7 @@ function isTouchSwipeMode(){
 }
 function setHomeVisitSwipe(row,opened){
  if(!row)return;
+ row.classList.remove('is-dragging');
  row.classList.toggle('is-open',opened);
  const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action');
  if(content)content.style.removeProperty('transform');
@@ -829,6 +830,7 @@ function setupHomeVisitSwipe(workspace){
    if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>9){g.vertical=true;return}
    if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.2)return;
    g.horizontal=true;
+   g.row.classList.add('is-dragging');
   }
   if(event.cancelable)event.preventDefault();
   const distance=Math.max(-92,Math.min(0,dx+(g.startedOpen?-92:0)));
@@ -837,7 +839,7 @@ function setupHomeVisitSwipe(workspace){
  workspace.addEventListener('pointerup',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
   hvSwipeGesture=null;
-  if(!g.horizontal)return;
+  if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
   setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
@@ -1196,7 +1198,16 @@ window.hvRefreshVoluntary=async id=>{
  if(found){selected=String(id);detailOpen=true;activeTab='agenda';referenceQuickStatus='';dismissedInvitationId='';}
  render();
  return found;
-};window.hvCloseDetail=event=>{if(event&&event.target!==event.currentTarget)return;detailOpen=false;render()};window.hvOpenNotificationVisit=id=>{const visit=visits.find(v=>v.id===id);if(!visit)return;selected=id;activeTab='agenda';detailOpen=true;render()};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
+};window.hvCloseDetail=event=>{
+ if(event&&event.target!==event.currentTarget)return;
+ detailOpen=false;
+ // Cerrar el modal sin reconstruir la agenda: evita un destello temporal
+ // de la acción roja de archivado y mantiene intactos los controles y filtros.
+ const backdrop=document.querySelector('body > .hv-detail-backdrop');
+ if(backdrop)backdrop.remove();
+ const panel=$('hvDetail');
+ if(panel){panel.hidden=true;panel.replaceChildren();}
+};window.hvOpenNotificationVisit=id=>{const visit=visits.find(v=>v.id===id);if(!visit)return;selected=id;activeTab='agenda';detailOpen=true;render()};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
 async function activatePush(){
  const button=$('hvActivatePush'),status=$('hvPushStatus');
  const set=(message,error=false)=>{if(status){status.textContent=message;status.style.color=error?'#a33e47':'#557184'}};
