@@ -3,6 +3,11 @@
 const TABLE='patients';
 let client=null,userId=null,workspaceId=null,channel=null,ready=false,busy=false,dirty=false,timer=null,lastContent=new Map(),pendingKeys=new Set(),initialized=false,patientRefreshPending=false;
 let remoteRefreshTimer=null,remoteRefreshQueued=false;
+let syncStatus='idle';
+function reportSync(status,message){
+ syncStatus=status;
+ window.dispatchEvent(new CustomEvent('flebo:patient-sync-status',{detail:{status,message}}));
+}
 const app=()=>window.FleboAppState?.get?.();
 const norm=v=>String(v||'').trim().toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
 const docOf=p=>String(p?.document||p?.cedula||p?.document_number||'').trim();
@@ -154,9 +159,15 @@ async function syncNow(options){
    const localByKey=new Map(local.map(p=>[keyOf(p),p]));
    for(const key of Array.from(pendingKeys)){
     const patient=localByKey.get(key);
-    if(patient)await pushOne(patient);
+    if(patient){
+     const snapshot=contentOf(patient);
+     reportSync('syncing','Sincronizando expedientes…');
+     await pushOne({...patient});
+     const current=(app()?.patients||[]).find(p=>keyOf(p)===key);
+     if(current&&contentOf(current)===snapshot)pendingKeys.delete(key);
+     else dirty=true;
+    }else pendingKeys.delete(key);
    }
-   pendingKeys.clear();
   }
   const latest=await fetchAll();
   const currentPatients=(app()?.patients||[]).slice();
@@ -168,7 +179,8 @@ async function syncNow(options){
   const combined=merge(currentPatients,latest);
   if(saveList(combined))refreshPatientViews();
   lastContent=new Map(combined.map(p=>[keyOf(p),contentOf(p)]));
- }catch(e){console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
+  if(!pendingKeys.size&&syncStatus!=='idle')reportSync('synced','Cambios sincronizados con la nube.');
+ }catch(e){reportSync('error','Cambios pendientes de sincronizar. Se reintentará al recuperar la conexión.');console.error('[FleboReport Patient Sync]',e);const el=document.getElementById('fleboSyncStatus');if(el){el.textContent='Expedientes pendientes de sincronizar';el.dataset.error='true'}}
  finally{
   busy=false;
   if(dirty)schedule(300);
@@ -191,6 +203,7 @@ function schedule(delay=900){
  if(!ready)return;dirty=true;
  const list=app()?.patients||[];
  list.forEach(p=>{const k=keyOf(p);if(lastContent.get(k)!==contentOf(p))pendingKeys.add(k)});
+ if(pendingKeys.size)reportSync('pending',navigator.onLine?'Cambios pendientes de sincronizar…':'Sin conexión. Cambios pendientes de sincronizar.');
  clearTimeout(timer);timer=setTimeout(()=>syncNow({allowLocalPush:true}),delay);
 }
 function subscribe(){

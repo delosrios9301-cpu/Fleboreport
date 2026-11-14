@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION public.archive_workspace_patient(p_workspace_id uuid,
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO ''
-AS $function$;
+AS $function$
 declare v_uid uuid:=auth.uid();v_patient public.patients%rowtype; v_count integer;
 begin
  if v_uid is null or not private.member_has_workspace_role(

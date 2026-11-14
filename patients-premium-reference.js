@@ -459,6 +459,7 @@
   if(!ready||!$('view-patients')?.classList.contains('active'))return;
   renderDirectory();
   if(!$('patientWorkspace')?.hidden)renderWorkspace();
+  applyPatientPermissions();
  }
  function scheduleRefresh(){
   if(paintQueued)return;
@@ -473,6 +474,26 @@
    return result;
   };
  }
+ function patientPermission(action){
+  return typeof window.fleboCan==='function'&&window.fleboCan('patients',action);
+ }
+ function guardAction(name,action){
+  const original=window[name];if(typeof original!=='function')return;
+  window[name]=function(...args){
+   const required=typeof action==='function'?action():action;
+   if(!patientPermission(required)){window.toast?.('No tienes permiso para esta acción.');return}
+   return original.apply(this,args);
+  };
+ }
+ function applyPatientPermissions(){
+  const view=$('view-patients');if(!view)return;
+  for(const node of view.querySelectorAll('button')){
+   const action=node.getAttribute('onclick')||'';
+   if(/editIndividualPatient|editAttention/.test(action)||node.classList.contains('pp-outline-edit')||node.classList.contains('pp-event-edit'))
+    node.hidden=!patientPermission('edit');
+   if(/^(openPatientForm|addPatient)\(/.test(action))node.hidden=!patientPermission('create');
+  }
+ }
  function mount(){
   if(ready)return;
   const home=$('patientsHome'),space=$('patientWorkspace');
@@ -480,6 +501,17 @@
   ready=true;
   const v=$('view-patients');v?.classList.add('pp-premium');
   createHome();createWorkspace();initPatientDialog();initPatientFormDialog();
+  guardAction('editIndividualPatient','edit');
+  guardAction('editAttention','edit');
+  guardAction('saveIndividualPatient',()=>window.indPatient?.()?'edit':'create');
+  const status=el('p','pp-sync-status');
+  status.id='ppPatientSyncStatus';status.setAttribute('role','status');status.hidden=true;
+  home.prepend(status);
+  window.addEventListener('flebo:patient-sync-status',event=>{
+   status.textContent=event.detail.message;status.hidden=false;
+   status.dataset.status=event.detail.status;
+  });
+  window.addEventListener('flebo:auth-changed',applyPatientPermissions);
   wrap('renderPatients',scheduleRefresh);
   wrap('renderPatientWorkspace',renderWorkspace);
   wrap('showPatientTab',activateTab);
