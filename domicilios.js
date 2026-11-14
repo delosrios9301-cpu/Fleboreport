@@ -1,6 +1,7 @@
 (function(){
 'use strict';
 const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
+let hvSwipeGesture=null,hvOpenedSwipe=null,hvIgnoreCardClickUntil=0;
 let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
@@ -112,7 +113,7 @@ function decodeMeta(value){try{const x=JSON.parse(value||'{}');return x&&x.flebo
 function dbVisit(row){
  const meta=decodeMeta(row.notes),assignment=(row.home_visit_assignments||[]).slice().sort((a,b)=>new Date(b.assigned_at||0)-new Date(a.assigned_at||0))[0]||{},professional=assignment.professionals||{},tests=(row.home_visit_tests||[]).map(t=>{const z=t.catalog_snapshot||{};return{id:t.id,testId:t.service_id||'',serviceId:t.service_id||null,quantity:t.quantity||1,addedById:t.added_by||null,addedAt:t.added_at||null,catalogSnapshot:t.catalog_snapshot||{},name:t.test_name,sample:z.sample||'',vessel:t.vessel||z.vessel||'',colorName:z.colorName||'',fasting:z.fasting||'',conditions:z.conditions||'',instructions:z.instructions||'',volume:z.volume||'',method:z.method||'',color:z.color||'',shape:z.shape||'tube',status:testFromDb[t.status]||'Pendiente',source:t.source==='additional'?'adicional':'original',notes:t.notes||'',addedBy:'Equipo'}}),dt=new Date(row.scheduled_at);
  const fmt=opts=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Panama',...opts}).format(dt);
- return{id:row.id,patientId:row.patient_id||null,latitude:row.latitude,longitude:row.longitude,priority:row.priority||'normal',createdById:row.created_by||null,createdAtDb:row.created_at||null,completedAt:row.completed_at||null,patientName:meta.patientName||'Paciente',document:meta.document||'',phone:row.patient_phone||'',address:row.address,scheduledDate:fmt({year:'numeric',month:'2-digit',day:'2-digit'}),scheduledTime:fmt({hour:'2-digit',minute:'2-digit',hour12:false}),assignedTo:meta.assignedTo||professional.name||'',assignedPhone:meta.assignedPhone||'',status:(assignment.status==='accepted'&&row.status==='pending_acceptance'?'Aceptado':assignment.status==='rejected'&&row.status==='pending_acceptance'?'Rechazado':statusFromDb[row.status]||'Pendiente de asignación'),reason:row.cancellation_reason||'',tests,documents:(row.home_visit_documents||[]),additionalPatients:(row.home_visit_additional_patients||[]),events:(row.home_visit_events||[]).map(e=>({id:e.id,at:e.occurred_at,by:'Equipo',action:e.event_type,detail:e.description||''})).sort((a,b)=>new Date(b.at)-new Date(a.at)),createdAt:row.created_at,createdBy:'Equipo',assignmentId:assignment.id||null,assignmentStatus:assignment.status||null,assignedProfessionalId:assignment.professional_id||professional.id||null,assignedUserId:assignment.assigned_user_id||null};
+ return{id:row.id,archivedAt:row.archived_at||null,patientId:row.patient_id||null,latitude:row.latitude,longitude:row.longitude,priority:row.priority||'normal',createdById:row.created_by||null,createdAtDb:row.created_at||null,completedAt:row.completed_at||null,patientName:meta.patientName||'Paciente',document:meta.document||'',phone:row.patient_phone||'',address:row.address,scheduledDate:fmt({year:'numeric',month:'2-digit',day:'2-digit'}),scheduledTime:fmt({hour:'2-digit',minute:'2-digit',hour12:false}),assignedTo:meta.assignedTo||professional.name||'',assignedPhone:meta.assignedPhone||'',status:(assignment.status==='accepted'&&row.status==='pending_acceptance'?'Aceptado':assignment.status==='rejected'&&row.status==='pending_acceptance'?'Rechazado':statusFromDb[row.status]||'Pendiente de asignación'),reason:row.cancellation_reason||'',tests,documents:(row.home_visit_documents||[]),additionalPatients:(row.home_visit_additional_patients||[]),events:(row.home_visit_events||[]).map(e=>({id:e.id,at:e.occurred_at,by:'Equipo',action:e.event_type,detail:e.description||''})).sort((a,b)=>new Date(b.at)-new Date(a.at)),createdAt:row.created_at,createdBy:'Equipo',assignmentId:assignment.id||null,assignmentStatus:assignment.status||null,assignedProfessionalId:assignment.professional_id||professional.id||null,assignedUserId:assignment.assigned_user_id||null};
 }
 async function ensureVisitAssignment(v){
  if(!v||!v.assignedTo||!['admin','clinician','reception'].includes(cloud.role))return;
@@ -287,9 +288,9 @@ async function ensureHomeVisitCursorFresh(){
 async function fetchHomeVisitRows(ids){
  const select='*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))';
  const rows=[];
- if(!ids)return fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
+ if(!ids)return fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).is('archived_at',null).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
  for(let i=0;i<ids.length;i+=200){
-  const page=await fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).in('id',ids.slice(i,i+200)).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
+  const page=await fetchAllPages(cloud.client.from('home_visits').select(select).eq('workspace_id',cloud.workspaceId).in('id',ids.slice(i,i+200)).is('archived_at',null).order('scheduled_at',{ascending:true}).order('id',{ascending:true}));
   rows.push(...page);
  }
  return rows;
@@ -745,6 +746,93 @@ function hvReferenceHour(time){
  const hour=Number(m[1]);if(hour>23)return String(time);
  return String(hour%12||12).padStart(2,'0')+':'+m[2]+(hour>=12?' p. m.':' a. m.');
 }
+
+const HV_ARCHIVE_STATES=new Set(['Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma']);
+function canArchiveVisit(v){
+ return !!(v&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&HV_ARCHIVE_STATES.has(v.status)&&
+  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','delete'))));
+}
+function isTouchSwipeMode(){
+ return !!window.matchMedia?.('(pointer:coarse)').matches;
+}
+function setHomeVisitSwipe(row,opened){
+ if(!row)return;
+ row.classList.toggle('is-open',opened);
+ const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action');
+ if(content)content.style.removeProperty('transform');
+ if(button){button.tabIndex=isTouchSwipeMode()?(opened?0:-1):0;button.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!opened));}
+ if(opened)hvOpenedSwipe=row;
+ else if(hvOpenedSwipe===row)hvOpenedSwipe=null;
+}
+async function archiveVisitFromCard(id){
+ const visit=visits.find(v=>String(v.id)===String(id));
+ if(!canArchiveVisit(visit)){say('No tienes permiso para eliminar este domicilio o su estado no lo permite.');return}
+ if(!cloud.ready||!cloud.client||!navigator.onLine){say('Conecta el laboratorio a Internet antes de eliminar un domicilio.');return}
+ if(!window.confirm('¿Retirar el domicilio de '+(visit.patientName||'este paciente')+' ('+visit.status+') de la agenda y del historial visible? La visita y su trazabilidad permanecerán en la base de datos.')){
+  if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);
+  return;
+ }
+ const buttons=[...document.querySelectorAll('#hvWorkspace button[data-hv-archive]')].filter(b=>b.dataset.hvArchive===String(id));
+ buttons.forEach(button=>{button.disabled=true;button.setAttribute('aria-busy','true')});
+ try{
+  const {data,error}=await cloud.client.rpc('archive_home_visit',{p_home_visit_id:String(id)});
+  if(error)throw error;
+  if(data!==true)throw new Error('El servidor no confirmó la eliminación del domicilio.');
+  visits=visits.filter(v=>String(v.id)!==String(id));
+  if(selected===id){selected='';detailOpen=false}
+  hvOpenedSwipe=null;hvSwipeGesture=null;
+  saveHomeVisitCache();render();scheduleCloudVisitsRefresh();
+  say('Domicilio retirado de los listados. Registros y auditoría conservados.');
+ }catch(error){
+  console.error('[Domicilios] No se pudo archivar la visita:',error);
+  say('No se pudo eliminar el domicilio: '+(error?.message||'Error de conexión'));
+  if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);
+ }finally{buttons.forEach(button=>{button.disabled=false;button.removeAttribute('aria-busy')})}
+}
+function setupHomeVisitSwipe(workspace){
+ if(!workspace||workspace.dataset.hvArchiveSwipeReady==='1')return;
+ workspace.dataset.hvArchiveSwipeReady='1';
+ workspace.addEventListener('pointerdown',event=>{
+  if(!isTouchSwipeMode()||!['touch','pen'].includes(event.pointerType))return;
+  if(!(event.target instanceof Element)||event.target.closest('button,a,input,select,textarea'))return;
+  const row=event.target.closest('.hv-swipe-row');
+  if(!row||!workspace.contains(row))return;
+  if(hvOpenedSwipe&&hvOpenedSwipe!==row)setHomeVisitSwipe(hvOpenedSwipe,false);
+  hvSwipeGesture={row,id:event.pointerId,startX:event.clientX,startY:event.clientY,
+   startedOpen:row.classList.contains('is-open'),horizontal:false,vertical:false};
+ },{passive:true});
+ workspace.addEventListener('pointermove',event=>{
+  const g=hvSwipeGesture;
+  if(!g||g.id!==event.pointerId||g.vertical)return;
+  const dx=event.clientX-g.startX,dy=event.clientY-g.startY;
+  if(!g.horizontal){
+   if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>9){g.vertical=true;return}
+   if(Math.abs(dx)<10||Math.abs(dx)<Math.abs(dy)*1.2)return;
+   g.horizontal=true;
+  }
+  if(event.cancelable)event.preventDefault();
+  const distance=Math.max(-92,Math.min(0,dx+(g.startedOpen?-92:0)));
+  g.row.querySelector('.hv-swipe-content')?.style.setProperty('transform','translate3d('+distance+'px,0,0)','important');
+ },{passive:false});
+ workspace.addEventListener('pointerup',event=>{
+  const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
+  hvSwipeGesture=null;
+  if(!g.horizontal)return;
+  hvIgnoreCardClickUntil=Date.now()+350;
+  const dx=event.clientX-g.startX;
+  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
+ });
+ workspace.addEventListener('pointercancel',event=>{
+  const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
+  hvSwipeGesture=null;setHomeVisitSwipe(g.row,g.startedOpen);
+ });
+ workspace.addEventListener('click',event=>{
+  if(Date.now()<hvIgnoreCardClickUntil&&event.target instanceof Element&&event.target.closest('.hv-swipe-content')){
+   event.preventDefault();event.stopImmediatePropagation();
+  }
+ },true);
+}
+
 function hvReferenceVisitCard(v,technician){
  const privatePending=technician&&v.assignmentStatus==='invited'&&v.status==='Pendiente de aceptación';
  const name=privatePending?'Visita por confirmar':String(v.patientName||'Paciente');
@@ -767,7 +855,7 @@ function hvReferenceVisitCard(v,technician){
  const pin=svg('<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>');
  const chat=svg('<path d="M4 4h16v12H9l-5 4V4Z"/><path d="M8 10h8"/>');
  const id=esc(v.id),key=status[1];
- return '<article class="hv-premium-visit hv-ref-visit" data-hv-reference-state="'+key+'">'
+ const card='<article class="hv-premium-visit hv-ref-visit" data-hv-reference-state="'+key+'">'
   +'<div class="hv-ref-top"><div class="hv-ref-avatar" aria-hidden="true">'+esc(initial)+'</div>'
   +'<div class="hv-ref-head"><strong>'+esc(name)+'</strong><span>'+esc(subtitle)+'</span><small>'+esc(dateLabel(v.scheduledDate))+'</small></div>'
   +'<span class="hv-ref-state hv-ref-state-'+key+'">'+svg(icons[key]||icons.other)+' '+esc(status[0])+'</span></div>'
@@ -777,10 +865,19 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div></article>';
+ if(!canArchiveVisit(v))return card;
+ const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
+ const accessibility='Eliminar domicilio '+name+' del listado';
+ return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'"><div class="hv-swipe-content">'+card+'</div>'
+  +'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'"'
+  +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
+  +' aria-label="'+esc(accessibility)+'"><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
+}
 }
 function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
  workspace.dataset.referenceCards='1';
+ setupHomeVisitSwipe(workspace);
  const head=document.createElement('header');head.className='hv-ref-heading';
  head.innerHTML='<div class="hv-ref-heading-title"><span class="hv-ref-house" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15 16 5l13 10v13H3V15Z"/><path d="M11 28V17h10v11"/></svg></span><div><h1>Domicilios</h1><p>Visitas domiciliarias asignadas</p></div></div><button type="button" id="hvRefNew" class="hv-ref-new" hidden>＋ Nuevo domicilio</button>';
  workspace.prepend(head);
@@ -796,6 +893,12 @@ function enhanceReferenceVisitLayout(){
  workspace.addEventListener('click',event=>{
   const target=event.target.closest('button');
   if(!target)return;
+  if(target.hasAttribute('data-hv-archive')){
+   void archiveVisitFromCard(target.dataset.hvArchive);return;
+  }
+  if(hvOpenedSwipe&&hvOpenedSwipe.isConnected&&!target.closest('.hv-swipe-row.is-open')){
+   setHomeVisitSwipe(hvOpenedSwipe,false);
+  }
   if(target.id==='hvRefNew'){setTab('create');return}
   if(target.id==='hvRefToggleTools'){
    const expanded=workspace.classList.toggle('hv-ref-tools-open');
@@ -860,6 +963,7 @@ function render(){
   const createRef=$('hvRefNew');if(createRef)createRef.hidden=!manager||technician;
 
   if(kpis)kpis.innerHTML=[['Hoy',todayList.length,'calendar'],['Pendientes',visits.filter(v=>['Pendiente de asignación','Pendiente de aceptación'].includes(v.status)).length,'waiting'],['En proceso',visits.filter(v=>['Aceptado','En camino','En domicilio'].includes(v.status)).length,'working'],['Finalizados',visits.filter(v=>v.status==='Finalizado').length,'done']].map(x=>'<div class="hv-kpi hv-premium-kpi hv-premium-kpi-'+x[2]+'"><span class="hv-premium-kpi-label">'+esc(x[0])+'</span><span class="hv-premium-kpi-bottom"><b>'+x[1]+'</b><span class="hv-premium-kpi-symbol" aria-hidden="true">'+({calendar:'◷',waiting:'◉',working:'↗',done:'✓'}[x[2]])+'</span></span></div>').join('');
+  hvOpenedSwipe=null;hvSwipeGesture=null;
   const rowHtml=v=>hvReferenceVisitCard(v,technician);
   $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">No hay domicilios activos para estos filtros.</div>';
   const historyHost=$('hvHistoryRows');if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):'<div class="hv-empty">Todavía no hay domicilios en el historial.</div>';

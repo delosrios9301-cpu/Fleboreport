@@ -1,0 +1,68 @@
+/* Domicilios · archivado autorizado de visitas que no se realizarán.
+   Desktop: botón rojo visible. Touch: deslizamiento a la izquierda con confirmación. */
+@media screen {
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row{
+  position:relative;isolation:isolate;box-sizing:border-box;
+  display:grid;grid-template-columns:minmax(0,1fr) 86px;
+  align-items:stretch;column-gap:7px;min-width:0;width:100%;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content{
+  position:relative;z-index:1;display:block;min-width:0;width:100%;height:100%;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content>.hv-ref-visit{
+  box-sizing:border-box;width:100%;height:100%;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace button.hv-archive-action{
+  position:relative;z-index:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:7px;
+  box-sizing:border-box;width:86px;min-width:0;height:100%;
+  padding:8px 5px;margin:0;
+  border:1px solid #db6e7b;border-radius:18px;
+  color:#fff;background:linear-gradient(145deg,#e5425e,#a91843);
+  font-size:11px;font-weight:860;text-align:center;
+  box-shadow:0 4px 12px #a5183b28;cursor:pointer;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-archive-icon{
+  display:grid;place-items:center;width:24px;height:24px;
+  flex:0 0 24px;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-archive-icon svg{
+  display:block;width:22px;height:22px;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace button.hv-archive-action:disabled{
+  opacity:.65;cursor:wait;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace button.hv-archive-action:focus-visible{
+  outline:3px solid #13d9d2;outline-offset:2px;
+ }
+}
+@media screen and (pointer:coarse) {
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row{
+  display:block;overflow:hidden;border-radius:21px;touch-action:pan-y;
+  box-shadow:0 6px 14px #553e9820;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content{
+  z-index:2;transform:translate3d(0,0,0);touch-action:pan-y;
+  transition:transform .22s cubic-bezier(.2,.78,.25,1);
+  will-change:transform;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-open>.hv-swipe-content{
+  transform:translate3d(-92px,0,0)!important;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content>.hv-ref-visit{
+  touch-action:pan-y!important;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace button.hv-archive-action{
+  position:absolute;z-index:1;right:0;top:0;bottom:0;
+  width:92px;height:100%;border:0;border-radius:0 18px 18px 0;
+  pointer-events:none;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-open>button.hv-archive-action{
+  pointer-events:auto;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content{
+  transition:none!important;
+ }
+}

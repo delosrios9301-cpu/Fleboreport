@@ -54,7 +54,7 @@ test('todas las herramientas siguen disponibles y responsive sin cuadros grandes
 });
 test('v290 publica la capa de referencia después de estilos premium sin impactar reportes',()=>{
  assert.match(html,/domicilios-reference\.css\?v=20261112-reference3" media="screen"/);
- assert.match(html,/domicilios\.js\?v=20261112-reference3/);
+ assert.match(html,/domicilios\.js\?v=20261114-archive1/);
  assert.ok(html.lastIndexOf('domicilios-reference.css')>html.lastIndexOf('domicilios-premium.css'));
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/domicilios-reference.css'/);
