@@ -6,6 +6,20 @@ const $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateLabel=value=>{const d=new Date(value);return Number.isNaN(d.getTime())?'Fecha por confirmar':
  new Intl.DateTimeFormat('es-PA',{timeZone:'America/Panama',day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(d)};
+// El servidor y el cliente comparan siempre la fecha civil de Panamá.
+function panamaCalendarDay(value){
+ const d=new Date(value);
+ if(Number.isNaN(d.getTime()))return '';
+ const fields=Object.fromEntries(
+  new Intl.DateTimeFormat('en-US',{timeZone:'America/Panama',year:'numeric',month:'2-digit',day:'2-digit'})
+   .formatToParts(d).filter(part=>['year','month','day'].includes(part.type))
+   .map(part=>[part.type,part.value])
+ );
+ return fields.year+'-'+fields.month+'-'+fields.day;
+}
+function isScheduledToday(value){return panamaCalendarDay(value)===panamaCalendarDay(new Date())}
+let observedPanamaDay=panamaCalendarDay(new Date());
+
 function host(){
  const agenda=$('hvAgendaPanel');if(!agenda)return null;
  let panel=$('hvVolunteerPanel');if(panel)return panel;
@@ -61,7 +75,7 @@ async function load(){
   if(!await connect()){offers=[];draw();return}
   const {data,error}=await client.rpc('list_available_home_visits',{p_workspace_id:workspaceId});
   if(error)throw error;
-  offers=(data||[]).filter(v=>v.visit_id&&v.scheduled_at);
+  offers=(data||[]).filter(v=>v.visit_id&&v.scheduled_at&&isScheduledToday(v.scheduled_at));
   last=Date.now();draw();
  }catch(error){offers=[];draw();if(!['42501','PGRST301'].includes(error?.code))
   console.warn('[Domicilios] Consulta de ofertas:',error?.message||error)}
@@ -70,6 +84,10 @@ async function load(){
 async function claim(id){
  if(busy)return;
  const offer=offers.find(v=>String(v.visit_id)===String(id));if(!offer)return;
+ if(!isScheduledToday(offer.scheduled_at)){
+  window.toast?.('Solo puedes asignarte un domicilio el día programado (hora de Panamá).');
+  offers=offers.filter(v=>String(v.visit_id)!==String(id));draw();void load();return;
+ }
  if(!navigator.onLine){window.toast?.('Necesitas Internet para aceptar un domicilio.');return}
  if(!window.confirm('¿Quieres asignarte voluntariamente este domicilio?\n\n'
   +'Programado: '+dateLabel(offer.scheduled_at)+'\n\n'
@@ -94,7 +112,19 @@ function focusAvailable(id){pendingFocus=String(id||'');host();if(offers.length)
 function mount(){if(host())void load()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
 window.addEventListener('flebo:domicilios-mounted',mount);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-last>15000)schedule()});
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState!=='visible')return;
+ const nowDay=panamaCalendarDay(new Date());
+ if(nowDay!==observedPanamaDay){observedPanamaDay=nowDay;offers=[];draw();}
+ if(Date.now()-last>15000||!offers.length)schedule();
+});
+// Sin comprobaciones pesadas durante el día; detectar el cambio de fecha si la app queda abierta.
+setInterval(()=>{
+ const nowDay=panamaCalendarDay(new Date());
+ if(nowDay===observedPanamaDay)return;
+ observedPanamaDay=nowDay;offers=[];draw();
+ if(document.visibilityState!=='hidden')schedule();
+},60000);
 window.addEventListener('flebo:auth-changed',()=>{offers=[];draw();schedule()});
 window.FleboHomeVolunteer={refresh:load,focusAvailable};
 })();

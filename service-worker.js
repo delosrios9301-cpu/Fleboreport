@@ -1,3 +1,4 @@
+// 2026-11-14 · Voluntariado solo el día programado según hora de Panamá v333.
 // 2026-11-14 · Domicilios voluntarios, campana y directorio admin v331.
 // 2026-11-14 · Admin asignable y campo por asignación aceptada v330.
 // 2026-11-14 · Domicilios: archivado con gestos táctiles y botón PC (v328).

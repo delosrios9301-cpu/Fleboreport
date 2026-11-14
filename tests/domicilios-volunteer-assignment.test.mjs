@@ -22,7 +22,7 @@ test('Nuevo evento de campana, navegación y precarga PWA',()=>{
  assert.match(notif,/volunteer_available:'Domicilio disponible para asignación voluntaria'/);
  assert.match(notif,/volunteer_claimed:'Domicilio asignado voluntariamente'/);
  assert.match(notif,/FleboHomeVolunteer\.focusAvailable/);
- assert.match(index,/domicilios-volunteer-ui\.js\?v=20261114-vol1/);
+ assert.match(index,/domicilios-volunteer-ui\.js\?v=20261114-vol3/);
  assert.match(index,/domicilios-volunteer-ui\.css\?v=20261114-vol1/);
  assert.match(worker,/'\.\/domicilios-volunteer-ui\.js'/);
  for(const x of [dom,ui,notif])assert.doesNotThrow(()=>new Function(x));
