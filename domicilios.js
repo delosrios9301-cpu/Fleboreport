@@ -127,7 +127,6 @@ async function ensureVisitAssignment(v){
   const r=await c.from('professionals').select('id,user_id,name').eq('workspace_id',w).eq('name',v.assignedTo).eq('active',true).maybeSingle();
   if(r.error)throw r.error;prof=r.data;
  }
- if(!prof||!prof.user_id){v.notificationStatus='El domicilio quedó guardado, pero el flebotomista no tiene una cuenta activa vinculada para recibir la asignación.';cloudNotice(v.notificationStatus,true);return;}
  const dispatchNotice=async assignmentId=>{
   try{
    const notice=await invokeDomicileNotifications({action:'dispatch',assignment_id:assignmentId});
@@ -160,6 +159,7 @@ async function ensureVisitAssignment(v){
   await dispatchNotice(result.data);
   return;
  }
+ if(!prof||!prof.user_id){v.notificationStatus='El domicilio quedó guardado, pero el flebotomista no tiene una cuenta activa vinculada para recibir la asignación.';cloudNotice(v.notificationStatus,true);return;}
  const latest=await c.from('home_visit_assignments').select('id,status,professional_id,assigned_user_id').eq('workspace_id',w).eq('home_visit_id',v.id).order('assigned_at',{ascending:false}).limit(1).maybeSingle();
  if(latest.error)throw latest.error;
  const assignment=latest.data||null;
