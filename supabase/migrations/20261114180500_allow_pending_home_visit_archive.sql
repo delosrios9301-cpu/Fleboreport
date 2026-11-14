@@ -134,7 +134,7 @@ begin
   end if;
   return new;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.archive_home_visit(p_home_visit_id uuid)
@@ -180,7 +180,7 @@ begin
   if not found then raise exception 'No se pudo retirar el domicilio' using errcode='P0002';end if;
   return true;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.list_home_visit_invitation_previews(p_workspace_id uuid)
@@ -215,7 +215,7 @@ begin
   )
  order by v.scheduled_at,a.id;
 end;
-$function$
+$function$;
 
 
 -- Restaurar los límites explícitos de ejecución de las RPC públicas.
