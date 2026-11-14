@@ -126,7 +126,7 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   for (const feature of ['technicianFieldScreen', 'hv-field-screen', 'Abrir ubicación en Google Maps', 'Observaciones de campo', 'Resumen de recipientes', 'hvSaveFieldObservation']) {
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
-  assert.match(domicilios, /if\(cloud\.role==='technician'\)return technicianFieldScreen\(v\)/);
+  assert.match(domicilios, /if\(cloud\.role==='technician'\|\|isMyAssignedDomicile\(v\)\)return technicianFieldScreen\(v\)/);
   assert.doesNotMatch(domicilios, /id="hvTestPush"/);
   assert.match(notificationSettings, /id="hvActivatePush"/);
   assert.match(notificationSettings, /id="hvTestPush"/);

@@ -1,0 +1,59 @@
+/* Domicilios disponibles v331. Los datos de pacientes son privados hasta la asignación. */
+@media screen {
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-panel{
+  display:flex;flex-direction:column;gap:9px;min-width:0;margin:5px 0 15px;
+  padding:12px;border:1px solid #cbc8f0;border-radius:17px;
+  background:linear-gradient(130deg,#fff,#f4efff 78%,#eeffff);
+  box-shadow:0 5px 16px #56399b16;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-panel[hidden]{display:none!important}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-header{
+  display:flex;align-items:center;gap:9px;min-width:0;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-header>div{flex:1;min-width:0}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-header strong{color:#35206e;font-size:13px;font-weight:850}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-header p{margin:3px 0 0;color:#72688c;font-size:10px}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-graphic{
+  display:grid;place-items:center;flex:none;width:33px;height:33px;
+  border-radius:11px;background:#ede4ff;color:#6932cd;font-size:19px;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-count{
+  flex:none;padding:5px 9px;border-radius:99px;
+  background:#e4d8fc;color:#4e2da8;font-size:12px;font-weight:850;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-rows{display:grid;gap:8px}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer{
+  display:flex;align-items:center;flex-wrap:wrap;gap:10px;min-width:0;
+  padding:10px;border:1px solid #ddd5ee;border-radius:13px;
+  background:#fff;box-shadow:0 2px 8px #381b7811;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer.is-target{
+  outline:3px solid #18bfc3;outline-offset:2px;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer-icon{
+  display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;
+  border-radius:11px;background:linear-gradient(140deg,#e8dcff,#d1ffff);
+  color:#612dcc;font-size:21px;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer-data{
+  display:flex;flex-direction:column;gap:3px;flex:1 1 150px;min-width:0;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer-data strong{font-size:12px;color:#302052}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer-data small{font-size:11px;color:#716188}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer-data span{font-size:9px;color:#848099}
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer button{
+  flex:0 0 auto;min-height:40px;padding:8px 12px;max-width:100%;
+  border:1px solid #6932c9;border-radius:999px;cursor:pointer;
+  color:#fff;background:linear-gradient(125deg,#7936df,#4c1baa);
+  box-shadow:0 3px 9px #5622aa38;font-size:11px;font-weight:860;
+ }
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer button:disabled{opacity:.6;cursor:wait}
+}
+@media screen and (max-width:540px){
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer button{
+  width:100%;flex:1 1 100%;min-height:44px;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce){
+ body.fr2-app-authorized #view-domicilios .hv-volunteer-offer *{transition:none!important;animation:none!important}
+}
