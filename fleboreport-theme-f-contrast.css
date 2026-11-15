@@ -159,6 +159,26 @@
   background:#FAEFF0!important;
   border-color:#E4B8C0!important;
  }
+ /* Contadores con etiquetas blancas sobre azul hielo (información clínica). */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-processing .crx-process-kpis>.clinical-kpi:not(:first-child),
+ #view-catalog.cpr-premium .fr2-catalog-stat),
+ html:root body.fr2-app-authorized #view-patients.pp-premium .pp-record-kpi,
+ html:root body.fr2-app-authorized #view-reports.rhr-ready .rhr-kpi {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:not(:first-child)
+ :is(strong,small),
+ html:root body.fr2-app-authorized #view-patients.pp-premium .pp-record-kpi
+ :is(strong,small),
+ html:root body.fr2-app-authorized #view-reports.rhr-ready .rhr-kpi
+ :is(strong,small,.rhr-kpi-number),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-stat :is(strong,small) {
+  color:#FFFFFF!important;
+ }
  /* Pestañas no activas: no borrarse sobre blanco y preservar estado activo. */
  html:root body.fr2-app-authorized :is(
  .settings-tabs button:not(.active),
