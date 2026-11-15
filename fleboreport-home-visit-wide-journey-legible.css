@@ -1,0 +1,234 @@
+/* FleboReport | 15-11-2026
+   Domicilios: fichas apaisadas de ancho real al crear/agendar; formulario
+   de alta en área útil completa. Jornada: indicadores claros de alto contraste.
+   Ajuste visual aislado: no altera eventos, estado, auditoría ni permisos. */
+
+/* PC: la ficha no puede quedar limitada a 380px por reglas heredadas. */
+@media screen and (min-width:1280px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list {
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,570px),1fr))!important;
+  width:100%!important;max-width:1530px!important;min-width:0!important;
+  justify-content:center!important;justify-items:center!important;
+  align-items:start!important;align-content:start!important;
+  gap:20px!important;margin:16px auto 0!important;padding:4px 6px 18px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:980px!important;min-width:0!important;
+  margin:0 auto!important;justify-self:center!important;
+  align-self:start!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows)
+ .hv-swipe-content, 
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-visit {
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;max-width:none!important;
+ }
+ /* El formulario Nuevo domicilio se expande también; no será una columna
+    angosta del grid original de dos mitades. Solo el panel visible. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace>#hvCreatePanel:not([hidden]) {
+  box-sizing:border-box!important;grid-column:1/-1!important;
+  width:100%!important;max-width:1440px!important;min-width:0!important;
+  justify-self:center!important;margin:0 auto!important;
+  padding:clamp(18px,2vw,30px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace>#hvCreatePanel:not([hidden])>.fields {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:16px 22px!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace>#hvCreatePanel:not([hidden])>.fields>.field.full {
+  grid-column:1/-1!important;
+ }
+}
+/* Pantallas intermedias: ficha más ancha que la antigua, sin scroll lateral. */
+@media screen and (min-width:761px) and (max-width:1279px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list {
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  justify-items:center!important;justify-content:center!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  gap:15px!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list>.hv-swipe-row {
+  width:100%!important;max-width:760px!important;min-width:0!important;
+  justify-self:center!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace>#hvCreatePanel:not([hidden]) {
+  box-sizing:border-box!important;grid-column:1/-1!important;
+  justify-self:center!important;width:100%!important;
+  max-width:100%!important;min-width:0!important;
+  padding:clamp(14px,2vw,24px)!important;
+  margin-inline:auto!important;
+ }
+}
+/* Desktop con ratón: ficha y pie de acciones forman una sola unidad.
+   Eliminar continúa creándose SOLO si canArchiveVisit da permiso. */
+@media screen and (min-width:761px) and (hover:hover) and (pointer:fine) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row {
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:auto!important;
+  gap:0!important;height:auto!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row:has(>.hv-archive-action) {
+  background:#FFFEFC!important;border:1px solid #D9E7D9!important;
+  border-radius:19px!important;overflow:hidden!important;
+  box-shadow:0 5px 20px rgba(22,67,38,.09)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row>.hv-swipe-content {
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  height:auto!important;grid-column:1!important;margin:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row:has(>.hv-archive-action)>.hv-swipe-content>.hv-ref-visit {
+  border:0!important;border-radius:18px 18px 0 0!important;
+  box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-swipe-row>button.hv-archive-action:not([hidden]):not([aria-hidden="true"]) {
+  position:relative!important;inset:auto!important;
+  grid-column:1!important;justify-self:end!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex-direction:row!important;gap:8px!important;
+  width:auto!important;min-width:112px!important;height:auto!important;
+  min-height:38px!important;max-height:46px!important;
+  padding:8px 15px!important;margin:0 14px 12px!important;
+  border-radius:11px!important;background:#963D47!important;
+  color:#FFFFFF!important;font-size:12px!important;
+  box-shadow:none!important;
+ }
+ /* Con más espacio la información no debe quedar cortada con elipsis. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows)
+ .hv-ref-visit {
+  min-height:182px!important;gap:12px!important;
+  padding:18px 23px 18px 23px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-ref-head strong {
+  font-size:clamp(17px,1.4vw,21px)!important;
+  line-height:1.22!important;overflow-wrap:break-word!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-ref-meta {
+  flex-wrap:wrap!important;gap:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-ref-meta .hv-ref-location {
+  max-width: min(100%,660px)!important;
+  white-space:normal!important;text-overflow:clip!important;
+  overflow-wrap:anywhere!important;overflow:visible!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-ref-actions {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  max-width:720px!important;gap:12px!important;
+ }
+}
+/* Tablet táctil: una tarjeta ancha, PERO el gesto deslizante permanece
+   y la acción no se muestra sin abrir el gesto. */
+@media screen and (min-width:761px) and (pointer:coarse) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list>.hv-swipe-row {
+  display:block!important;max-width:760px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-swipe-row:not(.is-open):not(.is-dragging)
+ >button.hv-archive-action {
+  visibility:hidden!important;opacity:0!important;
+  pointer-events:none!important;
+ }
+}
+/* Jornada: cuatro indicadores clínicos con texto oscuro legible.
+   Se reemplazan fondos saturados y textos blancos del tema anterior. */
+@media screen {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi {
+  --jp-kpi-bg:linear-gradient(140deg,#FFFFFF,#F0F7EF)!important;
+  background:var(--jp-kpi-bg)!important;
+  border:1px solid #D9E7D9!important;border-radius:17px!important;
+  box-shadow:0 3px 12px rgba(27,82,44,.075)!important;
+  color:#182A21!important;text-shadow:none!important;
+  min-height:123px!important;padding:14px 10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(2) {
+  --jp-kpi-bg:linear-gradient(140deg,#FFFFFF,#F9F5E8)!important;
+  border-color:#E8E0CC!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(3) {
+  --jp-kpi-bg:linear-gradient(140deg,#FFFFFF,#EDF8F1)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi:nth-child(4) {
+  --jp-kpi-bg:linear-gradient(140deg,#FFFFFF,#F1F4EF)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi::after {
+  content:none!important;display:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-icon {
+  color:#236648!important;background:#E0F0DF!important;
+  border:1px solid #D2E5D0!important;border-radius:12px!important;
+  width:38px!important;height:38px!important;min-width:38px!important;
+  padding:7px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-icon svg {
+  stroke:#236648!important;color:#236648!important;width:23px!important;height:23px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-copy {
+  color:#182A21!important;gap:5px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-copy strong {
+  color:#16291D!important;font-size:clamp(26px,2.6vw,36px)!important;
+  font-weight:870!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-copy small {
+  color:#284836!important;font-size:clamp(11px,1.04vw,13px)!important;
+  font-weight:760!important;line-height:1.35!important;text-shadow:none!important;
+  white-space:normal!important;overflow-wrap:normal!important;
+  writing-mode:horizontal-tb!important;
+ }
+}
+/* En teléfono se conservan fichas compactas; indicadores en 2 columnas
+   para evitar letras pequeñas o montadas unas sobre otras. */
+@media screen and (max-width:760px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:10px!important;grid-auto-rows:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi {
+  min-height:115px!important;padding:11px 9px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis .journey-kpi-copy small {
+  font-size:11.5px!important;
+ }
+}
