@@ -1,0 +1,217 @@
+/* FleboReport · Configuración y fichas proporcionadas en PC.
+   Las reglas existentes de móvil (<=760px), impresión, permisos y modales
+   quedan intactas. El área útil se calcula desde el menú de 255px. */
+@media screen and (min-width:761px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .main {
+  box-sizing:border-box!important;
+  width:calc(100% - 255px)!important;
+  margin-left:255px!important;margin-right:0!important;
+  min-width:0!important;max-width:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .content {
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;max-width:1560px!important;
+  margin-inline:auto!important;
+  padding-inline:clamp(17px,2.2vw,34px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .content>.view.fr5-screen {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  margin-inline:auto!important;
+ }
+ /* Configuración: el inicio y las secciones comparten un solo eje central.
+    No reconstruimos tarjetas ni formularios; solo su geometría. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready {
+  box-sizing:border-box!important;display:block!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  margin-inline:auto!important;
+  padding:clamp(14px,2vw,25px) clamp(8px,1.6vw,22px) 45px!important;
+  overflow-x:clip!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-home:not([hidden]),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-detail:not([hidden]){
+  box-sizing:border-box!important;width:100%!important;
+  max-width:1120px!important;min-width:0!important;
+  margin-left:auto!important;margin-right:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-heading {
+  box-sizing:border-box!important;width:100%!important;
+  max-width:100%!important;min-width:0!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-cards {
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;max-width:1120px!important;min-width:0!important;
+  gap:clamp(12px,1.3vw,19px)!important;
+  justify-items:stretch!important;align-items:stretch!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card:not([hidden]){
+  box-sizing:border-box!important;
+  width:100%!important;max-width:none!important;min-width:0!important;
+  height:auto!important;min-height:104px!important;
+  padding:15px 19px!important;gap:14px!important;
+  margin:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-icon {
+  flex:0 0 56px!important;width:56px!important;min-width:56px!important;
+  height:56px!important;border-radius:15px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-icon svg {
+  width:34px!important;height:34px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-caption {
+  min-width:0!important;flex:1 1 auto!important;max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-caption strong {
+  font-size:clamp(17px,1.25vw,21px)!important;line-height:1.2!important;
+  white-space:normal!important;overflow-wrap:normal!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-caption small {
+  font-size:12px!important;line-height:1.35!important;
+  white-space:normal!important;overflow-wrap:normal!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready.sr-settings-detail-open
+ >.settings-section:not([hidden]){
+  box-sizing:border-box!important;display:block!important;
+  width:100%!important;max-width:1120px!important;min-width:0!important;
+  margin:12px auto 0!important;padding:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-detail:not([hidden]) {
+  box-sizing:border-box!important;max-width:1120px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-header{
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;margin:0 auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-menu{
+  box-sizing:border-box!important;
+  flex-wrap:wrap!important;overflow-x:visible!important;
+  width:100%!important;max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready
+ :is(.settings-section,.fr-config-wrap,.fr-config-card,.fr-na-card,
+ .fr-perm-grid,.fr-config-form){
+  box-sizing:border-box!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .fr-config-grid{
+  box-sizing:border-box!important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  gap:clamp(12px,1.5vw,18px)!important;margin-inline:auto!important;
+  align-items:start!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready
+ :is(.fr-config-grid>.fr-config-card,.settings-section .panel.form-panel,
+ .fr-na-card){
+  box-sizing:border-box!important;
+  min-width:0!important;max-width:100%!important;
+  margin-inline:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready
+ :is(.fr-config-card,.panel.form-panel):has(table){
+  overflow-x:auto!important;
+ }
+ /* Centrar conjuntos de fichas (no centrar el texto interno). */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace {
+  box-sizing:border-box!important;width:100%!important;
+  max-width:1260px!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:1200px!important;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(290px,360px))!important;
+  justify-content:center!important;justify-items:stretch!important;
+  gap:13px!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) .hv-swipe-row,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) .hv-ref-visit {
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated
+ #patientsHome.pp-strict-layout {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:1240px!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated
+ :is(.pp-directory,.pp-search-panel,.pp-patient-cards) {
+  box-sizing:border-box!important;width:100%!important;
+  max-width:1180px!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated
+ .pp-patient-cards>.pp-patient-swipe {
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey :is(.jp-layout,.journey-layout,.jp-patients-list,.journey-patient-list),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies :is(.crx-study-cards,.crx-review-cards),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing :is(.crx-process-cards,.crx-processing-layout),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-archive-list,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog :is(.fr2-catalog-list,.fr2-catalog-list-panel),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-audit .rhr-history-list{
+  box-sizing:border-box!important;
+  width:100%!important;max-width:1180px!important;min-width:0!important;
+  margin-inline:auto!important;
+ }
+ /* Mantener el centrado de los diálogos de pacientes de la fase anterior. */
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]){
+  position:fixed!important;inset:0!important;margin:auto!important;
+  transform:none!important;
+ }
+}
+@media screen and (min-width:761px) and (max-width:1199px){
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-cards{
+  grid-template-columns:minmax(0,1fr)!important;
+  max-width:720px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .fr-config-grid{
+  grid-template-columns:minmax(0,1fr)!important;
+  max-width:800px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows){
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),360px))!important;
+ }
+}
+/* Móvil y documentos PDF/impresión se conservan. */
