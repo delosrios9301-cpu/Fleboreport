@@ -23,7 +23,7 @@ test('tarjetas de agenda presentan jerarquía visual nueva con estados y respons
  for(const token of ['hv-ref-avatar','hv-ref-head','hv-ref-meta','hv-ref-state','hv-ref-actions','hv-ref-route','hv-ref-respond'])
   assert.ok(dom.includes(token),token);
  assert.match(dom,/const activeList=visits\.filter/);
- assert.match(dom,/const historyList=visits\.filter/);
+ assert.match(dom,/const historyList=Array\.from\(historyById\.values\(\)\)\.filter\(historyMatches\)/);
  assert.match(dom,/hvReferenceStatus\(v\.status\)/);
  assert.match(dom,/data-hv-ref-details/);
 });
