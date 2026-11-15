@@ -4,6 +4,7 @@ const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
 let hvSwipeGesture=null,hvOpenedSwipe=null,hvIgnoreCardClickUntil=0;
 let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
+let cloudReconnectPending=false,cloudDataVerified=false;
 const persistedEventIds=new Set();
 let homeVisitSyncCursor=null,homeVisitCacheActive=false;
 let historyRefreshPromise=null,archivedHistoryVisits=[],archivedHistoryLoaded=false,archiveHistoryError='';
@@ -307,7 +308,9 @@ async function ensureHomeVisitCursorFresh(){
  if(homeVisitSyncCursor===null)return true;
  const floor=await latestHomeVisitPrunedFloor();
  if(Number(homeVisitSyncCursor)>=floor)return true;
- homeVisitSyncCursor=null;homeVisitCacheActive=false;visits=[];persistedEventIds.clear();selected='';
+ // El cursor caducado exige lectura completa, pero los datos verificados
+ // permanecen visibles hasta confirmar una instantánea nueva.
+ homeVisitSyncCursor=null;homeVisitCacheActive=false;
  try{localStorage.removeItem(KEY)}catch(_){}
  return false;
 }
@@ -352,7 +355,7 @@ async function loadCloudVisits(options={}){
  const currentInvitations=visits.filter(v=>v.assignmentStatus==='invited').map(v=>String(v.id)).sort().join('|');
  const nextInvitations=invitationRows.map(v=>String(v.id)).sort().join('|');
  if(!fullSnapshot&&!changes.length&&currentInvitations===nextInvitations){
-  saveHomeVisitCache();return false;
+  cloudDataVerified=true;saveHomeVisitCache();return false;
  }
  const changedIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
  const data=await fetchHomeVisitRows(fullSnapshot?null:changedIds);
@@ -382,6 +385,7 @@ async function loadCloudVisits(options={}){
  const requestedVisit=new URLSearchParams(location.search).get('visit');
  if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;activeTab='agenda';history.replaceState({},'',location.pathname+'?view=domicilios');}
  else if(!visits.some(v=>v.id===selected))selected='';
+ cloudDataVerified=true;
  if($('hvRows')){
   render();
   if(requestedVisit){setTimeout(()=>document.getElementById('hvDetail')?.scrollIntoView({behavior:'smooth',block:'start'}),120)}
@@ -508,7 +512,9 @@ setInterval(()=>{
   scheduleCloudVisitsRefresh();
 },60000);
 async function connectCloud(){
- if(cloud.loading)return;cloud.loading=true;
+ // La sesión puede terminar de verificar permisos mientras otra conexión sigue activa.
+ // No perder el evento de autenticación final: reintentar cuando termine.
+ if(cloud.loading){cloudReconnectPending=true;return}cloud.loading=true;
  try{
   if(!window.FleboAuth)throw new Error('El módulo de acceso no está disponible.');
   const c=await window.FleboAuth.init();cloud.client=c;const {data:{session},error}=await c.auth.getSession();if(error)throw error;
@@ -516,8 +522,12 @@ async function connectCloud(){
   const membership=window.FleboAuth.membership;
   if(!membership?.workspace_id){cloud.ready=false;cloudNotice('La cuenta está autenticada, pero aún no tiene un laboratorio asignado. Crea el espacio de trabajo desde el panel de acceso.',true);return}
   const nextWorkspace=membership.workspace_id,nextRole=membership.role;
-  if(cloud.user?.id!==session.user.id||cloud.workspaceId!==nextWorkspace||cloud.role!==nextRole){homeVisitSyncCursor=null;homeVisitCacheActive=false;visits=[];selected='';}
-  cloud.user=session.user;cloud.workspaceId=nextWorkspace;cloud.role=nextRole;await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
+  if(cloud.user?.id!==session.user.id||cloud.workspaceId!==nextWorkspace||cloud.role!==nextRole){homeVisitSyncCursor=null;homeVisitCacheActive=false;cloudDataVerified=false;visits=[];selected='';}
+  cloud.user=session.user;cloud.workspaceId=nextWorkspace;cloud.role=nextRole;
+  // Mostrar acciones autorizadas tan pronto se confirma el rol, sin esperar
+  // al catálogo o a la consulta de domicilios (que pueden fallar por red).
+  if($('hvRows'))render();
+  await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
   if(cloud.channel)c.removeChannel(cloud.channel);
   cloud.channel=c.channel('fleboreport-home-'+cloud.workspaceId)
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
@@ -526,7 +536,7 @@ async function connectCloud(){
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visit_events',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
    .on('postgres_changes',{event:'INSERT',schema:'public',table:'sync_change_log',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh()).subscribe();
  }catch(e){cloud.ready=false;cloudNotice('No se pudo conectar con Supabase: '+(e.message||'Error de conexión'),true)}
- finally{cloud.loading=false}
+ finally{cloud.loading=false;if(cloudReconnectPending){cloudReconnectPending=false;queueMicrotask(connectCloud)}}
 }
 /* Actualización segura: consulta completa sin confiar en la caché incremental.
    El archivo de auditoría solo está disponible al administrador, solo lectura. */
@@ -1085,10 +1095,10 @@ function render(){
   if(kpis)kpis.innerHTML=[['Hoy',todayList.length,'calendar'],['Pendientes',visits.filter(v=>['Pendiente de asignación','Pendiente de aceptación'].includes(v.status)).length,'waiting'],['En proceso',visits.filter(v=>['Aceptado','En camino','En domicilio'].includes(v.status)).length,'working'],['Finalizados',visits.filter(v=>v.status==='Finalizado').length,'done']].map(x=>'<div class="hv-kpi hv-premium-kpi hv-premium-kpi-'+x[2]+'"><span class="hv-premium-kpi-label">'+esc(x[0])+'</span><span class="hv-premium-kpi-bottom"><b>'+x[1]+'</b><span class="hv-premium-kpi-symbol" aria-hidden="true">'+({calendar:'◷',waiting:'◉',working:'↗',done:'✓'}[x[2]])+'</span></span></div>').join('');
   hvOpenedSwipe=null;hvSwipeGesture=null;
   const rowHtml=v=>hvReferenceVisitCard(v,technician);
-  $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">No hay domicilios activos para estos filtros.</div>';
+  $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">'+(cloudDataVerified?'No hay domicilios activos para estos filtros.':'Comprobando domicilios en el servidor. La lista aún no está verificada y no significa que se hayan eliminado registros.')+'</div>';
   const historyHost=$('hvHistoryRows');
   if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):
-   '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':'No hay visitas finalizadas en esta vista. Pulsa Actualizar historial para verificar el servidor.')+'</div>';
+   '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':(cloudDataVerified?'No hay visitas finalizadas en esta vista. Pulsa Actualizar historial para verificar el servidor.':'El historial aún no se ha verificado en el servidor. Los registros no se han borrado.'))+'</div>';
   const auditPanel=$('hvArchivedAudit'),archiveHost=$('hvArchivedRows');
   if(auditPanel){
    auditPanel.hidden=cloud.role!=='admin';
