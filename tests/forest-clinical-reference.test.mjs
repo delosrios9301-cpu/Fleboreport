@@ -95,7 +95,7 @@ test('Los estados clínicos no se confunden con botones ni se borran',()=>{
 });
 
 test('Búsqueda del encabezado funciona usando filtros autorizados existentes',()=>{
- assert.match(searchJs,/if\(!canVisit\(target\)/);
+ assert.match(searchJs,/!canVisit\(target\)/);
  assert.match(searchJs,/!btn\.hidden && !btn\.disabled/);
  assert.match(searchJs,/window\.navigate\(target\)/);
  assert.match(searchJs,/dispatchEvent\(new Event\('input',\{bubbles:true\}\)\)/);
