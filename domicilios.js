@@ -208,7 +208,7 @@ async function ensureVisitAssignment(v){
  v.assignmentId=assignmentId;v.assignmentStatus='invited';v.assignedProfessionalId=prof.id;v.assignedTo=prof.name||v.assignedTo;
  await dispatchNotice(assignmentId);
 }
-function serviceFields(item){const f=item.fields&&typeof item.fields==='object'?item.fields:{};return{sample:item.sample||f.sample||'',vessel:item.vessel||f.vessel||'',colorName:item.colorName||f.colorName||'',fasting:item.fasting||f.fasting||'',conditions:item.conditions||f.conditions||'',instructions:item.instructions||f.instructions||'',volume:item.volume||f.volume||'',method:item.method||f.method||'',color:item.color||f.color||'',shape:item.shape||f.shape||'tube'}}
+function serviceFields(item){const f=item.fields&&typeof item.fields==='object'?item.fields:{};return{sample:item.sample||f.sample||'',vessel:item.vessel||f.vessel||'',colorName:item.colorName||f.colorName||'',fasting:item.fasting||f.fasting||'',conditions:item.conditions||f.conditions||'',instructions:item.instructions||f.instructions||'',volume:item.volume||f.volume||'',method:item.method||f.method||'',color:item.color||f.color||'',shape:item.shape||f.shape||''}}
 async function loadServiceCatalog(){
  if(!cloud.client||!cloud.workspaceId||catalogLoading)return false;
  catalogLoading=true;
@@ -271,7 +271,7 @@ async function loadServiceCatalog(){
   if(result.error)throw result.error;
   remoteCatalog=(result.data||[]).filter(x=>asUuid(x.id)).map(x=>{
    const f=x.fields&&typeof x.fields==='object'?x.fields:{};
-   return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'tube',category:x.category||'',description:x.description||''};
+   return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'',category:x.category||'',description:x.description||''};
   });
   if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'');
   if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'');
