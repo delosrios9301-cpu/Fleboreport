@@ -213,3 +213,40 @@ test('Importación sin datos no atribuye tubo verde ni otro color clínico',()=>
  assert.match(dom,/shape:f\.vessel\?f\.shape\|\|''/);
  assert.match(dom,/colorName:f\.vessel\?f\.colorName\|\|''/);
 });
+
+test('La búsqueda por siglas obtiene TP, TTPa, hemograma CBC y evita coincidencias extrañas',()=>{
+ const start=html.indexOf('function normalizeCatalogSearch(text){');
+ const end=html.indexOf('function showMoreCatalog(){',start);
+ assert.ok(start>0&&end>start,'El motor de búsqueda está definido');
+ const search=vm.runInNewContext(html.slice(start,end)+';({normalizeCatalogSearch,catalogSearchMatches})');
+ const run=(t,q)=>search.catalogSearchMatches({name:t,sample:'',vessel:'',code:'',testCode:''},search.normalizeCatalogSearch(q));
+ assert.equal(run('Tiempo de protrombina (TP)','TP'),true);
+ assert.equal(run('Prueba de mezcla de TP','tp'),true);
+ assert.equal(run('Tiempo de tromboplastina parcial activada (TTPa)','TTPA'),true);
+ assert.equal(run('Hemograma completo (CBC)','CBC'),true);
+ assert.equal(run('Hemoglobina glicosilada (HbA1c)','hba1c'),true);
+ assert.equal(run('Ferritina','TP'),false);
+ assert.equal(run('ANTIDOPING THC-COC','TP'),false);
+ assert.equal(run('Hemograma completo (CBC)','hemograma'),true);
+});
+
+test('Solo activas e inactivas; volúmenes documentados y sin aprobación manual obligatoria',()=>{
+ assert.match(html,/id="testActive"/);
+ assert.match(html,/option value="inactive"/);
+ assert.match(html,/Pruebas inactivas/);
+ assert.doesNotMatch(html,/id="testValidated"/);
+ assert.doesNotMatch(auto,/Revisión clínica obligatoria/);
+ assert.doesNotMatch(auto,/Falta validarlas según el laboratorio/);
+ assert.match(auto,/flebo:cloud-sync-ready/);
+ assert.match(auto,/autoCompleteFromCloud/);
+ assert.match(html,/active:\$\('testActive'\)\.value==='active'/);
+ assert.equal(core.suggest('Hemograma completo (CBC)').fields.volume.includes('3 mL'),true);
+ assert.equal(core.suggest('Hemoglobina glicosilada').fields.volume.includes('3 mL'),true);
+ assert.equal(core.suggest('Tiempo de protrombina (TP)').fields.volume.includes('1 mL'),true);
+ assert.equal(core.suggest('Urocultivo').fields.volume.includes('4 mL'),true);
+ assert.equal(core.suggest('Ácido úrico urinario').fields.volume,'');
+ assert.equal(core.suggest('Ácido úrico urinario').fields.colorName,'');
+ const p=core.suggest('Hemograma completo (CBC)');
+ assert.equal(core.missingFields({sample:'',volume:'',validated:true},p).volume,p.fields.volume);
+ assert.equal(core.missingFields({sample:'Sangre local',volume:'2 mL'},p).volume,undefined);
+});
