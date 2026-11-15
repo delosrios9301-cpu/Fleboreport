@@ -60,6 +60,21 @@ test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
  assert.match(css,/#view-catalog \.catalog-auto-open\[hidden\]/);
 });
 
+
+test('La cabecera móvil mantiene icono y título, con acciones fuera de su cuadrícula',()=>{
+ assert.match(auto,/actions\.id='catalogHeaderActions'/);
+ assert.match(auto,/hero\?\.insertAdjacentElement\('afterend',actions\)/);
+ assert.match(auto,/actions\.append\(newTest\)/);
+ assert.match(auto,/actions\.append\(importButton\)/);
+ assert.match(auto,/actions\.append\(button\)/);
+ assert.doesNotMatch(auto,/newTest\.insertAdjacentElement\('beforebegin',button\)/);
+ assert.match(css,/#view-catalog #catalogHeaderActions\s*\{/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+ assert.match(css,/writing-mode:horizontal-tb!important/);
+ assert.match(css,/word-break:normal!important/);
+ assert.match(css,/\.fr2-catalog-new\{\s*grid-column:auto!important/);
+});
+
 test('Importación sin datos no atribuye tubo verde ni otro color clínico',()=>{
  assert.match(importer,/color:'#94A3B8',colorName:item\.colorName\|\|'',shape:/);
  assert.doesNotMatch(importer,/colorName:'Verde',shape:'tube'/);
