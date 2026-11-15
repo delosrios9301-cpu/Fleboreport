@@ -83,7 +83,7 @@ test('La visita se guarda antes de adjuntar su PDF y se distingue el fallo de ca
  assert.match(dom,/Domicilio y orden PDF adjuntados correctamente/);
  assert.match(dom,/window\.hvOrderApplyTests=ids=>/);
  assert.match(dom,/remoteCatalog\.some\(t=>t\.id===id\)/);
- assert.match(dom,/if\(!cloud\.ready\|\|!\['admin','clinician','reception'\]\.includes\(cloud\.role\)\)return 0/);
+ assert.match(dom,/if\(!canReadHomeOrderCatalog\(\)\)return 0/);
 });
 test('El adjunto usa el bucket privado existente con políticas RLS y sin URL pública',()=>{
  assert.match(migration,/create table if not exists public\.home_visit_documents/);
