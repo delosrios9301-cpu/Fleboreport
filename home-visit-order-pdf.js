@@ -11,14 +11,17 @@
  const RECOGNITION_BYTES=16*1024*1024,STORAGE_BYTES=50*1024*1024,MAX_PAGES=15;
  const el=(tag,cls,content)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(content!=null)x.textContent=content;return x;};
  const $=id=>document.getElementById(id);
- let pending=null, pdfLib=null, running=false,mounted=false,observer=null,selectionVersion=0;
- const getCatalog=()=>typeof window.hvOrderCatalog==='function'?window.hvOrderCatalog():[];
+ let pending=null, pdfLib=null, running=false,mounted=false,observer=null,selectionVersion=0,recognizedText='';
+ const getCatalog=async()=>typeof window.hvOrderEnsureCatalog==='function'
+  ?await window.hvOrderEnsureCatalog()
+  :typeof window.hvOrderCatalog==='function'?window.hvOrderCatalog():[];
  function status(message,kind='info'){
   const node=$('hvOrderStatus');if(!node)return;
   node.textContent=message;node.dataset.kind=kind;node.setAttribute('role',kind==='error'?'alert':'status');
  }
  function reset(){
-  selectionVersion++;pending=null;running=false;const input=$('hvOrderPdfFile');if(input)input.value='';
+  selectionVersion++;pending=null;running=false;recognizedText='';const input=$('hvOrderPdfFile');if(input)input.value='';
+  const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
   const box=$('hvOrderResults');if(box){box.replaceChildren();box.hidden=true;}
   const f=$('hvOrderPdfInfo');if(f)f.textContent='Puedes seleccionar una orden PDF con texto; sus pruebas se añadirán al selector para que las revises.';
   status('No se ha seleccionado ninguna orden.');
@@ -100,11 +103,45 @@
   }
   container.append(section);
  }
+ /* La lectura del PDF no depende de la sincronización del Catálogo.
+    Consultar la nube en modo lectura, distinguir errores y permitir reintento
+    sin pedir al usuario que vuelva a adjuntar la orden. */
+ async function matchAndApply(text,request){
+  const retry=$('hvOrderRetryCatalog');
+  if(retry){retry.hidden=true;retry.disabled=true;}
+  status('Consultando las pruebas activas del Catálogo de FleboReport…');
+  try{
+   const catalog=await getCatalog();
+   if(request!==selectionVersion)return;
+   if(!catalog.length){
+    status('La nube no devolvió pruebas disponibles para esta sesión. No se borró ninguna prueba. Pulsa Reintentar búsqueda en catálogo o comprueba tu acceso.','error');
+    if(retry)retry.hidden=false;
+    return;
+   }
+   const matches=core.matchText(text,catalog);
+   let added=0;
+   if(matches.matches.length&&typeof window.hvOrderApplyTests==='function'){
+    added=window.hvOrderApplyTests(matches.matches.map(x=>x.id));
+   }
+   renderReview(matches,added);
+   status(matches.matches.length
+    ?'Catálogo recuperado ('+catalog.length+' pruebas activas). '+matches.matches.length+' coincidencia(s); revisa el listado antes de guardar.'
+    :'Catálogo recuperado ('+catalog.length+' pruebas activas), pero no hubo coincidencias exactas. Puedes elegirlas manualmente.',
+    matches.matches.length?'success':'info');
+  }catch(error){
+   if(request!==selectionVersion)return;
+   status('No se pudo consultar el catálogo desde la nube: '+(error?.message||'Error de conexión o permisos')+'. El PDF permanece adjunto para guardar. Pulsa Reintentar búsqueda en catálogo.','error');
+   if(retry)retry.hidden=false;
+  }finally{
+   if(retry)retry.disabled=false;
+  }
+ }
  async function handleFile(){
   const input=$('hvOrderPdfFile'),file=input?.files?.[0];
   if(!file)return;
   const request=++selectionVersion;
-  pending=null;const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
+  pending=null;recognizedText='';const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
+  const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
   const extension=file.name.toLowerCase().endsWith('.pdf'),
    validMime=!file.type||['application/pdf','application/x-pdf','application/octet-stream'].includes(file.type);
   if(!extension||!validMime||file.size===0){
@@ -136,20 +173,8 @@
    if(!text.trim()||text.trim().length<12){
     status('El PDF no contiene texto reconocible (posible escaneo). Se adjuntará al domicilio; selecciona las pruebas manualmente.','error');return;
    }
-   const catalog=getCatalog();
-   if(!catalog.length){
-    status('El catálogo aún no está disponible. El PDF se adjuntará, pero las pruebas deben seleccionarse manualmente.','error');return;
-   }
-   const matches=core.matchText(text,catalog);
-   let added=0;
-   if(matches.matches.length&&typeof window.hvOrderApplyTests==='function'){
-    added=window.hvOrderApplyTests(matches.matches.map(x=>x.id));
-   }
-   renderReview(matches,added);
-   status(matches.matches.length
-    ?'Se identificaron '+matches.matches.length+' prueba(s) del catálogo. Revisa la selección antes de guardar.'
-    :'No se encontraron coincidencias exactas. El PDF quedará adjunto; selecciona las pruebas manualmente.',
-    matches.matches.length?'success':'info');
+   recognizedText=text;
+   await matchAndApply(text,request);
   }catch(error){
    if(request===selectionVersion){pending=null;if(input)input.value='';status(error?.message||'No se pudo abrir el documento.','error');}
   }finally{if(request===selectionVersion)running=false;}
@@ -169,8 +194,11 @@
   const info=el('p','hv-order-help','Selecciona el PDF de la orden (sin límite para elegirlo). Los archivos de hasta 50 MB pueden guardarse; los muy grandes no se analizan automáticamente.');
   info.id='hvOrderPdfInfo';
   const message=el('p','hv-order-status','No se ha seleccionado ninguna orden.');message.id='hvOrderStatus';message.setAttribute('role','status');
+  const retry=el('button','hv-order-catalog-retry','Reintentar búsqueda en catálogo');
+  retry.type='button';retry.id='hvOrderRetryCatalog';retry.hidden=true;
+  retry.addEventListener('click',()=>{if(recognizedText)void matchAndApply(recognizedText,selectionVersion);});
   const results=el('div','hv-order-results');results.id='hvOrderResults';results.hidden=true;
-  section.append(heading,input,info,message,results);
+  section.append(heading,input,info,message,retry,results);
   tests.insertAdjacentElement('afterend',section);
   mounted=true;return true;
  }
