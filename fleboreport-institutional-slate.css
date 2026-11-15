@@ -223,7 +223,7 @@
   box-shadow:0 2px 7px rgba(41,52,60,.12)!important;
  }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
- .fr5-screen .btn:not(.primary):not(.blue):not(.danger){
+ .fr5-screen .btn:not(.primary):not(.blue):not(.danger):not(.success):not(.warning){
   background:#F7F9F9!important;color:#29343C!important;
   border-color:#CBD7DC!important;
  }
