@@ -1,0 +1,204 @@
+/* FleboReport | Propuesta F · reparación transversal de contraste (WCAG AA)
+   Causa: en el cambio cromático previo se dejó texto blanco sobre fondos
+   #8FB9D4 (contraste 2.09:1), #6E93AF (3.25:1), y en burbujas del
+   menú, iconos blancos sobre un gradiente que inicia en #FFFFFF (1:1).
+   Sólo se ajustan colores, fondos, bordes y sombras; sin cambios de geometría,
+   distribución, estados de negocio, JS, permisos, gestos ni reportes.
+   Principales: blanco sobre azul pizarra oscuro (#455C70: 6.96:1).
+   Secundarios: carbón (#2B3137) sobre superficies claras (> 11:1). */
+@media screen {
+ :root {
+  --fr-f-button-fill:#455C70;
+  --fr-f-button-fill-end:#2B4153;
+  --fr-f-button-text:#FFFFFF;
+  --fr-f-button-secondary-text:#2B3137;
+  --fr-f-button-outline:#C6D8E5;
+ }
+ /* Menú lateral: la esfera antes era blanca con un glifo blanco. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon {
+  color:#2B3137!important;
+  background:radial-gradient(circle at 26% 17%,#FFFFFF 0%,#F1F5F8 28%,#D3E1EB 70%,#C6D8E5 100%)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-icon {
+  color:#FFFFFF!important;
+  background:radial-gradient(circle at 26% 17%,#455C70 0%,#384B5B 54%,#2B4153 100%)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-copy {
+  color:#2B3137!important;
+  background:linear-gradient(145deg,#FFFFFF,#E5EDF3)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not(.active):not([hidden]) .nav-copy {
+  color:#FFFFFF!important;
+ }
+ /* Los botones de acción no pueden llevar blanco sobre hielo claro.
+    El color de texto queda uniforme hasta en las etiquetas anidadas. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-domicilios,#view-patients,#view-journey,#view-clinical-studies,
+ #view-clinical-processing,#view-catalog,#view-settings,#view-reports,#view-audit)
+ :is(.btn.primary,.btn.blue,.btn-primary,button.primary):not(.danger),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home .fr2-home-action.primary,
+ #view-domicilios .hv-ref-new,
+ #view-domicilios .hv-ref-respond,
+ #view-domicilios .hv-volunteer-offer button,
+ #view-journey .journey-report-button,
+ #view-journey .journey-register-button,
+ #view-clinical-studies button.crx-action:not(.danger),
+ #view-clinical-processing button.crx-action:not(.danger),
+ #view-catalog .fr2-catalog-new,
+ #view-catalog .cpr-filter-chip.selected,
+ #view-settings .sr-detail-tab.is-current,
+ #view-reports button.rhr-export.rhr-pdf,
+ #view-reports .rhr-archive-actions .rhr-archive-open,
+ #view-audit button.rhr-history-chip.selected,
+ #view-patients button.pp-chip.selected,
+ #view-patients .pp-list-chips>.pp-chip.selected,
+ #view-patients .pp-record-tabs .pp-tab.active,
+ #view-patients .pp-workspace-actions>button.pp-primary-action,
+ #view-patients #patientsHome>.page-heading>button,
+ #view-patients #patientsHome.pp-strict-layout>.page-heading>button) {
+  background:linear-gradient(135deg,#455C70 0%,#2B4153 100%)!important;
+  border-color:#455C70!important;
+  color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-domicilios,#view-patients,#view-journey,#view-clinical-studies,
+ #view-clinical-processing,#view-catalog,#view-settings,#view-reports,#view-audit)
+ :is(.btn.primary,.btn.blue,.btn-primary,button.primary):not(.danger)
+ :is(span,strong,small,b),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-domicilios .hv-ref-new,#view-domicilios .hv-ref-respond,
+ #view-journey .journey-report-button,#view-journey .journey-register-button,
+ #view-catalog .fr2-catalog-new,#view-reports .rhr-archive-open,
+ #view-patients .pp-workspace-actions>button.pp-primary-action) :is(span,strong,small,b) {
+  color:#FFFFFF!important;
+ }
+ /* Casos con selector histórico de dos IDs: evitar que sobreescriban el fondo. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(button.hv-ref-new,button.hv-ref-respond),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients #patientsHome.pp-strict-layout>.page-heading>button,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference .journey-report-button,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference .journey-register-button {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+  border-color:#455C70!important;
+ }
+ /* Acciones independientes de la vista (diálogos y ventanas flotantes). */
+ html:root body :is(
+ button.jp-lookup-select,
+ #clinicalProcessingModal .btn.primary,
+ #clinicalReviewModal .crx-review-approve,
+ #crxAdministrationModal .crx-admin-confirm,
+ #settings-clinical-config button.crx-type-add,
+ #fleboAuthPanel button[type="submit"] ) {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  border-color:#455C70!important;
+  color:#FFFFFF!important;
+ }
+ /* El dock del móvil incluye botones blancos sobre azul hielo. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #cmMobileDock .cm-dock-button.is-active {
+  background:linear-gradient(145deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+  border-color:#455C70!important;
+ }
+ /* Botones secundarios, filtros, tabs y acciones discretas sobre fondos claros. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-domicilios,#view-patients,
+ #view-clinical-studies,#view-clinical-processing,#view-catalog,
+ #view-settings,#view-reports,#view-audit)
+ :is(.btn:not(.primary):not(.blue):not(.danger),button.pp-open-patient,
+ button.pp-timeline-view,button.pp-back,button.pp-chip:not(.selected),
+ button.jp-lookup-close,.rhr-export:not(.rhr-pdf),.rhr-archive-actions button:not(.rhr-archive-open),
+ .settings-tabs button.active,.clinical-config-tabs button.active,
+ .fr-config-nav button.active,.cpr-filter-chip:not(.selected)) {
+  color:#2B3137!important;
+ }
+ html:root body.fr2-app-authorized #view-reports.rhr-ready
+ :is(button.rhr-export:not(.rhr-pdf),.rhr-archive-actions button:not(.rhr-archive-open)),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home .hp-dashboard-flow .op-panel>.panel-head .btn,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(.hv-cal-nav button,.hv-ref-tools-toggle) {
+  color:#2B3137!important;
+ }
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(button.pp-open-patient,button.pp-timeline-view,button.pp-back,
+ button.pp-chip:not(.selected),.pp-workspace-actions>button:not(.pp-primary-action)) {
+  color:#2B3137!important;
+ }
+ html:root body.fr2-app-authorized #view-settings .settings-tabs button.active,
+ html:root body.fr2-app-authorized #view-reports .style-picker button.active {
+  color:#2B3137!important;
+ }
+ /* Signos e iconos en superficies de azul hielo pálido. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home .op-quick button>span,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey .jp-action-icon,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-kpi-icon {
+  color:#384B5B!important;
+ }
+ /* Semántica de eliminación: rojo oscuro + letras legibles, no azul. */
+ html:root body.fr2-app-authorized #view-domicilios #hvWorkspace button.hv-archive-action,
+ html:root body.fr2-app-authorized #view-patients .pp-swipe-delete {
+  background:linear-gradient(135deg,#8D3446,#7C3948)!important;
+  border-color:#8D3446!important;
+  color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized :is(.btn.danger,button.btn.danger) {
+  color:#7C3948!important;
+  background:#FAEFF0!important;
+  border-color:#E4B8C0!important;
+ }
+ /* Contadores con etiquetas blancas sobre azul hielo (información clínica). */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-processing .crx-process-kpis>.clinical-kpi:not(:first-child),
+ #view-catalog.cpr-premium .fr2-catalog-stat),
+ html:root body.fr2-app-authorized #view-patients.pp-premium .pp-record-kpi,
+ html:root body.fr2-app-authorized #view-reports.rhr-ready .rhr-kpi {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:not(:first-child)
+ :is(strong,small),
+ html:root body.fr2-app-authorized #view-patients.pp-premium .pp-record-kpi
+ :is(strong,small),
+ html:root body.fr2-app-authorized #view-reports.rhr-ready .rhr-kpi
+ :is(strong,small,.rhr-kpi-number),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-stat :is(strong,small) {
+  color:#FFFFFF!important;
+ }
+ /* Variantes específicas: la paleta previa daba prioridad a :nth-child,
+    .pp-blue/.pp-pink y .rhr-kpi.violet, por eso precisan selector explícito. */
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(.pp-record-kpi.pp-blue,.pp-record-kpi.pp-pink,.pp-record-kpi.pp-teal),
+ html:root body.fr2-app-authorized #view-reports.rhr-ready
+ :is(.rhr-kpi.violet,.rhr-kpi.cyan,.rhr-kpi.purple),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-stat:nth-child(2),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:nth-child(3),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:nth-child(4) {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+ }
+ /* Pestañas no activas: no borrarse sobre blanco y preservar estado activo. */
+ html:root body.fr2-app-authorized :is(
+ .settings-tabs button:not(.active),
+ .clinical-config-tabs button:not(.active),
+ #view-reports .style-picker button:not(.active)) {
+  color:#384B5B!important;
+ }
+}
