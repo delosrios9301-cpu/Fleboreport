@@ -26,7 +26,7 @@
     No reconstruimos tarjetas ni formularios; solo su geometría. */
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
  #view-settings.sr-settings-ready {
-  box-sizing:border-box!important;display:block!important;
+  box-sizing:border-box!important;
   width:100%!important;max-width:100%!important;min-width:0!important;
   margin-inline:auto!important;
   padding:clamp(14px,2vw,25px) clamp(8px,1.6vw,22px) 45px!important;
