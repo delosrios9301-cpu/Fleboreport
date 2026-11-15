@@ -181,8 +181,20 @@
    loading=false;modal.querySelector('.catalog-import-cancel').disabled=false;
    close();
    toast(cloudConfirmed
-    ?saved+' pruebas importadas y sincronizadas. Ya aparecen en las búsquedas.'
+    ?saved+' pruebas importadas y sincronizadas. Disponibles en Catálogo y Jornada.'
     :saved+' pruebas guardadas en este dispositivo. Sincronización con la nube sin confirmar; revisa tu conexión.');
+   // Domicilios usa servicios con UUID (no IDs locales). Refrescar su lista
+   // después del guardado en nube y solo con un administrador conectado.
+   // No bloquear la interfaz mientras se actualizan los servicios.
+   if(cloudConfirmed&&membership()?.role==='admin'&&typeof window.FleboHomeCatalogRefresh==='function'){
+    Promise.resolve().then(()=>window.FleboHomeCatalogRefresh()).then(ok=>{
+     if(ok)toast('Catálogo de Domicilios actualizado con las pruebas importadas.');
+     else toast('El catálogo se guardó; Domicilios necesita reintentar la sincronización de sus servicios.');
+    }).catch(error=>{
+     console.warn('[FleboReport] Servicio de Domicilios pendiente',error);
+     toast('Las pruebas se guardaron. Domicilios todavía no confirmó su actualización.');
+    });
+   }
   }catch(error){
    loading=false;modal.querySelector('.catalog-import-cancel').disabled=false;
    confirmButton.disabled=false;
