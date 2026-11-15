@@ -1036,7 +1036,7 @@ function enhanceReferenceVisitLayout(){
   }
  });
 }
-function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;if(tab==='history')enhanceHistoryRecoveryPanel();render();if(tab==='history')void refreshHomeVisitHistory();}
+function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;if(tab==='history')enhanceHistoryRecoveryPanel();render();if(tab==='history')void refreshHomeVisitHistory();if(tab==='create'&&!remoteCatalog.length&&typeof window.hvOrderEnsureCatalog==='function')void window.hvOrderEnsureCatalog().catch(error=>cloudNotice('No se pudo recuperar el catálogo para Nuevo domicilio: '+(error.message||'Error de conexión'),true));}
 window.hvSetTab=setTab;
 function render(){
  window.dispatchEvent(new Event('flebo:home-history-changed'));
