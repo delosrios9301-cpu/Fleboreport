@@ -67,7 +67,9 @@ test('Registro nuevo conserva protocolo pendiente de validación, metadatos y ac
  assert.equal(x.active,true);
  assert.equal(x.method,'Enzimático');
  assert.equal(x.createdAt,x.updatedAt);
- assert.equal(x.color,'#237C49');
+ assert.equal(x.color,'#94A3B8');
+ assert.equal(x.colorName,'');
+ assert.equal(x.shape,'');
 });
 
 test('Límites y archivos incompletos se rechazan antes de guardar',()=>{
