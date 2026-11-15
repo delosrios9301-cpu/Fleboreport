@@ -22,7 +22,8 @@ test('Cuenta domicilios archivados finalizados y no multiplica pacientes atendid
   homeTests:[{id:'t1',status:'collected',quantity:2,test_name:'Hemograma'},{id:'t2',status:'pending',quantity:1,test_name:'Glucosa'}],
   attentions:[{id:'a1',patient_id:'p3'}],attentionTests:[],
   studies:2,samples:[{id:'s1',status:'Almacenada',workflow_status:'CONGELADOR_DEFINITIVO',processed_at:'2026-11-13T10:00:00Z'}],
-  journeys:[],reports:0,companies:1,invoices:[]
+  journeys:[],reports:0,companies:1,invoices:[],
+  sharedLegacy:{companies:1,reports:0,journeys:0,participations:0}
  },new Date('2026-11-15T21:00:00Z'));
  assert.equal(result.patients,3);
  assert.equal(result.attended,2);
@@ -115,7 +116,7 @@ test('Panel Inicio reemplaza visualizaciones locales con estado y gráficos real
  assert.match(source,/Domicilios finalizados · últimos 7 días/);
  assert.match(source,/Estado de muestras clínicas/);
  assert.match(source,/Pruebas tomadas en domicilios/);
- assert.match(source,/Jornadas registradas en nube/);
+ assert.match(source,/Jornadas consolidadas de la nube/);
  assert.match(styles,/#view-home\.dl-cloud-dashboard \.hp-trend-group/);
  assert.match(styles,/@media\(max-width:760px\)/);
  assert.match(html,/dashboard-live-cloud\.js\?v=20261115-cloud1/);
