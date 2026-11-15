@@ -67,7 +67,7 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
  assert.match(ui,/Revisa las pruebas seleccionadas antes de Guardar domicilio/);
  assert.match(ui,/No se encontraron coincidencias exactas/);
  assert.match(ui,/posible escaneo/);
- assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount\}/);
+ assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount,STORAGE_BYTES,RECOGNITION_BYTES\}/);
  assert.match(ui,/RECOGNITION_BYTES=16\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
  assert.match(ui,/MAX_PAGES=15/);
  assert.match(ui,/signature!=='%PDF-'/);
@@ -76,7 +76,7 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
 test('La visita se guarda antes de adjuntar su PDF y se distingue el fallo de carga',()=>{
  const i=dom.indexOf('const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()');
  const created=dom.indexOf('if(!await save(v))');
- const uploaded=dom.indexOf('uploadVisitDocument(v.id,orderPdf,{quiet:true})');
+ const uploaded=dom.indexOf('uploadVisitDocument(v.id,orderPdf,{quiet:true,onProgress:');
  const reset=dom.indexOf("selected=v.id;activeTab='agenda';reset();render();",created);
  assert.ok(created>=0&&i>created&&uploaded>i&&reset>uploaded);
  assert.match(dom,/Domicilio guardado, pero el PDF NO se adjuntó/);
