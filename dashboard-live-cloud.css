@@ -8,6 +8,12 @@
 #view-home.dl-cloud-dashboard [data-fr5-area="financial-summary"],
 #view-home.dl-cloud-dashboard [data-fr5-area="clinical-trace"],
 #view-home.dl-cloud-dashboard [data-fr5-area="dashboard-footer"]{display:none!important}
+/* Prioridad sobre la distribución antigua con display:grid!important:
+   ningún módulo anterior queda duplicado debajo de los nuevos gráficos. */
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard .hp-dashboard-flow > .hp-group,
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard .hp-dashboard-flow > [data-fr5-area="clinical-trace"],
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard .hp-dashboard-flow > [data-fr5-area="financial-summary"],
+body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard .hp-dashboard-flow > [data-fr5-area="dashboard-footer"]{display:none!important}
 body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard .vc-kpi-stage,
 body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home.dl-cloud-dashboard #hpKpiPager{display:none!important}
 #view-home.dl-cloud-dashboard .dl-live-dashboard{
