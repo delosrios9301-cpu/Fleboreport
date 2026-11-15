@@ -80,7 +80,7 @@ test('Límites y archivos incompletos se rechazan antes de guardar',()=>{
  assert.match(source,/typeof DecompressionStream==='undefined'/);
  assert.match(source,/application\/xml/);
  assert.match(source,/getElementsByTagNameNS\('\*','row'\)/);
- assert.match(source,/\.xlsx/);
+ assert.match(source,/async function parseXlsx\(buffer\)/);
 });
 
 test('Vista previa obligatoria y guardado único con rollback si falla el almacenamiento',()=>{
