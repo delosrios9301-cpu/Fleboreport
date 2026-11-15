@@ -122,7 +122,10 @@
    if(!changes[key])continue;
    const input=$(id);
    if(!input)continue;
-   const inherited=legacy&&['color','colorName','shape'].includes(key);
+   // Solo sustituir el valor ficticio exacto; respetar cualquier corrección manual.
+   const inherited=legacy&&((key==='colorName'&&input.value==='Verde')
+    ||(key==='color'&&String(input.value).toLowerCase()==='#237c49')
+    ||(key==='shape'&&input.value==='tube'));
    if(String(input.value||'').trim()&&!inherited&&(key!=='color'||input.value!=='#94a3b8'))continue;
    if(input.tagName==='SELECT'&&![...input.options].some(option=>option.value===changes[key]))continue;
    input.value=changes[key];applied++;
