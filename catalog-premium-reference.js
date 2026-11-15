@@ -62,6 +62,16 @@
     tagBox.append(make('span','cpr-status cpr-vessel-tag','Con recipiente'));
    }
    if(!vesselDefined)tagBox.querySelector('.cpr-vessel-tag')?.remove();
+   // Mostrar la propuesta clínica verificada como sugerencia, NO como dato aprobado.
+   const suggestion=record?.validated===true?null:window.FleboAutoConfigCore?.suggest?.(record?.name);
+   const missing=suggestion?window.FleboAutoConfigCore?.missingFields?.(record,suggestion):null;
+   const chip=tagBox.querySelector('.cpr-auto-suggestion');
+   if(suggestion&&missing&&Object.keys(missing).length){
+    const text='Sugerencia por revisar: '+suggestion.fields.sample+' · '+suggestion.fields.vessel
+     +(suggestion.fields.colorName?' · '+suggestion.fields.colorName:'');
+    if(chip)chip.textContent=text;
+    else tagBox.append(make('span','cpr-status cpr-auto-suggestion',text));
+   }else if(chip)chip.remove();
   }
   if(action){
    action.classList.add('cpr-edit-action');
