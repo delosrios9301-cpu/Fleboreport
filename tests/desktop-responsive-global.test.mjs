@@ -60,7 +60,8 @@ test('El resto de cuadros flotantes se centra en el viewport sin ocultar sus bot
 test('La corrección excluye teléfono e impresión y preserva la paleta F',()=>{
  assert.match(desktop,/@media screen and \(min-width:761px\)/);
  assert.match(desktop,/@media screen and \(min-width:761px\) and \(max-width:1023px\)/);
- assert.doesNotMatch(desktop,/@media\s+print|@media\s+screen\s+and\s+\(max-width:760px\)/);
+ const executableCss=desktop.replace(/\/\*[\s\S]*?\*\//g,'');
+ assert.doesNotMatch(executableCss,/@media\s+print|@media\s+screen\s+and\s+\(max-width:760px\)/);
  assert.doesNotMatch(desktop,/#[A-Fa-f0-9]{6}(?![A-Fa-f0-9])/);
  assert.doesNotMatch(desktop,/\b(?:display:none|visibility:hidden|pointer-events:none)\s*!important/);
  const l=html.indexOf('fleboreport-login-layout-fix.css?v=20261114-login1');
