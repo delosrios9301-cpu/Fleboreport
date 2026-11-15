@@ -49,7 +49,7 @@ test('Propuestas preservan datos existentes y no alteran protocolos confirmados'
  assert.equal(changes.colorName,undefined);
  assert.equal(changes.shape,'tube');
  assert.equal(JSON.stringify(existing),before);
- assert.equal(Object.keys(core.missingFields({...existing,validated:true},p)).length,0);
+ assert.equal(core.missingFields({...existing,validated:true},p).shape,'tube');
 });
 
 test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
@@ -64,24 +64,22 @@ test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
  assert.ok(sw.includes("'./catalog-auto-config.js'"));
  assert.ok(sw.includes("'./catalog-auto-config.css'"));
  assert.match(css,/@media\(max-width:760px\)/);
- assert.match(css,/#view-catalog \.catalog-auto-open\[hidden\]/);
+ assert.match(css,/#settings-catalog \.catalog-auto-open\[hidden\]/);
 });
 
 
-test('La cabecera móvil mantiene icono y título, con acciones fuera de su cuadrícula',()=>{
- assert.match(auto,/actions\.id='catalogHeaderActions'/);
- assert.match(auto,/hero\?\.insertAdjacentElement\('afterend',actions\)/);
- assert.match(auto,/actions\.append\(newTest\)/);
- assert.match(auto,/actions\.append\(importButton\)/);
+test('Gestión y carga de pruebas únicamente desde Configuración, fuera del catálogo de consulta',()=>{
+ assert.match(html,/id="settings-catalog"/);
+ assert.match(html,/id="catalogHeaderActions"/);
+ assert.match(html,/id="catalogArchivedPanel"/);
+ assert.match(auto,/const actions=\$\('catalogHeaderActions'\)/);
  assert.match(auto,/actions\.append\(button\)/);
  assert.doesNotMatch(auto,/newTest\.insertAdjacentElement\('beforebegin',button\)/);
- assert.match(css,/#view-catalog #catalogHeaderActions\s*\{/);
+ assert.match(css,/#settings-catalog #catalogHeaderActions\s*\{/);
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
  assert.match(css,/writing-mode:horizontal-tb!important/);
  assert.match(css,/word-break:normal!important/);
- assert.match(css,/\.fr2-catalog-new\{\s*grid-column:auto!important/);
 });
-
 
 test('Reconoce los nombres reales importados y la preparación del hemograma',()=>{
  const cbc=core.suggest('Hemograma completo (CBC)');
@@ -103,7 +101,7 @@ test('Corrige solo valores verdes heredados sin tocar datos aprobados',()=>{
  assert.equal(proposal.color,'#9670BD');
  assert.match(proposal.fasting,/No suele requerir ayuno/);
  assert.equal(JSON.stringify(legacy),snapshot);
- assert.equal(Object.keys(core.missingFields({...legacy,validated:true},cbc)).length,0);
+ assert.equal(core.missingFields({...legacy,validated:true},cbc).colorName,'Morado');
  assert.equal(core.isLegacyPlaceholder({...legacy,sample:'Sangre'}),false);
  assert.equal(core.missingFields({...legacy,sample:'Sangre'},cbc).colorName,undefined);
 });
@@ -120,20 +118,26 @@ test('Buscar prueba funciona sin acentos y con listado limitado a 70 tarjetas',(
  assert.match(html,/function showMoreCatalog\(\)\{catalogListLimit\+=70;renderCatalog\(\);\}/);
  assert.match(html,/catalog-search-more/);
  assert.match(html,/if\(settings&&detailsChanged\)settings\.innerHTML/);
- assert.match(html,/catalogSearch'\)\.addEventListener\('input',renderCatalog\)/);
+ assert.match(html,/oninput="queueCatalogSearch\(\)"/);
+ assert.match(html,/function catalogSearchMatches\(t,term\)/);
+ assert.match(html,/'tp':\['tiempo de protrombina'/);
+ assert.match(html,/function queueCatalogSearch\(\)/);
 });
 
 test('Preparación agrupada requiere autorización y confirmación y conserva pendientes clínicos',()=>{
  assert.match(auto,/async function applyReviewedBatch\(\)/);
  assert.match(auto,/if\(!authorized\(\)\)return/);
- assert.match(auto,/window\.confirm\('Se prepararán '/);
- assert.match(auto,/state\.catalog\[index\]=\{\.\.\.item,\.\.\.match\.fields,validated:false/);
+ assert.doesNotMatch(auto,/window\.confirm\('Se prepararán '/);
+ assert.match(auto,/state\.catalog\[index\]=\{\.\.\.item,\.\.\.match\.fields,updatedAt:now/);
  assert.match(auto,/if\(!api\.save\(\)\)/);
  assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
  assert.match(auto,/name\.addEventListener\('change',\(\)=>\{applyToForm\(\);updateForm\(\);\}\)/);
  assert.match(html,/window\.FleboAutoConfig\?\.applyToForm\?\.\(\)/);
  assert.match(html,/Color de recipiente pendiente/);
- assert.match(html,/si es un tubo, confirma también el color según el protocolo/i);
+ assert.doesNotMatch(html,/id="testValidated"/);
+ assert.match(html,/id="testActive"/);
+ assert.match(auto,/flebo:cloud-sync-ready/);
+ assert.match(auto,/autoCompleteFromCloud/);
 });
 
 
@@ -187,11 +191,11 @@ test('El verde ficticio se neutraliza sin inventar un color para muestras parcia
  assert.equal(changes.colorName,'');
  assert.equal(changes.color,'#94A3B8');
  assert.equal(changes.shape,'');
- assert.equal(Object.keys(core.missingFields({...legacy,validated:true},core.suggest(legacy.name))).length,0);
+ assert.equal(core.missingFields({...legacy,validated:true},core.suggest(legacy.name)).sample,'Orina');
 });
 
 test('Todas las pruebas pendientes pueden filtrarse por nivel y buscarse para revisión',()=>{
- assert.match(auto,/Revisión de configuración de todas las pruebas/);
+ assert.match(auto,/Configuración de muestras y recipientes/);
  assert.match(auto,/function renderReviewRows\(\)/);
  assert.match(auto,/reviewMode='all'/);
  assert.match(auto,/Sin fuente suficiente/);
