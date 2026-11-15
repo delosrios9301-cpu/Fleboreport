@@ -91,31 +91,109 @@
  function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;}
  function onHome(){return !!$('view-home')?.classList.contains('active');}
  function auth(){const a=window.FleboAuth,m=a?.membership;if(!a?.client||!a?.user||!m?.workspace_id||m.active!==true)return null;return{client:a.client,workspace:m.workspace_id};}
+ let dashboardView='overview';
+ function selectDashboardView(mode){
+  if(!['overview','home','clinical'].includes(mode))return;
+  dashboardView=mode;
+  const shell=$('dlLiveDashboard');if(!shell)return;
+  for(const button of shell.querySelectorAll('[data-dl-tab]')){
+   const active=button.dataset.dlTab===mode;
+   button.setAttribute('aria-selected',active?'true':'false');
+   button.tabIndex=active?0:-1;
+   button.classList.toggle('is-active',active);
+  }
+  for(const panel of shell.querySelectorAll('[data-dl-panel]')){
+   panel.hidden=panel.dataset.dlPanel!==mode;
+  }
+ }
+ function chartBox(title,id){
+  const box=el('section','dl-live-chart'),heading=el('h3','',title);
+  const body=el('div','dl-live-chart-body');body.id=id;
+  box.append(heading,body);return box;
+ }
  function ensurePanel(){
   const home=$('view-home');if(!home)return null;
-  // Desactivar las gráficas heredadas calculadas en local: nunca mostrar cifras contradictorias.
+  // Las tarjetas y gráficas heredadas se calculaban con datos locales.
+  // Conservar nodos y contratos de módulos, pero no presentar sus cifras.
   home.classList.add('dl-cloud-dashboard');
   let p=$('dlLiveDashboard');
   if(!p){
    p=el('section','dl-live-dashboard');p.id='dlLiveDashboard';
-   const head=el('div','dl-live-head');
-   const copy=el('div','');copy.append(el('h2','','Indicadores sincronizados de todos los módulos'),
-    el('p','','Actividad real del laboratorio, con registros históricos y actuales.'));
+   const head=el('div','dl-live-head'),copy=el('div','dl-live-head-copy');
+   copy.append(el('h2','','Actividad del laboratorio'),
+    el('p','','Resumen verificado desde Supabase'));
    const refresh=el('button','btn','Actualizar');refresh.id='dlLiveRefresh';refresh.type='button';
-   refresh.addEventListener('click',()=>{void refresh(true);});head.append(copy,refresh);p.append(head);
-   const status=el('p','dl-live-status','Verificando registros de la nube…');status.id='dlLiveStatus';attr(status,'role','status');p.append(status);
-   const cards=el('div','dl-live-cards');cards.id='dlLiveCards';p.append(cards);
-   const charts=el('div','dl-live-charts');
-   for(const [id,title] of [['dlLiveStatuses','Domicilios por estado'],['dlLiveDays','Domicilios finalizados · últimos 7 días'],
-     ['dlLiveModules','Actividad por módulo'],['dlLiveClinical','Estado de muestras clínicas'],['dlLiveTests','Pruebas tomadas en domicilios']]){
-    const box=el('section','dl-live-chart');box.append(el('h3','',title));const body=el('div','dl-live-chart-body');body.id=id;box.append(body);charts.append(box);
+   refresh.setAttribute('aria-label','Actualizar indicadores desde Supabase');
+   refresh.addEventListener('click',()=>{void refresh(true);});
+   head.append(copy,refresh);p.append(head);
+   const status=el('p','dl-live-status','Verificando registros de la nube…');
+   status.id='dlLiveStatus';attr(status,'role','status');attr(status,'aria-live','polite');p.append(status);
+   const quick=el('div','dl-live-highlights');quick.id='dlLiveHighlights';
+   for(const [id,name] of [
+    ['dlQuickPatients','Pacientes'],['dlQuickHomes','Domicilios atendidos'],
+    ['dlQuickTests','Pruebas tomadas'],['dlQuickProcessed','Muestras procesadas']
+   ]){
+    const item=el('div','dl-live-highlight');
+    const value=el('strong','','—');value.id=id;
+    item.append(value,el('small','',name));quick.append(item);
    }
-   p.append(charts);
+   p.append(quick);
+   const tabs=el('div','dl-live-tabs');tabs.id='dlLiveTabs';attr(tabs,'role','tablist');
+   attr(tabs,'aria-label','Gráficos por área');
+   for(const [id,name] of [['overview','Resumen'],['home','Domicilios'],['clinical','Clínico']]){
+    const button=el('button','dl-live-tab',name);button.type='button';
+    button.dataset.dlTab=id;attr(button,'role','tab');attr(button,'aria-controls','dlView-'+id);
+    button.addEventListener('click',()=>selectDashboardView(id));
+    button.addEventListener('keydown',event=>{
+     if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+     event.preventDefault();
+     const order=['overview','home','clinical'],index=order.indexOf(id);
+     const next=event.key==='Home'?order[0]:event.key==='End'?order[2]
+      :order[(index+(event.key==='ArrowRight'?1:2))%3];
+     selectDashboardView(next);
+     tabs.querySelector('[data-dl-tab="'+next+'"]')?.focus();
+    });
+    tabs.append(button);
+   }
+   p.append(tabs);
+   const panels=el('div','dl-live-panels');
+   function panel(id){
+    const section=el('div','dl-live-tab-panel');section.id='dlView-'+id;section.dataset.dlPanel=id;
+    attr(section,'role','tabpanel');attr(section,'aria-label',id==='overview'?'Resumen':id==='home'?'Domicilios':'Clínico');
+    panels.append(section);return section;
+   }
+   const overview=panel('overview'),homes=panel('home'),clinical=panel('clinical');
+   const overviewCharts=el('div','dl-live-charts');
+   overviewCharts.append(
+    chartBox('Estado de los domicilios','dlLiveStatuses'),
+    chartBox('Actividad por módulo','dlLiveModules'));
+   overview.append(overviewCharts);
+   const visitSummary=el('p','dl-live-visit-summary');visitSummary.id='dlLiveVisitSummary';homes.append(visitSummary);
+   const homeCharts=el('div','dl-live-charts');
+   homeCharts.append(
+    chartBox('Domicilios finalizados · últimos 7 días','dlLiveDays'),
+    chartBox('Pruebas tomadas en domicilios','dlLiveTests'));
+   homes.append(homeCharts);
+   const clinicalCharts=el('div','dl-live-charts');
+   clinicalCharts.append(
+    chartBox('Estado de muestras clínicas','dlLiveClinical'),
+    chartBox('Procesamiento y almacenamiento','dlLiveClinicalBars'));
+   clinical.append(clinicalCharts);
+   p.append(panels);
+   const details=el('details','dl-live-more');details.id='dlLiveDetails';
+   const summary=el('summary','','Ver todos los indicadores');
+   summary.setAttribute('aria-label','Mostrar u ocultar los indicadores detallados');
+   const rows=el('div','dl-live-metrics');rows.id='dlLiveCards';
+   details.append(summary,rows);p.append(details);
+   selectDashboardView(dashboardView);
   }
   const flow=home.querySelector('.hp-dashboard-flow');
-  const stage=flow?.querySelector('.vc-kpi-stage')||home.querySelector('#operationalKpis')?.closest('.vc-kpi-stage');
-  if(flow){if(p.parentElement!==flow){if(stage)stage.insertAdjacentElement('afterend',p);else flow.prepend(p);}}
-  else if(!p.parentElement)home.append(p);
+  const heading=flow?.querySelector('.hp-home-heading');
+  if(flow&&p.parentElement!==flow){
+   if(heading)heading.insertAdjacentElement('afterend',p);
+   else flow.prepend(p);
+  }else if(!p.parentElement)home.append(p);
+  selectDashboardView(dashboardView);
   return p;
  }
  function setStatus(s){const host=$('dlLiveStatus');if(host)host.textContent=s;}
