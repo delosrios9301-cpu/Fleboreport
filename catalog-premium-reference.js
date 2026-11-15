@@ -24,6 +24,9 @@
    b.classList.toggle('selected',active);
    b.setAttribute('aria-pressed',active?'true':'false');
   }
+  // El filtrado se aplica al catálogo completo antes de paginar tarjetas.
+  // Solo ocultar las filas ya dibujadas dejaba sin resultados pruebas fuera de la primera página.
+  if(typeof window.renderCatalog==='function')window.renderCatalog();
   updateList();
  }
  function recordFor(row,records){
