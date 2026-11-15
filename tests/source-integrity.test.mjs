@@ -555,7 +555,7 @@ test('el catálogo conserva cada prueba por ID y prioriza la versión editada', 
   assert.match(cloudSync, /itemStamp>oldStamp/);
   assert.match(cloudSync, /payload\.catalog=dedupeCatalog/);
   assert.match(cloudSync, /safe\.catalog=dedupeCatalog/);
-  assert.match(html, /updatedAt:now,active:previous\?previous\.active!==false:true/);
+  assert.match(html, /updatedAt:now,active:\$\('testActive'\)\.value==='active'/);
   assert.match(html, /function restoreTest\(id\)/);
   assert.match(html, /active:false,updatedAt/);
   assert.match(html, /catalogArchivedList/);
