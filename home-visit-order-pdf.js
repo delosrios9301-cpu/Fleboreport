@@ -126,7 +126,7 @@
    renderReview(matches,added);
    status(matches.matches.length
     ?'Catálogo recuperado ('+catalog.length+' pruebas activas). '+matches.matches.length+' coincidencia(s); revisa el listado antes de guardar.'
-    :'Catálogo recuperado ('+catalog.length+' pruebas activas), pero no hubo coincidencias exactas. Puedes elegirlas manualmente.',
+    :'Catálogo recuperado ('+catalog.length+' pruebas activas), No se encontraron coincidencias exactas. Puedes elegirlas manualmente.',
     matches.matches.length?'success':'info');
   }catch(error){
    if(request!==selectionVersion)return;
