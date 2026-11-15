@@ -16,7 +16,7 @@
   const opt=options||{};
   return {id,label,aliases,sample:'Suero',
    vessel:'Preferido: tubo separador de suero (con gel). Alternativa: tubo rojo sin gel, según laboratorio.',
-   colorName:'',color:'',shape:'tube',
+   colorName:'',color:'',shape:'tube',volume:opt.volume||'',method:opt.method||'',
    fasting:opt.fasting||'',conditions:opt.conditions||'Separar suero y transportar según protocolo del laboratorio procesador.',
    instructions:opt.instructions||'El color de la tapa del tubo separador no es universal. Validar marca, aditivo, tubo y recipiente de envío antes de aprobar.',
    source:'Mayo Clinic Laboratories · '+id,url};
@@ -77,23 +77,23 @@
    source:'Mayo Clinic Laboratories · ACTH',url:'https://www.mayocliniclabs.com/test-catalog/Overview/800208'},
   {id:'cbc',label:'Hemograma completo',aliases:['hemograma','hemograma completo','biometria hematica','cuadro hematico','cbc','hemograma con diferencial','hemograma completo con diferencial','hemograma completo cbc','hemograma completo con formula leucocitaria'],
    sample:'Sangre total con EDTA',vessel:'Tubo con EDTA (tapa lila)',colorName:'Morado',
-   color:'#9670BD',shape:'tube',fasting:'No suele requerir ayuno si se realiza solo el hemograma; confirmar si se solicitan otros exámenes.',conditions:'Evitar coágulos; conservar y transportar según el protocolo del laboratorio procesador.',
+   color:'#9670BD',shape:'tube',volume:'Mayo: 3 mL de sangre total EDTA (verificar requisito local)',fasting:'No suele requerir ayuno si se realiza solo el hemograma; confirmar si se solicitan otros exámenes.',conditions:'Evitar coágulos; conservar y transportar según el protocolo del laboratorio procesador.',
    instructions:'Enviar en tubo original; no alicuotar. Verificar volumen y estabilidad con el laboratorio receptor.',
    source:'Mayo Clinic Laboratories · CBC',url:'https://www.mayocliniclabs.com/test-catalog/Overview/9109'},
   {id:'hba1c',label:'Hemoglobina A1c',aliases:['hba1c','hba 1c','hemoglobina a1c','hemoglobina glicosilada','hemoglobina glucosilada','hemoglobina glicada','glicohemoglobina','hemoglobina glicosilada hba1c','hemoglobina a1c hba1c','hgb a1c'],
    sample:'Sangre total con EDTA',vessel:'Tubo con EDTA (tapa lila)',colorName:'Morado',
-   color:'#9670BD',shape:'tube',conditions:'Evitar coagulación; conservar y transportar según protocolo del laboratorio.',
+   color:'#9670BD',shape:'tube',volume:'Mayo: 3 mL de sangre total EDTA (verificar requisito local)',conditions:'Evitar coagulación; conservar y transportar según protocolo del laboratorio.',
    instructions:'Enviar en tubo original; no alicuotar. El volumen requerido debe verificarse localmente.',
    source:'Mayo Clinic Laboratories · HBA1C',url:'https://www.mayocliniclabs.com/test-catalog/overview/82080'},
   {id:'pt',label:'Tiempo de protrombina / INR',aliases:['tiempo de protrombina','tiempo de protrombina inr','pt inr','tp inr','protime inr','tiempo de protrombina tp'],
    sample:'Plasma citratado',vessel:'Tubo de citrato de sodio al 3,2 % (tapa celeste)',
-   colorName:'Celeste',color:'#79BEDC',shape:'tube',
+   colorName:'Celeste',color:'#79BEDC',shape:'tube',volume:'Mayo: 1 mL de plasma pobre en plaquetas para envío (llenar correctamente el tubo azul)',method:'Coagulométrico (turbidimétrico)',
    conditions:'Respetar la proporción sangre/citrato y el llenado correcto. Confirmar centrifugación y estabilidad con el laboratorio.',
    instructions:'El tubo de recolección y el recipiente de envío pueden ser distintos; verificar procedimiento local.',
    source:'Mayo Clinic Laboratories · PTTP',url:'https://www.mayocliniclabs.com/test-catalog/Overview/40934'},
   {id:'urine-culture',label:'Urocultivo',aliases:['urocultivo','cultivo de orina','cultivo urinario'],
-   sample:'Orina',vessel:'Envase estéril para recolección de orina',colorName:'',
-   color:'',shape:'jar',
+   sample:'Orina',vessel:'Envase limpio para recolección; transporte en tubo con ácido bórico según el método URNS de Mayo',colorName:'',
+   color:'',shape:'jar',volume:'Mayo URNS: 4 mL en tubo de transporte con ácido bórico',
    conditions:'Recolectar evitando contaminación; el conservante, el tiempo y la temperatura dependen del laboratorio procesador.',
    instructions:'Confirmar si la muestra se transportará en envase estéril o en tubo de transporte con conservante.',
    source:'Mayo Clinic Laboratories · URNS',url:'https://www.mayocliniclabs.com/test-catalog/Overview/60515'}
@@ -122,15 +122,15 @@
   if(found.length===1){
    const r=found[0];
    return {id:r.id,label:r.label,source:r.source,url:r.url,level:'specific',
-    fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,fasting:r.fasting||'',
+    fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,volume:r.volume||'',method:r.method||'',fasting:r.fasting||'',
      conditions:r.conditions,instructions:r.instructions}};
   }
   const sample=explicitlyNamedSample(name);
   if(!sample)return null;
   return {id:'sample-hint',label:'Muestra indicada en el nombre',source:'Texto del nombre, sin referencia de recipiente',url:'',level:'sample_only',
-   fields:{sample,vessel:'',colorName:'',color:'',shape:'',fasting:'',conditions:'',instructions:''}};
+   fields:{sample,vessel:'',colorName:'',color:'',shape:'',volume:'',method:'',fasting:'',conditions:'',instructions:''}};
  }
- const editable=['sample','vessel','colorName','shape','fasting','conditions','instructions'];
+ const editable=['sample','vessel','colorName','shape','volume','method','fasting','conditions','instructions'];
  function isLegacyPlaceholder(test){
   // Importación histórica asignaba Verde/tube sin conocer muestra ni recipiente.
   // Una configuración real, aprobada o con datos clínicos, no se considera placeholder.
@@ -165,7 +165,7 @@
  const $=id=>document.getElementById(id);
  let listOpen=false,initialized=false;
  const formFields={sample:'testSample',vessel:'testVessel',colorName:'testColorName',
-  color:'testColor',shape:'testShape',fasting:'testFasting',conditions:'testConditions',instructions:'testInstructions'};
+  color:'testColor',shape:'testShape',volume:'testVolume',method:'testMethod',fasting:'testFasting',conditions:'testConditions',instructions:'testInstructions'};
  const member=()=>window.FleboAuth?.membership;
  const authorized=()=>member()?.active===true&&member()?.role==='admin';
  function catalog(){const rows=window.FleboAppState?.get?.()?.catalog;return Array.isArray(rows)?rows:[];}
