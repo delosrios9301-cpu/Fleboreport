@@ -158,7 +158,7 @@
    const info=$('hvOrderPdfInfo');
    if(info)info.textContent=file.name+' · '+(file.size/1024/1024).toFixed(1)+' MB · seleccionado como adjunto de la visita.';
    if(file.size>STORAGE_BYTES){
-    status('PDF seleccionado. Supera los 50 MB que admite actualmente el almacenamiento gratuito. Para guardarlo, reduce su tamaño; no se descartará hasta que lo reemplaces.','error');
+    status('PDF seleccionado, pero supera los 50 MB del almacenamiento. Puedes guardar el domicilio sin adjuntarlo y agregar después una versión más pequeña.','error');
     return;
    }
    if(file.size>RECOGNITION_BYTES){
@@ -188,10 +188,10 @@
   const heading=el('div','hv-order-heading');
   heading.append(el('strong','', 'Orden médica en PDF'),
    el('small','', 'Opcional · se conservará como documento privado del domicilio'));
-  const input=el('input');input.type='file';input.id='hvOrderPdfFile';
+  const input=el('input');input.type='file';input.id='hvOrderPdfFile';input.required=false;
   input.accept='.pdf,application/pdf';input.setAttribute('aria-label','Adjuntar PDF con pruebas solicitadas');
   input.addEventListener('change',handleFile);
-  const info=el('p','hv-order-help','Selecciona el PDF de la orden (sin límite para elegirlo). Los archivos de hasta 50 MB pueden guardarse; los muy grandes no se analizan automáticamente.');
+  const info=el('p','hv-order-help','Puedes guardar el domicilio sin adjuntar una orden. Selecciona las pruebas manualmente o añade un PDF opcional para detectarlas. Los archivos de hasta 50 MB pueden almacenarse.');
   info.id='hvOrderPdfInfo';
   const message=el('p','hv-order-status','No se ha seleccionado ninguna orden.');message.id='hvOrderStatus';message.setAttribute('role','status');
   const retry=el('button','hv-order-catalog-retry','Reintentar búsqueda en catálogo');
