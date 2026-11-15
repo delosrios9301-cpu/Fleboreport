@@ -258,6 +258,16 @@
    ?'Datos identificados sincronizados. Los campos sin protocolo específico permanecen sin definir.'
    :'Cambios guardados localmente; sincronización pendiente. Los campos desconocidos siguen sin definir.';
  }
+ let autoCompleting=false;
+ async function autoCompleteFromCloud(){
+  // Solo tras recibir la versión actual de la nube y con permisos administrativos.
+  // Sin aprobaciones ni cambios en la disponibilidad (activa/inactiva).
+  if(autoCompleting||!authorized()||!window.FleboCloudSync?.status?.ready)return;
+  if(!catalog().some(item=>eligible(item)))return;
+  autoCompleting=true;
+  try{await applyReviewedBatch();}
+  finally{autoCompleting=false;}
+ }
  let reviewQuery='',reviewMode='all',reviewLimit=60;
  function renderReviewRows(){
   const host=$('catalogAutoReviewRows'),summary=$('catalogAutoReviewSummary');
@@ -394,6 +404,8 @@
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
  window.addEventListener('flebo:auth-changed',refresh);
+ window.addEventListener('flebo:cloud-sync-ready',()=>{refresh();void autoCompleteFromCloud();});
+ window.addEventListener('flebo:cloud-state-applied',()=>{refresh();});
  window.addEventListener('focus',refresh);
- window.FleboAutoConfig={updateForm,refresh,applyToForm};
+ window.FleboAutoConfig={updateForm,refresh,applyToForm,autoCompleteFromCloud};
 })();
