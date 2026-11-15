@@ -74,7 +74,7 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
  assert.match(ui,/createElement\('input'\)|el\('input'\)/);
 });
 test('La visita se guarda antes de adjuntar su PDF y se distingue el fallo de carga',()=>{
- const i=dom.indexOf('const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()');
+ const i=dom.indexOf('const orderPdf=oversizedOrder?null:pendingOrder');
  const created=dom.indexOf('if(!await save(v))');
  const uploaded=dom.indexOf('uploadVisitDocument(v.id,orderPdf,{quiet:true,onProgress:');
  const reset=dom.indexOf("selected=v.id;activeTab='agenda';reset();render();",created);
