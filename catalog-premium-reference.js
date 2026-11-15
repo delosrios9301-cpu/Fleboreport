@@ -31,6 +31,8 @@
  }
  function recordFor(row,records){
   // La tarjeta actual tiene ID en onclick="editTest('id')"; no se cambia ese handler.
+  const fromData=row.dataset?.catalogId;
+  if(fromData)return records.find(x=>String(x.id)===String(fromData))||null;
   const b=row.querySelector('.list-actions button[onclick]');
   const raw=b?.getAttribute('onclick')||'';
   const match=raw.match(/editTest\('((?:\\'|[^'])*)'\)/);
@@ -76,11 +78,11 @@
   if(action){
    action.classList.add('cpr-edit-action');
    if(!action.querySelector('.cpr-action-chevron')){
-    action.textContent='Ver / Editar';
+    action.textContent='Ver ficha';
     const span=make('span','cpr-action-chevron');span.innerHTML=icon('arrow');
     action.append(span);
    }
-   action.setAttribute('aria-label','Ver o editar '+(record?.name||copy?.querySelector('strong')?.textContent||'prueba'));
+   action.setAttribute('aria-label','Consultar información de '+(record?.name||copy?.querySelector('strong')?.textContent||'prueba'));
   }
  }
  function updateList(){
