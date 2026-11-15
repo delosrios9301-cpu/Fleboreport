@@ -1,0 +1,351 @@
+/* FleboReport · Apariencia institucional PIZARRA
+   2026-11-14 · Capa visual final, no modifica comportamiento ni permisos.
+   Paleta: pizarra #29343C, azul acero #465E6B, acento #65818F,
+   lienzo #F3F5F6, superficie #FFFFFF, línea #DCE3E6.
+   Se cargará después de los estilos existentes; solamente media screen. */
+@media screen {
+ html:root {
+  --navy:#29343C!important;--navy2:#364954!important;
+  --blue:#465E6B!important;--teal:#65818F!important;
+  --mint:#EEF2F3!important;--ink:#29343C!important;
+  --muted:#65747D!important;--line:#DCE3E6!important;
+  --bg:#F3F5F6!important;--white:#FFFFFF!important;
+  --vc-violet:#465E6B!important;--vc-indigo:#29343C!important;
+  --vc-aqua:#7B9BA8!important;--vc-ink:#29343C!important;
+  --vc-muted:#65747D!important;--vc-border:#DCE3E6!important;
+  --fr-premium-navy:#29343C!important;
+  --fr-premium-teal:#65818F!important;
+  --fr-premium-teal-deep:#465E6B!important;
+  --fr-premium-bg:#F3F5F6!important;
+  --fr-premium-ink:#29343C!important;
+  --fr4-violet:#465E6B!important;--fr4-violet-2:#65818F!important;
+  --fr4-aqua:#8EAAB6!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .main,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+  background:#F3F5F6!important;color:#29343C!important;
+ }
+ /* Encabezado silencioso; iconos, botones y campana siguen en su lugar. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar {
+  background:#F8FAFA!important;
+  border-bottom:1px solid #DCE3E6!important;
+  box-shadow:0 1px 7px rgba(41,52,60,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::after {
+  background:#B7C7CF!important;opacity:.5!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::before {
+  opacity:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar
+ :is(.fr2-brand-copy strong,.fr2-current-area,.fr2-brand-link) {
+  color:#29343C!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar
+ .fr2-brand-copy small {color:#65747D!important;text-shadow:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar
+ .fr2-brand-mark{
+  background:#465E6B!important;border-color:#465E6B!important;
+  box-shadow:none!important;color:#FFFFFF!important;
+ }
+ /* Menú ejecutivo: filas legibles en lugar de esferas brillantes.
+    Se conservan el HTML, apertura, roles, navegación y la campana. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation{
+  background:linear-gradient(180deg,#29343C 0%,#303F49 100%)!important;
+  border-right:1px solid #465866!important;
+  box-shadow:3px 0 15px rgba(27,38,46,.12)!important;
+  color:#DCE5E9!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::before,
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::after {
+  content:none!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.bubble-atmosphere,.bubble-atmosphere-orb){
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .module-menu-head {
+  border-bottom:1px solid #53636D!important;
+  box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .drawer-brand-mark{
+  background:#465E6B!important;border:1px solid #6E8592!important;
+  box-shadow:none!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .drawer-brand-copy strong{
+  color:#FFFFFF!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .drawer-brand-copy small{color:#B6C5CC!important;text-shadow:none!important;}
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list {
+  padding:6px 7px 13px!important;gap:4px!important;
+  scrollbar-color:#758891 transparent!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group{padding:3px 0 9px!important;}
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group>summary {
+  color:#B9C7CE!important;text-shadow:none!important;
+  font-size:10px!important;letter-spacing:1px!important;
+  min-height:30px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group>summary::after{
+  opacity:.65!important;background:#627680!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group>summary svg{color:#B9C7CE!important;stroke:currentColor!important;}
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group-items{gap:3px!important;padding:2px 0 7px!important;}
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]):not([aria-hidden="true"]){
+  display:flex!important;align-items:center!important;min-width:0!important;
+  min-height:45px!important;gap:10px!important;
+  padding:5px 10px!important;margin:0!important;
+  border:1px solid transparent!important;border-radius:11px!important;
+  background:transparent!important;box-shadow:none!important;
+  transform:none!important;filter:none!important;
+  transition:background .16s ease,border-color .16s ease!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon{
+  display:grid!important;place-items:center!important;
+  flex:0 0 34px!important;width:34px!important;min-width:34px!important;
+  height:34px!important;margin:0!important;border-radius:10px!important;
+  border:1px solid #596F7B!important;background:#3A4C57!important;
+  box-shadow:none!important;color:#DCE5E9!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon svg{
+  width:19px!important;height:19px!important;
+  stroke:currentColor!important;color:inherit!important;
+  filter:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-copy{
+  display:flex!important;align-items:center!important;
+  flex:1 1 0!important;width:auto!important;
+  min-width:0!important;max-width:none!important;min-height:0!important;
+  margin:0!important;padding:0!important;
+  color:#DCE5E9!important;font-size:12px!important;font-weight:610!important;
+  line-height:1.3!important;text-shadow:none!important;text-align:left!important;
+  background:transparent!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;white-space:normal!important;
+  writing-mode:horizontal-tb!important;overflow-wrap:normal!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):hover{
+  background:#394D59!important;border-color:#4B6270!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]){
+  background:#465E6B!important;border:1px solid #6B8795!important;
+  color:#FFFFFF!important;box-shadow:inset 3px 0 #A9C3CF!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-icon{
+  background:#DCE7EC!important;border-color:#DCE7EC!important;
+  color:#29343C!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-copy{
+  background:transparent!important;color:#FFFFFF!important;
+  border:0!important;box-shadow:none!important;text-shadow:none!important;
+  font-weight:750!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .drawer-footer{
+  background:#354550!important;border:1px solid #4D626E!important;
+  border-radius:11px!important;min-height:0!important;
+  color:#C9D5DA!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ #fleboGlobalSignOut{
+  color:#E5EDF0!important;background:#394A55!important;
+  border:1px solid #617580!important;
+  box-shadow:none!important;border-radius:11px!important;
+  font-size:12px!important;font-weight:720!important;
+  min-height:43px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.module-menu-close,.bubble-notification){
+  background:#425663!important;color:#FFFFFF!important;
+  border:1px solid #6B8592!important;
+  box-shadow:none!important;border-radius:11px!important;
+ }
+ /* Garantizar que el cambio visual no revele acciones sin permisos. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav][hidden],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav][aria-hidden="true"],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav][disabled],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group[hidden],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-group:not([open])>.nav-group-items {display:none!important;}
+ /* Superficies neutras en todos los módulos, sin desactivar estados clínicos. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel,.form-panel,.op-panel,.report-card,.catalog-card,
+ .clinical-panel,.rhr-panel,.fr-config-card){
+  border-color:#DCE3E6!important;background:#FFFFFF!important;
+  box-shadow:0 4px 14px rgba(41,52,60,.045)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel-head,.op-panel-header,.fr-config-card>header){
+  border-color:#E3E9EB!important;
+  background:#F8FAFA!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel-head h2,.form-panel h2,.page-heading h1){
+  color:#29343C!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.field label,.fr-config-field label){
+  color:#485C67!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.field input,.field select,.field textarea,
+ .fr-config-field input,.fr-config-field select,.fr-config-field textarea){
+  color:#29343C!important;background:#FFFFFF!important;
+  border-color:#CFD9DE!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.btn.primary,.btn.blue,button.primary):not(.danger){
+  background:linear-gradient(135deg,#465E6B,#354A56)!important;
+  color:#FFFFFF!important;border-color:#465E6B!important;
+  box-shadow:0 2px 7px rgba(41,52,60,.12)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen .btn:not(.primary):not(.blue):not(.danger):not(.success):not(.warning){
+  background:#F7F9F9!important;color:#29343C!important;
+  border-color:#CBD7DC!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.page-heading,.op-hero){
+  box-shadow:none!important;
+ }
+ /* El conjunto de indicadores queda sobrio y legible (no toca alertas por
+    vencimiento, urgencia, estado de muestras ni semáforos). */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis>.op-kpi,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis>.stat-card,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpi {
+  background:linear-gradient(135deg,#465E6B,#354A56)!important;
+  color:#FFFFFF!important;border-color:#536C79!important;
+  box-shadow:0 4px 11px rgba(41,52,60,.10)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis>.stat-card :is(strong,small),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpi :is(strong,small),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis>.op-kpi :is(strong,small){
+  color:#FFFFFF!important;
+ }
+ /* Configuración: la referencia violeta se neutraliza sin borrar tarjetas. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready{
+  background:#F3F5F6!important;
+  --sr-ink:#29343C!important;--sr-muted:#65747D!important;
+  --sr-purple:#465E6B!important;--sr-cyan:#65818F!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-title-group h1,.sr-detail-heading h2,
+ .sr-card-caption strong,.fr-config-card h2,.fr-config-card h3){
+  color:#29343C!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-card-caption small,
+ .sr-detail-heading p){
+  color:#65747D!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-title-icon{
+  color:#465E6B!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-title-dots i{
+  background:#C9D5DB!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-title-dots i.selected{
+  background:#65818F!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card.sr-cyan{
+  --sr-accent:#465E6B!important;
+  --sr-wave:linear-gradient(100deg,#E7EEF1,#DCE6EB)!important;
+  background:#FFFFFF!important;border-color:#DCE3E6!important;
+  color:#29343C!important;box-shadow:0 4px 14px rgba(41,52,60,.065)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card::before,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card::after{
+  opacity:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-card-icon,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-cyan .sr-card-icon{
+  color:#465E6B!important;background:#E9EFF2!important;
+  border-color:#D1DEE4!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-card-divider,.sr-card-chevron){
+  color:#718A98!important;border-color:#DCE3E6!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-detail-header,.fr-config-card,
+ .settings-section .panel.form-panel,.fr-na-card){
+  background:#FFFFFF!important;border-color:#DCE3E6!important;
+  box-shadow:0 4px 14px rgba(41,52,60,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-detail-tab,.sr-detail-back){
+  background:#EFF3F4!important;color:#344956!important;
+  border-color:#D2DDE2!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-tab.is-current{
+  background:#465E6B!important;color:#FFFFFF!important;
+  border-color:#465E6B!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-icon{
+  color:#465E6B!important;background:#E9EFF2!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-icon.sr-cyan{
+  color:#465E6B!important;background:#E9EFF2!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready
+ :is(.fr-config-card,.settings-section .panel.form-panel) .btn.primary {
+  background:#465E6B!important;border-color:#465E6B!important;
+  color:#FFFFFF!important;box-shadow:none!important;
+ }
+}
+/* Vista móvil: mismos colores y botones, sin alterar el menú desplegable. */
+@media screen and (max-width:760px){
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon{
+  width:36px!important;height:36px!important;min-width:36px!important;
+  flex-basis:36px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-copy{
+  font-size:12px!important;
+ }
+}
