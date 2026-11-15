@@ -121,7 +121,9 @@ test('Utiliza el catálogo maestro que Jornada y la agenda de Domicilios ya cons
  assert.match(ui,/window\.FleboHomeCatalogRefresh\(\)/);
  assert.match(reference,/window\.FleboAppState\?\.get\?\.\(\)\?\.catalog/);
  assert.match(html,/const item=\{id,name,code:previous&&previous\.code\|\|''/);
- assert.match(html,/return\[t\.name,t\.code,t\.testCode,t\.sample/);
+ assert.match(html,/normalizeCatalogSearch\(\[t\.name,t\.code,t\.testCode,t\.sample/);
+ assert.match(html,/const matching=active\.filter/);
+ assert.match(html,/const visible=matching\.slice\(0,catalogListLimit\)/);
  assert.doesNotMatch(ui,/create table|create extension|create policy/);
 });
 
