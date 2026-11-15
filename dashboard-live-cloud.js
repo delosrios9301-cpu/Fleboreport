@@ -1,5 +1,5 @@
 /* FleboReport · Dashboard sincronizado por módulo (solo lectura, respetando RLS).
-   Los contadores de Inicio nunca usan localStorage como fuente de verdad. */
+   Los contadores de Inicio usan únicamente consultas autorizadas de la nube. */
 (function(root,factory){
  'use strict';
  const core=factory();
