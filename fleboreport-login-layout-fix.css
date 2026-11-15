@@ -1,0 +1,82 @@
+/* FleboReport · Reparación de acceso responsive · 2026-11-14.
+   El tema anterior ocultaba .flebo-login-art pero dejaba al panel con DOS columnas.
+   La única .flebo-login-card se ubicaba en la primera columna (~100px útiles),
+   mientras el resto de la tarjeta quedaba vacío. No se modifican autenticación,
+   botones, eventos ni contenido del formulario. */
+@media screen {
+ html:root #fleboAuthGate:not([hidden]) #fleboAuthMount {
+  box-sizing:border-box!important;
+  width:min(100%,520px)!important;
+  max-width:520px!important;
+  min-width:0!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) #fleboAuthPanel {
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:center!important;
+  grid-template-columns:none!important;
+  width:100%!important;
+  max-width:520px!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) .flebo-login-art {
+  display:none!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) .flebo-login-card {
+  box-sizing:border-box!important;
+  flex:0 1 470px!important;
+  width:min(100%,470px)!important;
+  max-width:470px!important;
+  min-width:0!important;
+  margin:0 auto!important;
+  padding:36px 34px!important;
+  border:1px solid #D3DEE7!important;
+  border-radius:28px!important;
+  background:#FFFFFF!important;
+  color:#2B3137!important;
+  box-shadow:0 22px 60px rgba(43,49,55,.14)!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) :is(.flebo-login-heading,#fleboAuthForm,.flebo-input-row,.flebo-login-options,.flebo-login-help) {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) .flebo-input-row input {
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ html:root #fleboAuthGate:not([hidden]) #fleboAuthSignIn {
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  border-color:#536F85!important;
+  background:linear-gradient(110deg,#536F85,#384B5B)!important;
+  color:#FFFFFF!important;
+ }
+ @media (max-width:760px) {
+  html:root #fleboAuthGate:not([hidden]) #fleboAuthMount {
+   width:min(100%,470px)!important;
+  }
+  html:root #fleboAuthGate:not([hidden]) .flebo-login-card {
+   flex:1 1 100%!important;
+   width:100%!important;
+   max-width:470px!important;
+   padding:30px 22px!important;
+  }
+ }
+ @media (max-width:380px) {
+  html:root #fleboAuthGate:not([hidden]) .flebo-login-card {
+   padding:26px 17px!important;
+  }
+ }
+}
