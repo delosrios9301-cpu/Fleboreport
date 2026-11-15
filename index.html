@@ -1173,6 +1173,44 @@ function catalogSearchMatches(t,term){
 }
 
 function showMoreCatalog(){catalogListLimit+=70;renderCatalog();}
+function showCatalogDetails(id){
+ const test=state.catalog.find(t=>t&&String(t.id)===String(id)&&t.active!==false);
+ if(!test)return;
+ let wrap=$('catalogDetailsDialog');
+ if(!wrap){
+  wrap=document.createElement('div');wrap.id='catalogDetailsDialog';wrap.className='catalog-details-overlay';wrap.hidden=true;
+  const panel=document.createElement('section');panel.className='catalog-details-panel';
+  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-labelledby','catalogDetailsTitle');
+  const head=document.createElement('header');head.className='catalog-details-head';
+  const title=document.createElement('h2');title.id='catalogDetailsTitle';head.append(title);
+  const close=document.createElement('button');close.type='button';close.className='btn catalog-details-close';
+  close.textContent='Cerrar';close.addEventListener('click',()=>{wrap.hidden=true;});
+  head.append(close);panel.append(head);
+  const body=document.createElement('div');body.id='catalogDetailsBody';body.className='catalog-details-body';
+  panel.append(body);wrap.append(panel);document.body.append(wrap);
+  wrap.addEventListener('click',event=>{if(event.target===wrap)wrap.hidden=true;});
+  wrap.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();wrap.hidden=true;}});
+ }
+ $('catalogDetailsTitle').textContent=test.name||'Detalle de prueba';
+ const content=$('catalogDetailsBody');content.replaceChildren();
+ const rows=[
+  ['Estado','Activa'],['Tipo de muestra',test.sample||'Sin definir'],
+  ['Recipiente',test.vessel||'Sin definir'],
+  ['Color del tubo',test.vessel&&test.colorName?test.colorName:'Sin definir / no aplica'],
+  ['Volumen requerido',test.volume||'Sin definir'],
+  ['Ayuno o preparación',test.fasting||'Sin definir'],
+  ['Condiciones de toma',test.conditions||'Sin definir'],
+  ['Método',test.method||'Sin definir'],
+  ['Indicaciones adicionales',test.instructions||'Sin definir']
+ ];
+ for(const [label,value] of rows){
+  const row=document.createElement('div');row.className='catalog-details-row';
+  const caption=document.createElement('strong');caption.textContent=label;
+  const answer=document.createElement('span');answer.textContent=value;
+  row.append(caption,answer);content.append(row);
+ }
+ wrap.hidden=false;wrap.querySelector('.catalog-details-close')?.focus();
+}
 function renderCatalog(){
  const list=$('catalogList'),settings=$('settingsCatalogList'),archivePanel=$('catalogArchivedPanel'),archiveList=$('catalogArchivedList');
  if(!list)return;
@@ -1197,7 +1235,7 @@ function renderCatalog(){
  if($('catalogMetricPending'))$('catalogMetricPending').textContent=archived.length;
  if($('catalogMetricVessels'))$('catalogMetricVessels').textContent=active.filter(function(t){return!!String(t.vessel||'').trim()}).length;
  const empty=term?'<div class="empty-state">No hay pruebas que coincidan con esa búsqueda.</div>':'<div class="empty-state">No hay pruebas activas. Crea la primera prueba para configurar el catálogo.</div>';
- list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+'<span class="badge">Activa</span>'+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button></span></article>'}).join(''):empty;
+ list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item" data-catalog-id="'+esc(t.id)+'"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+'<span class="badge">Activa</span>'+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="showCatalogDetails(\''+esc(t.id)+'\')">Ver ficha</button></span></article>'}).join(''):empty;
  // Una búsqueda muestra sus resultados inmediatamente sin procesar miles de tarjetas.
  const feedback=document.createElement('div');feedback.className='catalog-search-results';feedback.setAttribute('role','status');
  feedback.textContent=term?matching.length+' coincidencia(s) para «'+$('catalogSearch').value.trim()+'»':matching.length+' prueba(s) en este filtro';
