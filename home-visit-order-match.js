@@ -34,7 +34,7 @@
    if(n.length<3||n.length>125||irrelevant.test(n)||reject.test(n)||/^\d+$/.test(n)||seen.has(n))continue;
    seen.add(n);
    // 1) Igualdad exacta de nombre, 2) código exacto, 3) código + nombre.
-   let matches=nameMap.get(n)||codeMap.get(n)||[];
+   let matches=[...(nameMap.get(n)||[]),...(codeMap.get(n)||[])];
    if(!matches.length){
     matches=tests.filter(t=>{
      if(!t.n||t.n.length<6)return false;
