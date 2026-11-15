@@ -22,6 +22,15 @@
   margin:0 auto!important;justify-self:center!important;
   align-self:start!important;
  }
+ /* ¡Importante! Los domicilios sin acción de archivar son tarjetas
+    DIRECTAS, no .hv-swipe-row. Deben crecer exactamente igual. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list
+ >.hv-ref-visit {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:980px!important;min-width:0!important;
+  margin:0 auto!important;justify-self:center!important;align-self:start!important;
+ }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows)
  .hv-swipe-content, 
@@ -63,6 +72,11 @@
  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list>.hv-swipe-row {
   width:100%!important;max-width:760px!important;min-width:0!important;
   justify-self:center!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list>.hv-ref-visit {
+  box-sizing:border-box!important;width:100%!important;max-width:760px!important;
+  min-width:0!important;justify-self:center!important;margin-inline:auto!important;
  }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
  #view-domicilios #hvWorkspace>#hvCreatePanel:not([hidden]) {
@@ -115,6 +129,38 @@
   border-radius:11px!important;background:#963D47!important;
   color:#FFFFFF!important;font-size:12px!important;
   box-shadow:none!important;
+ }
+ /* Cinta horizontal: información del paciente a la izquierda,
+    ruta y seguimiento a la derecha, para fichas directas y con archivo. */
+ @media screen and (min-width:1280px) {
+  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-visit {
+   display:grid!important;
+   grid-template-columns:minmax(0,1.12fr) minmax(250px,.82fr)!important;
+   grid-template-areas:"identity actions" "details actions" "priority actions"!important;
+   grid-template-rows:auto auto minmax(0,auto)!important;
+   column-gap:23px!important;row-gap:13px!important;
+   align-items:center!important;min-height:170px!important;
+  }
+  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-top {
+   grid-area:identity!important;min-width:0!important;
+  }
+  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-meta {
+   grid-area:details!important;min-width:0!important;
+  }
+  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-priority {
+   grid-area:priority!important;
+  }
+  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+  #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows) .hv-ref-actions {
+   grid-area:actions!important;max-width:none!important;
+   display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+   align-self:center!important;justify-self:stretch!important;
+   gap:10px!important;margin:0!important;padding:0!important;
+  }
  }
  /* Con más espacio la información no debe quedar cortada con elipsis. */
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
