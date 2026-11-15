@@ -28,9 +28,16 @@ test('Reconocimiento exacto y muestra + recipiente + color + forma con fuente',(
 });
 
 test('Nombres desconocidos o ambiguos nunca producen configuraciones falsas',()=>{
- for(const name of ['Glucosa','Creatinina','HCG','Orina','Coprológico','', 'Hemograma para mascotas']){
+ for(const name of ['Glucosa','Creatinina','HCG','', 'Hemograma para mascotas']){
   assert.equal(core.suggest(name),null,name);
  }
+ const sample=core.suggest('Ácido úrico urinario');
+ assert.equal(sample.level,'sample_only');
+ assert.equal(sample.fields.sample,'Orina');
+ assert.equal(sample.fields.vessel,'');
+ assert.equal(sample.fields.colorName,'');
+ assert.equal(sample.fields.color,'');
+ assert.equal(core.suggest('Coprológico').fields.sample,'Heces');
 });
 
 test('Propuestas preservan datos existentes y no alteran protocolos confirmados',()=>{
@@ -119,13 +126,78 @@ test('Buscar prueba funciona sin acentos y con listado limitado a 70 tarjetas',(
 test('Preparación agrupada requiere autorización y confirmación y conserva pendientes clínicos',()=>{
  assert.match(auto,/async function applyReviewedBatch\(\)/);
  assert.match(auto,/if\(!authorized\(\)\)return/);
- assert.match(auto,/window\.confirm\('Se propondrá la configuración/);
+ assert.match(auto,/window\.confirm\('Se prepararán '/);
  assert.match(auto,/state\.catalog\[index\]=\{\.\.\.item,\.\.\.match\.fields,validated:false/);
  assert.match(auto,/if\(!api\.save\(\)\)/);
  assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
  assert.match(auto,/name\.addEventListener\('change',\(\)=>\{applyToForm\(\);updateForm\(\);\}\)/);
  assert.match(html,/window\.FleboAutoConfig\?\.applyToForm\?\.\(\)/);
  assert.match(html,/Recipiente por configurar/);
+});
+
+
+test('Amplía propuestas específicas sin inventar color en analíticas con tubos alternativos',()=>{
+ assert.ok(core.referenceCount>=17,'La biblioteca ampliada incluye al menos 17 fichas');
+ for(const [name,sample] of [
+  ['TSH ultrasensible','Suero'],['Tiroxina libre (T4 libre)','Suero'],
+  ['Ferritina','Suero'],['Colesterol total','Suero'],['Creatinina sérica','Suero'],
+  ['Triglicéridos','Suero'],['PSA total','Suero'],['Beta-hCG cuantitativa','Suero'],
+  ['Glucosa aleatoria','Suero'],['ACTH plasmática','Plasma EDTA']
+ ]){
+  const p=core.suggest(name);
+  assert.ok(p,'No reconoció '+name);
+  assert.equal(p.level,'specific');
+  assert.equal(p.fields.sample,sample);
+  assert.ok(p.fields.vessel,'Falta recipiente: '+name);
+  assert.match(p.url,/mayocliniclabs\.com/);
+ }
+ assert.equal(core.suggest('TSH ultrasensible').fields.colorName,'');
+ assert.equal(core.suggest('Ferritina').fields.colorName,'');
+ assert.equal(core.suggest('TSH ultrasensible').fields.color,'');
+ assert.equal(core.suggest('ACTH plasmática').fields.colorName,'Morado');
+ assert.equal(core.suggest('Tiempo de protrombina (TP)').fields.colorName,'Celeste');
+ assert.equal(core.suggest('Hemograma completo (CBC)').fields.colorName,'Morado');
+});
+
+test('Muestras explícitas no infieren color o aditivo por pertenecer a una categoría',()=>{
+ for(const [name,sample] of [
+  ['Ácido úrico urinario','Orina'],
+  ['ACTH no específica en plasma','Plasma (anticoagulante por definir)'],
+  ['Beta-D-glucano sérico','Suero'],
+  ['Ascaris lumbricoides huevos en heces','Heces'],
+  ['Análisis de líquido seminal (espermatograma)','Semen'],
+  ['Aspergillus galactomanano en lavado broncoalveolar','Lavado broncoalveolar']
+ ]){
+  const found=core.suggest(name);
+  assert.ok(found,name);
+  assert.equal(found.level,'sample_only',name);
+  assert.equal(found.fields.sample,sample);
+  assert.equal(found.fields.vessel,'');
+  assert.equal(found.fields.colorName,'');
+ }
+ assert.equal(core.explicitlyNamedSample('Líquido sin definir'),'');
+ assert.equal(core.suggest('Glucosa'),null);
+});
+
+test('El verde ficticio se neutraliza sin inventar un color para muestras parciales',()=>{
+ const legacy={name:'Ácido úrico urinario',sample:'',vessel:'',colorName:'Verde',color:'#237C49',shape:'tube',validated:false};
+ const changes=core.missingFields(legacy,core.suggest(legacy.name));
+ assert.equal(changes.sample,'Orina');
+ assert.equal(changes.colorName,'');
+ assert.equal(changes.color,'#94A3B8');
+ assert.equal(changes.shape,'');
+ assert.equal(Object.keys(core.missingFields({...legacy,validated:true},core.suggest(legacy.name))).length,0);
+});
+
+test('Todas las pruebas pendientes pueden filtrarse por nivel y buscarse para revisión',()=>{
+ assert.match(auto,/Revisión de configuración de todas las pruebas/);
+ assert.match(auto,/function renderReviewRows\(\)/);
+ assert.match(auto,/reviewMode='all'/);
+ assert.match(auto,/Sin fuente suficiente/);
+ assert.match(auto,/Color por confirmar/);
+ assert.match(auto,/search\.addEventListener\('input'/);
+ assert.match(auto,/reviewLimit\+=60/);
+ assert.match(css,/catalog-auto-review-tools/);
 });
 
 test('Importación sin datos no atribuye tubo verde ni otro color clínico',()=>{
