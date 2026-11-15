@@ -1100,7 +1100,7 @@ async function saveTest(){
  const duplicate=state.catalog.find(function(t){return t.id!==id&&t.active!==false&&norm(t.name)===norm(name)&&norm(t.sample)===norm(sample)&&norm(t.vessel)===norm(vessel)});
  if(duplicate){toast('Ya existe una prueba activa con el mismo nombre, muestra y recipiente. Revisa el registro existente antes de crear otra.');$('testName').focus();return}
  const now=new Date().toISOString(),index=state.catalog.findIndex(function(t){return t.id===id}),previous=index>=0?Object.assign({},state.catalog[index]):null;
- const item={id,name,sample,vessel,color:colorFromName($('testColorName').value)||$('testColor').value,volume:$('testVolume').value.trim(),method:$('testMethod').value.trim(),instructions:$('testInstructions').value.trim(),colorName:$('testColorName').value.trim()||'Personalizado',fasting:$('testFasting').value.trim(),conditions:$('testConditions').value.trim(),validated:$('testValidated').value==='yes',shape:$('testShape').value,createdAt:previous&&previous.createdAt||now,updatedAt:now,active:previous?previous.active!==false:true};
+ const item={id,name,code:previous&&previous.code||'',sample,vessel,color:colorFromName($('testColorName').value)||$('testColor').value,volume:$('testVolume').value.trim(),method:$('testMethod').value.trim(),instructions:$('testInstructions').value.trim(),colorName:$('testColorName').value.trim()||'Personalizado',fasting:$('testFasting').value.trim(),conditions:$('testConditions').value.trim(),validated:$('testValidated').value==='yes',shape:$('testShape').value,createdAt:previous&&previous.createdAt||now,updatedAt:now,active:previous?previous.active!==false:true};
  if(index>=0)state.catalog[index]=item;else state.catalog.push(item);
  if(!save()){if(previous)state.catalog[index]=previous;else state.catalog=state.catalog.filter(function(t){return t.id!==id});return}
  renderAll();resetTestForm();toast('Prueba guardada. Verificando sincronización…');await confirmCatalogCloudSync('Prueba "'+name+'".');
@@ -1124,7 +1124,7 @@ function renderCatalog(){
  const all=Array.isArray(state.catalog)?state.catalog.filter(function(t){return t&&typeof t==='object'}):[];
  const active=all.filter(function(t){return t.active!==false}),archived=all.filter(function(t){return t.active===false});
  const term=String($('catalogSearch')&&$('catalogSearch').value||'').trim().toLocaleLowerCase('es');
- const visible=active.filter(function(t){return[t.name,t.sample,t.vessel,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' ').toLocaleLowerCase('es').includes(term)});
+ const visible=active.filter(function(t){return[t.name,t.code,t.testCode,t.sample,t.vessel,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' ').toLocaleLowerCase('es').includes(term)});
  $('catalogCount').textContent=active.length;
  if($('settingsCatalogCount'))$('settingsCatalogCount').textContent=active.length+' activas';
  if($('catalogMetricTotal'))$('catalogMetricTotal').textContent=active.length;
@@ -3622,5 +3622,9 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./fleboreport-forest-search.css?v=20261114-forest1" media="screen">
 <!-- Corrección de proporciones de Domicilios y contraste de Jornada en todos los dispositivos. -->
 <link rel="stylesheet" href="./fleboreport-home-visit-wide-journey-legible.css?v=20261115-1" media="screen">
+<!-- Importar pruebas: parser local y ventana de confirmación autorizada. -->
+<link rel="stylesheet" href="./catalog-import-ui.css?v=20261115-import1" media="screen">
+<script defer src="./catalog-import-core.js?v=20261115-import1"></script>
+<script defer src="./catalog-import-ui.js?v=20261115-import1"></script>
 <script defer src="./fleboreport-forest-search.js?v=20261114-forest1"></script>
 </body></html>

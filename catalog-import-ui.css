@@ -1,0 +1,112 @@
+/* FleboReport · Importación masiva de catálogo · Diseño verde bosque.
+   Modal independiente sin modificar tarjetas ni formulario existente. */
+@media screen {
+ #view-catalog .fr2-catalog-hero{
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  gap:10px!important;
+ }
+ #view-catalog .fr2-catalog-hero>.fr2-catalog-intro{flex:1 1 280px!important;min-width:0!important;}
+ #view-catalog .catalog-import-trigger{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:43px;padding:10px 17px;border-radius:13px;
+  color:#21543A;background:#EEF5EA;border:1px solid #BFDAC2;
+  font-size:13px;font-weight:760;box-shadow:none;
+ }
+ #view-catalog .catalog-import-trigger:hover{background:#DCEED9;border-color:#90BC9B;}
+ #view-catalog .catalog-import-trigger[hidden]{display:none!important;}
+ .catalog-import-overlay[hidden]{display:none!important;}
+ .catalog-import-overlay{
+  position:fixed!important;inset:0!important;z-index:30000!important;
+  display:flex;align-items:center;justify-content:center;
+  padding:clamp(12px,3vw,34px);background:rgba(13,38,24,.62);
+  overflow:auto;overscroll-behavior:contain;
+ }
+ body.catalog-import-open{overflow:hidden!important;}
+ .catalog-import-panel{
+  box-sizing:border-box;display:flex;flex-direction:column;gap:15px;
+  width:min(100%,840px);max-height:min(92dvh,960px);min-height:0;
+  margin:auto;padding:clamp(16px,2.7vw,28px);
+  border:1px solid #D9E6D9;border-radius:22px;
+  background:#FFFEFC;color:#182A21;
+  box-shadow:0 22px 75px rgba(8,36,20,.25);
+  overflow:auto;scrollbar-color:#A8C6B0 transparent;
+ }
+ .catalog-import-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;}
+ .catalog-import-heading small{font-size:11px;font-weight:800;letter-spacing:.08em;color:#39734F;}
+ .catalog-import-heading h2{
+  margin:5px 0 8px;font-size:clamp(20px,2.6vw,28px);color:#172B1F;
+  line-height:1.16;overflow-wrap:normal;word-break:normal;
+ }
+ .catalog-import-heading p,.catalog-import-hint{margin:0;color:#4D6257;font-size:13px;line-height:1.5;}
+ .catalog-import-close{
+  display:grid;place-items:center;flex:0 0 39px;width:39px;height:39px;
+  border:1px solid #DBE7D9;border-radius:11px;background:#F3F7F1;
+  color:#28563B;font-size:24px;cursor:pointer;
+ }
+ .catalog-import-tools{display:flex;gap:10px;flex-wrap:wrap;}
+ .catalog-import-tools button,.catalog-import-footer button{
+  min-height:42px;border-radius:12px;padding:10px 16px;
+  font-size:13px;font-weight:730;cursor:pointer;
+ }
+ .catalog-import-select,.catalog-import-confirm{
+  background:#236648!important;color:#FFFFFF!important;border:1px solid #236648!important;
+ }
+ .catalog-import-template,.catalog-import-cancel{
+  background:#F3F8F1!important;color:#24553A!important;border:1px solid #CFDFCB!important;
+ }
+ .catalog-import-footer button:disabled{
+  opacity:.55!important;cursor:not-allowed!important;
+ }
+ .catalog-import-status{
+  font-size:13px;line-height:1.45;color:#284935;
+  background:#EEF5ED;border:1px solid #D8E7D7;
+  border-radius:11px;padding:11px 12px;margin:0;
+  overflow-wrap:anywhere;
+ }
+ .catalog-import-summary{display:flex;flex-wrap:wrap;gap:8px;}
+ .catalog-import-summary span{
+  border:1px solid #DDE8DD;border-radius:999px;padding:7px 11px;
+  font-size:12px;font-weight:760;
+ }
+ .catalog-import-new{background:#E3F2DF;color:#255D39;}
+ .catalog-import-duplicate{background:#F8F0DD;color:#735019;}
+ .catalog-import-invalid{background:#F9E9E9;color:#8D3A40;}
+ .catalog-import-preview{
+  overflow:auto;max-height:360px;border:1px solid #DEE9DD;
+  border-radius:13px;background:#FFFFFF;
+ }
+ .catalog-import-preview table{
+  width:100%;border-collapse:collapse;text-align:left;font-size:12px;
+ }
+ .catalog-import-preview th{
+  position:sticky;top:0;z-index:1;background:#ECF5EC;
+  color:#233D2B;font-weight:760;
+ }
+ .catalog-import-preview th,.catalog-import-preview td{
+  padding:10px 12px;vertical-align:top;border-bottom:1px solid #E7EEE5;
+  white-space:normal;word-break:normal;overflow-wrap:anywhere;
+ }
+ .catalog-import-preview td:nth-child(2){min-width:170px;font-weight:680;color:#172B1F;}
+ .catalog-import-new td:last-child{color:#245E3C;}
+ .catalog-import-duplicate td:last-child{color:#805A19;}
+ .catalog-import-invalid td:last-child{color:#913C45;}
+ .catalog-import-footer{
+  position:sticky;bottom:-1px;z-index:2;display:flex;justify-content:flex-end;gap:10px;
+  padding-top:12px;background:#FFFEFC;border-top:1px solid #E4EBE2;
+ }
+ .catalog-import-panel button:focus-visible{outline:3px solid #4C986C;outline-offset:3px;}
+}
+@media screen and (max-width:760px){
+ .catalog-import-overlay{align-items:flex-end;padding:0;}
+ .catalog-import-panel{
+  width:100%;max-height:93dvh;margin:0;
+  border-radius:20px 20px 0 0;padding:17px;
+ }
+ #view-catalog .catalog-import-trigger{min-height:42px;flex:0 1 auto;}
+ .catalog-import-tools button{flex:1 1 180px;}
+ .catalog-import-footer button{flex:1 1 50%;min-width:0;}
+ .catalog-import-preview{max-height:37dvh;}
+}
+@media print{
+ .catalog-import-overlay,.catalog-import-trigger{display:none!important;}
+}
