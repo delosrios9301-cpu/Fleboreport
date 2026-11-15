@@ -134,6 +134,39 @@
   if(typeof audit==='function'&&applied)audit('Catálogo de pruebas','Aplicó una propuesta sin confirmar de '+name+'; fuente: '+suggestion.source);
   const apply=$('catalogAutoApply');if(apply)apply.hidden=true;
  }
+ async function applyReviewedBatch(){
+  if(!authorized())return;
+  const api=window.FleboAppState,state=api?.get?.();
+  if(!api||!state||!Array.isArray(state.catalog))return;
+  const candidates=state.catalog.map((item,index)=>({item,index,match:eligible(item)})).filter(x=>x.match);
+  if(!candidates.length)return;
+  if(!window.confirm('Se propondrá la configuración de '+candidates.length+' prueba(s) reconocidas por nombre exacto. Solo se completarán campos vacíos y valores verdes ficticios de importaciones anteriores. Las pruebas quedarán pendientes de validación clínica; no se modificarán protocolos aprobados. ¿Continuar?'))return;
+  const old=candidates.map(x=>({index:x.index,original:x.item}));
+  const now=new Date().toISOString();
+  for(const {item,index,match} of candidates){
+   state.catalog[index]={...item,...match.fields,validated:false,updatedAt:now,autoConfigSource:match.proposal.source,autoConfigUrl:match.proposal.url};
+  }
+  if(!api.save()){
+   for(const {index,original} of old)state.catalog[index]=original;
+   window.toast?.('No se pudo guardar la configuración. No se modificó el catálogo en la nube.');
+   return;
+  }
+  api.refresh();
+  if(typeof window.auditAdd==='function'){
+   window.auditAdd('Catálogo de pruebas','Preparó '+candidates.length+' configuraciones no validadas usando referencias identificadas por nombre exacto');
+  }
+  renderList();
+  const status=$('catalogAutoBatchStatus');
+  if(status)status.textContent=candidates.length+' propuesta(s) guardadas localmente. Confirmando sincronización…';
+  let synced=false;
+  try{
+   synced=!!(window.FleboCloudSync?.syncNow&&await window.FleboCloudSync.syncNow({verify:true}));
+   if(synced&&typeof window.FleboHomeCatalogRefresh==='function')void window.FleboHomeCatalogRefresh();
+  }catch(error){console.warn('[Catálogo] Propuestas pendientes de sincronización:',error);}
+  if(status)status.textContent=synced
+   ?'Propuestas sincronizadas con la nube. Falta validarlas según el laboratorio antes de usarlas como protocolos.'
+   :'Propuestas guardadas en este dispositivo; falta confirmar sincronización con la nube. No se han declarado validadas.';
+ }
  function renderList(){
   const list=$('catalogAutoList'),count=$('catalogAutoCount'),button=$('catalogAutoOpen');
   if(!list)return;
@@ -146,6 +179,12 @@
   list.replaceChildren();
   list.append(el('h3','','Pruebas con sugerencias por revisar'));
   list.append(el('p','catalog-auto-help','Solo se muestran coincidencias exactas de la biblioteca de referencia. Revisar no modifica la prueba. La aprobación se realiza en Configuración.'));
+  const controls=el('div','catalog-auto-batch-controls');
+  const batch=el('button','btn catalog-auto-batch','Preparar '+candidates.length+' propuesta(s) reconocidas');
+  batch.type='button';batch.disabled=!candidates.length;
+  batch.addEventListener('click',()=>{void applyReviewedBatch();});
+  const status=el('p','catalog-auto-help');status.id='catalogAutoBatchStatus';status.setAttribute('role','status');
+  controls.append(batch,status);list.append(controls);
   if(!candidates.length){list.append(el('p','','No hay propuestas pendientes entre las pruebas reconocidas. Las demás requieren configuración manual.'));return;}
   for(const {item,match} of candidates.slice(0,100)){
    const row=el('article','catalog-auto-entry'),body=el('div','catalog-auto-entry-text');
