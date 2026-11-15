@@ -12,7 +12,69 @@
   return String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
    .toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
  }
+ function serumRule(id,label,aliases,url,options){
+  const opt=options||{};
+  return {id,label,aliases,sample:'Suero',
+   vessel:'Preferido: tubo separador de suero (con gel). Alternativa: tubo rojo sin gel, según laboratorio.',
+   colorName:'',color:'',shape:'tube',
+   fasting:opt.fasting||'',conditions:opt.conditions||'Separar suero y transportar según protocolo del laboratorio procesador.',
+   instructions:opt.instructions||'El color de la tapa del tubo separador no es universal. Validar marca, aditivo, tubo y recipiente de envío antes de aprobar.',
+   source:'Mayo Clinic Laboratories · '+id,url};
+ }
  const reference=Object.freeze([
+  serumRule('stsh','TSH ultrasensible',
+   ['tsh ultrasensible','tsh sensible','hormona estimulante de la tiroides tsh','tirotropina tsh','tsh serica'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/8939',
+   {conditions:'Separar suero y centrifugar según el método; Mayo indica hacerlo dentro de 2 horas.'}),
+  serumRule('frt4','Tiroxina libre T4',
+   ['tiroxina libre t4 libre','t4 libre','tiroxina libre','free t4'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/8725',
+   {fasting:'Consultar al laboratorio sobre suplementos con biotina antes de la toma.'}),
+  serumRule('t3','Triyodotironina total T3',
+   ['triyodotironina total t3','t3 total','triyodotironina total'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/8613'),
+  serumRule('ferr1','Ferritina',
+   ['ferritina','ferritina serica'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/619953',
+   {fasting:'Revisar suplementos con biotina: Mayo recomienda evitar suplementos que la contengan 12 horas antes; confirmar protocolo local.'}),
+  serumRule('chol','Colesterol total',
+   ['colesterol total','colesterol total serico'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/8320'),
+  serumRule('trig1','Triglicéridos',
+   ['trigliceridos','trigliceridos sericos'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/616665',
+   {fasting:'Registrar si el paciente está en ayunas; requerimiento depende del perfil y del laboratorio.'}),
+  serumRule('crts1','Creatinina sérica',
+   ['creatinina serica','creatinina en suero'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/48216'),
+  serumRule('psa','PSA total',
+   ['antigeno prostatico especifico total psa total','psa total','antigeno prostatico especifico total'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/9284'),
+  serumRule('bhcg','Beta-hCG cuantitativa',
+   ['beta hcg cuantitativa','beta hcg cuantitativa serica','beta gonadotropina corionica cuantitativa'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/61718',
+   {fasting:'Confirmar posibles interferencias por biotina y uso clínico del ensayo con el laboratorio.'}),
+  serumRule('glura','Glucosa aleatoria',
+   ['glucosa aleatoria','glucosa al azar'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/89115',
+   {fasting:'Sin ayuno requerido por tratarse de glucosa aleatoria; registrar hora y alimentación según laboratorio.'}),
+  serumRule('sfec','Hierro y capacidad total de fijación',
+   ['hierro serico','hierro y capacidad de fijacion','hierro y capacidad total de fijacion'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/621385',
+   {fasting:'Ayuno de 8 horas preferible, no obligatorio según Mayo; verificar uso de suplementos de hierro con el laboratorio.'}),
+  serumRule('bmama','Panel metabólico básico',
+   ['panel metabolico basico','perfil metabolico basico'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/113630'),
+  serumRule('rfama','Panel de función renal',
+   ['perfil renal','panel de funcion renal'],
+   'https://www.mayocliniclabs.com/test-catalog/overview/113634'),
+  {id:'acth',label:'ACTH plasmática',aliases:['acth plasmatica','hormona adrenocorticotropica plasmatica'],
+   sample:'Plasma EDTA',vessel:'Tubo EDTA preenfriado (tapa lila), luego alícuota de plasma en vial según laboratorio.',
+   colorName:'Morado',color:'#9670BD',shape:'tube',
+   fasting:'Consultar suplementación con biotina con el laboratorio.',
+   conditions:'Referencia Mayo: toma preferentemente en la mañana, tubo frío y transporte sobre hielo; centrifugación refrigerada y congelación del plasma.',
+   instructions:'Requiere manejo preanalítico urgente; confirmar recursos y estabilidad antes de programar.',
+   source:'Mayo Clinic Laboratories · ACTH',url:'https://www.mayocliniclabs.com/test-catalog/Overview/800208'},
   {id:'cbc',label:'Hemograma completo',aliases:['hemograma','hemograma completo','biometria hematica','cuadro hematico','cbc','hemograma con diferencial','hemograma completo con diferencial','hemograma completo cbc','hemograma completo con formula leucocitaria'],
    sample:'Sangre total con EDTA',vessel:'Tubo con EDTA (tapa lila)',colorName:'Morado',
    color:'#9670BD',shape:'tube',fasting:'No suele requerir ayuno si se realiza solo el hemograma; confirmar si se solicitan otros exámenes.',conditions:'Evitar coágulos; conservar y transportar según el protocolo del laboratorio procesador.',
@@ -36,15 +98,37 @@
    instructions:'Confirmar si la muestra se transportará en envase estéril o en tubo de transporte con conservante.',
    source:'Mayo Clinic Laboratories · URNS',url:'https://www.mayocliniclabs.com/test-catalog/Overview/60515'}
  ]);
+ function explicitlyNamedSample(name){
+  // La inferencia es estrictamente del tipo de muestra escrito en el nombre.
+  // Nunca se deduce un aditivo ni un color por categoría (suero, orina, etc.).
+  const n=normalize(name);
+  const hints=[
+   {label:'Orina',re:/\b(orina|urinaria|urinario|urinarias|urinarios|albuminuria|microalbuminuria)\b/},
+   {label:'Heces',re:/\b(heces|fecal|fecales|coproparasitario|coprologico)\b/},
+   {label:'Saliva',re:/\b(saliva|salival)\b/},
+   {label:'Semen',re:/\b(semen|seminal|espermatograma)\b/},
+   {label:'Lavado broncoalveolar',re:/\b(lavado broncoalveolar)\b/},
+   {label:'Suero',re:/\b(suero|serico|serica|sericos|sericas)\b/},
+   {label:'Plasma (anticoagulante por definir)',re:/\b(plasma|plasmatica|plasmatico|plasmaticas|plasmaticos)\b/},
+   {label:'Sangre total (aditivo por definir)',re:/\b(sangre total)\b/}
+  ].filter(rule=>rule.re.test(n));
+  return hints.length===1?hints[0].label:'';
+ }
  function suggest(name){
   const norm=normalize(name);
   if(!norm)return null;
   const found=reference.filter(rule=>rule.aliases.some(a=>normalize(a)===norm));
-  if(found.length!==1)return null; // Una coincidencia exacta y única, nunca por aproximación.
-  const r=found[0];
-  return {id:r.id,label:r.label,source:r.source,url:r.url,
-   fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,fasting:r.fasting||'',
-    conditions:r.conditions,instructions:r.instructions}};
+  if(found.length>1)return null; // Nunca elegir entre referencias contradictorias.
+  if(found.length===1){
+   const r=found[0];
+   return {id:r.id,label:r.label,source:r.source,url:r.url,level:'specific',
+    fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,fasting:r.fasting||'',
+     conditions:r.conditions,instructions:r.instructions}};
+  }
+  const sample=explicitlyNamedSample(name);
+  if(!sample)return null;
+  return {id:'sample-hint',label:'Muestra indicada en el nombre',source:'Texto del nombre, sin referencia de recipiente',url:'',level:'sample_only',
+   fields:{sample,vessel:'',colorName:'',color:'',shape:'',fasting:'',conditions:'',instructions:''}};
  }
  const editable=['sample','vessel','colorName','shape','fasting','conditions','instructions'];
  function isLegacyPlaceholder(test){
@@ -65,7 +149,7 @@
   if(out.colorName&&proposal.fields.color)out.color=proposal.fields.color;
   return out;
  }
- return {normalize,suggest,missingFields,isLegacyPlaceholder,referenceCount:reference.length};
+ return {normalize,suggest,missingFields,isLegacyPlaceholder,explicitlyNamedSample,referenceCount:reference.length};
 });
 (function(){
  'use strict';
