@@ -1,0 +1,73 @@
+/* FleboReport · Orden PDF en Nuevo domicilio
+   Sin alterar selectores de búsqueda, fichas, gestos ni diálogos actuales. */
+@media screen{
+ #view-domicilios #hvCreatePanel .hv-order-pdf-panel{
+  box-sizing:border-box;grid-column:1/-1!important;display:flex;flex-direction:column;
+  gap:10px;min-width:0;margin:5px 0 12px;padding:16px 18px;
+  background:#F5FAF3;border:1px solid #CFE2D0;border-radius:16px;
+  color:#172B1F;box-shadow:0 2px 10px rgba(26,77,44,.055);
+ }
+ #view-domicilios #hvCreatePanel .hv-order-heading{
+  display:flex;align-items:baseline;justify-content:space-between;
+  flex-wrap:wrap;gap:6px 15px;
+ }
+ #view-domicilios #hvCreatePanel .hv-order-heading strong{
+  color:#173B27;font-size:15px;font-weight:800;
+ }
+ #view-domicilios #hvCreatePanel .hv-order-heading small{
+  color:#43654C;font-size:12px;font-weight:580;
+ }
+ #view-domicilios #hvOrderPdfFile{
+  box-sizing:border-box;display:block;width:100%;min-width:0;
+  min-height:43px;color:#193B27;background:#FFFFFF;
+  border:1px solid #BFD7BF;border-radius:12px;padding:9px 10px;
+  font:600 13px/1.4 inherit;
+ }
+ #view-domicilios #hvOrderPdfFile::file-selector-button{
+  color:#FFFFFF;background:#236648;border:1px solid #236648;
+  font-size:12px;font-weight:750;border-radius:10px;padding:8px 13px;
+  margin:0 12px 0 0;cursor:pointer;
+ }
+ #view-domicilios #hvOrderPdfFile:disabled{opacity:.62;cursor:wait;}
+ #view-domicilios #hvOrderPdfInfo{margin:0;color:#4C6552;font-size:12px;line-height:1.55;}
+ #view-domicilios #hvOrderStatus{
+  margin:0;background:#E8F4E5;color:#245439;
+  border:1px solid #D3E7D0;border-radius:11px;
+  padding:10px 12px;font-size:12px;line-height:1.5;
+  font-weight:640;white-space:normal;overflow-wrap:anywhere;
+ }
+ #view-domicilios #hvOrderStatus[data-kind="error"]{
+  background:#FEF1E7;color:#7E451A;border-color:#EDCFAF;
+ }
+ #view-domicilios #hvOrderStatus[data-kind="success"]{
+  background:#DEF1DD;color:#225431;border-color:#B7DAB5;
+ }
+ #view-domicilios .hv-order-results[hidden]{display:none!important;}
+ #view-domicilios .hv-order-review{display:flex;flex-direction:column;gap:9px;}
+ #view-domicilios .hv-order-title{font-size:13px;color:#234E34;}
+ #view-domicilios .hv-order-note{color:#365846;font-size:12px;line-height:1.5;margin:0;}
+ #view-domicilios .hv-order-matches{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:7px;}
+ #view-domicilios .hv-order-match{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  color:#1C3C2A;background:#FFFFFF;border:1px solid #D5E5D3;border-radius:10px;
+  font-size:12px;font-weight:630;min-width:0;padding:9px 11px;overflow-wrap:anywhere;
+ }
+ #view-domicilios .hv-order-verified{
+  color:#236648;background:#E6F2E5;border-radius:999px;
+  font-size:10px;font-weight:750;padding:4px 8px;flex-shrink:0;
+ }
+ #view-domicilios .hv-order-unmatched{
+  border:1px solid #E0E6D5;border-radius:10px;background:#FFFEFC;
+  padding:9px 12px;color:#365344;font-size:12px;
+ }
+ #view-domicilios .hv-order-unmatched summary{cursor:pointer;font-weight:710;}
+ #view-domicilios .hv-order-unmatched ul{margin:8px 0 0;padding-left:19px;line-height:1.6;}
+}
+@media screen and (max-width:760px){
+ #view-domicilios #hvCreatePanel .hv-order-pdf-panel{padding:12px;gap:9px;}
+ #view-domicilios #hvOrderPdfFile::file-selector-button{display:block;margin-bottom:7px;}
+ #view-domicilios .hv-order-matches{grid-template-columns:minmax(0,1fr);}
+}
+@media print{
+ #view-domicilios .hv-order-pdf-panel{display:none!important;}
+}
