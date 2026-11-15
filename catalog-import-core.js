@@ -15,6 +15,8 @@
   code:['codigo','codigo de prueba','codigo del examen','id prueba','code','test code'],
   sample:['muestra','tipo de muestra','sample','specimen'],
   vessel:['recipiente','tubo','contenedor','tipo de tubo','vessel','container'],
+  colorName:['color del tubo','color de tubo','color de tapa','color','color recipiente','color del recipiente'],
+  shape:['forma','tipo de recipiente','forma de recipiente','shape','tipo de contenedor'],
   volume:['volumen','volumen requerido','volume'],
   method:['metodo','metodologia','tecnica','method'],
   fasting:['ayuno','horas de ayuno','fasting'],
@@ -172,7 +174,8 @@
   return {id,name:item.name,code:item.code||'',sample:item.sample||'',vessel:item.vessel||'',
    volume:item.volume||'',method:item.method||'',fasting:item.fasting||'',
    conditions:item.conditions||'',instructions:item.instructions||'',
-   color:'#237C49',colorName:'Verde',shape:'tube',validated:false,active:true,
+   // No inventar un tubo verde cuando el archivo no incluye color/recipiente.
+   color:'#94A3B8',colorName:item.colorName||'',shape:['tube','jar'].includes(String(item.shape||'').trim().toLowerCase())?String(item.shape).trim().toLowerCase():'',validated:false,active:true,
    createdAt:now,updatedAt:now};
  }
  return {MAX_FILE,MAX_ROWS,norm,parseDelimited,parseXlsx,prepare,makeCatalogRecord,headerMap};
