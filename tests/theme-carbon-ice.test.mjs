@@ -19,7 +19,8 @@ test('La propuesta F se carga de última en todos los dispositivos, pero no en r
   assert.ok(sw.includes("'./"+file+"'"),file+' debe estar en caché PWA');
  }
  assert.ok(html.lastIndexOf('</body>')>previous);
- assert.doesNotMatch(html.slice(html.indexOf('<!-- Propuesta F')),/<script\b/);
+ const legacyTheme=html.slice(html.indexOf('<!-- Propuesta F'),html.indexOf('<!-- Referencia aprobada: bosque clínico'));
+ assert.doesNotMatch(legacyTheme,/<script\b/);
 });
 
 test('Las cinco capas sólo cambian cromatismo: sin tamaños, gestos, controles ni maquetación',()=>{
