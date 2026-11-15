@@ -55,6 +55,32 @@ test('Una tabla no disponible deja el KPI sin verificar en vez de usar cero',()=
  assert.equal(x.homeStatuses,null);
 });
 
+test('Reconcilia empresa, jornadas y reportes de ambos formatos en la nube sin duplicar',()=>{
+ const legacy=core.legacyFromState({
+  companies:[{id:'c1',active:true}],
+  reportHistory:[
+   {id:'r1',snapshot:{journeyDate:'2026-11-13',start:'09:00',end:'10:00',clientName:'Empresa A'}},
+   {id:'r2',snapshot:{journeyDate:'2026-11-13',start:'09:00',end:'10:00',clientName:'Empresa A'}},
+   {id:'r3',snapshot:{journeyDate:'2026-11-14',start:'09:00',end:'10:00',clientName:'Empresa A'}},
+   {id:'r4',snapshot:{journeyDate:'2026-11-14',start:'09:00',end:'10:00',clientName:'Empresa A'}},
+   {id:'r5',snapshot:{journeyDate:'2026-11-15',start:'09:00',end:'10:00',clientName:'Empresa A'}}
+  ],
+  journeyEntries:[{id:'p1',journeyId:'j1'},{id:'p2',journeyId:'j2'},{id:'p3',journeyId:'j3'},{id:'p4',journeyId:'j3',removedAt:'2026-11-15'}]
+ });
+ assert.equal(legacy.companies,1);
+ assert.equal(legacy.reports,5);
+ assert.equal(legacy.journeys,3);
+ assert.equal(legacy.participations,3);
+ const calc=core.calculate({home:[],patients:[],homeTests:[],attentions:[],attentionTests:[],samples:[],
+  studies:2,journeys:[],reports:0,companies:0,invoices:[],sharedLegacy:legacy});
+ assert.equal(calc.companies,1);
+ assert.equal(calc.reports,5);
+ assert.equal(calc.journeys,3);
+ assert.equal(calc.participations,3);
+ assert.equal(core.cloudCount(5,5),5);
+ assert.equal(core.cloudCount(0,null),null,'El cero en tabla no oculta una fuente modular sin verificar');
+});
+
 test('Fecha de Panamá usa zona local clínica y no fecha UTC',()=>{
  assert.equal(core.day('2026-11-16T02:00:00Z'),'2026-11-15');
  assert.equal(core.day('2026-11-15T04:59:00Z'),'2026-11-14');
@@ -72,6 +98,10 @@ test('Consultas por workspace con RLS, solo lectura, sin registros ficticios',()
  assert.match(source,/invoices:rows\(client,ws,'invoices'/);
  assert.match(source,/reports:count\(client,ws,'reports'/);
  assert.match(source,/companies:count\(client,ws,'companies'/);
+ assert.match(source,/get_workspace_shared_app_state_meta/);
+ assert.match(source,/get_workspace_modular_snapshot/);
+ assert.match(source,/get_workspace_shared_app_state/);
+ assert.match(source,/sharedLegacy:legacyCloudCounts\(client,ws\)/);
  assert.doesNotMatch(source,/\.upsert\(|\.insert\(|\.delete\(|localStorage|sessionStorage|FleboAppState/);
  assert.match(source,/window\.refreshDashboard=function\(\)/);
  assert.match(source,/flebo:home-history-changed/);
