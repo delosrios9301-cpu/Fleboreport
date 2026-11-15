@@ -76,8 +76,19 @@ test('Un PDF mayor al límite del plan se acepta en el selector y se avisa antes
  await h.change(file);
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
  assert.match(h.byId.get('hvOrderStatus').textContent,/Supera los 50 MB/i);
- assert.match(visits,/pendingOrder&&pendingOrder\.size>50\*1024\*1024/);
- assert.ok(visits.indexOf('pendingOrder&&pendingOrder.size>50*1024*1024')<visits.indexOf('if(!await save(v))'));
+ assert.match(visits,/const oversizedOrder=!!\(pendingOrder&&pendingOrder\.size>50\*1024\*1024\)/);
+ assert.match(visits,/const orderPdf=oversizedOrder\?null:pendingOrder/);
+ assert.match(visits,/Domicilio creado correctamente sin PDF/);
+ assert.doesNotMatch(visits.slice(visits.indexOf('const pendingOrder='),visits.indexOf('if(!await save(v))')),/if\(oversizedOrder\).*?return;/s);
+});
+
+test('Adjuntar orden PDF es opcional y nunca bloquea guardar el domicilio',()=>{
+ const h=harness();
+ assert.equal(h.fileInput.required,false);
+ assert.match(ui,/Puedes guardar el domicilio sin adjuntar una orden/);
+ assert.match(visits,/const pendingOrder=window\.FleboHomeVisitPDF\?\.pendingFile\?\.\(\)\|\|null/);
+ assert.match(visits,/if\(orderPdf\)documentSaved=await uploadVisitDocument/);
+ assert.match(visits,/Domicilio creado y guardado correctamente/);
 });
 
 test('Los archivos PDF no válidos se rechazan por cabecera, no por su peso',async()=>{
