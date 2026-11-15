@@ -14,11 +14,32 @@
   return parts.year+'-'+parts.month+'-'+parts.day;
  }
  function metric(rows){return Array.isArray(rows)?rows.length:null;}
+ function legacyFromState(state){
+  if(!state||typeof state!=='object')return null;
+  const companies=Array.isArray(state.companies)?state.companies.filter(c=>c&&c.active!==false).length:0;
+  const reports=Array.isArray(state.reportHistory)?state.reportHistory.filter(r=>r&&r.snapshot).length:0;
+  const snapshotSessions=new Set((state.reportHistory||[]).filter(r=>r&&r.snapshot).map(r=>{
+   const x=r.snapshot;
+   return [x.journeyDate||'',x.start||'',x.end||'',x.clientName||x.companyName||''].join('|');
+  }));
+  const entries=Array.isArray(state.journeyEntries)?state.journeyEntries.filter(e=>e&&!e.removedAt):[];
+  const distinctJourneys=new Set(entries.map(e=>String(e.journeyId||'')).filter(Boolean));
+  return {companies,reports,journeys:Math.max(snapshotSessions.size,distinctJourneys.size),
+   participations:entries.length};
+ }
+ function cloudCount(tableCount,legacyCount){
+  const t=Number.isFinite(tableCount)?tableCount:null;
+  const l=Number.isFinite(legacyCount)?legacyCount:null;
+  if(t===null&&l===null)return null;
+  if(t===null)return l;
+  if(l===null)return t>0?t:null; // Un cero relacional no prueba que el estado compartido esté vacío.
+  return Math.max(t,l); // El mismo registro puede existir en ambas estructuras; no sumarlos.
+ }
  function calculate(data,now=new Date()){
   const home=data.home,patients=data.patients,homeTests=data.homeTests,
    attentions=data.attentions,attentionTests=data.attentionTests,samples=data.samples,
    studies=data.studies,journeys=data.journeys,reports=data.reports,
-   invoices=data.invoices,companies=data.companies;
+   invoices=data.invoices,companies=data.companies,legacy=data.sharedLegacy;
   const currentDay=day(now),currentMonth=currentDay.slice(0,7);
   const visits=Array.isArray(home)?home:null;
   const completed=visits?visits.filter(v=>v.status==='completed'):null;
@@ -49,14 +70,15 @@
    homeArchived:visits?visits.filter(v=>!!v.archived_at).length:null,
    testsTaken,homeTestsCollected:collected,homeTestsPending:homeTests?homeTests.filter(t=>t.status==='pending').length:null,
    studies:studies??null,samples:metric(samples),processed,definitive,
-   journeys:metric(journeys),reports:reports??null,companies:companies??null,
+   journeys:cloudCount(metric(journeys),legacy?.journeys),reports:cloudCount(reports,legacy?.reports),
+   companies:cloudCount(companies,legacy?.companies),participations:legacy?.participations??null,
    revenue,revenueCurrency:currencies.length===1?currencies[0]:'USD',
    invoiceCount:metric(invoices),attentionCount:metric(attentions),
    testKinds:homeTests?Object.entries(byTests).map(([name,count])=>({name,count})).sort((a,b)=>b.count-a.count).slice(0,8):null,
    clinicalStatuses:samples?statuses:null,patientTimeline:patients?patients.map(p=>day(p.created_at)).filter(Boolean):null,
    currentDay};
  }
- return {calculate,day,LABELS};
+ return {calculate,legacyFromState,cloudCount,day,LABELS};
 });
 (function(){
  'use strict';
@@ -64,6 +86,7 @@
  const core=window.FleboLiveDashboardCore;if(!core)return;
  const $=id=>document.getElementById(id);
  let data=null,verifiedWorkspace='',inflight=null,lastFetch=0,seq=0,timer=0,lastError='',installed=false;
+ let legacyMemo={workspace:'',revision:null,counts:null};
  const attr=(el,key,val)=>el.setAttribute(key,val);
  function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;}
  function onHome(){return !!$('view-home')?.classList.contains('active');}
@@ -142,7 +165,8 @@
    ['Muestras clínicas',d.samples,'Registros recibidos'],
    ['Muestras procesadas',d.processed,'Procesamiento registrado'],
    ['Almacenadas definitivamente',d.definitive,'Almacenamiento final'],
-   ['Jornadas',d.journeys,'Jornadas registradas en nube'],
+   ['Jornadas',d.journeys,'Jornadas consolidadas de la nube'],
+   ['Participaciones en jornada',d.participations,'Participaciones vigentes sincronizadas'],
    ['Reportes',d.reports,'Informes guardados en nube']];
   cards.replaceChildren();
   for(const [title,value,caption] of metrics){
@@ -184,6 +208,22 @@
   const res=await q;if(res.error)throw new Error(table+': '+res.error.message);
   return res.count;
  }
+ // Fuentes relacionales + estado modular del servidor. La caché de revisión
+ // evita bajar el catálogo completo cada vez que se consultan los indicadores.
+ async function legacyCloudCounts(client,ws){
+  const meta=await client.rpc('get_workspace_shared_app_state_meta',{p_workspace_id:ws});
+  if(meta.error)throw new Error('No se pudo verificar el estado compartido: '+meta.error.message);
+  const metaRow=Array.isArray(meta.data)?meta.data[0]:meta.data;
+  const rev=metaRow?.revision??0;
+  if(legacyMemo.workspace===ws&&legacyMemo.revision===rev&&legacyMemo.counts)return legacyMemo.counts;
+  let response=await client.rpc('get_workspace_modular_snapshot',{p_workspace_id:ws});
+  if(response.error)response=await client.rpc('get_workspace_shared_app_state',{p_workspace_id:ws});
+  if(response.error)throw new Error('No se pudo leer el estado modular: '+response.error.message);
+  const row=Array.isArray(response.data)?response.data[0]:response.data;
+  const counts=core.legacyFromState(row?.state||{});
+  legacyMemo={workspace:ws,revision:rev,counts};
+  return counts;
+ }
  async function refresh(force=false){
   ensurePanel();if(!onHome()&&!force)return false;
   const session=auth();
@@ -192,7 +232,7 @@
    setStatus('Esperando autenticación y permisos. Los datos locales no se usan como indicadores.');
    return false;
   }
-  if(verifiedWorkspace!==session.workspace){verifiedWorkspace=session.workspace;data=null;lastFetch=0;seq++;paintKpis();}
+  if(verifiedWorkspace!==session.workspace){verifiedWorkspace=session.workspace;legacyMemo={workspace:'',revision:null,counts:null};data=null;lastFetch=0;seq++;paintKpis();}
   if(inflight)return inflight;
   if(!force&&Date.now()-lastFetch<30000){paint();return true;}
   const ws=session.workspace,client=session.client,stamp=++seq,btn=$('dlLiveRefresh');
@@ -209,7 +249,8 @@
    journeys:rows(client,ws,'journeys','id,journey_date'),
    reports:count(client,ws,'reports'),
    companies:count(client,ws,'companies'),
-   invoices:rows(client,ws,'invoices','id,total,issued_at,currency')
+   invoices:rows(client,ws,'invoices','id,total,issued_at,currency'),
+   sharedLegacy:legacyCloudCounts(client,ws)
   };
   const keys=Object.keys(calls);
   inflight=(async()=>{
@@ -225,7 +266,7 @@
    const time=new Intl.DateTimeFormat('es-PA',{timeZone:'America/Panama',hour:'2-digit',minute:'2-digit'}).format(new Date());
    setStatus(issues.length?
     'Datos parciales de la nube · '+time+'. Sin acceso o lectura a: '+issues.join(', ')+'. «—» significa no verificado; no es cero.'
-    :'Datos reales de la nube · actualizados '+time+'. Incluye domicilios archivados; no se modificaron registros.');
+    :'Datos reales de Supabase · '+time+'. Se reconcilian tablas y estado modular compartido sin duplicar ni modificar registros.');
    return true;
   })().catch(error=>{
    if(stamp===seq){lastError=error?.message||'Error de lectura';paint();setStatus('Error de sincronización del panel: '+lastError+'. No se sustituyeron las cifras por datos locales.');}
