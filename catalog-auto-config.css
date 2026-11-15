@@ -164,3 +164,29 @@ body.fr2-app-authorized.cm-workspace.vc-compact #settings-catalog #catalogHeader
 @media screen and (max-width:380px){
  #settings-catalog #catalogHeaderActions > button{font-size:12px!important}
 }
+
+/* Biblioteca: consulta únicamente, sin botones de mantenimiento. */
+.catalog-details-overlay[hidden]{display:none!important}
+.catalog-details-overlay{
+ position:fixed;inset:0;z-index:31000;display:flex;align-items:center;justify-content:center;
+ padding:12px;background:rgba(12,33,43,.56);overflow-y:auto;overscroll-behavior:contain
+}
+.catalog-details-panel{
+ width:min(100%,670px);max-height:92dvh;overflow-y:auto;
+ background:#fff;color:#254351;border-radius:16px;
+ border:1px solid #d9e7e8;padding:clamp(14px,3vw,24px);
+ box-sizing:border-box;box-shadow:0 16px 45px rgba(10,27,41,.22)
+}
+.catalog-details-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+.catalog-details-head h2{margin:0;color:#173d49;font-size:clamp(17px,3vw,22px);line-height:1.25;overflow-wrap:anywhere}
+.catalog-details-close{flex:0 0 auto;min-height:42px}
+.catalog-details-body{display:grid;gap:0}
+.catalog-details-row{display:grid;grid-template-columns:minmax(115px,.55fr) minmax(0,1fr);
+ gap:12px;align-items:start;padding:11px 1px;border-bottom:1px solid #e6eeee;min-width:0}
+.catalog-details-row strong{font-size:12px;line-height:1.4;color:#46656e}
+.catalog-details-row span{font-size:13px;line-height:1.45;color:#233f48;overflow-wrap:anywhere}
+@media(max-width:500px){
+ .catalog-details-panel{width:100%;max-height:89dvh;padding:13px;border-radius:14px}
+ .catalog-details-row{grid-template-columns:minmax(0,1fr);gap:3px;padding:8px 0}
+ .catalog-details-head h2{font-size:17px}
+}
