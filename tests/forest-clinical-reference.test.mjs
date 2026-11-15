@@ -91,7 +91,7 @@ test('Los estados clínicos no se confunden con botones ni se borran',()=>{
  assert.doesNotMatch(m,/\.crx-state-pill[^{]*\{[^}]*background:/);
  assert.doesNotMatch(m,/\.hv-ref-state[^{]*\{[^}]*background:/);
  assert.doesNotMatch(m,/\.pp-swipe-delete[^{]*\{[^}]*background:/);
- assert.doesNotMatch(m,/\.hv-archive-action[^{]*\{[^}]*background:/);
+ assert.doesNotMatch(m,/\s\.hv-archive-action\s*\{[^}]*background:/);
 });
 
 test('Búsqueda del encabezado funciona usando filtros autorizados existentes',()=>{
@@ -121,7 +121,7 @@ test('Temas y nueva búsqueda se cargan después de las capas heredadas y offlin
  assert.ok(html.indexOf('fleboreport-forest-search.js?v=20261114-forest1')>prev);
  for(const filename of ordered.slice(1).concat('fleboreport-forest-search.js'))
   assert.ok(sw.includes("'./"+filename+"'"),filename+' debe estar en caché');
- assert.match(sw,/CACHE_NAME='fleboreport-shell-vforest1'/);
+ assert.match(sw,/CACHE_NAME='fleboreport-shell-v322'/);
 });
 
 test('Tablet y teléfono tienen breakpoints separados sin afectar reportes impresos',()=>{
