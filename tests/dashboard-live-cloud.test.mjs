@@ -112,7 +112,7 @@ test('Consultas por workspace con RLS, solo lectura, sin registros ficticios',()
 test('Panel Inicio reemplaza visualizaciones locales con estado y gráficos reales',()=>{
  assert.match(source,/setKpi\(0,'Pacientes totales'/);
  assert.match(source,/setKpi\(6,'Atenciones domiciliarias'/);
- assert.match(source,/Domicilios por estado/);
+ assert.match(source,/Estado de los domicilios/);
  assert.match(source,/Domicilios finalizados · últimos 7 días/);
  assert.match(source,/Estado de muestras clínicas/);
  assert.match(source,/Pruebas tomadas en domicilios/);
@@ -124,3 +124,51 @@ test('Panel Inicio reemplaza visualizaciones locales con estado y gráficos real
  assert.match(worker,/'\.\/dashboard-live-cloud\.js'/);
  assert.match(worker,/'\.\/dashboard-live-cloud\.css'/);
 });
+
+
+test('Inicio compacto: cuatro cifras principales y detalles plegados sin decenas de tarjetas',()=>{
+ assert.match(source,/dlLiveHighlights/);
+ for(const id of ['dlQuickPatients','dlQuickHomes','dlQuickTests','dlQuickProcessed'])assert.ok(source.includes(id),id);
+ assert.match(source,/dlLiveDetails/);
+ assert.match(source,/el\('details','dl-live-more'\)/);
+ assert.match(source,/el\('summary','','Ver todos los indicadores'\)/);
+ assert.doesNotMatch(source,/el\('article','dl-live-card'\)/);
+ assert.match(source,/dl-live-metric/);
+ assert.match(styles,/\.dl-live-highlights/);
+ assert.match(styles,/\.dl-live-metrics/);
+ assert.match(styles,/body\.fr2-app-authorized\.cm-workspace\.vc-compact\.hp-dashboard #view-home\.dl-cloud-dashboard \.vc-kpi-stage/);
+ assert.match(styles,/display:none!important/);
+});
+
+test('Gráficos interactivos adaptados a móvil, tablet y PC con circular y barras',()=>{
+ for(const tab of ['overview','home','clinical']){
+  assert.match(source,new RegExp("'"+tab+"'"));
+ }
+ for(const name of ['Resumen','Domicilios','Clínico'])assert.ok(source.includes(name),name);
+ assert.match(source,/setAttribute\('aria-selected',active\?'true':'false'\)/);
+ assert.match(source,/button\.addEventListener\('keydown'/);
+ assert.match(source,/chartBox\('Estado de los domicilios','dlLiveStatuses'\)/);
+ assert.match(source,/chartBox\('Actividad por módulo','dlLiveModules'\)/);
+ assert.match(source,/chartBox\('Domicilios finalizados · últimos 7 días','dlLiveDays'\)/);
+ assert.match(source,/chartBox\('Estado de muestras clínicas','dlLiveClinical'\)/);
+ assert.match(source,/function donutChart\(/);
+ assert.match(source,/conic-gradient\(/);
+ assert.match(source,/function paintDailyChart\(/);
+ assert.match(source,/function chartRows\(/);
+ assert.match(styles,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(styles,/@media\(max-width:1000px\)/);
+ assert.match(styles,/@media\(max-width:760px\)/);
+ assert.match(styles,/@media\(max-width:355px\)/);
+ assert.match(styles,/prefers-reduced-motion:reduce/);
+ assert.match(styles,/dl-live-tab-panel\[hidden\]/);
+});
+
+test('Accesos directos siguen disponibles sin ocupar la pantalla del teléfono',()=>{
+ assert.match(source,/el\('details','dl-live-access-details'\)/);
+ assert.match(source,/Accesos rápidos a módulos/);
+ assert.match(source,/launch\.insertAdjacentElement\('beforebegin',access\)/);
+ assert.match(source,/access\.append\(launch\)/);
+ assert.match(styles,/\.dl-live-access-details:not\(\[open\]\)>\.cm-launchpad\{display:none!important\}/);
+ assert.match(source,/min-width:1050px/);
+});
+
