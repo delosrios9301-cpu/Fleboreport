@@ -193,6 +193,17 @@
    if(heading)heading.insertAdjacentElement('afterend',p);
    else flow.prepend(p);
   }else if(!p.parentElement)home.append(p);
+  const launch=flow?.querySelector('.cm-launchpad');
+  if(launch&&!launch.closest('.dl-live-access-details')){
+   const access=el('details','dl-live-access-details');
+   // En móviles, los accesos grandes no desplazan los gráficos.
+   // En PC queda visible la navegación rápida aprovechando el ancho.
+   access.open=typeof window.matchMedia==='function'
+    &&window.matchMedia('(min-width:1050px)').matches;
+   access.append(el('summary','','Accesos rápidos a módulos'));
+   launch.insertAdjacentElement('beforebegin',access);
+   access.append(launch);
+  }
   selectDashboardView(dashboardView);
   return p;
  }
