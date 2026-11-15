@@ -206,5 +206,6 @@ test('Importación sin datos no atribuye tubo verde ni otro color clínico',()=>
  assert.doesNotMatch(importer,/colorName:'Verde',shape:'tube'/);
  assert.match(html,/<option value="">Sin definir<\/option><option value="tube">Tubo/);
  assert.match(dom,/shape:item\.shape\|\|f\.shape\|\|''/);
- assert.match(dom,/shape:f\.shape\|\|''/);
+ assert.match(dom,/shape:f\.vessel\?f\.shape\|\|''/);
+ assert.match(dom,/colorName:f\.vessel\?f\.colorName\|\|''/);
 });
