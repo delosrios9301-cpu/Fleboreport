@@ -160,7 +160,7 @@
  }
  html:root body.fr2-app-authorized #view-domicilios #hvWorkspace
  :is(#hvRows,#hvHistoryRows).hv-visit-list
- >.hv-swipe-row>button.hv-archive-action {
+ >.hv-swipe-row>button.hv-archive-action:not([hidden]):not([aria-hidden="true"]) {
   position:relative!important;inset:auto!important;
   display:inline-flex!important;flex-direction:row!important;
   align-items:center!important;justify-content:center!important;
