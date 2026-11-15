@@ -8,6 +8,7 @@ let cloudReconnectPending=false,cloudDataVerified=false;
 const persistedEventIds=new Set();
 let homeVisitSyncCursor=null,homeVisitCacheActive=false;
 let historyRefreshPromise=null,archivedHistoryVisits=[],archivedHistoryLoaded=false,archiveHistoryError='';
+let historyCloudVisits=[],historyCloudVerified=false,historyCloudError='';
 let pushRegistrationPromise=null;
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
 const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b,a]));
@@ -522,12 +523,18 @@ async function connectCloud(){
   const membership=window.FleboAuth.membership;
   if(!membership?.workspace_id){cloud.ready=false;cloudNotice('La cuenta está autenticada, pero aún no tiene un laboratorio asignado. Crea el espacio de trabajo desde el panel de acceso.',true);return}
   const nextWorkspace=membership.workspace_id,nextRole=membership.role;
-  if(cloud.user?.id!==session.user.id||cloud.workspaceId!==nextWorkspace||cloud.role!==nextRole){homeVisitSyncCursor=null;homeVisitCacheActive=false;cloudDataVerified=false;visits=[];selected='';}
+  if(cloud.user?.id!==session.user.id||cloud.workspaceId!==nextWorkspace||cloud.role!==nextRole){homeVisitSyncCursor=null;homeVisitCacheActive=false;cloudDataVerified=false;visits=[];selected='';historyCloudVisits=[];historyCloudVerified=false;historyCloudError='';archivedHistoryVisits=[];archivedHistoryLoaded=false;archiveHistoryError='';}
   cloud.user=session.user;cloud.workspaceId=nextWorkspace;cloud.role=nextRole;
   // Mostrar acciones autorizadas tan pronto se confirma el rol, sin esperar
   // al catálogo o a la consulta de domicilios (que pueden fallar por red).
   if($('hvRows'))render();
-  await loadServiceCatalog();await loadCloudVisits();cloud.ready=true;const n=$('hvConnectionNotice');if(n)n.style.display='none';syncPushActivationUI();registerPushIfPermitted();
+  // El historial se consulta directamente, en paralelo a la agenda. No espera al catálogo.
+  cloud.ready=true;
+  const agendaLoad=loadCloudVisits().catch(error=>{cloudNotice('La agenda no se pudo actualizar: '+(error.message||'Error de red'),true);return false});
+  void refreshHomeVisitHistory();
+  await agendaLoad;
+  const n=$('hvConnectionNotice');if(n&&cloudDataVerified)n.style.display='none';
+  await loadServiceCatalog();syncPushActivationUI();registerPushIfPermitted();
   if(cloud.channel)c.removeChannel(cloud.channel);
   cloud.channel=c.channel('fleboreport-home-'+cloud.workspaceId)
    .on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh())
@@ -561,19 +568,45 @@ function enhanceHistoryRecoveryPanel(){
 async function refreshHomeVisitHistory(){
  if(historyRefreshPromise)return historyRefreshPromise;
  const status=$('hvHistoryStatus'),button=$('hvHistoryRefresh');
- if(!cloud.ready||!cloud.client||!cloud.workspaceId){
+ if(!cloud.client||!cloud.workspaceId||!cloud.user?.id){
   if(status)status.textContent='No se pudo consultar el historial: falta conexión con el laboratorio.';
   return false;
  }
- const workspace=cloud.workspaceId,user=cloud.user?.id;
+ const workspace=cloud.workspaceId,user=cloud.user.id;
  if(status)status.textContent='Verificando el historial directamente en la nube…';
  if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
  historyRefreshPromise=(async()=>{
-  // Forzar instantánea completa evita ocultar visitas por cursores antiguos;
-  // no borra registros de la base de datos.
-  await loadCloudVisits({forceFull:true});
+  // Lectura directa: independiente del catálogo, del cursor de la agenda y de sus filtros.
+  // Nunca escribe ni borra registros.
+  const historyDbStatuses=['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].map(state=>statusToDb[state]);
+  const historyBase=()=>cloud.client.from('home_visits')
+   .eq('workspace_id',workspace)
+   .is('archived_at',null)
+   .in('status',historyDbStatuses)
+   .order('scheduled_at',{ascending:false});
+  let completedRows=[];
+  try{
+   const fullQuery=cloud.client.from('home_visits')
+    .select('*,home_visit_tests(*),home_visit_events(*),home_visit_documents(*),home_visit_additional_patients(*),home_visit_assignments(*,professionals(id,name,user_id))')
+    .eq('workspace_id',workspace).is('archived_at',null)
+    .in('status',historyDbStatuses).order('scheduled_at',{ascending:false});
+   completedRows=await fetchAllPages(fullQuery);
+  }catch(primaryError){
+   // Si falla la unión de detalles, mostrar la existencia del domicilio sin inventar pruebas.
+   console.warn('[Domicilios] La consulta detallada de historial falló; se mostrará el resumen:',primaryError);
+   const briefQuery=cloud.client.from('home_visits')
+    .select('id,workspace_id,scheduled_at,status,archived_at,notes,created_at,completed_at,address,priority')
+    .eq('workspace_id',workspace).is('archived_at',null)
+    .in('status',historyDbStatuses).order('scheduled_at',{ascending:false});
+   completedRows=(await fetchAllPages(briefQuery)).map(row=>({...row,historyDetailsLimited:true}));
+  }
   if(workspace!==cloud.workspaceId||user!==cloud.user?.id)return false;
-  archivedHistoryVisits=[];archivedHistoryLoaded=false;archiveHistoryError='';
+  historyCloudVisits=completedRows.map(row=>{
+   const visit=dbVisit(row);
+   if(row.historyDetailsLimited)visit.historySummaryOnly=true;
+   return visit;
+  });
+  historyCloudVerified=true;historyCloudError='';
   if(cloud.role==='admin'){
    try{
     const archived=await fetchAllPages(cloud.client.from('home_visits')
@@ -584,19 +617,22 @@ async function refreshHomeVisitHistory(){
     if(workspace!==cloud.workspaceId||user!==cloud.user?.id)return false;
     archivedHistoryVisits=archived.map(dbVisit);
     archivedHistoryLoaded=true;
+    archiveHistoryError='';
    }catch(error){
     archiveHistoryError=error?.message||'Fallo de lectura';
     console.warn('[Domicilios] Error al consultar archivo de auditoría:',error);
    }
   }
   render();
-  const done=visits.filter(v=>['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(v.status)).length;
-  if(status)status.textContent='Nube verificada: '+done+' domicilio(s) en historial sin archivar.'+
-   (cloud.role==='admin'&&archivedHistoryLoaded?' '+archivedHistoryVisits.length+' registro(s) archivados disponibles en auditoría.':'');
+  const done=historyCloudVisits.length;
+  if(status)status.textContent='Historial actualizado: '+done+' domicilio(s) cerrados sin archivar.'+
+   (cloud.role==='admin'&&archivedHistoryLoaded?' '+archivedHistoryVisits.length+' registro(s) archivados en auditoría.':'');
   return true;
  })().catch(error=>{
+  historyCloudError=error?.message||'Error de conexión';
   console.error('[Domicilios] No se pudo actualizar el historial:',error);
-  if(status)status.textContent='La consulta al servidor falló: '+(error?.message||'Error de conexión')+'. No se modificaron registros.';
+  if(status)status.textContent='La consulta al servidor falló: '+historyCloudError+'. Se conserva la información anterior. No se modificaron registros.';
+  render();
   return false;
  }).finally(()=>{
   if(button){button.disabled=false;button.removeAttribute('aria-busy');}
@@ -760,7 +796,7 @@ async function openSamplesReview(id){
  const search=overlay.querySelector('#hvCorrectionSearch');search.addEventListener('input',()=>renderCatalogResults(search.value));
  document.body.appendChild(overlay);renderCatalogResults('');refresh();
 }
-async function changeStatus(id,next,confirmed=false){if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));if(await save(v)){if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.events.shift();render()}}async function addTests(id){
+async function changeStatus(id,next,confirmed=false){if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));if(await save(v)){if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.events.shift();render()}}async function addTests(id){
  if(!cloud.ready){say('Conecta la agenda con Supabase antes de agregar pruebas.');return}
  let v=visits.find(x=>x.id===id);if(!v)return;
  let ids=moreTestSelection.slice();if(!ids.length){say('Selecciona pruebas del catálogo central.');return}
@@ -908,6 +944,7 @@ async function archiveVisitFromCard(id){
   if(error)throw error;
   if(data!==true)throw new Error('El servidor no confirmó la eliminación del domicilio.');
   visits=visits.filter(v=>String(v.id)!==String(id));
+  historyCloudVisits=historyCloudVisits.filter(v=>String(v.id)!==String(id));
   if(selected===id){selected='';detailOpen=false}
   hvOpenedSwipe=null;hvSwipeGesture=null;
   saveHomeVisitCache();render();scheduleCloudVisitsRefresh();
@@ -1078,7 +1115,9 @@ function render(){
   const historyStatuses=['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'];
   const sortVisits=(a,b)=>priorityRank(a.priority)-priorityRank(b.priority)||a.scheduledDate.localeCompare(b.scheduledDate)||a.scheduledTime.localeCompare(b.scheduledTime)||String(b.createdAtDb||b.createdAt||'').localeCompare(String(a.createdAtDb||a.createdAt||''));
   const activeList=visits.filter(v=>!historyStatuses.includes(v.status)&&matches(v)&&(!referenceQuickStatus||hvReferenceStatusGroups[referenceQuickStatus].includes(v.status))).sort(sortVisits);
-  const historyList=visits.filter(v=>historyStatuses.includes(v.status)&&historyMatches(v)).sort((a,b)=>b.scheduledDate.localeCompare(a.scheduledDate)||b.scheduledTime.localeCompare(a.scheduledTime));
+  const historyById=new Map(historyCloudVisits.filter(v=>historyStatuses.includes(v.status)).map(v=>[v.id,v]));
+  visits.filter(v=>historyStatuses.includes(v.status)).forEach(v=>historyById.set(v.id,v));
+  const historyList=Array.from(historyById.values()).filter(historyMatches).sort((a,b)=>b.scheduledDate.localeCompare(a.scheduledDate)||b.scheduledTime.localeCompare(a.scheduledTime));
   const todayList=visits.filter(v=>v.scheduledDate===today());
 
   const quickBar=$('hvRefQuick');
@@ -1097,8 +1136,9 @@ function render(){
   const rowHtml=v=>hvReferenceVisitCard(v,technician);
   $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">'+(cloudDataVerified?'No hay domicilios activos para estos filtros.':'Comprobando domicilios en el servidor. La lista aún no está verificada y no significa que se hayan eliminado registros.')+'</div>';
   const historyHost=$('hvHistoryRows');
-  if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):
-   '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':(cloudDataVerified?'No hay visitas finalizadas en esta vista. Pulsa Actualizar historial para verificar el servidor.':'El historial aún no se ha verificado en el servidor. Los registros no se han borrado.'))+'</div>';
+  const historyRowHtml=v=>v.historySummaryOnly?'<article class="hv-archived-row"><div><strong>'+esc(v.patientName||'Paciente')+'</strong><small>'+esc(dateLabel(v.scheduledDate))+' · '+esc(v.status)+'</small></div><span class="hv-archived-mark">Detalles pendientes de conexión</span></article>':rowHtml(v);
+  if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(historyRowHtml).join(''):
+   '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':(historyCloudError?'No se pudo verificar el historial: '+esc(historyCloudError)+'. Se conservan los registros previos.':!historyCloudVerified?'Consultando el historial directamente en el servidor…': 'No hay visitas finalizadas con estos filtros.'))+'</div>';
   const auditPanel=$('hvArchivedAudit'),archiveHost=$('hvArchivedRows');
   if(auditPanel){
    auditPanel.hidden=cloud.role!=='admin';
