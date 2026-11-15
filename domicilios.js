@@ -6,6 +6,7 @@ let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],select
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 const persistedEventIds=new Set();
 let homeVisitSyncCursor=null,homeVisitCacheActive=false;
+let historyRefreshPromise=null,archivedHistoryVisits=[],archivedHistoryLoaded=false,archiveHistoryError='';
 let pushRegistrationPromise=null;
 const statusToDb={'Pendiente de asignación':'pending_assignment','Pendiente de aceptación':'pending_acceptance','Aceptado':'accepted','En camino':'en_route','En domicilio':'at_home','Muestras tomadas':'samples_taken','Finalizado':'completed','Rechazado':'rejected','Cancelado':'cancelled','Reprogramado':'rescheduled','No realizado':'not_performed','Paciente ausente':'patient_absent','Paciente rechazó la toma':'patient_refused'};
 const statusFromDb=Object.fromEntries(Object.entries(statusToDb).map(([a,b])=>[b,a]));
@@ -338,9 +339,11 @@ async function fetchInvitationPreviewRows(){
   home_visit_additional_patients:[]
  }));
 }
-async function loadCloudVisits(){
+async function loadCloudVisits(options={}){
+ const forceFull=options.forceFull===true;
+ if(forceFull){homeVisitSyncCursor=null;homeVisitCacheActive=false;}
  if(homeVisitCacheActive&&!canCacheHomeVisitSnapshot()){homeVisitCacheActive=false;homeVisitSyncCursor=null;visits=[];try{localStorage.removeItem(KEY)}catch(_){}}
- if(homeVisitSyncCursor===null)restoreHomeVisitCache();
+ if(homeVisitSyncCursor===null&&!forceFull)restoreHomeVisitCache();
  if(homeVisitSyncCursor!==null)await ensureHomeVisitCursorFresh();
  const fullSnapshot=homeVisitSyncCursor===null;
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
@@ -524,6 +527,72 @@ async function connectCloud(){
    .on('postgres_changes',{event:'INSERT',schema:'public',table:'sync_change_log',filter:'workspace_id=eq.'+cloud.workspaceId},()=>scheduleCloudVisitsRefresh()).subscribe();
  }catch(e){cloud.ready=false;cloudNotice('No se pudo conectar con Supabase: '+(e.message||'Error de conexión'),true)}
  finally{cloud.loading=false}
+}
+/* Actualización segura: consulta completa sin confiar en la caché incremental.
+   El archivo de auditoría solo está disponible al administrador, solo lectura. */
+function enhanceHistoryRecoveryPanel(){
+ const panel=$('hvHistoryPanel');
+ if(!panel||$('hvHistoryActions'))return;
+ const tools=document.createElement('div');tools.id='hvHistoryActions';tools.className='hv-history-recovery-tools';
+ tools.innerHTML='<button id="hvHistoryRefresh" type="button" class="btn">Actualizar historial</button><button id="hvHistoryResetFilters" type="button" class="btn">Limpiar filtros</button><p id="hvHistoryStatus" role="status" aria-live="polite">Consulta de historial disponible.</p>';
+ const filters=panel.querySelector('.hv-history-filters');
+ if(filters)filters.insertAdjacentElement('afterend',tools);else panel.appendChild(tools);
+ $('hvHistoryRefresh').addEventListener('click',()=>{void refreshHomeVisitHistory()});
+ $('hvHistoryResetFilters').addEventListener('click',()=>{
+  if($('hvHistorySearch'))$('hvHistorySearch').value='';
+  if($('hvHistoryDate'))$('hvHistoryDate').value='';
+  render();
+ });
+ const audit=document.createElement('details');audit.id='hvArchivedAudit';audit.className='hv-archived-audit';
+ audit.hidden=cloud.role!=='admin';
+ audit.innerHTML='<summary><span>Archivo de auditoría (solo lectura)</span><b id="hvArchivedAuditCount">—</b></summary><p>Estos domicilios permanecen archivados. Consultarlos no los reactiva, elimina ni modifica.</p><div id="hvArchivedRows" class="hv-archived-rows"></div>';
+ panel.appendChild(audit);
+}
+async function refreshHomeVisitHistory(){
+ if(historyRefreshPromise)return historyRefreshPromise;
+ const status=$('hvHistoryStatus'),button=$('hvHistoryRefresh');
+ if(!cloud.ready||!cloud.client||!cloud.workspaceId){
+  if(status)status.textContent='No se pudo consultar el historial: falta conexión con el laboratorio.';
+  return false;
+ }
+ const workspace=cloud.workspaceId,user=cloud.user?.id;
+ if(status)status.textContent='Verificando el historial directamente en la nube…';
+ if(button){button.disabled=true;button.setAttribute('aria-busy','true');}
+ historyRefreshPromise=(async()=>{
+  // Forzar instantánea completa evita ocultar visitas por cursores antiguos;
+  // no borra registros de la base de datos.
+  await loadCloudVisits({forceFull:true});
+  if(workspace!==cloud.workspaceId||user!==cloud.user?.id)return false;
+  archivedHistoryVisits=[];archivedHistoryLoaded=false;archiveHistoryError='';
+  if(cloud.role==='admin'){
+   try{
+    const archived=await fetchAllPages(cloud.client.from('home_visits')
+     .select('id,workspace_id,scheduled_at,status,archived_at,notes,created_at')
+     .eq('workspace_id',cloud.workspaceId)
+     .not('archived_at','is',null)
+     .order('archived_at',{ascending:false}));
+    if(workspace!==cloud.workspaceId||user!==cloud.user?.id)return false;
+    archivedHistoryVisits=archived.map(dbVisit);
+    archivedHistoryLoaded=true;
+   }catch(error){
+    archiveHistoryError=error?.message||'Fallo de lectura';
+    console.warn('[Domicilios] Error al consultar archivo de auditoría:',error);
+   }
+  }
+  render();
+  const done=visits.filter(v=>['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(v.status)).length;
+  if(status)status.textContent='Nube verificada: '+done+' domicilio(s) en historial sin archivar.'+
+   (cloud.role==='admin'&&archivedHistoryLoaded?' '+archivedHistoryVisits.length+' registro(s) archivados disponibles en auditoría.':'');
+  return true;
+ })().catch(error=>{
+  console.error('[Domicilios] No se pudo actualizar el historial:',error);
+  if(status)status.textContent='La consulta al servidor falló: '+(error?.message||'Error de conexión')+'. No se modificaron registros.';
+  return false;
+ }).finally(()=>{
+  if(button){button.disabled=false;button.removeAttribute('aria-busy');}
+  historyRefreshPromise=null;
+ });
+ return historyRefreshPromise;
 }
 function log(v,action,detail){v.events.unshift({id:makeId(),at:new Date().toISOString(),by:actor(),action,detail:detail||''});v.updatedAt=new Date().toISOString()}
 function dateLabel(s){let d=new Date(s+'T12:00:00');return isNaN(d)?s:d.toLocaleDateString('es-PA',{day:'2-digit',month:'short',year:'numeric'})}
@@ -967,7 +1036,7 @@ function enhanceReferenceVisitLayout(){
   }
  });
 }
-function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;render();}
+function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;if(tab==='history')enhanceHistoryRecoveryPanel();render();if(tab==='history')void refreshHomeVisitHistory();}
 window.hvSetTab=setTab;
 function render(){
  window.dispatchEvent(new Event('flebo:home-history-changed'));
@@ -1017,7 +1086,22 @@ function render(){
   hvOpenedSwipe=null;hvSwipeGesture=null;
   const rowHtml=v=>hvReferenceVisitCard(v,technician);
   $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">No hay domicilios activos para estos filtros.</div>';
-  const historyHost=$('hvHistoryRows');if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):'<div class="hv-empty">Todavía no hay domicilios en el historial.</div>';
+  const historyHost=$('hvHistoryRows');
+  if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(rowHtml).join(''):
+   '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':'No hay visitas finalizadas en esta vista. Pulsa Actualizar historial para verificar el servidor.')+'</div>';
+  const auditPanel=$('hvArchivedAudit'),archiveHost=$('hvArchivedRows');
+  if(auditPanel){
+   auditPanel.hidden=cloud.role!=='admin';
+   const count=$('hvArchivedAuditCount');
+   if(count)count.textContent=archivedHistoryLoaded?String(archivedHistoryVisits.length):'—';
+   if(archiveHost&&cloud.role==='admin'){
+    const filtered=archivedHistoryVisits.filter(historyMatches);
+    archiveHost.innerHTML=archiveHistoryError?'<p class="hv-archive-warning">No se pudo consultar el archivo. Pulsa Actualizar historial.</p>':
+     !archivedHistoryLoaded?'<p class="hv-archive-empty">Abre Historial para cargar el archivo.</p>':
+     filtered.length?filtered.map(v=>'<article class="hv-archived-row"><div><strong>'+esc(v.patientName||'Paciente')+'</strong><small>'+esc(dateLabel(v.scheduledDate))+' · '+esc(v.status)+'</small></div><span class="hv-archived-mark">Archivado · solo lectura</span></article>').join(''):
+     '<p class="hv-archive-empty">No hay registros archivados que coincidan con los filtros.</p>';
+   }
+  }
   const historyCount=$('hvHistoryCount');if(historyCount)historyCount.textContent=String(historyList.length);
   const historyTabCount=$('hvHistoryTabCount');if(historyTabCount)historyTabCount.textContent=String(historyList.length);
   const exportButton=document.querySelector('#view-domicilios .heading-actions .hv-premium-export');if(exportButton)exportButton.hidden=technician;

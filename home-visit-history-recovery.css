@@ -1,0 +1,86 @@
+/* FleboReport · Historial fiable y archivo de auditoría solo lectura.
+   15-11-2026. Respeta el diseño verde bosque, permisos y gestos originales. */
+@media screen {
+ #view-domicilios #hvHistoryPanel .hv-history-recovery-tools {
+  display:flex;align-items:center;justify-content:flex-start;gap:9px;
+  flex-wrap:wrap;padding:9px 2px 15px;
+ }
+ #view-domicilios #hvHistoryPanel .hv-history-recovery-tools .btn {
+  min-height:40px;padding:9px 15px;border-radius:11px;
+  font-size:12px;font-weight:780;white-space:normal;writing-mode:horizontal-tb;
+  box-shadow:none;cursor:pointer;
+ }
+ #view-domicilios #hvHistoryRefresh {
+  background:#236648!important;color:#fff!important;border:1px solid #236648!important;
+ }
+ #view-domicilios #hvHistoryResetFilters {
+  background:#EFF6EB!important;color:#24563C!important;border:1px solid #CFE0CD!important;
+ }
+ #view-domicilios #hvHistoryRefresh[disabled] {opacity:.63;cursor:wait;}
+ #view-domicilios #hvHistoryStatus {
+  flex:1 1 100%;margin:0;padding:4px 2px;
+  color:#3B5D45;font-size:12px;line-height:1.5;
+  overflow-wrap:anywhere;
+ }
+ #view-domicilios #hvArchivedAudit[hidden]{display:none!important;}
+ #view-domicilios #hvArchivedAudit{
+  margin-top:19px;padding:14px 18px 18px;
+  border:1px solid #C8DEC9;border-radius:16px;
+  background:#F8FBF6;box-shadow:none;color:#182A21;
+ }
+ #view-domicilios #hvArchivedAudit>summary{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;color:#20543A;font-size:14px;font-weight:830;
+  line-height:1.4;cursor:pointer;
+ }
+ #view-domicilios #hvArchivedAudit>summary>b {
+  display:inline-grid;place-items:center;min-width:30px;min-height:28px;
+  padding:4px 10px;border-radius:999px;
+  background:#DFEFDD;color:#1B5A34;font-size:12px;
+ }
+ #view-domicilios #hvArchivedAudit>p{
+  color:#4D6654;font-size:12px;line-height:1.5;
+  margin:10px 0 14px;
+ }
+ #view-domicilios #hvArchivedRows{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
+  gap:10px;min-width:0;
+ }
+ #view-domicilios #hvArchivedRows>.hv-archived-row{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+  min-width:0;padding:13px 15px;border-radius:12px;
+  border:1px solid #DFE8DC;background:#FFFFFF;
+  box-shadow:0 2px 8px rgba(18,58,33,.04);
+ }
+ #view-domicilios #hvArchivedRows>.hv-archived-row>div{
+  display:flex;flex-direction:column;gap:4px;min-width:0;
+ }
+ #view-domicilios #hvArchivedRows>.hv-archived-row strong{
+  color:#172C20;font-size:13px;font-weight:800;
+  overflow-wrap:anywhere;word-break:normal;
+ }
+ #view-domicilios #hvArchivedRows>.hv-archived-row small{
+  color:#4E6555;font-size:11px;line-height:1.4;
+ }
+ #view-domicilios #hvArchivedRows .hv-archived-mark{
+  color:#53634C;background:#F1F4EC;border:1px solid #DAE3D5;
+  border-radius:999px;font-size:10px;font-weight:780;padding:5px 9px;
+ }
+ #view-domicilios #hvArchivedRows :is(.hv-archive-empty,.hv-archive-warning){
+  grid-column:1/-1;margin:0;padding:10px 5px;
+  font-size:12px;color:#4D6257;
+ }
+ #view-domicilios #hvArchivedRows>.hv-archive-warning{color:#913D3A;}
+}
+@media screen and (max-width:760px){
+ #view-domicilios #hvHistoryPanel .hv-history-recovery-tools .btn{
+  flex:1 1 130px;min-height:43px;
+ }
+ #view-domicilios #hvArchivedAudit{padding:12px;}
+ #view-domicilios #hvArchivedRows{grid-template-columns:minmax(0,1fr);}
+}
+@media print{
+ #view-domicilios #hvHistoryPanel .hv-history-recovery-tools,
+ #view-domicilios #hvArchivedAudit{display:none!important;}
+}
