@@ -11,7 +11,9 @@ test('El estado completado del servidor sigue entrando al Historial normal',()=>
  assert.match(dom,/'Finalizado':'completed'/);
  assert.match(dom,/const statusFromDb=Object.fromEntries\(Object.entries\(statusToDb\)/);
  assert.match(dom,/const historyStatuses=\['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'\]/);
- assert.match(dom,/const historyList=visits\.filter\(v=>historyStatuses\.includes\(v\.status\)&&historyMatches\(v\)\)/);
+ assert.match(dom,/const historyById=new Map\(historyCloudVisits\.filter/);
+ assert.match(dom,/visits\.filter\(v=>historyStatuses\.includes\(v\.status\)\)\.forEach/);
+ assert.match(dom,/const historyList=Array\.from\(historyById\.values\(\)\)\.filter\(historyMatches\)/);
 });
 
 test('Entrar en Historial fuerza instantánea remota aunque la caché sea antigua',()=>{
@@ -19,10 +21,21 @@ test('Entrar en Historial fuerza instantánea remota aunque la caché sea antigu
  assert.match(dom,/const forceFull=options\.forceFull===true/);
  assert.match(dom,/if\(forceFull\)\{homeVisitSyncCursor=null;homeVisitCacheActive=false;\}/);
  assert.match(dom,/if\(homeVisitSyncCursor===null&&!forceFull\)restoreHomeVisitCache\(\)/);
- assert.match(dom,/await loadCloudVisits\(\{forceFull:true\}\)/);
+ assert.match(dom,/const historyDbStatuses=/);
+ assert.match(dom,/\.in\('status',historyDbStatuses\)/);
+ assert.match(dom,/historyCloudVisits=completedRows\.map/);
+ assert.match(dom,/void refreshHomeVisitHistory\(\)/);
  assert.match(dom,/if\(tab==='history'\)void refreshHomeVisitHistory\(\)/);
  assert.match(dom,/if\(fullSnapshot\)\{\s*visits=mapped;/);
  assert.match(dom,/\.is\('archived_at',null\)/);
+});
+
+
+test('Finalizar un domicilio lo pasa inmediatamente al Historial sin intervención manual',()=>{
+ assert.match(dom,/if\(next==='Finalizado'\)\{selected='';detailOpen=false;setTab\('history'\)\}/);
+ assert.match(dom,/historyCloudVerified=true/);
+ assert.match(dom,/historyCloudVisits=historyCloudVisits\.filter/);
+ assert.match(dom,/Detalles pendientes de conexión/);
 });
 
 test('Actualizar Historial y Limpiar filtros son acciones reales y visibles',()=>{
