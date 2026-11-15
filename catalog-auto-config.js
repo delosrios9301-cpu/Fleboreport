@@ -13,17 +13,17 @@
    .toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');
  }
  const reference=Object.freeze([
-  {id:'cbc',label:'Hemograma completo',aliases:['hemograma','hemograma completo','biometria hematica','cuadro hematico','cbc','hemograma con diferencial','hemograma completo con diferencial'],
+  {id:'cbc',label:'Hemograma completo',aliases:['hemograma','hemograma completo','biometria hematica','cuadro hematico','cbc','hemograma con diferencial','hemograma completo con diferencial','hemograma completo cbc','hemograma completo con formula leucocitaria'],
    sample:'Sangre total con EDTA',vessel:'Tubo con EDTA (tapa lila)',colorName:'Morado',
-   color:'#9670BD',shape:'tube',conditions:'Evitar coágulos; conservar y transportar según el protocolo del laboratorio procesador.',
+   color:'#9670BD',shape:'tube',fasting:'No suele requerir ayuno si se realiza solo el hemograma; confirmar si se solicitan otros exámenes.',conditions:'Evitar coágulos; conservar y transportar según el protocolo del laboratorio procesador.',
    instructions:'Enviar en tubo original; no alicuotar. Verificar volumen y estabilidad con el laboratorio receptor.',
    source:'Mayo Clinic Laboratories · CBC',url:'https://www.mayocliniclabs.com/test-catalog/Overview/9109'},
-  {id:'hba1c',label:'Hemoglobina A1c',aliases:['hba1c','hba 1c','hemoglobina a1c','hemoglobina glicosilada','hemoglobina glucosilada','hemoglobina glicada','glicohemoglobina'],
+  {id:'hba1c',label:'Hemoglobina A1c',aliases:['hba1c','hba 1c','hemoglobina a1c','hemoglobina glicosilada','hemoglobina glucosilada','hemoglobina glicada','glicohemoglobina','hemoglobina glicosilada hba1c','hemoglobina a1c hba1c','hgb a1c'],
    sample:'Sangre total con EDTA',vessel:'Tubo con EDTA (tapa lila)',colorName:'Morado',
    color:'#9670BD',shape:'tube',conditions:'Evitar coagulación; conservar y transportar según protocolo del laboratorio.',
    instructions:'Enviar en tubo original; no alicuotar. El volumen requerido debe verificarse localmente.',
    source:'Mayo Clinic Laboratories · HBA1C',url:'https://www.mayocliniclabs.com/test-catalog/overview/82080'},
-  {id:'pt',label:'Tiempo de protrombina / INR',aliases:['tiempo de protrombina','tiempo de protrombina inr','pt inr','tp inr','protime inr'],
+  {id:'pt',label:'Tiempo de protrombina / INR',aliases:['tiempo de protrombina','tiempo de protrombina inr','pt inr','tp inr','protime inr','tiempo de protrombina tp'],
    sample:'Plasma citratado',vessel:'Tubo de citrato de sodio al 3,2 % (tapa celeste)',
    colorName:'Celeste',color:'#79BEDC',shape:'tube',
    conditions:'Respetar la proporción sangre/citrato y el llenado correcto. Confirmar centrifugación y estabilidad con el laboratorio.',
@@ -43,18 +43,29 @@
   if(found.length!==1)return null; // Una coincidencia exacta y única, nunca por aproximación.
   const r=found[0];
   return {id:r.id,label:r.label,source:r.source,url:r.url,
-   fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,
+   fields:{sample:r.sample,vessel:r.vessel,colorName:r.colorName,color:r.color,shape:r.shape,fasting:r.fasting||'',
     conditions:r.conditions,instructions:r.instructions}};
  }
- const editable=['sample','vessel','colorName','shape','conditions','instructions'];
+ const editable=['sample','vessel','colorName','shape','fasting','conditions','instructions'];
+ function isLegacyPlaceholder(test){
+  // Importación histórica asignaba Verde/tube sin conocer muestra ni recipiente.
+  // Una configuración real, aprobada o con datos clínicos, no se considera placeholder.
+  return !!test&&test.validated!==true&&!String(test.sample||'').trim()&&!String(test.vessel||'').trim()
+   &&String(test.colorName||'').toLocaleLowerCase('es')==='verde'
+   &&String(test.color||'').toLowerCase()==='#237c49'
+   &&String(test.shape||'')==='tube';
+ }
  function missingFields(test,proposal){
   if(!proposal||test?.validated===true)return {};
-  const out={};
-  for(const key of editable)if(proposal.fields[key]&&(!test||!String(test[key]||'').trim()))out[key]=proposal.fields[key];
+  const legacy=isLegacyPlaceholder(test),out={};
+  for(const key of editable){
+   if(!proposal.fields[key])continue;
+   if(!test||!String(test[key]||'').trim()||(legacy&&['colorName','shape'].includes(key)))out[key]=proposal.fields[key];
+  }
   if(out.colorName&&proposal.fields.color)out.color=proposal.fields.color;
   return out;
  }
- return {normalize,suggest,missingFields,referenceCount:reference.length};
+ return {normalize,suggest,missingFields,isLegacyPlaceholder,referenceCount:reference.length};
 });
 (function(){
  'use strict';
@@ -64,7 +75,7 @@
  const $=id=>document.getElementById(id);
  let listOpen=false,initialized=false;
  const formFields={sample:'testSample',vessel:'testVessel',colorName:'testColorName',
-  color:'testColor',shape:'testShape',conditions:'testConditions',instructions:'testInstructions'};
+  color:'testColor',shape:'testShape',fasting:'testFasting',conditions:'testConditions',instructions:'testInstructions'};
  const member=()=>window.FleboAuth?.membership;
  const authorized=()=>member()?.active===true&&member()?.role==='admin';
  function catalog(){const rows=window.FleboAppState?.get?.()?.catalog;return Array.isArray(rows)?rows:[];}
@@ -105,13 +116,14 @@
   if(!authorized())return;
   const name=$('testName')?.value||'',current=currentFormRecord(),suggestion=core.suggest(name);
   if(!suggestion||current?.validated===true)return;
-  const changes=core.missingFields(current||{},suggestion);
+  const changes=core.missingFields(current||{},suggestion),legacy=core.isLegacyPlaceholder(current);
   let applied=0;
   for(const [key,id] of Object.entries(formFields)){
    if(!changes[key])continue;
    const input=$(id);
    if(!input)continue;
-   if(String(input.value||'').trim()&&(key!=='color'||input.value!=='#94a3b8'))continue;
+   const inherited=legacy&&['color','colorName','shape'].includes(key);
+   if(String(input.value||'').trim()&&!inherited&&(key!=='color'||input.value!=='#94a3b8'))continue;
    if(input.tagName==='SELECT'&&![...input.options].some(option=>option.value===changes[key]))continue;
    input.value=changes[key];applied++;
   }
