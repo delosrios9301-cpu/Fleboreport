@@ -681,11 +681,10 @@ async function create(){
   if(!['admin','clinician','reception'].includes(cloud.role)){say('Tu perfil no tiene permiso para crear domicilios principales.');return}
   const name=$('hvName').value.trim(),documentNumber=$('hvDoc').value.trim(),date=$('hvDate').value,time=$('hvTime').value,address=$('hvAddress').value.trim(),priority=priorityDb($('hvPriority')?.value||'normal'),ids=newTestSelection.slice(),assignee=$('hvAssignee').value.trim();
   if(!name||!date||!time||!address||!ids.length||!['urgent','high','normal'].includes(priority)){say('Completa paciente, fecha, hora, prioridad, dirección y pruebas.');return}
-  const pendingOrder=window.FleboHomeVisitPDF?.pendingFile?.();
-  if(pendingOrder&&pendingOrder.size>50*1024*1024){
-   say('El PDF fue seleccionado, pero supera los 50 MB del almacenamiento gratuito. Reduce su tamaño antes de guardar para que no quede un domicilio sin su orden.');
-   return;
-  }
+  // El adjunto es opcional: jamás impedir registrar una visita por no adjuntar PDF
+  // ni por seleccionar una orden más grande que el límite del almacenamiento.
+  const pendingOrder=window.FleboHomeVisitPDF?.pendingFile?.()||null;
+  const oversizedOrder=!!(pendingOrder&&pendingOrder.size>50*1024*1024);
   if(assignee&&(!selectedProfessional||selectedProfessional.name.toLocaleLowerCase('es')!==assignee.toLocaleLowerCase('es'))){say('Selecciona un flebotomista de la lista de usuarios registrados.');return}
   if(selectedProfessional&&!selectedProfessional.user_id){say('Este flebotomista no tiene una cuenta de usuario vinculada y no podrá recibir la asignación.');return}
   const selectedTests=ids.map(id=>remoteCatalog.find(x=>x.id===id));
@@ -718,7 +717,7 @@ async function create(){
   if(!await save(v)){visits=visits.filter(x=>x.id!==v.id);return}
   // Tras crear la visita (ya tiene UUID), adjuntar la orden al bucket PRIVADO.
   // Un fallo de carga NO elimina el domicilio ni afirma que el PDF fue adjuntado.
-  const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()||null;
+  const orderPdf=oversizedOrder?null:pendingOrder;
   let documentSaved=true;
   if(orderPdf)documentSaved=await uploadVisitDocument(v.id,orderPdf,{quiet:true,onProgress:(uploaded,total)=>{
    if(button&&total>0)button.textContent='Adjuntando PDF… '+Math.min(100,Math.round(uploaded/total*100))+'%';
@@ -727,7 +726,10 @@ async function create(){
    try{await loadCloudVisits()}catch(e){console.warn('[Domicilios] La orden fue adjuntada, falta refrescar la ficha:',e)}
   }
   selected=v.id;activeTab='agenda';reset();render();
-  if(orderPdf&&!documentSaved){
+  if(oversizedOrder){
+   cloudNotice('Domicilio guardado sin orden adjunta. El PDF seleccionado supera los 50 MB; podrás adjuntar una versión más pequeña después, desde Documentos adjuntos.',true);
+   say('Domicilio creado correctamente sin PDF. La orden seleccionada supera el límite de almacenamiento y no se adjuntó. Puedes añadirla después.');
+  }else if(orderPdf&&!documentSaved){
    cloudNotice('El domicilio se creó, pero NO se pudo adjuntar el PDF. Abre el domicilio y vuelve a cargarlo en Documentos adjuntos.',true);
    say('Domicilio guardado, pero el PDF NO se adjuntó. Reintenta desde Documentos adjuntos.');
   }else{
