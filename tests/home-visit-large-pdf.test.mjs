@@ -93,7 +93,7 @@ test('Al elegir archivo grande sin conexión al lector conserva archivo y permit
  const h=harness(),file=h.fakePdf(18*1024*1024);
  await h.change(file);
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
- assert.match(h.byId.get('hvOrderStatus').textContent,/pruebas en el buscador/);
+ assert.match(h.byId.get('hvOrderStatus').textContent,/selecciónalas en el buscador/);
 });
 
 test('El tamaño de lectura está separado del tamaño de almacenamiento',()=>{
@@ -113,7 +113,7 @@ test('La subida privada utiliza TUS reanudable desde 6 MB con progreso y respald
  assert.match(upload,/retryDelays:\[0,3000,5000,10000,20000\]/);
  assert.match(upload,/authorization:'Bearer '\+token/);
  assert.match(upload,/removeFingerprintOnSuccess:true/);
- assert.match(upload,/endpoint:/); // Supabase direct storage hostname
+ assert.match(upload,/\n    endpoint,/); // Supabase direct storage hostname
  assert.match(upload,/\.storage\.supabase\.co\/storage\/v1\/upload\/resumable/);
  assert.match(upload,/client\.storage\.from\(bucket\)\.upload\(path,file/);
  assert.match(visits,/window\.FleboHomeVisitUploader\.upload\(cloud\.client,'home-visit-documents'/);
