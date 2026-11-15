@@ -1036,7 +1036,7 @@ function enhanceReferenceVisitLayout(){
   }
  });
 }
-function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;if(tab==='history')enhanceHistoryRecoveryPanel();render();if(tab==='history')void refreshHomeVisitHistory();}
+function setTab(tab){if(!['agenda','history','calendar','create'].includes(tab))return;if(tab==='create'&&!['admin','clinician','reception'].includes(cloud.role))return;activeTab=tab;detailOpen=false;if(tab==='history')enhanceHistoryRecoveryPanel();render();if(tab==='history')void refreshHomeVisitHistory();if(tab==='create'&&!remoteCatalog.length&&typeof window.hvOrderEnsureCatalog==='function')void window.hvOrderEnsureCatalog().catch(error=>cloudNotice('No se pudo recuperar el catálogo para Nuevo domicilio: '+(error.message||'Error de conexión'),true));}
 window.hvSetTab=setTab;
 function render(){
  window.dispatchEvent(new Event('flebo:home-history-changed'));
@@ -1343,9 +1343,50 @@ function bindProfessionalPicker(){
 
 function closeAssignmentOverlays(){document.querySelectorAll('.hv-assignment-overlay').forEach(node=>node.remove())}
 function dismissInvitation(id){dismissedInvitationId=id;closeAssignmentOverlays();render()}function reopenInvitation(id){dismissedInvitationId='';selected=id;render()}window.hvDismissInvitation=dismissInvitation;window.hvReopenInvitation=reopenInvitation;
-window.hvOrderCatalog=()=>cloud.ready?remoteCatalog.filter(t=>t&&asUuid(t.id)&&t.name).map(t=>({id:t.id,name:t.name,code:t.code||'',active:true})):[];
+/* El lector PDF necesita el catálogo aunque la sincronización administrativa
+   de servicios siga ejecutándose. Esta consulta es SOLO LECTURA y respeta RLS. */
+let homeOrderCatalogReadPromise=null;
+const canReadHomeOrderCatalog=()=>!!(cloud.client&&cloud.user?.id&&cloud.workspaceId&&
+ ['admin','clinician','reception'].includes(cloud.role));
+const visibleHomeOrderCatalog=()=>canReadHomeOrderCatalog()
+ ?remoteCatalog.filter(t=>t&&asUuid(t.id)&&t.name).map(t=>({id:t.id,name:t.name,code:t.code||'',active:true}))
+ :[];
+window.hvOrderCatalog=visibleHomeOrderCatalog;
+window.hvOrderEnsureCatalog=async function(){
+ if(!canReadHomeOrderCatalog())throw new Error('Todavía no se ha establecido una sesión autorizada de Domicilios.');
+ if(homeOrderCatalogReadPromise)return homeOrderCatalogReadPromise;
+ const workspace=cloud.workspaceId,user=cloud.user.id;
+ homeOrderCatalogReadPromise=(async()=>{
+  // No esperar las escrituras de loadServiceCatalog(): las pruebas ya
+  // guardadas en services deben estar disponibles inmediatamente.
+  const result=await cloud.client.from('services')
+   .select('id,catalog_source_id,code,name,category,description,fields,active')
+   .eq('workspace_id',workspace)
+   .eq('active',true)
+   .order('name')
+   .limit(2000);
+  if(result.error)throw new Error('La consulta de pruebas falló: '+(result.error.message||'Error de conexión o permisos.'));
+  if(workspace!==cloud.workspaceId||user!==cloud.user?.id)
+   throw new Error('La sesión cambió durante la consulta del catálogo. Vuelve a intentarlo.');
+  const fresh=(result.data||[]).filter(x=>x&&asUuid(x.id)&&x.name).map(x=>{
+   const fields=x.fields&&typeof x.fields==='object'?x.fields:{};
+   return {id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,
+    sample:fields.sample||'',vessel:fields.vessel||'',colorName:fields.colorName||'',
+    fasting:fields.fasting||'',conditions:fields.conditions||'',instructions:fields.instructions||'',
+    volume:fields.volume||'',method:fields.method||'',color:fields.color||'',shape:fields.shape||'tube',
+    category:x.category||'',description:x.description||''};
+  });
+  // Reemplazar solo si la lectura resultó satisfactoria. Ante un error,
+  // conservar el catálogo anterior; no borrar ni archivar ninguna prueba.
+  remoteCatalog=fresh;
+  if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'',false);
+  if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'',false);
+  return visibleHomeOrderCatalog();
+ })().finally(()=>{homeOrderCatalogReadPromise=null});
+ return homeOrderCatalogReadPromise;
+};
 window.hvOrderApplyTests=ids=>{
- if(!cloud.ready||!['admin','clinician','reception'].includes(cloud.role))return 0;
+ if(!canReadHomeOrderCatalog())return 0;
  const unique=[...new Set(Array.isArray(ids)?ids:[])].filter(id=>asUuid(id)&&remoteCatalog.some(t=>t.id===id));
  const before=newTestSelection.length;
  unique.forEach(id=>{if(!newTestSelection.includes(id))newTestSelection.push(id)});
