@@ -43,10 +43,10 @@ test('El correctivo va después de la propuesta F en pantalla y en caché PWA',(
  assert.ok(page.indexOf(theme)>0&&page.indexOf(patch)>page.indexOf(theme));
  assert.match(page,/<link rel="stylesheet" href="\.\/fleboreport-login-layout-fix\.css\?v=20261114-login1" media="screen">/);
  assert.ok(worker.includes("'./fleboreport-login-layout-fix.css'"));
- assert.match(page,/<meta name="theme-color" content="#2B3137">/);
+ assert.match(page,/<meta name="theme-color" content="#25363D">/);
  const m=JSON.parse(manifest);
- assert.equal(m.theme_color,'#2B3137');
- assert.equal(m.background_color,'#E9EEF2');
+ assert.equal(m.theme_color,'#25363D');
+ assert.equal(m.background_color,'#F5F7F7');
 });
 
 test('La nueva regla CSS está equilibrada y no modifica módulos ni reportes impresos',()=>{
