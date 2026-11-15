@@ -532,7 +532,7 @@ function testPicker(prefix){return '<div class="hv-test-picker"><input id="'+pre
 function drawTestPicker(prefix,filter,show){let ids=prefix==='hvTests'?newTestSelection:moreTestSelection,normalize=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLocaleLowerCase('es'),q=normalize(filter),codeOf=t=>t.code||t.codigo||t.testCode||t.serviceCode||'',items=q?catalog().filter(t=>[t.name,codeOf(t),t.category,t.description].some(value=>normalize(value).includes(q))):[],host=$(prefix+'Choices'),selectedHost=$(prefix+'Selected'),dropdown=$(prefix+'Dropdown'),input=$(prefix+'Search');if(!host||!selectedHost)return;host.innerHTML=items.length?items.map(t=>'<button type="button" class="hv-test-result" data-add-test="'+esc(t.id)+'" data-prefix="'+prefix+'" role="option"><b>'+esc(t.name)+'</b>'+(codeOf(t)?'<small>Código: '+esc(codeOf(t))+'</small>':'')+'</button>').join(''):q?'<div class="hv-empty">No se encontró ninguna prueba con ese nombre o código.</div>':'';if(dropdown){dropdown.hidden=!q||!show;if(input)input.setAttribute('aria-expanded',String(!dropdown.hidden))}selectedHost.innerHTML=ids.map(id=>{let t=catalog().find(x=>x.id===id);return t?'<span class="hv-test-chip">'+esc(t.name)+' <button type="button" data-remove-test="'+esc(id)+'" data-prefix="'+prefix+'" aria-label="Quitar '+esc(t.name)+'">×</button></span>':''}).join('')}
 function toggleTest(prefix,id){let ids=prefix==='hvTests'?newTestSelection:moreTestSelection,at=ids.indexOf(id);if(at>=0)ids.splice(at,1);else ids.push(id);let input=$(prefix+'Search');if(input)input.value='';drawTestPicker(prefix,'',false)}
 
-function reset(){['hvName','hvDoc','hvPhone','hvEmail','hvAddress','hvAssignee','hvAssigneePhone','hvPatientLookup'].forEach(id=>{if($(id))$(id).value=''});['hvPatientId','hvBirthDate'].forEach(id=>{if($(id))$(id).value=''});if($('hvSex'))$('hvSex').value='';if($('hvPatientLookupStatus'))$('hvPatientLookupStatus').textContent='Busca el expediente antes de registrar un paciente nuevo.';selectedProfessional=null;if($('hvProfessionalResults'))$('hvProfessionalResults').innerHTML='';$('hvDate').value=today();$('hvTime').value='08:00';if($('hvPriority'))$('hvPriority').value='normal';newTestSelection=[];if($('hvTestsSearch'))$('hvTestsSearch').value='';drawTestPicker('hvTests','')}
+function reset(){['hvName','hvDoc','hvPhone','hvEmail','hvAddress','hvAssignee','hvAssigneePhone','hvPatientLookup'].forEach(id=>{if($(id))$(id).value=''});['hvPatientId','hvBirthDate'].forEach(id=>{if($(id))$(id).value=''});if($('hvSex'))$('hvSex').value='';if($('hvPatientLookupStatus'))$('hvPatientLookupStatus').textContent='Busca el expediente antes de registrar un paciente nuevo.';selectedProfessional=null;if($('hvProfessionalResults'))$('hvProfessionalResults').innerHTML='';$('hvDate').value=today();$('hvTime').value='08:00';if($('hvPriority'))$('hvPriority').value='normal';newTestSelection=[];if($('hvTestsSearch'))$('hvTestsSearch').value='';drawTestPicker('hvTests','');window.FleboHomeVisitPDF?.reset?.()}
 async function create(){
  const button=document.querySelector('#hvCreatePanel .form-actions button[onclick="hvCreate()"]');
  if(createBusy)return;
@@ -574,9 +574,22 @@ async function create(){
   };
   log(v,'Domicilio creado',date+' '+time);visits.unshift(v);
   if(!await save(v)){visits=visits.filter(x=>x.id!==v.id);return}
+  // Tras crear la visita (ya tiene UUID), adjuntar la orden al bucket PRIVADO.
+  // Un fallo de carga NO elimina el domicilio ni afirma que el PDF fue adjuntado.
+  const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()||null;
+  let documentSaved=true;
+  if(orderPdf)documentSaved=await uploadVisitDocument(v.id,orderPdf,{quiet:true});
+  if(orderPdf&&documentSaved){
+   try{await loadCloudVisits()}catch(e){console.warn('[Domicilios] La orden fue adjuntada, falta refrescar la ficha:',e)}
+  }
   selected=v.id;activeTab='agenda';reset();render();
-  cloudNotice(v.notificationStatus||'Domicilio creado y guardado correctamente.',false);
-  say('Domicilio creado y guardado correctamente.');
+  if(orderPdf&&!documentSaved){
+   cloudNotice('El domicilio se creó, pero NO se pudo adjuntar el PDF. Abre el domicilio y vuelve a cargarlo en Documentos adjuntos.',true);
+   say('Domicilio guardado, pero el PDF NO se adjuntó. Reintenta desde Documentos adjuntos.');
+  }else{
+   cloudNotice(v.notificationStatus||'Domicilio creado y guardado correctamente.',false);
+   say(orderPdf?'Domicilio y orden PDF adjuntados correctamente.':'Domicilio creado y guardado correctamente.');
+  }
  }catch(e){
   const message=e?.message||'Error desconocido al guardar';
   console.error('[Domicilios] No se pudo crear el domicilio:',e);
@@ -1026,7 +1039,43 @@ function render(){
   let moreSearch=$('hvMoreTestsSearch');if(moreSearch){if(!moreSearch.dataset.bound){moreSearch.addEventListener('input',()=>{drawTestPicker('hvMoreTests',moreSearch.value,true);clearTimeout(serviceSearchTimer);serviceSearchTimer=setTimeout(()=>refreshCentralCatalogForSearch('hvMoreTests',moreSearch.value),280)});moreSearch.addEventListener('focus',()=>refreshCentralCatalogForSearch('hvMoreTests',moreSearch.value));moreSearch.dataset.bound='1'}drawTestPicker('hvMoreTests',moreSearch.value)}
   renderCalendar();
 }
-async function uploadVisitDocument(id){if(!cloud.ready||!cloud.client){say('Conecta la agenda antes de adjuntar documentos.');return}const v=visits.find(x=>x.id===id),input=$('hvDocumentFile'),file=input&&input.files&&input.files[0];if(!v||!file){say('Selecciona primero un documento.');return}const allowed=['application/pdf','image/jpeg','image/png','image/webp','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];if(file.size>15*1024*1024){say('El documento supera el límite de 15 MB.');return}const ext=(file.name.split('.').pop()||'').toLowerCase(),mimeByExt={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'},mime=file.type||mimeByExt[ext];if(!allowed.includes(mime)||!mimeByExt[ext]){say('Formato no permitido. Adjunta PDF, JPG, PNG, WEBP o Word.');return}const safeName=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-100)||'documento',path=cloud.workspaceId+'/'+v.id+'/'+crypto.randomUUID()+'_'+safeName;try{const up=await cloud.client.storage.from('home-visit-documents').upload(path,file,{contentType:mime,upsert:false});if(up.error)throw up.error;const saved=await cloud.client.from('home_visit_documents').insert({workspace_id:cloud.workspaceId,home_visit_id:v.id,file_name:file.name,storage_path:path,mime_type:file.type,file_size:file.size}).select('id').single();if(saved.error){await cloud.client.storage.from('home-visit-documents').remove([path]);throw saved.error}input.value='';await loadCloudVisits();selected=id;render();say('Documento adjuntado correctamente.')}catch(e){cloudNotice('No se pudo adjuntar el documento: '+(e.message||'Error desconocido'),true);say('No se pudo adjuntar el documento: '+(e.message||'Error desconocido'))}}
+async function uploadVisitDocument(id,providedFile=null,options={}){
+ if(!cloud.ready||!cloud.client){if(!options.quiet)say('Conecta la agenda antes de adjuntar documentos.');return false}
+ const v=visits.find(x=>x.id===id),input=$('hvDocumentFile'),file=providedFile||(input&&input.files&&input.files[0]);
+ if(!v||!file){if(!options.quiet)say('Selecciona primero un documento.');return false}
+ if(file.size>15*1024*1024){if(!options.quiet)say('El documento supera el límite de 15 MB.');return false}
+ const ext=(file.name.split('.').pop()||'').toLowerCase();
+ const mimeByExt={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
+ const mime=mimeByExt[ext];
+ if(!mime||(file.type&&file.type!==mime)){if(!options.quiet)say('Formato no permitido. Adjunta PDF, JPG, PNG, WEBP o Word.');return false}
+ if(ext==='pdf'){
+  const signature=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
+  if(signature!=='%PDF-'){if(!options.quiet)say('El archivo seleccionado no tiene una cabecera PDF válida.');return false}
+ }
+ const safeName=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-100)||'documento';
+ const path=cloud.workspaceId+'/'+v.id+'/'+crypto.randomUUID()+'_'+safeName;
+ try{
+  const up=await cloud.client.storage.from('home-visit-documents').upload(path,file,{contentType:mime,upsert:false});
+  if(up.error)throw up.error;
+  const saved=await cloud.client.from('home_visit_documents').insert({
+   workspace_id:cloud.workspaceId,home_visit_id:v.id,file_name:file.name,
+   storage_path:path,mime_type:mime,file_size:file.size
+  }).select('id').single();
+  if(saved.error){
+   await cloud.client.storage.from('home-visit-documents').remove([path]);
+   throw saved.error;
+  }
+  if(input&&!providedFile)input.value='';
+  if(!options.quiet){await loadCloudVisits();selected=id;render();say('Documento adjuntado correctamente.')}
+  return true;
+ }catch(error){
+  if(!options.quiet){
+   cloudNotice('No se pudo adjuntar el documento: '+(error.message||'Error desconocido'),true);
+   say('No se pudo adjuntar el documento: '+(error.message||'Error desconocido'));
+  }
+  return false;
+ }
+}
 async function openVisitDocument(visitId,documentId){const v=visits.find(x=>x.id===visitId),d=v&&(v.documents||[]).find(x=>x.id===documentId);if(!d)return;const popup=window.open('about:blank','_blank');try{const result=await cloud.client.storage.from('home-visit-documents').createSignedUrl(d.storage_path,90);if(result.error)throw result.error;if(popup)popup.location.href=result.data.signedUrl;else window.location.href=result.data.signedUrl}catch(e){if(popup)popup.close();say('No se pudo abrir el documento: '+(e.message||'Error desconocido'))}}
 function exportCsv(){let rows=[['Código','Paciente','Documento','Teléfono','Fecha','Hora','Prioridad','Dirección','Responsable','Estado','Pruebas'],...visits.map(v=>[v.id,v.patientName,v.document,v.phone,v.scheduledDate,v.scheduledTime,priorityLabel(v.priority),v.address,v.assignedTo,v.status,v.tests.map(t=>t.name+' - '+t.status+(t.notes?' ('+t.notes+')':'' )).join('; ')] )],csv=rows.map(r=>r.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='FleboReport-domicilios-'+today()+'.csv';a.click();URL.revokeObjectURL(url)}
 
@@ -1199,6 +1248,15 @@ function bindProfessionalPicker(){
 
 function closeAssignmentOverlays(){document.querySelectorAll('.hv-assignment-overlay').forEach(node=>node.remove())}
 function dismissInvitation(id){dismissedInvitationId=id;closeAssignmentOverlays();render()}function reopenInvitation(id){dismissedInvitationId='';selected=id;render()}window.hvDismissInvitation=dismissInvitation;window.hvReopenInvitation=reopenInvitation;
+window.hvOrderCatalog=()=>cloud.ready?remoteCatalog.filter(t=>t&&asUuid(t.id)&&t.name).map(t=>({id:t.id,name:t.name,code:t.code||'',active:true})):[];
+window.hvOrderApplyTests=ids=>{
+ if(!cloud.ready||!['admin','clinician','reception'].includes(cloud.role))return 0;
+ const unique=[...new Set(Array.isArray(ids)?ids:[])].filter(id=>asUuid(id)&&remoteCatalog.some(t=>t.id===id));
+ const before=newTestSelection.length;
+ unique.forEach(id=>{if(!newTestSelection.includes(id))newTestSelection.push(id)});
+ drawTestPicker('hvTests','',false);
+ return newTestSelection.length-before;
+};
 window.hvCreate=create;window.hvAddAdditionalPatient=addAdditionalPatient;window.hvReviewAdditionalPatient=reviewAdditionalPatient;window.hvReset=reset;window.hvStatus=changeStatus;window.hvAddTests=addTests;window.hvTestStatus=testStatus;window.hvToggleTest=toggleTest;window.hvSelect=id=>{selected=id;detailOpen=true;moreTestSelection=[];render()};
 window.hvRefreshVoluntary=async id=>{
  homeVisitSyncCursor=null;
