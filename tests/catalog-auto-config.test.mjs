@@ -75,6 +75,59 @@ test('La cabecera móvil mantiene icono y título, con acciones fuera de su cuad
  assert.match(css,/\.fr2-catalog-new\{\s*grid-column:auto!important/);
 });
 
+
+test('Reconoce los nombres reales importados y la preparación del hemograma',()=>{
+ const cbc=core.suggest('Hemograma completo (CBC)');
+ assert.equal(cbc.id,'cbc');
+ assert.equal(cbc.fields.colorName,'Morado');
+ assert.match(cbc.fields.fasting,/No suele requerir ayuno/);
+ assert.equal(core.suggest('Hemoglobina glicosilada (HbA1c)').id,'hba1c');
+ assert.equal(core.suggest('Tiempo de protrombina (TP)').id,'pt');
+});
+
+test('Corrige solo valores verdes heredados sin tocar datos aprobados',()=>{
+ const cbc=core.suggest('Hemograma completo (CBC)');
+ const legacy={name:'Hemograma completo (CBC)',sample:'',vessel:'',colorName:'Verde',color:'#237C49',shape:'tube',validated:false};
+ const snapshot=JSON.stringify(legacy);
+ assert.equal(core.isLegacyPlaceholder(legacy),true);
+ const proposal=core.missingFields(legacy,cbc);
+ assert.equal(proposal.sample,'Sangre total con EDTA');
+ assert.equal(proposal.colorName,'Morado');
+ assert.equal(proposal.color,'#9670BD');
+ assert.match(proposal.fasting,/No suele requerir ayuno/);
+ assert.equal(JSON.stringify(legacy),snapshot);
+ assert.equal(Object.keys(core.missingFields({...legacy,validated:true},cbc)).length,0);
+ assert.equal(core.isLegacyPlaceholder({...legacy,sample:'Sangre'}),false);
+ assert.equal(core.missingFields({...legacy,sample:'Sangre'},cbc).colorName,undefined);
+});
+
+test('Buscar prueba funciona sin acentos y con listado limitado a 70 tarjetas',()=>{
+ const extracted=html.match(/function normalizeCatalogSearch\(text\)\{[^\n]+\}/);
+ assert.ok(extracted,'Existe normalizador de búsqueda');
+ const normalize=vm.runInNewContext(extracted[0]+';normalizeCatalogSearch');
+ assert.equal(normalize('HEMOGRÁMA completo'),'hemograma completo');
+ assert.equal(normalize('  HbA1C (glicosilada)  '),'hba1c glicosilada');
+ assert.match(html,/const matching=active\.filter/);
+ assert.match(html,/const visible=matching\.slice\(0,catalogListLimit\)/);
+ assert.match(html,/let catalogListLimit=70/);
+ assert.match(html,/function showMoreCatalog\(\)\{catalogListLimit\+=70;renderCatalog\(\);\}/);
+ assert.match(html,/catalog-search-more/);
+ assert.match(html,/if\(settings&&detailsChanged\)settings\.innerHTML/);
+ assert.match(html,/catalogSearch'\)\.addEventListener\('input',renderCatalog\)/);
+});
+
+test('Preparación agrupada requiere autorización y confirmación y conserva pendientes clínicos',()=>{
+ assert.match(auto,/async function applyReviewedBatch\(\)/);
+ assert.match(auto,/if\(!authorized\(\)\)return/);
+ assert.match(auto,/window\.confirm\('Se propondrá la configuración/);
+ assert.match(auto,/state\.catalog\[index\]=\{\.\.\.item,\.\.\.match\.fields,validated:false/);
+ assert.match(auto,/if\(!api\.save\(\)\)/);
+ assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
+ assert.match(auto,/name\.addEventListener\('change',\(\)=>\{applyToForm\(\);updateForm\(\);\}\)/);
+ assert.match(html,/window\.FleboAutoConfig\?\.applyToForm\?\.\(\)/);
+ assert.match(html,/Recipiente por configurar/);
+});
+
 test('Importación sin datos no atribuye tubo verde ni otro color clínico',()=>{
  assert.match(importer,/color:'#94A3B8',colorName:item\.colorName\|\|'',shape:/);
  assert.doesNotMatch(importer,/colorName:'Verde',shape:'tube'/);
