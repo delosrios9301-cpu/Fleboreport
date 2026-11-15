@@ -27,3 +27,62 @@
 }
 @media(max-width:390px){#view-catalog .catalog-auto-entry{flex-direction:column;align-items:stretch}#view-catalog .catalog-auto-entry .btn{align-self:stretch}}
 @media print{#view-catalog .catalog-auto-open,#view-catalog .catalog-auto-list,#settings-catalog .catalog-auto-form{display:none!important}}
+
+/* Corrección de la cabecera: los botones nunca son celdas de la cuadrícula
+   reservada al icono y al título. Evita las letras apiladas verticalmente. */
+#view-catalog #catalogHeaderActions{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ align-items:stretch!important;
+ gap:10px!important;
+ width:100%!important;
+ max-width:100%!important;
+ margin:0 0 12px!important;
+ padding:0 4px!important;
+ min-width:0!important;
+}
+#view-catalog #catalogHeaderActions > button{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:center!important;
+ gap:8px!important;
+ box-sizing:border-box!important;
+ width:100%!important;
+ max-width:100%!important;
+ min-width:0!important;
+ min-height:44px!important;
+ height:auto!important;
+ margin:0!important;
+ padding:10px 12px!important;
+ writing-mode:horizontal-tb!important;
+ text-orientation:mixed!important;
+ white-space:normal!important;
+ word-break:normal!important;
+ overflow-wrap:normal!important;
+ text-align:center!important;
+ line-height:1.3!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium #catalogHeaderActions .fr2-catalog-new{
+ grid-column:auto!important;
+ grid-row:auto!important;
+ justify-self:stretch!important;
+ align-self:stretch!important;
+ min-width:0!important;
+ max-width:100%!important;
+ width:100%!important;
+ white-space:normal!important;
+}
+#view-catalog #catalogHeaderActions .catalog-auto-open{font-weight:750!important}
+@media screen and (max-width:760px){
+ #view-catalog #catalogHeaderActions{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ #view-catalog #catalogHeaderActions .catalog-auto-open{grid-column:1/-1!important}
+}
+@media screen and (max-width:380px){
+ #view-catalog #catalogHeaderActions{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+ #view-catalog #catalogHeaderActions > button{font-size:12px!important;padding:9px 7px!important}
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium #catalogHeaderActions .fr2-catalog-new{
+  min-height:44px!important;padding:9px 7px!important;font-size:12px!important;
+ }
+ #view-catalog #catalogHeaderActions .catalog-auto-open{font-size:13px!important}
+}
+@media print{#view-catalog #catalogHeaderActions{display:none!important}}
