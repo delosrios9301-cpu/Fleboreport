@@ -375,6 +375,35 @@
   background:#355761!important;color:#FFFFFF!important;
   border-color:#355761!important;box-shadow:none!important;
  }
+ /* Refuerzo de especificidad transversal: algunos CSS antiguos colocan
+    selectores con IDs de módulo y !important. Los botones base se normalizan
+    por ID de vista para no dejar blancos sobre gradientes azul hielo. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-domicilios,#view-patients,
+ #view-clinical-studies,#view-clinical-processing,#view-catalog,
+ #view-settings,#view-reports,#view-audit,#view-companies)
+ :is(.btn.primary,.btn.blue,.btn-primary,.primary-btn,button.primary):not(.danger):not(.warning):not(.success) {
+  background:#355761!important;color:#FFFFFF!important;
+  border-color:#355761!important;box-shadow:none!important;
+  text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-domicilios,#view-patients,
+ #view-clinical-studies,#view-clinical-processing,#view-catalog,
+ #view-settings,#view-reports,#view-audit,#view-companies)
+ :is(.btn.primary,.btn.blue,.btn-primary,.primary-btn,button.primary):not(.danger):not(.warning):not(.success)
+ :is(span,strong,small,b) {
+  color:#FFFFFF!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-domicilios,#view-patients,
+ #view-clinical-studies,#view-clinical-processing,#view-catalog,
+ #view-settings,#view-reports,#view-audit,#view-companies)
+ :is(.btn:not(.primary):not(.blue):not(.danger):not(.warning):not(.success),
+ .btn-secondary,.secondary-btn) {
+  background:#EFF4F4!important;color:#223139!important;
+  border-color:#C8D6D9!important;box-shadow:none!important;
+ }
  /* Estados de foco perceptibles también con teclado. */
  html:root body.fr2-app-authorized :is(button,input,textarea,select):focus-visible{
   outline-color:#355761!important;
