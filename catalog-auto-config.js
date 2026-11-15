@@ -298,6 +298,11 @@
  function renderList(){
   const list=$('catalogAutoList'),button=$('catalogAutoOpen');
   if(!list)return;
+  const member=window.FleboAuth?.membership;
+  const canCreate=!!(member?.active===true&&
+   (member.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('catalog','create'))));
+  const newButton=$('catalogHeaderActions')?.querySelector('.fr2-catalog-new');
+  if(newButton)newButton.hidden=!canCreate;
   const can=authorized();
   if(button)button.hidden=!can;
   if(!can){list.replaceChildren();return;}
@@ -362,22 +367,10 @@
     button.setAttribute('aria-expanded',String(listOpen));
     renderList();
    });
-   // Separar todas las acciones de la cabecera: el diseño original reserva
-   // tres columnas solo para icono, título y una acción. Insertar un botón
-   // adicional allí comprimía su texto verticalmente en móviles.
-   const hero=view.querySelector('.fr2-catalog-hero');
-   let actions=$('catalogHeaderActions');
-   if(!actions){
-    actions=el('div','catalog-auto-actions');
-    actions.id='catalogHeaderActions';
-    actions.setAttribute('role','group');
-    actions.setAttribute('aria-label','Acciones del catálogo de pruebas');
-    hero?.insertAdjacentElement('afterend',actions);
-   }
-   const newTest=view.querySelector('.fr2-catalog-new');
-   const importButton=view.querySelector('#catalogImportOpen');
-   if(newTest)actions.append(newTest);
-   if(importButton)actions.append(importButton);
+   // El panel administrativo vive en Configuración → Catálogo.
+   // No trasladar estas acciones a la biblioteca de consulta.
+   const actions=$('catalogHeaderActions');
+   if(!actions)return false;
    actions.append(button);
    const list=el('section','panel catalog-auto-list');list.id='catalogAutoList';list.hidden=true;
    list.addEventListener('click',event=>{
@@ -389,7 +382,7 @@
     window.editTest(id);
     setTimeout(updateForm,0);
    });
-   (view.querySelector('.fr2-catalog-toolbar')||hero)?.insertAdjacentElement('afterend',list);
+   actions.insertAdjacentElement('afterend',list);
   }
   const catalogList=$('catalogList');
   if(catalogList&&!catalogList.dataset.catalogAutoWatch){
@@ -401,14 +394,6 @@
  }
  function refresh(){
   if(!initialized){mount();return;}
-  // La importación puede montarse después en navegadores de carga lenta.
-  // Mantener las tres acciones fuera de la cuadrícula del encabezado.
-  const actions=$('catalogHeaderActions'),view=$('view-catalog');
-  const importButton=view?.querySelector('#catalogImportOpen');
-  if(actions&&importButton&&importButton.parentElement!==actions){
-   const auto=$('catalogAutoOpen');
-   if(auto)actions.insertBefore(importButton,auto);else actions.append(importButton);
-  }
   updateForm();renderList();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
