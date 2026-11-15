@@ -132,7 +132,8 @@ test('Preparación agrupada requiere autorización y confirmación y conserva pe
  assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
  assert.match(auto,/name\.addEventListener\('change',\(\)=>\{applyToForm\(\);updateForm\(\);\}\)/);
  assert.match(html,/window\.FleboAutoConfig\?\.applyToForm\?\.\(\)/);
- assert.match(html,/Recipiente por configurar/);
+ assert.match(html,/Color de recipiente pendiente/);
+ assert.match(html,/si es un tubo, confirma también el color según el protocolo/i);
 });
 
 
