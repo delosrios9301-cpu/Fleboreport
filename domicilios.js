@@ -271,7 +271,7 @@ async function loadServiceCatalog(){
   if(result.error)throw result.error;
   remoteCatalog=(result.data||[]).filter(x=>asUuid(x.id)).map(x=>{
    const f=x.fields&&typeof x.fields==='object'?x.fields:{};
-   return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.colorName||'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.color||'',shape:f.shape||'',category:x.category||'',description:x.description||''};
+   return{id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,sample:f.sample||'',vessel:f.vessel||'',colorName:f.vessel?f.colorName||'':'',fasting:f.fasting||'',conditions:f.conditions||'',instructions:f.instructions||'',volume:f.volume||'',method:f.method||'',color:f.vessel?f.color||'':'',shape:f.vessel?f.shape||'':'',category:x.category||'',description:x.description||''};
   });
   if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'');
   if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'');
@@ -1448,9 +1448,9 @@ window.hvOrderEnsureCatalog=async function(){
   const fresh=(result.data||[]).filter(x=>x&&asUuid(x.id)&&x.name).map(x=>{
    const fields=x.fields&&typeof x.fields==='object'?x.fields:{};
    return {id:x.id,sourceCatalogId:x.catalog_source_id||null,code:x.code||'',name:x.name,
-    sample:fields.sample||'',vessel:fields.vessel||'',colorName:fields.colorName||'',
+    sample:fields.sample||'',vessel:fields.vessel||'',colorName:fields.vessel?fields.colorName||'':'',
     fasting:fields.fasting||'',conditions:fields.conditions||'',instructions:fields.instructions||'',
-    volume:fields.volume||'',method:fields.method||'',color:fields.color||'',shape:fields.shape||'tube',
+    volume:fields.volume||'',method:fields.method||'',color:fields.vessel?fields.color||'':'',shape:fields.vessel?fields.shape||'':'',
     category:x.category||'',description:x.description||''};
   });
   // Reemplazar solo si la lectura resultó satisfactoria. Ante un error,
