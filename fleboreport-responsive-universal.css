@@ -1,0 +1,338 @@
+/* FleboReport · Responsive universal 2026-11-14
+   Un punto de control de layout para PC, tablet y teléfono.
+   Solo CSS: no altera roles, estados, persistencia, botones ni gestos.
+   La anchura útil depende del viewport y del menú; no se detecta dispositivo
+   por marca ni se utilizan resoluciones fijas. Media print queda excluida. */
+
+/* 1. Reglas comunes, sin mostrar vistas o módulos ocultos. */
+@media screen {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .main,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .content>.view.fr5-screen {
+  box-sizing:border-box!important;
+  min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .content>.view.fr5-screen {
+  width:100%!important;max-width:100%!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel,.op-panel,.form-panel,.clinical-panel,
+ .hv-premium-panel,.rhr-panel,.fr-config-card,.pp-directory,
+ .fr2-catalog-list-panel,.journey-main-column,.journey-side-column) {
+  box-sizing:border-box!important;min-width:0!important;
+ }
+ /* Las tablas pueden desplazarse horizontalmente sin comprimir las letras. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.table-wrap,.table-responsive,.clinical-table-wrap,
+ .fr-config-table-wrap,.rhr-table-wrap) {
+  box-sizing:border-box!important;
+  max-width:100%!important;min-width:0!important;
+  overflow-x:auto!important;overscroll-behavior-x:contain!important;
+ }
+}
+
+/* 2. Tablet apaisada y PC: menú fijo, contenido centrado y expandible. */
+@media screen and (min-width:761px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact {
+  --fr-responsive-sidebar:255px;
+  --fr-responsive-content-max:1840px;
+  --fr-responsive-cards-max:1560px;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #sidebar.bubble-navigation {
+  box-sizing:border-box!important;
+  width:var(--fr-responsive-sidebar)!important;
+  max-width:var(--fr-responsive-sidebar)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell {
+  width:100%!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .main {
+  width:calc(100% - var(--fr-responsive-sidebar))!important;
+  max-width:none!important;min-width:0!important;
+  margin-left:var(--fr-responsive-sidebar)!important;
+  margin-right:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+  box-sizing:border-box!important;
+  width:100%!important;min-width:0!important;
+  max-width:var(--fr-responsive-content-max)!important;
+  margin-inline:auto!important;
+  padding-inline:clamp(16px,2.2vw,36px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen>.page-heading {
+  box-sizing:border-box!important;width:100%!important;min-width:0!important;
+  flex-wrap:wrap!important;gap:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen>.page-heading .heading-actions {
+  max-width:100%!important;min-width:0!important;flex-wrap:wrap!important;
+ }
+ /* Cada módulo y sus zonas estructurales parten del MISMO ancho útil. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-patients,#view-domicilios,
+ #view-clinical-studies,#view-clinical-processing,#view-catalog,
+ #view-reports,#view-audit,#view-settings) {
+  min-width:0!important;max-width:100%!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey .journey-layout,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies :is(.crx-study-cards,.crx-review-cards),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-cards,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready :is(.rhr-archive-list,.rhr-report-tiles),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-audit.rhr-ready .rhr-history-list,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium :is(.fr2-catalog-list-panel,.fr2-catalog-list) {
+  box-sizing:border-box!important;
+  min-width:0!important;width:100%!important;
+  max-width:var(--fr-responsive-cards-max)!important;
+  margin-inline:auto!important;
+ }
+ /* Las tarjetas de visita necesitan tamaño real y centro, no primera columna. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) {
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),360px))!important;
+  justify-content:center!important;
+  justify-items:stretch!important;
+  align-content:start!important;
+  gap:clamp(10px,1.1vw,16px)!important;
+  width:100%!important;max-width:1520px!important;
+  min-width:0!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) :is(.hv-swipe-row,.hv-swipe-content,.hv-ref-visit) {
+  box-sizing:border-box!important;min-width:0!important;
+  max-width:100%!important;
+ }
+ /* Expediente: siempre centrado en la ventana y con scroll interior. */
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]) {
+  position:fixed!important;inset:0!important;
+  margin:auto!important;transform:none!important;
+  box-sizing:border-box!important;
+  max-width:calc(100vw - 36px)!important;
+  max-height:calc(100dvh - 36px)!important;
+ }
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ dialog.pp-expedient-dialog[open] {
+  width:min(1080px,calc(100vw - 64px))!important;
+  height:min(90dvh,940px)!important;
+ }
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ dialog.pp-patient-form-dialog[open] {
+  width:min(800px,calc(100vw - 64px))!important;
+  height:min(86dvh,840px)!important;
+ }
+ html:root body.fr2-app-authorized
+ :is(.hv-detail-backdrop,.hv-assignment-overlay,.jp-lookup-overlay,
+ .crx-detail-overlay,#clinicalReviewModal.crx-review-overlay,
+ #crxAdministrationModal.crx-admin-overlay):not([hidden]) {
+  position:fixed!important;inset:0!important;
+  align-items:center!important;justify-content:center!important;
+  box-sizing:border-box!important;max-width:100vw!important;
+ }
+ html:root body.fr2-app-authorized
+ :is(.hv-detail-backdrop>.hv-detail-dialog,
+ .hv-assignment-overlay>.hv-assignment-dialog,
+ .jp-lookup-overlay>.jp-lookup-dialog,
+ .crx-detail-overlay>.crx-detail-dialog,
+ #clinicalReviewModal .crx-review-dialog,
+ #crxAdministrationModal .crx-admin-card) {
+  box-sizing:border-box!important;
+  min-width:0!important;
+  max-width:calc(100vw - 36px)!important;
+  max-height:calc(100dvh - 36px)!important;
+  margin-inline:auto!important;
+ }
+}
+
+/* 3. Tablet y PC compacto: una columna para formularios complejos,
+   indicadores en pares, y menú que deja espacio para trabajar. */
+@media screen and (min-width:761px) and (max-width:1199px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact {
+  --fr-responsive-sidebar:218px;
+  --fr-responsive-content-max:100%;
+  --fr-responsive-cards-max:100%;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) {
+  max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpis {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:clamp(8px,1.4vw,13px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home :is(.op-grid,.op-grid.op-grid-wide),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients #patientsHome>.dashboard-grid {
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout {
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies.crx-ready :is(.crx-study-cards,.crx-review-cards),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-cards,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-archive-list {
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-cards,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .fr-config-grid {
+  grid-template-columns:minmax(0,1fr)!important;
+  max-width:840px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios :is(#hvRows,#hvHistoryRows) {
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,275px),350px))!important;
+ }
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]) {
+  width:calc(100vw - 36px)!important;
+ }
+}
+
+/* 4. Monitor PC estándar: dos columnas reales para paneles paralelos;
+   el ancho extra se usa para datos, no para dejar las fichas pegadas. */
+@media screen and (min-width:1200px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home .op-grid:not(.op-grid-wide) {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:clamp(13px,1.3vw,22px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home .op-grid.op-grid-wide {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout {
+  display:grid!important;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)!important;
+  gap:clamp(12px,1.6vw,22px)!important;
+  max-width:1500px!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-cards {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  max-width:1300px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .fr-config-grid {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  max-width:1300px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-home:not([hidden]),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-detail:not([hidden]),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready.sr-settings-detail-open
+ >.settings-section:not([hidden]) {
+  box-sizing:border-box!important;max-width:1300px!important;
+  width:100%!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace {
+  max-width:1560px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout {
+  max-width:1450px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated
+ :is(.pp-directory,.pp-search-panel,.pp-patient-cards) {
+  max-width:1380px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing.crx-ready .crx-process-cards {
+  grid-template-columns:minmax(0,1fr)!important;
+  max-width:1450px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-list-panel {
+  max-width:1480px!important;
+ }
+}
+
+/* 5. Monitor grande: cuatro indicadores, fichas clínicas en dos pistas
+   cuando su tarjeta es independiente; el procesamiento sigue en filas. */
+@media screen and (min-width:1450px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference>.journey-kpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpis {
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:clamp(11px,1.1vw,18px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies.crx-ready :is(.crx-study-cards,.crx-review-cards) {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:clamp(13px,1.3vw,20px)!important;
+  max-width:1520px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-archive-list {
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  max-width:1430px!important;gap:16px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-audit.rhr-ready .rhr-history-list {
+  max-width:1430px!important;
+ }
+}
+
+/* 6. Teléfono: ancho completo, una columna, menú tipo cajón existente.
+   NO se cambian estilos de gesto ni ocultación de navegación. */
+@media screen and (max-width:760px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .main {
+  box-sizing:border-box!important;min-width:0!important;max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+  box-sizing:border-box!important;width:100%!important;max-width:100%!important;
+  min-width:0!important;margin-inline:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .content>.view.fr5-screen {
+  box-sizing:border-box!important;
+  min-width:0!important;width:100%!important;max-width:100%!important;
+ }
+}
