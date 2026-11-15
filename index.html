@@ -1129,6 +1129,54 @@ async function restoreTest(id){
 }
 let catalogListLimit=70,catalogLastSearch='',catalogLastFilter='',catalogDetailRevision='';
 function normalizeCatalogSearch(text){return String(text==null?'':text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').trim();}
+let catalogSearchFrame=0;
+function queueCatalogSearch(){
+ if(catalogSearchFrame)return;
+ const run=function(){catalogSearchFrame=0;renderCatalog();};
+ if(typeof requestAnimationFrame==='function')catalogSearchFrame=requestAnimationFrame(run);
+ else{catalogSearchFrame=1;Promise.resolve().then(run);}
+}
+// Sinónimos SOLO para encontrar un examen. Nunca deciden muestra, color o protocolo.
+const CATALOG_SEARCH_ALIASES={
+ 'tp':['tiempo de protrombina','prueba de mezcla de tp'],
+ 'pt':['tiempo de protrombina'],
+ 'ttpa':['tiempo de tromboplastina parcial activada'],
+ 'tpt':['tiempo de tromboplastina parcial activada'],
+ 'inr':['tiempo de protrombina','inr'],
+ 'cbc':['hemograma completo','biometria hematica'],
+ 'bh':['biometria hematica','hemograma'],
+ 'hba1c':['hemoglobina glicosilada','hemoglobina glucosilada','hemoglobina glicada'],
+ 'tsh':['tirotropina','hormona estimulante de tiroides'],
+ 't4l':['tiroxina libre','t4 libre'],
+ 'pcr':['proteina c reactiva','reaccion en cadena de la polimerasa'],
+ 'psa':['antigeno prostatico especifico'],
+ 'hcg':['gonadotropina corionica'],
+ 'vih':['virus de inmunodeficiencia humana','hiv'],
+ 'vsg':['velocidad de sedimentacion','eritrosedimentacion'],
+ 'vdrl':['vdrl'],
+ 'tg':['trigliceridos'],
+ 'hdl':['lipoproteinas de alta densidad','colesterol hdl'],
+ 'ldl':['lipoproteinas de baja densidad','colesterol ldl'],
+ 'bun':['nitrogeno ureico','urea'],
+ 'ast':['aspartato aminotransferasa','transaminasa glutamico oxalacetica','tgo'],
+ 'alt':['alanina aminotransferasa','transaminasa glutamico piruvica','tgp'],
+ 'tgo':['aspartato aminotransferasa','ast'],
+ 'tgp':['alanina aminotransferasa','alt']
+};
+function catalogSearchMatches(t,term){
+ if(!term)return true;
+ const all=normalizeCatalogSearch([t.name,t.code,t.testCode,t.sample,t.vessel,t.colorName,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' '));
+ if(!all)return false;
+ // Las siglas breves deben coincidir con palabras/códigos completos, no con sílabas arbitrarias.
+ if(term.length<=3&&/^[a-z0-9]+$/.test(term)){
+  const words=all.split(/\s+/);
+  if(words.includes(term))return true;
+ }else if(all.includes(term))return true;
+ const aliases=CATALOG_SEARCH_ALIASES[term]||[];
+ const name=normalizeCatalogSearch(t.name||'');
+ return aliases.some(alias=>name.includes(alias));
+}
+
 function showMoreCatalog(){catalogListLimit+=70;renderCatalog();}
 function renderCatalog(){
  const list=$('catalogList'),settings=$('settingsCatalogList'),archivePanel=$('catalogArchivedPanel'),archiveList=$('catalogArchivedList');
@@ -1142,7 +1190,7 @@ function renderCatalog(){
  const matching=active.filter(function(t){
   if(filter==='pending'&&t.validated===true)return false;
   if(filter==='vessel'&&!String(t.vessel||'').trim())return false;
-  return !term||normalizeCatalogSearch([t.name,t.code,t.testCode,t.sample,t.vessel,t.colorName,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' ')).includes(term);
+  return catalogSearchMatches(t,term);
  });
  const visible=matching.slice(0,catalogListLimit);
  const revision=all.length+'|'+all.map(t=>String(t.id||'')+':'+String(t.updatedAt||'')+':'+String(t.active!==false)).join('|');
