@@ -1118,13 +1118,27 @@ async function restoreTest(id){
  if(!save()){state.catalog[index]=previous;return}
  renderAll();toast('Prueba reactivada. Verificando sincronización…');await confirmCatalogCloudSync('Reactivación de "'+t.name+'".');
 }
+let catalogListLimit=70,catalogLastSearch='',catalogLastFilter='',catalogDetailRevision='';
+function normalizeCatalogSearch(text){return String(text==null?'':text).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]+/g,' ').trim();}
+function showMoreCatalog(){catalogListLimit+=70;renderCatalog();}
 function renderCatalog(){
  const list=$('catalogList'),settings=$('settingsCatalogList'),archivePanel=$('catalogArchivedPanel'),archiveList=$('catalogArchivedList');
  if(!list)return;
  const all=Array.isArray(state.catalog)?state.catalog.filter(function(t){return t&&typeof t==='object'}):[];
  const active=all.filter(function(t){return t.active!==false}),archived=all.filter(function(t){return t.active===false});
- const term=String($('catalogSearch')&&$('catalogSearch').value||'').trim().toLocaleLowerCase('es');
- const visible=active.filter(function(t){return[t.name,t.code,t.testCode,t.sample,t.vessel,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' ').toLocaleLowerCase('es').includes(term)});
+ // Filtrar el conjunto completo ANTES de pintar tarjetas: útil para 1.400+ pruebas en Android.
+ const term=normalizeCatalogSearch($('catalogSearch')&&$('catalogSearch').value||'');
+ const filter=window.FleboCatalogReference?.getFilter?.()||'all';
+ if(term!==catalogLastSearch||filter!==catalogLastFilter){catalogListLimit=70;catalogLastSearch=term;catalogLastFilter=filter;}
+ const matching=active.filter(function(t){
+  if(filter==='pending'&&t.validated===true)return false;
+  if(filter==='vessel'&&!String(t.vessel||'').trim())return false;
+  return !term||normalizeCatalogSearch([t.name,t.code,t.testCode,t.sample,t.vessel,t.colorName,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' ')).includes(term);
+ });
+ const visible=matching.slice(0,catalogListLimit);
+ const revision=all.length+'|'+all.map(t=>String(t.id||'')+':'+String(t.updatedAt||'')+':'+String(t.active!==false)).join('|');
+ const detailsChanged=revision!==catalogDetailRevision;
+ catalogDetailRevision=revision;
  $('catalogCount').textContent=active.length;
  if($('settingsCatalogCount'))$('settingsCatalogCount').textContent=active.length+' activas';
  if($('catalogMetricTotal'))$('catalogMetricTotal').textContent=active.length;
@@ -1132,9 +1146,18 @@ function renderCatalog(){
  if($('catalogMetricVessels'))$('catalogMetricVessels').textContent=active.filter(function(t){return!!String(t.vessel||'').trim()}).length;
  const empty=term?'<div class="empty-state">No hay pruebas que coincidan con esa búsqueda.</div>':'<div class="empty-state">No hay pruebas activas. Crea la primera prueba para configurar el catálogo.</div>';
  list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+(t.validated?'<span class="badge">Protocolo confirmado</span>':'<span class="badge pending">Pendiente de validación</span>')+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button></span></article>'}).join(''):empty;
- if(settings)settings.innerHTML=all.length?all.slice().sort(function(a,b){return(a.active===false)-(b.active===false)||String(a.name||'').localeCompare(String(b.name||''),'es')}).map(function(t){return '<div class="list-row'+(t.active===false?' fr2-archived-row':'')+'"><span><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+' · '+(t.active===false?'Archivada':t.validated?'Confirmada':'Pendiente de validación')+'</small></span><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button>'+(t.active===false?'<button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button>':'<button class="btn danger" type="button" onclick="deleteTest(\''+esc(t.id)+'\')">Archivar</button>')+'</span></div>'}).join(''):'<div class="empty-state">El catálogo está vacío. Añade tu primera prueba.</div>';
- if(archivePanel){archivePanel.hidden=archived.length===0;if($('catalogArchivedCount'))$('catalogArchivedCount').textContent=archived.length;if(archiveList)archiveList.innerHTML=archived.map(function(t){return '<article class="fr2-catalog-archive-item"><div><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+'</small></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button><button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button></span></article>'}).join('')}
- const quick=$('quickTest');if(quick)quick.innerHTML='<option value="">Seleccionar prueba…</option>'+active.map(function(t){return '<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>'}).join('');
+ // Una búsqueda muestra sus resultados inmediatamente sin procesar miles de tarjetas.
+ const feedback=document.createElement('div');feedback.className='catalog-search-results';feedback.setAttribute('role','status');
+ feedback.textContent=term?matching.length+' coincidencia(s) para «'+$('catalogSearch').value.trim()+'»':matching.length+' prueba(s) en este filtro';
+ if(matching.length){list.prepend(feedback);}
+ if(matching.length>visible.length){
+  const more=document.createElement('button');more.type='button';more.className='btn catalog-search-more';
+  more.textContent='Mostrar más ('+visible.length+' de '+matching.length+')';
+  more.addEventListener('click',showMoreCatalog);list.append(more);
+ }
+ if(settings&&detailsChanged)settings.innerHTML=all.length?all.slice().sort(function(a,b){return(a.active===false)-(b.active===false)||String(a.name||'').localeCompare(String(b.name||''),'es')}).map(function(t){return '<div class="list-row'+(t.active===false?' fr2-archived-row':'')+'"><span><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+' · '+(t.active===false?'Archivada':t.validated?'Confirmada':'Pendiente de validación')+'</small></span><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button>'+(t.active===false?'<button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button>':'<button class="btn danger" type="button" onclick="deleteTest(\''+esc(t.id)+'\')">Archivar</button>')+'</span></div>'}).join(''):'<div class="empty-state">El catálogo está vacío. Añade tu primera prueba.</div>';
+ if(archivePanel){archivePanel.hidden=archived.length===0;if($('catalogArchivedCount'))$('catalogArchivedCount').textContent=archived.length;if(archiveList&&detailsChanged)archiveList.innerHTML=archived.map(function(t){return '<article class="fr2-catalog-archive-item"><div><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+'</small></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button><button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Reactivar</button></span></article>'}).join('')}
+ const quick=$('quickTest');if(quick&&detailsChanged)quick.innerHTML='<option value="">Seleccionar prueba…</option>'+active.map(function(t){return '<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>'}).join('');
 }
 function changeCount(id,delta){const item=state.selected.find(function(x){return x.testId===id});if(!item)return;item.count=Math.max(0,item.count+delta);if(item.count===0)state.selected=state.selected.filter(function(x){return x.testId!==id});touchJourney();save();renderAll()}
 function removeFromJourney(id){state.selected=state.selected.filter(function(x){return x.testId!==id});touchJourney();save();renderAll()}
