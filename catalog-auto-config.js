@@ -131,7 +131,7 @@
   const msg=$('catalogAutoMessage');
   if(msg)msg.textContent=applied+' campo(s) rellenado(s) como propuesta. Comprueba con el protocolo del laboratorio y marca «Confirmado por el administrador» antes de guardar.';
   const audit=window.auditAdd;
-  if(typeof audit==='function'&&applied)audit('Catálogo de pruebas','Aplicó una propuesta sin confirmar de '+name+'; fuente: '+suggestion.source);
+  if(typeof audit==='function'&&applied)audit('Catálogo de pruebas','Preparó una propuesta sin guardar de '+name+'; fuente: '+suggestion.source);
   const apply=$('catalogAutoApply');if(apply)apply.hidden=true;
  }
  async function applyReviewedBatch(){
@@ -211,6 +211,8 @@
    const heading=section.querySelector('.section-description')||section.querySelector('#catalogFormTitle');
    heading?.insertAdjacentElement('afterend',panel);
    name.addEventListener('input',updateForm);
+   // Al terminar de escribir una prueba reconocida, preparar la propuesta sin guardarla.
+   name.addEventListener('change',()=>{applyToForm();updateForm();});
    $('testValidated')?.addEventListener('change',updateForm);
    section.addEventListener('click',event=>{
     if(event.target.closest('button[onclick*="resetTestForm"]'))setTimeout(updateForm,0);
