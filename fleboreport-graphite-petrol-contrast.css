@@ -1,0 +1,382 @@
+/* FleboReport · Paleta institucional GRAFITO + PETRÓLEO · 2026-11-14
+   Corregir contrastes deficientes del tema azul hielo y de CSS anteriores.
+   Última capa visual, exclusivamente cromática: NO se modifican tamaños,
+   posiciones, visibilidad, comportamiento, permisos, datos ni impresión.
+   El blanco solamente se aplica sobre superficies oscuras.
+   Colores: texto #223139, secundario #4B5E68, acción #355761,
+   grafito #25363D, lienzo #F5F7F7, borde #CFDADD. */
+@media screen {
+ html:root {
+  --navy:#25363D!important;--navy2:#334C55!important;
+  --blue:#355761!important;--teal:#4F7178!important;
+  --mint:#E6EEEF!important;--ink:#223139!important;
+  --muted:#4B5E68!important;--line:#CFDADD!important;
+  --bg:#F5F7F7!important;--white:#FFFFFF!important;
+  --cm-indigo:#355761!important;--cm-violet:#355761!important;
+  --cm-teal:#4F7178!important;
+  --vc-violet:#355761!important;--vc-indigo:#25363D!important;
+  --vc-aqua:#4F7178!important;--vc-ink:#223139!important;
+  --vc-muted:#4B5E68!important;--vc-border:#CFDADD!important;
+  --fr-premium-navy:#25363D!important;
+  --fr-premium-teal:#4F7178!important;
+  --fr-premium-teal-deep:#355761!important;
+  --fr-premium-bg:#F5F7F7!important;
+  --fr-premium-ink:#223139!important;
+  --fr4-violet:#355761!important;--fr4-violet-2:#4F7178!important;
+  --fr4-aqua:#7798A0!important;
+ }
+ /* Fondo de la aplicación y superficies: neutro y descansado. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact :is(.app-shell,.app-shell .main,.app-shell .content) {
+  background:#F5F7F7!important;color:#223139!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar {
+  background:#FFFFFF!important;border-bottom-color:#CFDADD!important;
+  box-shadow:0 1px 8px rgba(28,43,48,.06)!important;
+  color:#223139!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar :is(.fr2-brand-copy strong,.fr2-current-area,.fr2-brand-link,.fr2-topbar-title,.fr2-topbar-label) {
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar :is(.fr2-brand-copy small,.fr2-current-area small,.fr2-topbar-subtitle){
+  color:#4B5E68!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar :is(.fr2-current-area,.cm-context-label,.cm-context-chip,.today-chip){
+  background:#E6EEEF!important;color:#223139!important;
+  border-color:#CEDADD!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar :is(.fr2-brand-mark,.cm-context-glyph){
+  background:#355761!important;color:#FFFFFF!important;
+  border-color:#355761!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .app-shell .topbar :is(.top-action,.topbar-action,.fr2-catalog-shortcut,.fr2-notification-bell){
+  color:#355761!important;background:#EDF3F3!important;
+  border-color:#CFDADD!important;box-shadow:none!important;
+ }
+
+ /* Menú lateral: grafito mate y textos claros, sin iconos blancos sobre blanco. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation {
+  background:#25363D!important;border-right-color:#354C54!important;
+  color:#F3F6F6!important;box-shadow:2px 0 12px rgba(23,37,43,.10)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.drawer-brand-copy strong,.module-menu-head strong){
+  color:#FFFFFF!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.drawer-brand-copy small,.nav-group>summary,.nav-label,.drawer-footer small){
+  color:#D6E2E4!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not(.active){
+  background:transparent!important;border-color:transparent!important;
+  color:#EAF0F1!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not(.active) .nav-copy{
+  background:transparent!important;color:#EAF0F1!important;
+  text-shadow:none!important;border-color:transparent!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not(.active) .nav-icon{
+  background:#374D55!important;border-color:#54717A!important;
+  color:#F5F9FA!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]){
+  background:#3C5A63!important;border-color:#69858B!important;
+  color:#FFFFFF!important;box-shadow:inset 3px 0 #C0D5D8!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-icon{
+  background:#E7EFF0!important;border-color:#D4E1E3!important;
+  color:#25363D!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-copy{
+  color:#FFFFFF!important;background:transparent!important;
+  box-shadow:none!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.drawer-footer,#fleboGlobalSignOut){
+  background:#334B54!important;border-color:#617982!important;
+  color:#F4F8F8!important;box-shadow:none!important;
+ }
+
+ /* Superficies del sistema en todos los módulos. No sustituir los chips
+    que representan estados clínicos, urgencias, vencimientos o errores. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel,.form-panel,.op-panel,.report-card,.catalog-card,
+ .clinical-panel,.rhr-panel,.fr-config-card,.fr-na-card){
+  background:#FFFFFF!important;border-color:#CFDADD!important;
+  box-shadow:0 3px 13px rgba(33,49,55,.045)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.panel-head,.op-panel-header,.fr-config-card>header){
+  background:#F7FAFA!important;border-color:#DEE6E7!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.page-heading h1,.page-heading h2,.panel-head h2,
+ .form-panel h2,.op-panel h2,.fr-config-card h2,.fr-config-card h3){
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.page-heading p,.panel-head p,.op-panel-header p,
+ .form-panel p,.field label,.fr-config-field label){
+  color:#4B5E68!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.field input,.field select,.field textarea,.fr-config-field input,
+ .fr-config-field select,.fr-config-field textarea,input[type="search"],input[type="date"]){
+  color:#223139!important;background:#FFFFFF!important;
+  border-color:#C8D5D9!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(input,textarea)::placeholder{
+  color:#51656F!important;opacity:1!important;
+ }
+
+ /* Estados de botones: oscuros con blanco / claros con grafito.
+    Se evita sobreescribir danger, warning, success y error. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.btn.primary,.btn.blue,.btn-primary,button.primary):not(.danger):not(.warning):not(.success),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home .fr2-home-action.primary,
+ #view-domicilios .hv-ref-new,#view-domicilios .hv-ref-respond,
+ #view-journey .journey-report-button,#view-journey .journey-register-button,
+ #view-clinical-studies button.crx-action:not(.danger),
+ #view-clinical-processing button.crx-action:not(.danger),
+ #view-catalog .fr2-catalog-new,#view-catalog .cpr-filter-chip.selected,
+ #view-reports button.rhr-export.rhr-pdf,
+ #view-reports .rhr-archive-actions .rhr-archive-open,
+ #view-patients button.pp-chip.selected,
+ #view-patients button.pp-primary-action,
+ #view-patients .pp-record-tabs .pp-tab.active,
+ #view-settings .sr-detail-tab.is-current){
+  background:#355761!important;border-color:#355761!important;
+  color:#FFFFFF!important;box-shadow:0 2px 7px rgba(28,49,57,.12)!important;
+  text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.btn.primary,.btn.blue,.btn-primary,button.primary):not(.danger):not(.warning):not(.success)
+ :is(span,b,strong,small),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-journey .journey-report-button,#view-journey .journey-register-button,
+ #view-catalog .fr2-catalog-new,#view-domicilios .hv-ref-new,
+ #view-patients button.pp-primary-action) :is(span,b,strong,small){
+  color:#FFFFFF!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.btn:not(.primary):not(.blue):not(.danger):not(.warning):not(.success),
+ button.pp-open-patient,button.pp-timeline-view,button.pp-chip:not(.selected),
+ .rhr-export:not(.rhr-pdf),.cpr-filter-chip:not(.selected),.sr-detail-tab:not(.is-current)){
+  background:#EFF4F4!important;color:#223139!important;
+  border-color:#C8D6D9!important;box-shadow:none!important;
+  text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ .fr5-screen :is(.btn:not(.primary):not(.blue):not(.danger):not(.warning):not(.success),
+ button.pp-open-patient,button.pp-timeline-view,button.pp-chip:not(.selected),
+ .rhr-export:not(.rhr-pdf),.cpr-filter-chip:not(.selected),.sr-detail-tab:not(.is-current))
+ :is(span,strong,small,b){
+  color:#223139!important;
+ }
+
+ /* Inicio y paneles KPI: números legibles en superficies luminosas;
+    el color no compite con alertas de procesamiento clínico. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis>.op-kpi,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #dashClinicalKpis>.clinical-dash-kpi,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis>.stat-card,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpi,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-kpi {
+  background:#FFFFFF!important;border-color:#CFDADD!important;
+  color:#223139!important;box-shadow:0 2px 9px rgba(27,45,52,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #operationalKpis>.op-kpi :is(strong,small,b,span),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-home #dashClinicalKpis>.clinical-dash-kpi :is(strong,small,b,span),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium #patientsHome>.pp-home-kpis>.stat-card :is(strong,small,b,span),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-kpi :is(strong,small,b,span),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-kpi :is(strong,small,b,span){
+  color:#223139!important;text-shadow:none!important;
+ }
+
+ /* Domicilios: cabecera, tabs, fichas e historial legibles. Mantener
+    sin alterar las etiquetas de estado ni el rojo de Eliminar. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(.hv-ref-heading,.hv-history-panel,.hv-calendar-panel){
+  color:#223139!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(.hv-section-heading h2,.hv-ref-heading h2,
+ .hv-ref-visit strong,.hv-ref-visit .hv-ref-name,.hv-ref-visit .hv-ref-patient){
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(.hv-section-heading p,.hv-ref-heading p,
+ .hv-ref-visit small,.hv-ref-subtitle,.hv-ref-detail){
+  color:#4B5E68!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-module-tabs{
+  background:#E9F0F1!important;border-color:#CFDADD!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-module-tab:not(.active){
+  background:transparent!important;color:#355761!important;
+  border-color:transparent!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-module-tab.active{
+  background:#FFFFFF!important;color:#223139!important;
+  border-color:#CFDADD!important;box-shadow:0 1px 4px rgba(31,51,57,.07)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-archive-action{
+  background:#8B3545!important;color:#FFFFFF!important;
+  border-color:#8B3545!important;
+ }
+ /* Pacientes y Expedientes: textos con contraste fuerte, fichas neutras. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium :is(.pp-directory-card,.pp-patient-ribbon,.pp-record-panel){
+  background:#FFFFFF!important;border-color:#CFDADD!important;
+  box-shadow:0 3px 10px rgba(30,48,53,.06)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium :is(.pp-directory-card,.pp-record-panel)
+ :is(h2,h3,strong,.pp-patient-name,.pp-directory-name){
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium :is(.pp-directory-card,.pp-record-panel)
+ :is(small,.pp-patient-meta,.pp-directory-meta){
+  color:#4B5E68!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium .pp-record-kpi{
+  background:#355761!important;border-color:#355761!important;
+  color:#FFFFFF!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium .pp-record-kpi :is(strong,small,span){
+  color:#FFFFFF!important;
+ }
+ /* Configuración: nunca más letras pálidas sobre fondos blancos. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready{
+  background:#F5F7F7!important;color:#223139!important;
+  --sr-ink:#223139!important;--sr-muted:#4B5E68!important;
+  --sr-purple:#355761!important;--sr-cyan:#4F7178!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-setting-card,.sr-detail-header,
+ .fr-config-card,.settings-section .panel.form-panel){
+  background:#FFFFFF!important;border-color:#CFDADD!important;
+  box-shadow:0 3px 11px rgba(25,43,48,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-title-group h1,.sr-card-caption strong,
+ .sr-detail-heading h2,.fr-config-card h2,.fr-config-card h3,.sr-setting-card){
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-card-caption small,.sr-detail-heading p){
+  color:#4B5E68!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-title-icon,.sr-card-icon,.sr-detail-icon){
+  color:#355761!important;background:#E6EEEF!important;
+  border-color:#D3E0E2!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-card-chevron,.sr-detail-back,
+ .sr-detail-tab:not(.is-current)){
+  color:#355761!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-detail-tab.is-current{
+  background:#355761!important;color:#FFFFFF!important;
+  border-color:#355761!important;box-shadow:none!important;
+ }
+ /* Estudios, Procesamiento, Catálogo, Jornada, Historial: paneles,
+    etiquetas generales y pestañas oscuras. No neutralizar estados. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-journey,#view-clinical-studies,#view-clinical-processing,
+ #view-catalog,#view-reports,#view-audit)
+ :is(.page-heading h1,.jp-heading-title h1,.clinical-panel-header h2,
+ .fr2-catalog-hero h1,.rhr-heading h1,.panel-head h2){
+  color:#223139!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-journey,#view-clinical-studies,#view-clinical-processing,
+ #view-catalog,#view-reports,#view-audit)
+ :is(.page-heading p,.jp-heading-title p,.fr2-catalog-hero p,.rhr-heading p){
+  color:#4B5E68!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies.crx-ready .crx-study-tab:not(.is-selected),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .cpr-filter-chip:not(.selected){
+  background:#EFF4F4!important;color:#355761!important;
+  border-color:#C8D6D9!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-studies.crx-ready .crx-study-tab.is-selected,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .cpr-filter-chip.selected,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-reports.rhr-ready .rhr-history-chip.selected{
+  background:#355761!important;color:#FFFFFF!important;
+  border-color:#355761!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium :is(.fr2-catalog-stat,.fr2-catalog-list-panel){
+  background:#FFFFFF!important;border-color:#CFDADD!important;
+  box-shadow:0 3px 10px rgba(26,46,51,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-stat :is(strong,small,b,span){
+  color:#223139!important;text-shadow:none!important;
+ }
+ /* Diálogos: botones y campos legibles donde la vista se portaliza al body. */
+ html:root body.fr2-app-authorized :is(
+ #clinicalProcessingModal,#clinicalReviewModal,#crxAdministrationModal,
+ .hv-detail-backdrop,.jp-lookup-overlay,.pp-expedient-dialog,.pp-patient-form-dialog)
+ :is(input:not([type="checkbox"]),select,textarea){
+  background:#FFFFFF!important;color:#223139!important;
+  border-color:#C8D6D9!important;
+ }
+ html:root body.fr2-app-authorized :is(
+ #clinicalProcessingModal,#clinicalReviewModal,#crxAdministrationModal,
+ .hv-detail-backdrop,.jp-lookup-overlay,.pp-expedient-dialog,.pp-patient-form-dialog)
+ :is(input,textarea)::placeholder {
+  color:#51656F!important;opacity:1!important;
+ }
+ html:root body.fr2-app-authorized :is(
+ #clinicalProcessingModal,#clinicalReviewModal,#crxAdministrationModal,
+ .hv-detail-backdrop,.jp-lookup-overlay,.pp-expedient-dialog,.pp-patient-form-dialog)
+ :is(button.btn.primary,button.crx-review-approve,button.crx-admin-confirm,
+ button.jp-lookup-select){
+  background:#355761!important;color:#FFFFFF!important;
+  border-color:#355761!important;box-shadow:none!important;
+ }
+ /* Estados de foco perceptibles también con teclado. */
+ html:root body.fr2-app-authorized :is(button,input,textarea,select):focus-visible{
+  outline-color:#355761!important;
+ }
+}
