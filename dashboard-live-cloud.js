@@ -70,6 +70,8 @@
  function auth(){const a=window.FleboAuth,m=a?.membership;if(!a?.client||!a?.user||!m?.workspace_id||m.active!==true)return null;return{client:a.client,workspace:m.workspace_id};}
  function ensurePanel(){
   const home=$('view-home');if(!home)return null;
+  // Desactivar las gráficas heredadas calculadas en local: nunca mostrar cifras contradictorias.
+  home.classList.add('dl-cloud-dashboard');
   let p=$('dlLiveDashboard');
   if(!p){
    p=el('section','dl-live-dashboard');p.id='dlLiveDashboard';
