@@ -179,6 +179,21 @@
  #view-catalog.cpr-premium .fr2-catalog-stat :is(strong,small) {
   color:#FFFFFF!important;
  }
+ /* Variantes específicas: la paleta previa daba prioridad a :nth-child,
+    .pp-blue/.pp-pink y .rhr-kpi.violet, por eso precisan selector explícito. */
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(.pp-record-kpi.pp-blue,.pp-record-kpi.pp-pink,.pp-record-kpi.pp-teal),
+ html:root body.fr2-app-authorized #view-reports.rhr-ready
+ :is(.rhr-kpi.violet,.rhr-kpi.cyan,.rhr-kpi.purple),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium .fr2-catalog-stat:nth-child(2),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:nth-child(3),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-clinical-processing .crx-process-kpis>.clinical-kpi:nth-child(4) {
+  background:linear-gradient(135deg,#455C70,#2B4153)!important;
+  color:#FFFFFF!important;
+ }
  /* Pestañas no activas: no borrarse sobre blanco y preservar estado activo. */
  html:root body.fr2-app-authorized :is(
  .settings-tabs button:not(.active),
