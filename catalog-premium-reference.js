@@ -48,7 +48,7 @@
   row.classList.toggle('cpr-urine',/orina/.test(sample));
   const active=record?record.active!==false:true;
   const vesselDefined=record?!!String(record.vessel||'').trim():!/recipiente pendiente/i.test(copy?.querySelector('small')?.textContent||'');
-  const pending=record?!record.validated:!!tagBox?.querySelector('.badge.pending');
+  const pending=record?!String(record.vessel||'').trim():!!tagBox?.querySelector('.badge.pending');
   row.dataset.cprActive=active?'true':'false';
   row.dataset.cprPending=pending?'true':'false';
   row.dataset.cprVessel=vesselDefined?'true':'false';
@@ -63,11 +63,11 @@
    }
    if(!vesselDefined)tagBox.querySelector('.cpr-vessel-tag')?.remove();
    // Mostrar la propuesta clínica verificada como sugerencia, NO como dato aprobado.
-   const suggestion=record?.validated===true?null:window.FleboAutoConfigCore?.suggest?.(record?.name);
+   const suggestion=window.FleboAutoConfigCore?.suggest?.(record?.name);
    const missing=suggestion?window.FleboAutoConfigCore?.missingFields?.(record,suggestion):null;
    const chip=tagBox.querySelector('.cpr-auto-suggestion');
    if(suggestion&&missing&&Object.keys(missing).length){
-    const text='Sugerencia por revisar: '+suggestion.fields.sample+' · '+suggestion.fields.vessel
+    const text='Datos identificados: '+suggestion.fields.sample+' · '+(suggestion.fields.vessel||'recipiente sin definir')
      +(suggestion.fields.colorName?' · '+suggestion.fields.colorName:'');
     if(chip)chip.textContent=text;
     else tagBox.append(make('span','cpr-status cpr-auto-suggestion',text));
@@ -137,7 +137,7 @@
   row.append(filterToggle);
   const chips=make('div','cpr-filter-chips');chips.id='cprFilterChips';
   chips.setAttribute('role','group');chips.setAttribute('aria-label','Filtrar pruebas del catálogo');
-  for(const [value,label] of [['all','Todas'],['active','Activas'],['pending','Pendientes'],['vessel','Con recipiente']]){
+  for(const [value,label] of [['all','Todas'],['active','Activas'],['pending','Sin recipiente'],['vessel','Con recipiente']]){
    const b=make('button','cpr-filter-chip',label);
    b.type='button';b.dataset.cprFilter=value;
    b.setAttribute('aria-pressed',String(value==='all'));
