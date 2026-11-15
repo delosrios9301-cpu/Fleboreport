@@ -37,7 +37,7 @@ test('Plantilla admite encabezados del laboratorio, vacíos y acentos',()=>{
  assert.equal(result[0].status,'new');
  assert.equal(result[1].status,'invalid');
  assert.equal(result[2].status,'new');
- assert.throws(()=>core.prepare([['Examen'],['X']],[]),/Falta la columna/);
+ assert.throws(()=>core.prepare([['Encabezado desconocido'],['X']],[]),/Falta la columna/);
  assert.equal(core.norm('  Hemoglóbina   GLICOSILADA  '),'hemoglobina glicosilada');
 });
 
@@ -48,12 +48,12 @@ test('No duplica pruebas por código, nombre o repetición dentro del mismo arch
  ['GLUCOSA','GLU'],['Creatinina','CR'],['Creatinina','CR2'],['Colesterol','CR']];
  const result=core.prepare(input,existing);
  assert.deepEqual(Array.from(result,x=>x.status),[
-  'duplicate','duplicate','duplicate','new','duplicate','new'
+  'duplicate','duplicate','duplicate','new','duplicate','duplicate'
  ]);
  assert.equal(result[0].reason,'Nombre ya registrado');
  assert.equal(result[1].reason,'Código ya registrado');
  assert.equal(result[4].reason,'Repetida dentro del archivo');
- assert.equal(result[5].status,'new');
+ assert.equal(result[5].reason,'Repetida dentro del archivo');
  assert.equal(existing[0].name,'Ácido Úrico');
 });
 
