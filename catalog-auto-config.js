@@ -134,13 +134,13 @@
  function isLegacyPlaceholder(test){
   // Importación histórica asignaba Verde/tube sin conocer muestra ni recipiente.
   // Una configuración real, aprobada o con datos clínicos, no se considera placeholder.
-  return !!test&&test.validated!==true&&!String(test.sample||'').trim()&&!String(test.vessel||'').trim()
+  return !!test&&!String(test.sample||'').trim()&&!String(test.vessel||'').trim()
    &&String(test.colorName||'').toLocaleLowerCase('es')==='verde'
    &&String(test.color||'').toLowerCase()==='#237c49'
    &&String(test.shape||'')==='tube';
  }
  function missingFields(test,proposal){
-  if(!proposal||test?.validated===true)return {};
+  if(!proposal)return {};
   const legacy=isLegacyPlaceholder(test),out={};
   for(const key of editable){
    if(!proposal.fields[key])continue;
@@ -172,7 +172,7 @@
  function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n;}
  function currentFormRecord(){const id=$('catalogEditId')?.value;return id?catalog().find(row=>String(row.id)===id):null;}
  function eligible(record){
-  if(!record||record.active===false||record.validated===true)return null;
+  if(!record||record.active===false)return null;
   const proposal=core.suggest(record.name);
   if(!proposal)return null;
   const fields=core.missingFields(record,proposal);
@@ -187,11 +187,10 @@
   const suggestion=core.suggest(name);
   const pending=core.missingFields(current||{name},suggestion);
   const hasFields=Object.keys(pending).some(key=>key!=='color');
-  button.hidden=!hasFields||current?.validated===true;
+  button.hidden=!hasFields;
   button.disabled=!hasFields;
   if(!name)note.textContent='Escribe una prueba para buscar coincidencias exactas en las referencias disponibles.';
   else if(!suggestion)note.textContent='No hay una coincidencia inequívoca. Configura la prueba según el protocolo del laboratorio; no se asignará ningún recipiente ni color.';
-  else if(current?.validated===true)note.textContent='El protocolo actual está confirmado. La sugerencia no modificará configuraciones aprobadas.';
   else if(!hasFields)note.textContent='Los campos sugeridos ya están completos. Comprueba que corresponden al método de tu laboratorio.';
   else if(suggestion.level==='sample_only')note.textContent='Muestra deducida del nombre: '+suggestion.fields.sample+'. El tipo de tubo, el aditivo y el color siguen sin referencia: no se asignarán automáticamente.';
   else note.textContent='Referencia específica: '+suggestion.label+'. Completaría '+Object.keys(pending).filter(k=>k!=='color').length+' campo(s) vacío(s), sin reemplazar datos existentes. '+(suggestion.fields.colorName?'Color respaldado: '+suggestion.fields.colorName+'.':'Tubo con alternativas: color pendiente de protocolo local.');
@@ -206,7 +205,7 @@
  function applyToForm(){
   if(!authorized())return;
   const name=$('testName')?.value||'',current=currentFormRecord(),suggestion=core.suggest(name);
-  if(!suggestion||current?.validated===true)return;
+  if(!suggestion)return;
   const changes=core.missingFields(current||{},suggestion),legacy=core.isLegacyPlaceholder(current);
   let applied=0;
   for(const [key,id] of Object.entries(formFields)){
@@ -221,9 +220,8 @@
    if(input.tagName==='SELECT'&&![...input.options].some(option=>option.value===changes[key]))continue;
    input.value=changes[key];applied++;
   }
-  if($('testValidated'))$('testValidated').value='no';
   const msg=$('catalogAutoMessage');
-  if(msg)msg.textContent=applied+' campo(s) rellenado(s) como propuesta. Comprueba con el protocolo del laboratorio y marca «Confirmado por el administrador» antes de guardar.';
+  if(msg)msg.textContent=applied+' campo(s) completado(s) con datos identificados. Los campos sin fuente suficiente permanecen vacíos. Guarda la prueba si modificaste su ficha.';
   const audit=window.auditAdd;
   if(typeof audit==='function'&&applied)audit('Catálogo de pruebas','Preparó una propuesta sin guardar de '+name+'; fuente: '+suggestion.source);
   const apply=$('catalogAutoApply');if(apply)apply.hidden=true;
@@ -234,11 +232,10 @@
   if(!api||!state||!Array.isArray(state.catalog))return;
   const candidates=state.catalog.map((item,index)=>({item,index,match:eligible(item)})).filter(x=>x.match);
   if(!candidates.length)return;
-  if(!window.confirm('Se prepararán '+candidates.length+' propuesta(s): referencias específicas o muestras explícitas. Solo se completarán campos faltantes y se neutralizarán colores verdes ficticios. NINGÚN color se asignará por el tipo de muestra solamente. Todos los protocolos quedarán pendientes de validación. ¿Continuar?'))return;
   const old=candidates.map(x=>({index:x.index,original:x.item}));
   const now=new Date().toISOString();
   for(const {item,index,match} of candidates){
-   state.catalog[index]={...item,...match.fields,validated:false,updatedAt:now,autoConfigSource:match.proposal.source,autoConfigUrl:match.proposal.url};
+   state.catalog[index]={...item,...match.fields,updatedAt:now,autoConfigSource:match.proposal.source,autoConfigUrl:match.proposal.url};
   }
   if(!api.save()){
    for(const {index,original} of old)state.catalog[index]=original;
@@ -247,7 +244,7 @@
   }
   api.refresh();
   if(typeof window.auditAdd==='function'){
-   window.auditAdd('Catálogo de pruebas','Preparó '+candidates.length+' configuraciones no validadas usando referencias identificadas por nombre exacto');
+   window.auditAdd('Catálogo de pruebas','Completó automáticamente '+candidates.length+' fichas con datos respaldados o muestra explícita, sin inventar colores ni volúmenes');
   }
   renderList();
   const status=$('catalogAutoBatchStatus');
@@ -258,18 +255,18 @@
    if(synced&&typeof window.FleboHomeCatalogRefresh==='function')void window.FleboHomeCatalogRefresh();
   }catch(error){console.warn('[Catálogo] Propuestas pendientes de sincronización:',error);}
   if(status)status.textContent=synced
-   ?'Propuestas sincronizadas con la nube. Falta validarlas según el laboratorio antes de usarlas como protocolos.'
-   :'Propuestas guardadas en este dispositivo; falta confirmar sincronización con la nube. No se han declarado validadas.';
+   ?'Datos identificados sincronizados. Los campos sin protocolo específico permanecen sin definir.'
+   :'Cambios guardados localmente; sincronización pendiente. Los campos desconocidos siguen sin definir.';
  }
  let reviewQuery='',reviewMode='all',reviewLimit=60;
  function renderReviewRows(){
   const host=$('catalogAutoReviewRows'),summary=$('catalogAutoReviewSummary');
   if(!host)return;
-  const pending=catalog().filter(t=>t&&t.active!==false&&t.validated!==true);
-  const all=pending.map(item=>({item,proposal:core.suggest(item.name),match:eligible(item)}));
+  const active=catalog().filter(t=>t&&t.active!==false);
+  const all=active.map(item=>({item,proposal:core.suggest(item.name),match:eligible(item)}));
   const exact=all.filter(x=>x.proposal?.level==='specific').length;
   const partial=all.filter(x=>x.proposal?.level==='sample_only').length;
-  if(summary)summary.textContent=all.length+' pruebas pendientes: '+exact+' con referencia específica, '+partial+' con muestra identificada y '+(all.length-exact-partial)+' sin referencia suficiente. El color solo aparece si está respaldado para esa prueba.';
+  if(summary)summary.textContent=all.length+' pruebas activas: '+exact+' con referencia específica, '+partial+' con muestra explícita y '+(all.length-exact-partial)+' sin referencia suficiente. La actividad no implica que los datos de recolección estén completos.';
   const q=core.normalize(reviewQuery);
   const shown=all.filter(x=>{
    const level=x.proposal?.level||'pending';
@@ -286,7 +283,7 @@
     :proposal?.level==='sample_only'?proposal.fields.sample+' · Tubo y color por confirmar'
     :'Requiere referencia del laboratorio; no se asigna muestra, tubo ni color';
    body.append(el('strong','',item.name),el('small','',mark+' · '+detail));
-   const btn=el('button','btn','Revisar');btn.type='button';btn.dataset.catalogAutoId=String(item.id);
+   const btn=el('button','btn','Abrir ficha');btn.type='button';btn.dataset.catalogAutoId=String(item.id);
    row.append(body,btn);host.append(row);
   }
   if(shown.length>reviewLimit){
@@ -309,22 +306,22 @@
   if(!listOpen)return;
   const candidates=catalog().filter(item=>eligible(item));
   list.replaceChildren();
-  list.append(el('h3','','Revisión de configuración de todas las pruebas'));
-  list.append(el('p','catalog-auto-help','Las propuestas no están aprobadas. Cada muestra, aditivo, recipiente y color requiere comprobación con el laboratorio procesador.'));
+  list.append(el('h3','','Configuración de muestras y recipientes'));
+  list.append(el('p','catalog-auto-help','La aplicación completa automáticamente solo los datos identificables. Si falta una referencia del laboratorio, el tubo, color, volumen o condición se muestran sin definir; no se inventan.'));
   const summary=el('p','catalog-auto-help');summary.id='catalogAutoReviewSummary';summary.setAttribute('role','status');
   list.append(summary);
   const controls=el('div','catalog-auto-batch-controls');
-  const batch=el('button','btn catalog-auto-batch','Preparar '+candidates.length+' propuesta(s) seguras');
+  const batch=el('button','btn catalog-auto-batch','Completar '+candidates.length+' prueba(s) identificables');
   batch.type='button';batch.disabled=!candidates.length;
   batch.addEventListener('click',()=>{void applyReviewedBatch();});
   const status=el('p','catalog-auto-help');status.id='catalogAutoBatchStatus';status.setAttribute('role','status');
   controls.append(batch,status);list.append(controls);
   const search=el('input','catalog-auto-review-search');
-  search.type='search';search.placeholder='Buscar cualquier prueba para revisar…';search.value=reviewQuery;
-  search.setAttribute('aria-label','Buscar pruebas pendientes de revisión');
+  search.type='search';search.placeholder='Buscar prueba o condición…';search.value=reviewQuery;
+  search.setAttribute('aria-label','Buscar fichas de pruebas');
   search.addEventListener('input',()=>{reviewQuery=search.value;reviewLimit=60;renderReviewRows();});
   const mode=el('select','catalog-auto-review-filter');mode.setAttribute('aria-label','Filtrar nivel de evidencia');
-  for(const [id,label] of [['all','Todas las pendientes'],['specific','Referencia específica'],['sample_only','Solo muestra conocida'],['pending','Sin referencia suficiente']]){
+  for(const [id,label] of [['all','Todas las activas'],['specific','Referencia específica'],['sample_only','Solo muestra conocida'],['pending','Sin referencia suficiente']]){
    const option=el('option','',label);option.value=id;mode.append(option);
   }
   mode.value=reviewMode;
@@ -339,7 +336,7 @@
   if(!$('catalogAutoForm')){
    const panel=el('section','catalog-auto-form');panel.id='catalogAutoForm';
    const header=el('div','catalog-auto-head');
-   header.append(el('strong','','Configuración automática asistida'),el('span','','Revisión clínica obligatoria'));
+   header.append(el('strong','','Configuración automática asistida'),el('span','','Sin validaciones individuales'));
    const status=el('p','catalog-auto-help');status.id='catalogAutoMessage';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
    const source=el('div','catalog-auto-source');source.id='catalogAutoSource';
    const apply=el('button','btn');apply.type='button';apply.id='catalogAutoApply';apply.textContent='Aplicar sugerencia a campos vacíos';
@@ -351,7 +348,6 @@
    name.addEventListener('input',updateForm);
    // Al terminar de escribir una prueba reconocida, preparar la propuesta sin guardarla.
    name.addEventListener('change',()=>{applyToForm();updateForm();});
-   $('testValidated')?.addEventListener('change',updateForm);
    section.addEventListener('click',event=>{
     if(event.target.closest('button[onclick*="resetTestForm"]'))setTimeout(updateForm,0);
    });
