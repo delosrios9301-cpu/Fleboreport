@@ -147,6 +147,12 @@
    if(!test||!String(test[key]||'').trim()||(legacy&&['colorName','shape'].includes(key)))out[key]=proposal.fields[key];
   }
   if(out.colorName&&proposal.fields.color)out.color=proposal.fields.color;
+  // El color verde heredado de una importación no representa un tubo clínico.
+  // Sin referencia específica, pasar a "sin color validado", NO conservar verde.
+  if(legacy&&!proposal.fields.colorName&&(out.sample||out.vessel)){
+   out.colorName='';out.color='#94A3B8';
+   if(!proposal.fields.shape)out.shape='';
+  }
   return out;
  }
  return {normalize,suggest,missingFields,isLegacyPlaceholder,explicitlyNamedSample,referenceCount:reference.length};
@@ -187,9 +193,10 @@
   else if(!suggestion)note.textContent='No hay una coincidencia inequívoca. Configura la prueba según el protocolo del laboratorio; no se asignará ningún recipiente ni color.';
   else if(current?.validated===true)note.textContent='El protocolo actual está confirmado. La sugerencia no modificará configuraciones aprobadas.';
   else if(!hasFields)note.textContent='Los campos sugeridos ya están completos. Comprueba que corresponden al método de tu laboratorio.';
-  else note.textContent='Sugerencia detectada: '+suggestion.label+'. Completaría '+Object.keys(pending).filter(k=>k!=='color').length+' campo(s) vacío(s), sin reemplazar datos existentes.';
+  else if(suggestion.level==='sample_only')note.textContent='Muestra deducida del nombre: '+suggestion.fields.sample+'. El tipo de tubo, el aditivo y el color siguen sin referencia: no se asignarán automáticamente.';
+  else note.textContent='Referencia específica: '+suggestion.label+'. Completaría '+Object.keys(pending).filter(k=>k!=='color').length+' campo(s) vacío(s), sin reemplazar datos existentes. '+(suggestion.fields.colorName?'Color respaldado: '+suggestion.fields.colorName+'.':'Tubo con alternativas: color pendiente de protocolo local.');
   source.replaceChildren();
-  if(suggestion){
+  if(suggestion?.url){
    const link=el('a','','Ver fuente técnica: '+suggestion.source);
    link.href=suggestion.url;link.target='_blank';link.rel='noopener noreferrer';
    source.append(link);
@@ -203,7 +210,7 @@
   const changes=core.missingFields(current||{},suggestion),legacy=core.isLegacyPlaceholder(current);
   let applied=0;
   for(const [key,id] of Object.entries(formFields)){
-   if(!changes[key])continue;
+   if(!Object.prototype.hasOwnProperty.call(changes,key))continue;
    const input=$(id);
    if(!input)continue;
    // Solo sustituir el valor ficticio exacto; respetar cualquier corrección manual.
@@ -227,7 +234,7 @@
   if(!api||!state||!Array.isArray(state.catalog))return;
   const candidates=state.catalog.map((item,index)=>({item,index,match:eligible(item)})).filter(x=>x.match);
   if(!candidates.length)return;
-  if(!window.confirm('Se propondrá la configuración de '+candidates.length+' prueba(s) reconocidas por nombre exacto. Solo se completarán campos vacíos y valores verdes ficticios de importaciones anteriores. Las pruebas quedarán pendientes de validación clínica; no se modificarán protocolos aprobados. ¿Continuar?'))return;
+  if(!window.confirm('Se prepararán '+candidates.length+' propuesta(s): referencias específicas o muestras explícitas. Solo se completarán campos faltantes y se neutralizarán colores verdes ficticios. NINGÚN color se asignará por el tipo de muestra solamente. Todos los protocolos quedarán pendientes de validación. ¿Continuar?'))return;
   const old=candidates.map(x=>({index:x.index,original:x.item}));
   const now=new Date().toISOString();
   for(const {item,index,match} of candidates){
@@ -254,33 +261,72 @@
    ?'Propuestas sincronizadas con la nube. Falta validarlas según el laboratorio antes de usarlas como protocolos.'
    :'Propuestas guardadas en este dispositivo; falta confirmar sincronización con la nube. No se han declarado validadas.';
  }
+ let reviewQuery='',reviewMode='all',reviewLimit=60;
+ function renderReviewRows(){
+  const host=$('catalogAutoReviewRows'),summary=$('catalogAutoReviewSummary');
+  if(!host)return;
+  const pending=catalog().filter(t=>t&&t.active!==false&&t.validated!==true);
+  const all=pending.map(item=>({item,proposal:core.suggest(item.name),match:eligible(item)}));
+  const exact=all.filter(x=>x.proposal?.level==='specific').length;
+  const partial=all.filter(x=>x.proposal?.level==='sample_only').length;
+  if(summary)summary.textContent=all.length+' pruebas pendientes: '+exact+' con referencia específica, '+partial+' con muestra identificada y '+(all.length-exact-partial)+' sin referencia suficiente. El color solo aparece si está respaldado para esa prueba.';
+  const q=core.normalize(reviewQuery);
+  const shown=all.filter(x=>{
+   const level=x.proposal?.level||'pending';
+   if(reviewMode!=='all'&&level!==reviewMode)return false;
+   return !q||core.normalize([x.item.name,x.item.code,x.item.sample,x.item.vessel,x.proposal?.label].join(' ')).includes(q);
+  });
+  host.replaceChildren();
+  if(!shown.length){host.append(el('p','catalog-auto-help','No hay pruebas que coincidan con esta búsqueda.'));return;}
+  for(const {item,proposal} of shown.slice(0,reviewLimit)){
+   const row=el('article','catalog-auto-entry'),body=el('div','catalog-auto-entry-text');
+   const mark=proposal?.level==='specific'?'Referencia específica':proposal?.level==='sample_only'?'Solo muestra':'Sin fuente suficiente';
+   const detail=proposal?.level==='specific'
+    ?[proposal.fields.sample,proposal.fields.vessel,proposal.fields.colorName?'Tapa '+proposal.fields.colorName:'Color por confirmar'].filter(Boolean).join(' · ')
+    :proposal?.level==='sample_only'?proposal.fields.sample+' · Tubo y color por confirmar'
+    :'Requiere referencia del laboratorio; no se asigna muestra, tubo ni color';
+   body.append(el('strong','',item.name),el('small','',mark+' · '+detail));
+   const btn=el('button','btn','Revisar');btn.type='button';btn.dataset.catalogAutoId=String(item.id);
+   row.append(body,btn);host.append(row);
+  }
+  if(shown.length>reviewLimit){
+   const more=el('button','btn','Mostrar más ('+reviewLimit+' de '+shown.length+')');
+   more.type='button';more.addEventListener('click',()=>{reviewLimit+=60;renderReviewRows();});
+   host.append(more);
+  }
+ }
  function renderList(){
-  const list=$('catalogAutoList'),count=$('catalogAutoCount'),button=$('catalogAutoOpen');
+  const list=$('catalogAutoList'),button=$('catalogAutoOpen');
   if(!list)return;
   const can=authorized();
   if(button)button.hidden=!can;
   if(!can){list.replaceChildren();return;}
-  const candidates=catalog().map(item=>({item,match:eligible(item)})).filter(x=>x.match);
-  if(count)count.textContent=' ('+candidates.length+')';
   if(!listOpen)return;
+  const candidates=catalog().filter(item=>eligible(item));
   list.replaceChildren();
-  list.append(el('h3','','Pruebas con sugerencias por revisar'));
-  list.append(el('p','catalog-auto-help','Solo se muestran coincidencias exactas de la biblioteca de referencia. Revisar no modifica la prueba. La aprobación se realiza en Configuración.'));
+  list.append(el('h3','','Revisión de configuración de todas las pruebas'));
+  list.append(el('p','catalog-auto-help','Las propuestas no están aprobadas. Cada muestra, aditivo, recipiente y color requiere comprobación con el laboratorio procesador.'));
+  const summary=el('p','catalog-auto-help');summary.id='catalogAutoReviewSummary';summary.setAttribute('role','status');
+  list.append(summary);
   const controls=el('div','catalog-auto-batch-controls');
-  const batch=el('button','btn catalog-auto-batch','Preparar '+candidates.length+' propuesta(s) reconocidas');
+  const batch=el('button','btn catalog-auto-batch','Preparar '+candidates.length+' propuesta(s) seguras');
   batch.type='button';batch.disabled=!candidates.length;
   batch.addEventListener('click',()=>{void applyReviewedBatch();});
   const status=el('p','catalog-auto-help');status.id='catalogAutoBatchStatus';status.setAttribute('role','status');
   controls.append(batch,status);list.append(controls);
-  if(!candidates.length){list.append(el('p','','No hay propuestas pendientes entre las pruebas reconocidas. Las demás requieren configuración manual.'));return;}
-  for(const {item,match} of candidates.slice(0,100)){
-   const row=el('article','catalog-auto-entry'),body=el('div','catalog-auto-entry-text');
-   body.append(el('strong','',item.name),el('small','',match.proposal.fields.sample+' · '+match.proposal.fields.vessel));
-   const btn=el('button','btn','Revisar');
-   btn.type='button';btn.dataset.catalogAutoId=String(item.id);
-   row.append(body,btn);list.append(row);
+  const search=el('input','catalog-auto-review-search');
+  search.type='search';search.placeholder='Buscar cualquier prueba para revisar…';search.value=reviewQuery;
+  search.setAttribute('aria-label','Buscar pruebas pendientes de revisión');
+  search.addEventListener('input',()=>{reviewQuery=search.value;reviewLimit=60;renderReviewRows();});
+  const mode=el('select','catalog-auto-review-filter');mode.setAttribute('aria-label','Filtrar nivel de evidencia');
+  for(const [id,label] of [['all','Todas las pendientes'],['specific','Referencia específica'],['sample_only','Solo muestra conocida'],['pending','Sin referencia suficiente']]){
+   const option=el('option','',label);option.value=id;mode.append(option);
   }
-  if(candidates.length>100)list.append(el('p','','Se muestran las primeras 100 propuestas. Usa el catálogo para revisar las demás.'));
+  mode.value=reviewMode;
+  mode.addEventListener('change',()=>{reviewMode=mode.value;reviewLimit=60;renderReviewRows();});
+  const tools=el('div','catalog-auto-review-tools');tools.append(search,mode);list.append(tools);
+  const host=el('div','catalog-auto-review-rows');host.id='catalogAutoReviewRows';list.append(host);
+  renderReviewRows();
  }
  function mount(){
   const name=$('testName'),settings=$('settings-catalog'),view=$('view-catalog');
@@ -339,7 +385,7 @@
     if(!action||!authorized())return;
     const id=action.dataset.catalogAutoId;
     const row=catalog().find(item=>String(item.id)===id);
-    if(!eligible(row)||typeof window.editTest!=='function')return;
+    if(!row||typeof window.editTest!=='function')return;
     window.editTest(id);
     setTimeout(updateForm,0);
    });
