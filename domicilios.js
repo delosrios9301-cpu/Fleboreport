@@ -190,7 +190,7 @@ async function ensureVisitAssignment(v){
 }
 function serviceFields(item){const f=item.fields&&typeof item.fields==='object'?item.fields:{};return{sample:item.sample||f.sample||'',vessel:item.vessel||f.vessel||'',colorName:item.colorName||f.colorName||'',fasting:item.fasting||f.fasting||'',conditions:item.conditions||f.conditions||'',instructions:item.instructions||f.instructions||'',volume:item.volume||f.volume||'',method:item.method||f.method||'',color:item.color||f.color||'',shape:item.shape||f.shape||'tube'}}
 async function loadServiceCatalog(){
- if(!cloud.client||!cloud.workspaceId||catalogLoading)return;
+ if(!cloud.client||!cloud.workspaceId||catalogLoading)return false;
  catalogLoading=true;
  try{
   let existingRows=[];
@@ -255,11 +255,19 @@ async function loadServiceCatalog(){
   });
   if($('hvTestsSearch'))drawTestPicker('hvTests',$('hvTestsSearch').value||'');
   if($('hvMoreTestsSearch'))drawTestPicker('hvMoreTests',$('hvMoreTestsSearch').value||'');
+  return true;
  }catch(e){
   console.error('[Domicilios] Catálogo compartido:',e);
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
+  return false;
  }finally{catalogLoading=false}
 }
+// La importación desde Catálogo reutiliza el mismo catálogo de servicios,
+// con UUID reales, sin generar identidades incompatibles con home_visit_tests.
+window.FleboHomeCatalogRefresh=async function(){
+ if(!cloud.ready||cloud.role!=='admin')return false;
+ return loadServiceCatalog();
+};
 function isMyAssignedDomicile(v){
  return !!(v&&cloud.user?.id&&v.assignedUserId===cloud.user.id
   &&['invited','accepted'].includes(v.assignmentStatus));
