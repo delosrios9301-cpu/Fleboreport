@@ -29,6 +29,17 @@
   margin:0 12px 0 0;cursor:pointer;
  }
  #view-domicilios #hvOrderPdfFile:disabled{opacity:.62;cursor:wait;}
+ #view-domicilios #hvOrderRetryCatalog[hidden]{display:none!important;}
+ #view-domicilios #hvOrderRetryCatalog{
+  display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;
+  min-height:40px;max-width:100%;padding:9px 14px;border-radius:11px;
+  border:1px solid #BCD9BD;background:#E7F3E5;color:#23573A;
+  font-size:12px;font-weight:750;cursor:pointer;writing-mode:horizontal-tb;
+  white-space:normal;overflow-wrap:normal;box-shadow:none;
+ }
+ #view-domicilios #hvOrderRetryCatalog:hover{background:#D8ECD6;}
+ #view-domicilios #hvOrderRetryCatalog:disabled{opacity:.6;cursor:wait;}
+ #view-domicilios #hvOrderRetryCatalog:focus-visible{outline:3px solid #499763;outline-offset:3px;}
  #view-domicilios #hvOrderPdfInfo{margin:0;color:#4C6552;font-size:12px;line-height:1.55;}
  #view-domicilios #hvOrderStatus{
   margin:0;background:#E8F4E5;color:#245439;
