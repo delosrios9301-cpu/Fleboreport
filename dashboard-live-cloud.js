@@ -229,43 +229,127 @@
    row.append(name,track,el('b','',item.count));host.append(row);
   }
  }
+ function readable(value){
+  return value===null||value===undefined?'—':String(value);
+ }
+ function paintHighlights(){
+  const d=data;
+  for(const [id,value] of [
+   ['dlQuickPatients',d?.patients],['dlQuickHomes',d?.homeCompleted],
+   ['dlQuickTests',d?.testsTaken],['dlQuickProcessed',d?.processed]
+  ]){
+   const node=$(id);if(node&&node.textContent!==readable(value))node.textContent=readable(value);
+  }
+ }
+ function paintDetails(){
+  const host=$('dlLiveCards');if(!host)return;
+  const d=data;
+  const metrics=[
+   ['Pacientes registrados',d?.patients,'Expedientes activos'],
+   ['Pacientes atendidos',d?.attended,'Personas únicas'],
+   ['Domicilios finalizados',d?.homeCompleted,'Incluye archivados'],
+   ['Domicilios activos',d?.homeActive,'En agenda o ejecución'],
+   ['Finalizados hoy',d?.homeToday,'Fecha de Panamá'],
+   ['Finalizados este mes',d?.homeMonth,'Fecha de Panamá'],
+   ['Pruebas domiciliarias tomadas',d?.homeTestsCollected,'Muestras registradas'],
+   ['Pruebas domiciliarias pendientes',d?.homeTestsPending,'Sin marcar como tomadas'],
+   ['Estudios clínicos',d?.studies,'Protocolos en nube'],
+   ['Muestras clínicas',d?.samples,'Registros de muestra'],
+   ['Muestras procesadas',d?.processed,'Etapas de procesamiento'],
+   ['Almacenamiento definitivo',d?.definitive,'Muestras almacenadas'],
+   ['Jornadas',d?.journeys,'Jornadas consolidadas de la nube'],
+   ['Participaciones en jornada',d?.participations,'Registros vigentes de jornada'],
+   ['Empresas',d?.companies,'Empresas en nube'],
+   ['Reportes',d?.reports,'Documentos generados'],
+   ['Ingresos del mes',d?currency(d.revenue,d.revenueCurrency):null,'Facturas del mes']
+  ];
+  const next=document.createDocumentFragment();
+  for(const [label,value,description] of metrics){
+   const row=el('div','dl-live-metric');
+   const copy=el('div','dl-live-metric-copy');
+   copy.append(el('span','',label),el('small','',description));
+   row.append(copy,el('strong','',readable(value)));next.append(row);
+  }
+  host.replaceChildren(next);
+ }
+ function donutChart(host,records,centerLabel){
+  if(!host)return;host.replaceChildren();
+  if(!records){host.append(el('p','dl-live-empty','Sin datos verificados para este gráfico.'));return;}
+  const valid=records.filter(x=>x&&Number(x.count)>0);
+  if(!valid.length){host.append(el('p','dl-live-empty','Sin actividad registrada en este período.'));return;}
+  const colors=['#0e8a81','#6680d7','#e5a04d','#a26abd','#4eacc0','#c75b74','#78945b','#c68b69','#677687'];
+  const total=valid.reduce((n,x)=>n+Number(x.count),0);
+  const layout=el('div','dl-live-donut-layout');
+  const ring=el('div','dl-live-donut');
+  const stops=[];let offset=0;
+  for(let i=0;i<valid.length;i++){
+   const end=offset+Number(valid[i].count)/total*100;
+   stops.push(colors[i%colors.length]+' '+offset.toFixed(3)+'% '+end.toFixed(3)+'%');
+   offset=end;
+  }
+  ring.style.background='conic-gradient('+stops.join(',')+')';
+  ring.setAttribute('role','img');
+  ring.setAttribute('aria-label',centerLabel+': '+total+'. '+valid.map(x=>x.name+' '+x.count).join(', '));
+  const middle=el('div','dl-live-donut-middle');
+  middle.append(el('strong','',total),el('small','',centerLabel));
+  ring.append(middle);layout.append(ring);
+  const legend=el('div','dl-live-legend');
+  for(let i=0;i<valid.length;i++){
+   const item=el('div','dl-live-legend-item'),swatch=el('i','dl-live-swatch');
+   swatch.style.backgroundColor=colors[i%colors.length];
+   item.append(swatch,el('span','',valid[i].name),el('b','',valid[i].count));legend.append(item);
+  }
+  layout.append(legend);host.append(layout);
+ }
+ function paintDailyChart(host,days){
+  if(!host)return;host.replaceChildren();
+  if(!days){host.append(el('p','dl-live-empty','Datos todavía no verificados.'));return;}
+  const max=Math.max(1,...days.map(x=>x.count));
+  const series=el('div','dl-live-days');
+  for(const day of days){
+   const col=el('div','dl-live-day'),track=el('div','dl-live-day-stick'),fill=el('i','dl-live-day-fill');
+   fill.style.height=(day.count?Math.max(8,Math.round(day.count/max*100)):0)+'%';
+   track.append(fill);
+   col.append(el('b','',day.count),track,el('small','',day.name));
+   col.setAttribute('aria-label',day.key+': '+day.count+' domicilios finalizados');
+   series.append(col);
+  }
+  host.append(series);
+ }
  function paint(){
-  ensurePanel();paintKpis();
-  if(!data)return;
-  const d=data,cards=$('dlLiveCards');if(!cards)return;
-  const metrics=[['Pacientes',d.patients,'Expedientes activos'],
-   ['Domicilios finalizados',d.homeCompleted,'Todos los períodos y archivados'],
-   ['Domicilios activos',d.homeActive,'Pendientes y en atención'],
-   ['Finalizados hoy',d.homeToday,'Fecha de Panamá'],
-   ['Pruebas domiciliarias tomadas',d.homeTestsCollected,'Muestras registradas'],
-   ['Pruebas domiciliarias pendientes',d.homeTestsPending,'Sin marcar tomadas'],
-   ['Estudios clínicos',d.studies,'Protocolos registrados'],
-   ['Muestras clínicas',d.samples,'Registros recibidos'],
-   ['Muestras procesadas',d.processed,'Procesamiento registrado'],
-   ['Almacenadas definitivamente',d.definitive,'Almacenamiento final'],
-   ['Jornadas',d.journeys,'Jornadas consolidadas de la nube'],
-   ['Participaciones en jornada',d.participations,'Participaciones vigentes sincronizadas'],
-   ['Reportes',d.reports,'Informes guardados en nube']];
-  cards.replaceChildren();
-  for(const [title,value,caption] of metrics){
-   const card=el('article','dl-live-card');card.append(el('small','',title),el('strong','',value==null?'—':value),el('span','',caption));cards.append(card);
+  ensurePanel();paintKpis();paintHighlights();paintDetails();
+  const d=data;
+  const status=$('dlLiveVisitSummary');
+  if(status)status.textContent=d
+   ?'Finalizados: '+readable(d.homeCompleted)+' · Hoy: '+readable(d.homeToday)
+    +' · Activos: '+readable(d.homeActive)+' · Archivados: '+readable(d.homeArchived)
+   :'Domicilios pendientes de verificación.';
+  if(!d){
+   for(const id of ['dlLiveStatuses','dlLiveModules','dlLiveDays','dlLiveTests','dlLiveClinical','dlLiveClinicalBars']){
+    const node=$(id);if(node)node.replaceChildren(el('p','dl-live-empty','Verificando datos de Supabase…'));
+   }
+   return;
   }
-  chartRows($('dlLiveStatuses'),d.homeStatuses?Object.keys(core.LABELS).filter(k=>d.homeStatuses[k]).map(k=>({name:core.LABELS[k],count:d.homeStatuses[k]})):null);
-  const mod=[['Pacientes',d.patients],['Domicilios finalizados',d.homeCompleted],['Jornadas',d.journeys],
-   ['Estudios clínicos',d.studies],['Muestras procesadas',d.processed],['Reportes',d.reports]];
-  chartRows($('dlLiveModules'),mod.filter(([_,n])=>n!=null).map(([name,count])=>({name,count})));
-  chartRows($('dlLiveClinical'),d.clinicalStatuses);
+  const homeStatus=d.homeStatuses
+   ?Object.keys(core.LABELS).filter(k=>d.homeStatuses[k]>0).map(k=>({name:core.LABELS[k],count:d.homeStatuses[k]}))
+   :null;
+  donutChart($('dlLiveStatuses'),homeStatus,'domicilios');
+  const modules=[
+   ['Pacientes',d.patients],['Domicilios finalizados',d.homeCompleted],
+   ['Pruebas tomadas',d.testsTaken],['Jornadas',d.journeys],
+   ['Muestras clínicas',d.samples],['Reportes',d.reports]
+  ];
+  chartRows($('dlLiveModules'),modules.filter(([_,value])=>value!==null&&value!==undefined)
+   .map(([name,count])=>({name,count})));
+  paintDailyChart($('dlLiveDays'),d.homeDates);
   chartRows($('dlLiveTests'),d.testKinds);
-  const host=$('dlLiveDays');if(host){
-   host.replaceChildren();
-   if(d.homeDates){const max=Math.max(1,...d.homeDates.map(x=>x.count));
-    for(const day of d.homeDates){
-     const box=el('div','dl-live-day'),stick=el('div','dl-live-day-stick'),fill=el('i','dl-live-day-fill');
-     fill.style.height=(day.count?Math.max(8,Math.round(day.count/max*100)):0)+'%';
-     stick.append(fill);box.append(el('b','',day.count),stick,el('small','',day.name));attr(box,'aria-label',day.key+': '+day.count+' domicilios finalizados');host.append(box);
-    }
-   }else host.append(el('p','dl-live-empty','Datos no verificados.'));
-  }
+  donutChart($('dlLiveClinical'),d.clinicalStatuses,'muestras');
+  const clinicalMetrics=[
+   ['Muestras recibidas',d.samples],['Procesadas',d.processed],
+   ['Almacenadas definitivamente',d.definitive],['Estudios clínicos',d.studies]
+  ];
+  chartRows($('dlLiveClinicalBars'),clinicalMetrics.filter(([_,count])=>count!==null&&count!==undefined)
+   .map(([name,count])=>({name,count})));
   const home=$('view-home');if(home)home.classList.add('dl-cloud-verified');
  }
  async function rows(client,ws,table,fields,extra){
