@@ -170,7 +170,7 @@
    try{text=await extractText(file)}
    catch(error){if(request===selectionVersion)status(error?.message||'No se pudo leer el texto del PDF. Selecciona las pruebas manualmente.','error');return}
    if(request!==selectionVersion)return;
-   if(!text.trim()||text.trim().length<12){
+   if(!text.trim()){
     status('El PDF no contiene texto reconocible (posible escaneo). Se adjuntará al domicilio; selecciona las pruebas manualmente.','error');return;
    }
    recognizedText=text;
