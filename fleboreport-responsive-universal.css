@@ -253,6 +253,20 @@
   max-width:1300px!important;
  }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-home:not([hidden]),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-settings-detail:not([hidden]),
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready.sr-settings-detail-open
+ >.settings-section:not([hidden]) {
+  box-sizing:border-box!important;max-width:1300px!important;
+  width:100%!important;margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace {
+  max-width:1560px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
  #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout {
   max-width:1450px!important;
  }
