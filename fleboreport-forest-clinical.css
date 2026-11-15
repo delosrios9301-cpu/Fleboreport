@@ -1,0 +1,387 @@
+/* FleboReport · Guía visual Bosque Clínico · Referencia aprobada 14/11/2026
+   Implementación sobre elementos REALES y datos existentes. Paleta y composición.
+   NO contiene datos ficticios, ni cambia roles, acciones, gestos o almacenamiento.
+   Sólo pantalla, para mantener impresión de reportes y exportaciones. */
+@media screen {
+ html:root {
+   --navy:#123D30!important;--navy2:#174B39!important;
+   --blue:#236648!important;--teal:#3E8A62!important;--mint:#E8F3E5!important;
+   --ink:#182A21!important;--muted:#4D6257!important;--line:#DCE7DC!important;
+   --bg:#F7F6F1!important;--white:#FFFFFF!important;
+   --green:#237C49!important;--red:#AC3E44!important;
+   --fr-premium-navy:#123D30!important;--fr-premium-teal:#3E8A62!important;
+   --fr-premium-teal-deep:#236648!important;--fr-premium-bg:#F7F6F1!important;
+   --fr-premium-ink:#182A21!important;
+   --fr4-violet:#236648!important;--fr4-violet-2:#3E8A62!important;
+   --fr4-aqua:#7BAD83!important;
+   --forest-900:#0E3528;--forest-800:#164936;--forest-700:#236648;
+   --forest-600:#2B7651;--forest-500:#3E8A62;--forest-pale:#E5F3E4;
+   --surface:#FFFEFC;--canvas:#F7F6F1;--border:#E1E7DF;
+   --text:#182A21;--secondary:#4D6257;--shadow-soft:0 4px 18px rgba(25,57,39,.07);
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .main,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+   background:#F7F6F1!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+   max-width:1840px!important;min-width:0!important;
+   padding-inline:clamp(14px,2vw,34px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content>.view.fr5-screen {
+   min-width:0!important;max-width:100%!important;
+   background:transparent!important;color:#182A21!important;
+   margin-inline:auto!important;
+ }
+ /* Reference sidebar: deep forest + understated overlapping curved waves. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation {
+   background:linear-gradient(177deg,#113E2F 0%,#0D382B 58%,#164734 100%)!important;
+   border:0!important;border-right:1px solid #2B6048!important;
+   box-shadow:3px 0 18px rgba(14,53,40,.12)!important;color:#F5FAF5!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::before,
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::after {
+   content:""!important;pointer-events:none!important;
+   display:block!important;position:absolute!important;left:-24%!important;
+   width:155%!important;opacity:.55!important;box-shadow:none!important;
+   border:0!important;z-index:0!important;
+   background:linear-gradient(135deg,rgba(108,185,131,.30),rgba(169,213,147,.12))!important;
+   transform:rotate(-8deg)!important;border-radius:50%!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::before {
+   top:13%!important;height:82px!important;right:auto!important;bottom:auto!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation::after {
+   top:auto!important;bottom:9%!important;height:95px!important;right:auto!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .bubble-atmosphere,
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .bubble-atmosphere-orb {
+   display:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ :is(.module-menu-head,.nav-list,.drawer-footer,#fleboGlobalSignOut) {
+   position:relative!important;z-index:1!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .module-menu-head {
+   border-bottom:1px solid rgba(204,234,204,.28)!important;background:transparent!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .drawer-brand-mark {
+   color:#E7F6E6!important;background:linear-gradient(145deg,#24764D,#154C37)!important;
+   border:1px solid #5A9F74!important;border-radius:18px!important;
+   box-shadow:0 4px 12px rgba(0,20,10,.12)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .drawer-brand-copy strong {
+   color:#FFFFFF!important;font-size:20px!important;letter-spacing:-.4px!important;
+   text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .drawer-brand-copy small {
+   color:#D3E6D6!important;font-size:11px!important;letter-spacing:0!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-group>summary {
+   color:#BFDBC8!important;font-size:10px!important;letter-spacing:1px!important;
+   text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-group>summary svg {
+   color:#C7E1CA!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-list {
+   gap:4px!important;padding:10px 8px!important;scrollbar-color:#608A70 transparent!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-group-items {
+   gap:3px!important;padding:2px 0 9px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]):not([aria-hidden="true"]) {
+   display:flex!important;align-items:center!important;min-width:0!important;
+   min-height:46px!important;gap:10px!important;margin:0!important;padding:7px 12px!important;
+   background:transparent!important;border:1px solid transparent!important;
+   border-radius:12px!important;box-shadow:none!important;filter:none!important;
+   text-shadow:none!important;transition:background .16s ease,border-color .16s ease!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon {
+   width:26px!important;height:27px!important;min-width:26px!important;flex:0 0 26px!important;
+   margin:0!important;padding:2px!important;border:0!important;border-radius:0!important;
+   background:transparent!important;box-shadow:none!important;color:#EDF9EF!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon svg {
+   width:23px!important;height:23px!important;color:inherit!important;stroke:currentColor!important;
+   filter:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-copy {
+   flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:100%!important;
+   margin:0!important;padding:0!important;display:block!important;
+   font-size:13px!important;font-weight:640!important;line-height:1.3!important;
+   text-align:left!important;white-space:normal!important;overflow-wrap:normal!important;
+   writing-mode:horizontal-tb!important;background:transparent!important;
+   border:0!important;color:#F7FCF8!important;box-shadow:none!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):hover {
+   background:rgba(229,247,225,.11)!important;border-color:rgba(229,247,225,.12)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) {
+   background:linear-gradient(110deg,#EFF9E9,#BDE4BA)!important;
+   border:1px solid #E0F3DD!important;color:#173D2B!important;
+   box-shadow:0 2px 10px rgba(0,29,11,.13)!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-icon,
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav].active:not([hidden]) .nav-copy {
+   color:#163A29!important;background:transparent!important;border:0!important;
+   box-shadow:none!important;font-weight:770!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .drawer-footer {
+   background:rgba(15,69,47,.66)!important;border-color:#6C9A76!important;
+   color:#E7F5E7!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation #fleboGlobalSignOut {
+   color:#FFFFFF!important;background:#16523A!important;border:1px solid #90BA92!important;
+   border-radius:12px!important;min-height:44px!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation :is(.module-menu-close,.bubble-notification) {
+   color:#FFFFFF!important;background:#246849!important;
+   border-color:#7DB08C!important;box-shadow:none!important;
+ }
+ /* Permission-driven visibility always wins, including collapsed groups. */
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-list button[data-nav][hidden],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-list button[data-nav][disabled],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-list button[data-nav][aria-hidden="true"],
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .nav-group:not([open])>.nav-group-items {
+   display:none!important;
+ }
+ /* Reference header: white full-width surface with dark labels and quiet borders. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar {
+   background:#FFFEFC!important;border-bottom:1px solid #E1E7DF!important;
+   box-shadow:0 2px 10px rgba(22,57,37,.055)!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::before,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar::after {
+   opacity:0!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar
+ :is(.fr2-brand-copy strong,.fr2-brand-link,.fr2-current-area,.topbar-title) {
+   color:#142B1F!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-copy small {
+   color:#4D6257!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-brand-mark {
+   background:#237C49!important;border:1px solid #237C49!important;color:#FFFFFF!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar
+ :is(.fr2-menu-toggle,.fr2-catalog-shortcut,#frNotifBell) {
+   background:#FFFFFF!important;color:#235940!important;border:1px solid #DCE7DC!important;
+   box-shadow:none!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .topbar .fr2-current-area {
+   background:#EEF5EB!important;color:#2B6244!important;border-color:#DCE7DC!important;
+ }
+ /* Universal components: cream-white cards, restrained borders, dark typography. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.panel,.form-panel,.op-panel,.clinical-panel,.report-card,.catalog-card,.fr-config-card,
+ .fr-na-card,.sr-setting-card,.pp-directory-card,.pp-record-panel,.rhr-panel,
+ .crx-processing-card,.crx-study-card,.crx-review-card,.hv-ref-visit) {
+   background:#FFFEFC!important;border-color:#E1E7DF!important;
+   box-shadow:0 4px 18px rgba(25,57,39,.065)!important;
+   color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.panel-head,.op-panel-header,.fr-config-card>header) {
+   background:transparent!important;border-color:#E8EDE5!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(h1,h2,h3,.page-heading h1,.panel-head h2,.sr-card-caption strong,.pp-record-heading strong) {
+   color:#17271C!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(p,.muted,.page-heading p,.panel-head p,.fr-config-field label,.field label) {
+   color:#4D6257!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(input:not([type="checkbox"]),textarea,select) {
+   background:#FFFFFF!important;border-color:#D9E3D9!important;
+   color:#182A21!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(input,textarea)::placeholder {
+   color:#64786D!important;opacity:1!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.btn.primary,.btn.blue,.btn-primary,.primary-btn,button.primary):not(.danger):not(.warning):not(.success) {
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+   box-shadow:0 2px 7px rgba(25,78,44,.10)!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.btn.primary,.btn.blue,.btn-primary,.primary-btn,button.primary):not(.danger):not(.warning):not(.success)
+ :is(span,strong,small,b) {color:#FFFFFF!important;text-shadow:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.btn:not(.primary):not(.blue):not(.danger):not(.warning):not(.success),
+ .btn-secondary,.secondary-btn) {
+   background:#F1F6EF!important;color:#214C34!important;border-color:#D5E4D4!important;
+   box-shadow:none!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.settings-tabs button.active,.fr-config-nav button.active,
+ .sr-detail-tab.is-current,.hv-module-tab.active,.cpr-filter-chip.selected,
+ .pp-chip.selected,.rhr-history-chip.selected) {
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+   box-shadow:none!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.settings-tabs button:not(.active),.fr-config-nav button:not(.active),
+ .sr-detail-tab:not(.is-current),.hv-module-tab:not(.active),.cpr-filter-chip:not(.selected),
+ .pp-chip:not(.selected),.rhr-history-chip:not(.selected)) {
+   background:#F0F5EF!important;color:#21513A!important;border-color:#D5E4D4!important;
+   text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.btn,.fr2-home-action,button) {
+   writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact :is(button,input,select,textarea):focus-visible {
+   outline:3px solid #4D996B!important;outline-offset:3px!important;
+ }
+ /* Explicit semantic preservation: green success, amber pending, red overdue/error. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(.status-success,.badge.success,[data-status="completed"]) {color:#217346!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(.status-warning,[data-status="warning"],[data-status="pending"]) {color:#885D16!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(.status-danger,.status-error,.badge.danger,[data-status="error"],[data-status="failed"]) {color:#9E3740!important;}
+ /* Per-module surfaces follow the same visual language; no module is hidden. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-patients.pp-premium,#view-domicilios,#view-journey.jp-reference,
+ #view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready,
+ #view-catalog.cpr-premium,#view-reports.rhr-ready,#view-audit.rhr-ready,
+ #view-settings.sr-settings-ready) {
+   background:transparent!important;--pp-violet:#236648!important;
+   --pp-indigo:#164936!important;--pp-teal:#4D996B!important;--pp-ink:#182A21!important;
+   --crx-purple:#236648!important;--crx-ink:#182A21!important;
+   --crx-line:#DBE5D9!important;--rhr-purple:#236648!important;
+   --rhr-ink:#182A21!important;--sr-purple:#236648!important;
+   --jp-violet:#236648!important;--jp-cyan:#4D996B!important;
+   --hv-ref-purple:#236648!important;--hv-ref-cyan:#4D996B!important;
+   --hv-ref-ink:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-setting-card,.sr-setting-card.sr-cyan) {
+   background:#FFFEFC!important;border-color:#DCE7DC!important;
+   box-shadow:0 4px 18px rgba(25,57,39,.065)!important;
+   --sr-accent:#237C49!important;--sr-wave:linear-gradient(100deg,#E6F2E0,#C9E5C7)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card::before,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-setting-card::after {opacity:0!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready :is(.sr-card-icon,.sr-detail-icon) {
+   background:#E6F2E4!important;color:#236648!important;border-color:#DCE7DC!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready .sr-title-group h1 {
+   color:#182A21!important;white-space:nowrap!important;word-break:normal!important;
+   writing-mode:horizontal-tb!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(.hv-history-panel,.hv-ref-heading,.hv-calendar-panel,.hv-module-tabs) {
+   background:#FFFEFC!important;border-color:#E1E7DF!important;
+   box-shadow:0 3px 14px rgba(25,57,39,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-module-tab.active,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium button.pp-chip.selected {
+   background:#236648!important;border-color:#236648!important;color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace .hv-ref-visit {
+   background:#FFFFFF!important;color:#182A21!important;border-color:#E1E7DF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(.hv-ref-name,.hv-ref-patient) {
+   color:#182A21!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium :is(.pp-directory-card,.pp-patient-ribbon,.pp-record-panel) {
+   background:#FFFFFF!important;border-color:#E1E7DF!important;
+   box-shadow:var(--shadow-soft)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-study-card,.crx-review-card,.crx-processing-card,.clinical-panel) {
+   background:#FFFFFF!important;border-color:#E1E7DF!important;
+   box-shadow:var(--shadow-soft)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-panel,.rhr-kpi,.rhr-archive-card,.rhr-history-card) {
+   background:#FFFFFF!important;border-color:#E1E7DF!important;
+   box-shadow:var(--shadow-soft)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-catalog.cpr-premium :is(.fr2-catalog-stat,.fr2-catalog-list-panel) {
+   background:#FFFFFF!important;border-color:#E1E7DF!important;
+   box-shadow:var(--shadow-soft)!important;
+ }
+ /* Portalized modals: retain full width and contrast. */
+ html:root body.fr2-app-authorized
+ :is(#clinicalProcessingModal,#clinicalReviewModal,#crxAdministrationModal,
+ .hv-detail-backdrop,.jp-lookup-overlay,.pp-expedient-dialog,.pp-patient-form-dialog)
+ :is(input:not([type="checkbox"]),select,textarea) {
+   background:#FFFFFF!important;color:#182A21!important;border-color:#D9E3D9!important;
+ }
+ html:root body.fr2-app-authorized
+ :is(#clinicalProcessingModal,#clinicalReviewModal,#crxAdministrationModal,
+ .hv-detail-backdrop,.jp-lookup-overlay,.pp-expedient-dialog,.pp-patient-form-dialog)
+ :is(button.btn.primary,button.crx-review-approve,button.crx-admin-confirm,button.jp-lookup-select) {
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+ }
+}
+@media screen and (min-width:761px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+   padding-inline:clamp(18px,2vw,36px)!important;
+ }
+ /* Restore proportions on large monitors; do not undo specific patient/card repairs. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready #srSettingsHome>.sr-settings-cards {
+   max-width:1300px!important;grid-auto-rows:minmax(106px,auto)!important;
+   gap:clamp(13px,1.2vw,20px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready #srSettingsHome>.sr-settings-cards>button.sr-setting-card:not([hidden]){
+   min-height:106px!important;max-height:175px!important;
+   background:#FFFFFF!important;border-radius:17px!important;
+   padding:15px 18px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list {
+   justify-content:center!important;justify-items:stretch!important;
+ }
+}
+@media screen and (max-width:760px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+   padding-inline:10px!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]) .nav-icon {
+   min-width:26px!important;flex-basis:26px!important;width:26px!important;height:27px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact .fr5-screen
+ :is(.panel,.op-panel,.form-panel,.sr-setting-card) {
+   border-radius:16px!important;
+ }
+}
+@media screen and (prefers-reduced-motion:reduce) {
+ html:root body.fr2-app-authorized .fr5-screen :is(button,.panel,.op-panel) {
+   transition:none!important;animation:none!important;
+ }
+}

@@ -37,7 +37,7 @@
   heading.className='hp-home-heading';
   const copy=document.createElement('div');
   copy.className='hp-home-title';
-  copy.innerHTML='<span class="hp-home-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M4 19V13m7 6V8m7 11V4"/></svg></span><h1>Panel de hoy</h1>';
+  copy.innerHTML='<span class="hp-home-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/></svg></span><div class="hp-reference-heading-copy"><h1>Panel principal</h1><p class="hp-reference-subtitle">Resumen operativo de domicilios, estudios y procesamiento</p></div>';
   heading.appendChild(copy);
   const date=$('.fr2-home-date',hero);
   if(date){date.classList.add('hp-date-pill');heading.appendChild(date);}
