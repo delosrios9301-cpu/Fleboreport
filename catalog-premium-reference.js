@@ -105,7 +105,8 @@
   if(empty)empty.hidden=!(rows.length&&!shown);
   const count=v.querySelector('.cpr-count-label');
   const native=v.querySelector('#catalogCount');
-  if(count)count.textContent=(native?.textContent||rows.length)+' pruebas en el catálogo';
+  const feedback=list.querySelector?.('.catalog-search-results');
+  if(count)count.textContent=feedback?.textContent||(native?.textContent||rows.length)+' pruebas en el catálogo';
  }
  function queued(){
   if(renderQueued)return;renderQueued=true;
@@ -126,7 +127,7 @@
   const eyebrow=intro.querySelector('.eyebrow');
   if(eyebrow)eyebrow.textContent='FLEBOREPORT / ESPACIO CLÍNICO';
   const description=intro.querySelector('p');
-  if(description)description.textContent='Administra y consulta el catálogo de estudios, muestras y requisitos de preparación.';
+  if(description)description.textContent='Consulta las pruebas, sus muestras y recipientes. Para configurar o importar, entra en Configuración → Catálogo.';
   const row=make('div','cpr-search-row');
   search.parentNode.insertBefore(row,search);row.append(search);
   const filterToggle=make('button','cpr-filter-toggle');
@@ -167,7 +168,12 @@
   observer.observe(list,{childList:true});
   if(nativeCount)observer.observe(nativeCount,{childList:true,characterData:true});
   const searchInput=v.querySelector('#catalogSearch');
-  searchInput?.addEventListener('input',queued,{passive:true});
+  // El buscador debe filtrar las fichas, no limitarse a decorar las filas ya visibles.
+  // Se conserva el oninput del HTML como respaldo para Android/teclados IME.
+  const searchNow=()=>{window['queueCatalogSearch']?.();queued();};
+  for(const eventName of ['input','search','change','compositionend']){
+   searchInput?.addEventListener(eventName,searchNow,{passive:true});
+  }
   updateList();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
