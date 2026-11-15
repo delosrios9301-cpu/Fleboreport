@@ -24,8 +24,8 @@
   if(!allowed&&modal&&!modal.hidden)close();
  }
  function build(){
-  const view=id('view-catalog'),hero=view?.querySelector('.fr2-catalog-hero');
-  if(!view||!hero||trigger)return;
+  const settings=id('settings-catalog'),actions=id('catalogHeaderActions');
+  if(!settings||!actions||trigger)return;
   trigger=el('button','btn catalog-import-trigger');
   trigger.type='button';trigger.id='catalogImportOpen';
   trigger.dataset.permissionModule='catalog';trigger.dataset.permissionAction='create';
@@ -34,13 +34,13 @@
    if(!authorized()){toast('No tienes permiso para importar pruebas al catálogo.');return;}
    open();
   });
-  const newBtn=hero.querySelector('.fr2-catalog-new');
-  if(newBtn)hero.insertBefore(trigger,newBtn);else hero.append(trigger);
+  // Solo en Configuración → Catálogo. La biblioteca pública queda para consultar.
+  actions.append(trigger);
   chooser=el('input');chooser.type='file';chooser.id='catalogImportFile';chooser.hidden=true;
   chooser.accept='.csv,.tsv,.txt,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
   chooser.setAttribute('aria-label','Seleccionar listado de pruebas CSV o Excel');
   chooser.addEventListener('change',onFile);
-  view.append(chooser);
+  settings.append(chooser);
   modal=el('div','catalog-import-overlay');modal.id='catalogImportDialog';modal.hidden=true;
   modal.innerHTML=
    '<section class="catalog-import-panel" role="dialog" aria-modal="true" aria-labelledby="catalogImportTitle" aria-describedby="catalogImportHelp">'+
