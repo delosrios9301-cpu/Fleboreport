@@ -1,0 +1,29 @@
+/* FleboReport · Configuración automática del Catálogo, responsive y sin sobrescribir tema */
+#view-catalog .catalog-auto-open{min-height:43px;white-space:normal;line-height:1.25;padding:9px 14px}
+#view-catalog .catalog-auto-open[hidden],
+#view-catalog #catalogAutoList[hidden],
+#settings-catalog #catalogAutoForm[hidden],
+#settings-catalog #catalogAutoApply[hidden]{display:none!important}
+#view-catalog .catalog-auto-list{margin:10px 0 15px;padding:15px;border:1px solid #d9e6e5;border-radius:14px;background:var(--surface,#fff);color:var(--text,#234154)}
+#view-catalog .catalog-auto-list h3{margin:0 0 8px;font-size:16px;font-weight:800}
+.catalog-auto-help{color:var(--muted,#506b75);font-size:13px;line-height:1.5;margin:7px 0 10px}
+#view-catalog .catalog-auto-entry{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 4px;border-top:1px solid #e1ecee;min-width:0}
+#view-catalog .catalog-auto-entry-text{display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere}
+#view-catalog .catalog-auto-entry strong{font-size:14px}
+#view-catalog .catalog-auto-entry small{font-size:12px;color:var(--muted,#536b73)}
+#view-catalog .catalog-auto-entry .btn{flex:0 0 auto;min-height:40px}
+#settings-catalog .catalog-auto-form{margin:12px 0 15px;padding:13px 15px;border:1px solid #c9e2df;border-radius:13px;background:#f1faf8;color:#1c4b50}
+#settings-catalog .catalog-auto-head{display:flex;justify-content:space-between;gap:9px;align-items:center;flex-wrap:wrap}
+#settings-catalog .catalog-auto-head strong{font-size:14px}
+#settings-catalog .catalog-auto-head span{font-size:11px;color:#537178;font-weight:650}
+#settings-catalog .catalog-auto-source{margin:7px 0;overflow-wrap:anywhere}
+#settings-catalog .catalog-auto-source a{font-size:12px;color:#065e72;text-decoration:underline;text-underline-offset:2px}
+#settings-catalog .catalog-auto-form .btn{min-height:42px;white-space:normal;text-align:center}
+@media(max-width:760px){
+ #view-catalog .catalog-auto-open{width:100%;justify-content:center}
+ #view-catalog .catalog-auto-entry{align-items:flex-start}
+ #view-catalog .catalog-auto-list{padding:11px;margin:10px 0}
+ #settings-catalog .catalog-auto-form{padding:12px}
+}
+@media(max-width:390px){#view-catalog .catalog-auto-entry{flex-direction:column;align-items:stretch}#view-catalog .catalog-auto-entry .btn{align-self:stretch}}
+@media print{#view-catalog .catalog-auto-open,#view-catalog .catalog-auto-list,#settings-catalog .catalog-auto-form{display:none!important}}
