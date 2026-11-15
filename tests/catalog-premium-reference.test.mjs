@@ -10,7 +10,7 @@ const [html,js,css,sw,oldStyle]=await Promise.all([
 ]);
 test('Catálogo replica los componentes clave de la referencia con datos reales',()=>{
  assert.match(js,/FLEBOREPORT \/ ESPACIO CLÍNICO/);
- for(const text of ['Nueva prueba','Todas','Activas','Pendientes','Con recipiente','Ver / Editar','Filtros','pruebas en el catálogo']){
+ for(const text of ['Nueva prueba','Todas','Activas','Pendientes','Con recipiente','Ver ficha','Filtros','pruebas en el catálogo']){
   assert.ok(html.includes(text)||js.includes(text),text);
  }
  for(const element of ['catalogSearch','catalogList','catalogMetricTotal',
@@ -30,7 +30,7 @@ test('Filtros mantienen el listado original sin sustituir edición, búsqueda o 
  assert.match(js,/filterToggle\.setAttribute\('aria-expanded'/);
  assert.match(js,/b\.setAttribute\('aria-pressed'/);
  assert.match(js,/row\.hidden=!display/);
- assert.match(js,/action\.textContent='Ver \/ Editar'/);
+ assert.match(js,/action\.textContent='Ver ficha'/);
  assert.match(js,/const raw=b\?\.getAttribute\('onclick'\)\|\|''/);
  assert.doesNotMatch(js,/window\.editTest\s*=|window\.renderCatalog\s*=|\.rpc\(|\.insert\(|\.update\(|\.delete\(/);
  assert.match(html,/function renderCatalog\(\)/);
@@ -86,4 +86,16 @@ test('Publicación PWA v317 incluye la nueva capa premium',()=>{
  assert.match(sw,/fleboreport-shell-v322/);
  assert.match(sw,/'\.\/catalog-premium-reference\.css'/);
  assert.match(sw,/'\.\/catalog-premium-reference\.js'/);
+});
+
+test('Biblioteca de consulta abre ficha informativa; las ediciones quedan en Configuración',()=>{
+ assert.match(html,/function showCatalogDetails\(id\)/);
+ assert.match(html,/onclick="showCatalogDetails\(/);
+ assert.match(html,/data-catalog-id=/);
+ assert.match(html,/id="settings-catalog"/);
+ assert.match(html,/id="catalogHeaderActions"/);
+ assert.match(html,/role','dialog'/);
+ assert.match(js,/const fromData=row\.dataset\?\.catalogId/);
+ assert.match(js,/action\.textContent='Ver ficha'/);
+ assert.doesNotMatch(html,/id="testValidated"/);
 });
