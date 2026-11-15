@@ -966,7 +966,7 @@ test('el historial de domicilios permite buscar por cédula o nombre, filtrar po
   assert.match(domicilios, /id="hvHistorySearch"/);
   assert.match(domicilios, /id="hvHistoryDate"/);
   assert.match(domicilios, /v\.document/);
-  assert.match(domicilios, /historyStatuses\.includes\(v\.status\)&&historyMatches\(v\)/);
+  assert.match(domicilios, /Array\.from\(historyById\.values\(\)\)\.filter\(historyMatches\)/);
   assert.match(domicilios, /\['agenda','history'\]\.includes\(activeTab\)/);
   assert.match(domicilios, /hvHistorySearch','hvHistoryDate/);
 });
