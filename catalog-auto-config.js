@@ -176,9 +176,23 @@
     button.setAttribute('aria-expanded',String(listOpen));
     renderList();
    });
-   const hero=view.querySelector('.fr2-catalog-hero'),newTest=hero?.querySelector('.fr2-catalog-new');
-   if(newTest)newTest.insertAdjacentElement('beforebegin',button);
-   else hero?.append(button);
+   // Separar todas las acciones de la cabecera: el diseño original reserva
+   // tres columnas solo para icono, título y una acción. Insertar un botón
+   // adicional allí comprimía su texto verticalmente en móviles.
+   const hero=view.querySelector('.fr2-catalog-hero');
+   let actions=$('catalogHeaderActions');
+   if(!actions){
+    actions=el('div','catalog-auto-actions');
+    actions.id='catalogHeaderActions';
+    actions.setAttribute('role','group');
+    actions.setAttribute('aria-label','Acciones del catálogo de pruebas');
+    hero?.insertAdjacentElement('afterend',actions);
+   }
+   const newTest=view.querySelector('.fr2-catalog-new');
+   const importButton=view.querySelector('#catalogImportOpen');
+   if(newTest)actions.append(newTest);
+   if(importButton)actions.append(importButton);
+   actions.append(button);
    const list=el('section','panel catalog-auto-list');list.id='catalogAutoList';list.hidden=true;
    list.addEventListener('click',event=>{
     const action=event.target.closest('button[data-catalog-auto-id]');
@@ -199,7 +213,18 @@
   initialized=true;
   updateForm();renderList();return true;
  }
- function refresh(){if(!initialized)mount();else{updateForm();renderList();}}
+ function refresh(){
+  if(!initialized){mount();return;}
+  // La importación puede montarse después en navegadores de carga lenta.
+  // Mantener las tres acciones fuera de la cuadrícula del encabezado.
+  const actions=$('catalogHeaderActions'),view=$('view-catalog');
+  const importButton=view?.querySelector('#catalogImportOpen');
+  if(actions&&importButton&&importButton.parentElement!==actions){
+   const auto=$('catalogAutoOpen');
+   if(auto)actions.insertBefore(importButton,auto);else actions.append(importButton);
+  }
+  updateForm();renderList();
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
  window.addEventListener('flebo:auth-changed',refresh);
  window.addEventListener('focus',refresh);
