@@ -8,17 +8,17 @@
  if(!core)return;
  const PDF_API='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs';
  const PDF_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
- const MAX_BYTES=8*1024*1024,MAX_PAGES=15;
+ const RECOGNITION_BYTES=16*1024*1024,STORAGE_BYTES=50*1024*1024,MAX_PAGES=15;
  const el=(tag,cls,content)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(content!=null)x.textContent=content;return x;};
  const $=id=>document.getElementById(id);
- let pending=null, pdfLib=null, running=false,mounted=false,observer=null;
+ let pending=null, pdfLib=null, running=false,mounted=false,observer=null,selectionVersion=0;
  const getCatalog=()=>typeof window.hvOrderCatalog==='function'?window.hvOrderCatalog():[];
  function status(message,kind='info'){
   const node=$('hvOrderStatus');if(!node)return;
   node.textContent=message;node.dataset.kind=kind;node.setAttribute('role',kind==='error'?'alert':'status');
  }
  function reset(){
-  pending=null;const input=$('hvOrderPdfFile');if(input)input.value='';
+  selectionVersion++;pending=null;running=false;const input=$('hvOrderPdfFile');if(input)input.value='';
   const box=$('hvOrderResults');if(box){box.replaceChildren();box.hidden=true;}
   const f=$('hvOrderPdfInfo');if(f)f.textContent='Puedes seleccionar una orden PDF con texto; sus pruebas se añadirán al selector para que las revises.';
   status('No se ha seleccionado ninguna orden.');
@@ -103,21 +103,36 @@
  async function handleFile(){
   const input=$('hvOrderPdfFile'),file=input?.files?.[0];
   if(!file)return;
+  const request=++selectionVersion;
   pending=null;const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
-  const extension=file.name.toLowerCase().endsWith('.pdf'),validMime=!file.type||file.type==='application/pdf';
-  if(!extension||!validMime||file.size>MAX_BYTES||file.size===0){
-   input.value='';status('Selecciona un archivo PDF válido de hasta 8 MB.','error');return;
+  const extension=file.name.toLowerCase().endsWith('.pdf'),
+   validMime=!file.type||['application/pdf','application/x-pdf','application/octet-stream'].includes(file.type);
+  if(!extension||!validMime||file.size===0){
+   input.value='';status('El archivo debe ser un PDF válido y no estar vacío.','error');return;
   }
-  running=true;const btn=$('hvOrderPdfFile');if(btn)btn.disabled=true;
+  running=true;
+  // Nunca deshabilitar el selector: leer un PDF escaneado puede demorar.
+  // Permitir reemplazar la orden en cualquier momento sin bloquear el panel.
   try{
    const signature=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
    if(signature!=='%PDF-')throw new Error('El archivo no parece ser un PDF válido.');
-   pending=file; // conservar el adjunto incluso si es escaneado
-   const info=$('hvOrderPdfInfo');if(info)info.textContent=file.name+' · '+Math.ceil(file.size/1024)+' KB · listo para adjuntar al guardar el domicilio.';
+   if(request!==selectionVersion)return;
+   pending=file; // conserva el archivo aunque el lector PDF falle
+   const info=$('hvOrderPdfInfo');
+   if(info)info.textContent=file.name+' · '+(file.size/1024/1024).toFixed(1)+' MB · seleccionado como adjunto de la visita.';
+   if(file.size>STORAGE_BYTES){
+    status('PDF seleccionado. Supera los 50 MB que admite actualmente el almacenamiento gratuito. Para guardarlo, reduce su tamaño; no se descartará hasta que lo reemplaces.','error');
+    return;
+   }
+   if(file.size>RECOGNITION_BYTES){
+    status('PDF seleccionado y listo para adjuntar. Por su tamaño no se leerán las pruebas automáticamente; selecciónalas en el buscador.','info');
+    return;
+   }
    status('Leyendo las pruebas de la orden PDF…');
    let text;
    try{text=await extractText(file)}
-   catch(error){status(error?.message||'No se pudo leer el texto del PDF. Selecciona las pruebas manualmente.','error');return}
+   catch(error){if(request===selectionVersion)status(error?.message||'No se pudo leer el texto del PDF. Selecciona las pruebas manualmente.','error');return}
+   if(request!==selectionVersion)return;
    if(!text.trim()||text.trim().length<12){
     status('El PDF no contiene texto reconocible (posible escaneo). Se adjuntará al domicilio; selecciona las pruebas manualmente.','error');return;
    }
@@ -136,9 +151,8 @@
     :'No se encontraron coincidencias exactas. El PDF quedará adjunto; selecciona las pruebas manualmente.',
     matches.matches.length?'success':'info');
   }catch(error){
-   pending=null;if(input)input.value='';
-   status(error?.message||'No se pudo abrir el documento.','error');
-  }finally{running=false;if(btn)btn.disabled=false;}
+   if(request===selectionVersion){pending=null;if(input)input.value='';status(error?.message||'No se pudo abrir el documento.','error');}
+  }finally{if(request===selectionVersion)running=false;}
  }
  function mount(){
   if($('hvOrderPdfPanel'))return true;
@@ -152,7 +166,7 @@
   const input=el('input');input.type='file';input.id='hvOrderPdfFile';
   input.accept='.pdf,application/pdf';input.setAttribute('aria-label','Adjuntar PDF con pruebas solicitadas');
   input.addEventListener('change',handleFile);
-  const info=el('p','hv-order-help','Puedes seleccionar una orden PDF con texto; sus pruebas se añadirán al selector para que las revises.');
+  const info=el('p','hv-order-help','Selecciona el PDF de la orden (sin límite para elegirlo). Los archivos de hasta 50 MB pueden guardarse; los muy grandes no se analizan automáticamente.');
   info.id='hvOrderPdfInfo';
   const message=el('p','hv-order-status','No se ha seleccionado ninguna orden.');message.id='hvOrderStatus';message.setAttribute('role','status');
   const results=el('div','hv-order-results');results.id='hvOrderResults';results.hidden=true;
@@ -165,7 +179,7 @@
   observer=new MutationObserver(()=>{if(mount())observer.disconnect()});
   observer.observe(document.body,{childList:true,subtree:true});
  }
- window.FleboHomeVisitPDF={pendingFile:()=>pending,reset,mount};
+ window.FleboHomeVisitPDF={pendingFile:()=>pending,reset,mount,STORAGE_BYTES,RECOGNITION_BYTES};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
  else start();
  window.addEventListener('flebo:auth-changed',()=>{
