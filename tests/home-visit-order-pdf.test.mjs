@@ -67,8 +67,8 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
  assert.match(ui,/Revisa las pruebas seleccionadas antes de Guardar domicilio/);
  assert.match(ui,/No se encontraron coincidencias exactas/);
  assert.match(ui,/posible escaneo/);
- assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount\}/);
- assert.match(ui,/MAX_BYTES=8\*1024\*1024/);
+ assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount,STORAGE_BYTES,RECOGNITION_BYTES\}/);
+ assert.match(ui,/RECOGNITION_BYTES=16\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
  assert.match(ui,/MAX_PAGES=15/);
  assert.match(ui,/signature!=='%PDF-'/);
  assert.match(ui,/createElement\('input'\)|el\('input'\)/);
@@ -76,7 +76,7 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
 test('La visita se guarda antes de adjuntar su PDF y se distingue el fallo de carga',()=>{
  const i=dom.indexOf('const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()');
  const created=dom.indexOf('if(!await save(v))');
- const uploaded=dom.indexOf('uploadVisitDocument(v.id,orderPdf,{quiet:true})');
+ const uploaded=dom.indexOf('uploadVisitDocument(v.id,orderPdf,{quiet:true,onProgress:');
  const reset=dom.indexOf("selected=v.id;activeTab='agenda';reset();render();",created);
  assert.ok(created>=0&&i>created&&uploaded>i&&reset>uploaded);
  assert.match(dom,/Domicilio guardado, pero el PDF NO se adjuntó/);
@@ -100,7 +100,7 @@ test('El adjunto usa el bucket privado existente con políticas RLS y sin URL p�
 test('Vista móvil y recursos PWA cargados sin modificar notificaciones',()=>{
  const files=['home-visit-order-match.js','home-visit-order-pdf.js','home-visit-order-pdf.css'];
  for(const name of files){
-  assert.ok(html.includes('./'+name+'?v=20261115-order1'));
+  assert.ok(html.includes('./'+name+'?v=20261115-'+(name.endsWith('match.js')?'order1':'order2')));
   assert.ok(worker.includes("'./"+name+"'"));
  }
  assert.ok(html.indexOf('home-visit-order-match.js')<html.indexOf('home-visit-order-pdf.js'));

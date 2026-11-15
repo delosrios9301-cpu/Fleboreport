@@ -544,6 +544,11 @@ async function create(){
   if(!['admin','clinician','reception'].includes(cloud.role)){say('Tu perfil no tiene permiso para crear domicilios principales.');return}
   const name=$('hvName').value.trim(),documentNumber=$('hvDoc').value.trim(),date=$('hvDate').value,time=$('hvTime').value,address=$('hvAddress').value.trim(),priority=priorityDb($('hvPriority')?.value||'normal'),ids=newTestSelection.slice(),assignee=$('hvAssignee').value.trim();
   if(!name||!date||!time||!address||!ids.length||!['urgent','high','normal'].includes(priority)){say('Completa paciente, fecha, hora, prioridad, dirección y pruebas.');return}
+  const pendingOrder=window.FleboHomeVisitPDF?.pendingFile?.();
+  if(pendingOrder&&pendingOrder.size>50*1024*1024){
+   say('El PDF fue seleccionado, pero supera los 50 MB del almacenamiento gratuito. Reduce su tamaño antes de guardar para que no quede un domicilio sin su orden.');
+   return;
+  }
   if(assignee&&(!selectedProfessional||selectedProfessional.name.toLocaleLowerCase('es')!==assignee.toLocaleLowerCase('es'))){say('Selecciona un flebotomista de la lista de usuarios registrados.');return}
   if(selectedProfessional&&!selectedProfessional.user_id){say('Este flebotomista no tiene una cuenta de usuario vinculada y no podrá recibir la asignación.');return}
   const selectedTests=ids.map(id=>remoteCatalog.find(x=>x.id===id));
@@ -578,7 +583,9 @@ async function create(){
   // Un fallo de carga NO elimina el domicilio ni afirma que el PDF fue adjuntado.
   const orderPdf=window.FleboHomeVisitPDF?.pendingFile?.()||null;
   let documentSaved=true;
-  if(orderPdf)documentSaved=await uploadVisitDocument(v.id,orderPdf,{quiet:true});
+  if(orderPdf)documentSaved=await uploadVisitDocument(v.id,orderPdf,{quiet:true,onProgress:(uploaded,total)=>{
+   if(button&&total>0)button.textContent='Adjuntando PDF… '+Math.min(100,Math.round(uploaded/total*100))+'%';
+  }});
   if(orderPdf&&documentSaved){
    try{await loadCloudVisits()}catch(e){console.warn('[Domicilios] La orden fue adjuntada, falta refrescar la ficha:',e)}
   }
@@ -1043,11 +1050,11 @@ async function uploadVisitDocument(id,providedFile=null,options={}){
  if(!cloud.ready||!cloud.client){if(!options.quiet)say('Conecta la agenda antes de adjuntar documentos.');return false}
  const v=visits.find(x=>x.id===id),input=$('hvDocumentFile'),file=providedFile||(input&&input.files&&input.files[0]);
  if(!v||!file){if(!options.quiet)say('Selecciona primero un documento.');return false}
- if(file.size>15*1024*1024){if(!options.quiet)say('El documento supera el límite de 15 MB.');return false}
+ if(file.size>50*1024*1024){if(!options.quiet)say('El almacenamiento gratuito permite hasta 50 MB por PDF. Reduce el archivo e inténtalo de nuevo.');return false}
  const ext=(file.name.split('.').pop()||'').toLowerCase();
  const mimeByExt={pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',doc:'application/msword',docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
  const mime=mimeByExt[ext];
- if(!mime||(file.type&&file.type!==mime)){if(!options.quiet)say('Formato no permitido. Adjunta PDF, JPG, PNG, WEBP o Word.');return false}
+ if(!mime||(file.type&&file.type!==mime&&!(ext==='pdf'&&['application/octet-stream','application/x-pdf'].includes(file.type)))){if(!options.quiet)say('Formato no permitido. Adjunta PDF, JPG, PNG, WEBP o Word.');return false}
  if(ext==='pdf'){
   const signature=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
   if(signature!=='%PDF-'){if(!options.quiet)say('El archivo seleccionado no tiene una cabecera PDF válida.');return false}
@@ -1055,8 +1062,12 @@ async function uploadVisitDocument(id,providedFile=null,options={}){
  const safeName=file.name.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-100)||'documento';
  const path=cloud.workspaceId+'/'+v.id+'/'+crypto.randomUUID()+'_'+safeName;
  try{
-  const up=await cloud.client.storage.from('home-visit-documents').upload(path,file,{contentType:mime,upsert:false});
-  if(up.error)throw up.error;
+  if(window.FleboHomeVisitUploader?.upload){
+   await window.FleboHomeVisitUploader.upload(cloud.client,'home-visit-documents',path,file,mime,options.onProgress);
+  }else{
+   const up=await cloud.client.storage.from('home-visit-documents').upload(path,file,{contentType:mime,upsert:false});
+   if(up.error)throw up.error;
+  }
   const saved=await cloud.client.from('home_visit_documents').insert({
    workspace_id:cloud.workspaceId,home_visit_id:v.id,file_name:file.name,
    storage_path:path,mime_type:mime,file_size:file.size
