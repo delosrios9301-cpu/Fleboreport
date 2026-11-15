@@ -1,0 +1,184 @@
+/* FleboReport · Normalización de proporciones en escritorio/tablet apaisada.
+   Corregir las capas históricas de 270/255px y las proporciones móviles que
+   llegaron al escritorio; no altera componentes, colores, accesos ni datos.
+   Se carga AL FINAL después de la propuesta F. Sólo pantalla: no imprimir. */
+@media screen and (min-width:761px) {
+ body.fr2-app-authorized.cm-workspace.vc-compact .app-shell {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ /* La barra lateral mide 255px: descontar UNA vez, no arrastrar márgenes
+    acumulados de la versión de 270px. */
+ body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .main {
+  box-sizing:border-box!important;
+  margin-left:255px!important;
+  margin-right:0!important;
+  width:calc(100% - 255px)!important;
+  max-width:none!important;
+  min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact .app-shell .content {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1560px!important;
+  min-width:0!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  padding-inline:clamp(18px,2.25vw,34px)!important;
+ }
+ /* Todos los módulos comparten el mismo centro horizontal del área útil. */
+ body.fr2-app-authorized.cm-workspace.vc-compact .app-shell
+ .content>.view.fr5-screen {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-home,#view-journey,#view-companies,#view-patients,#view-catalog,
+ #view-reports,#view-clinical-studies,#view-clinical-processing,#view-settings,
+ #view-domicilios,#view-audit)
+ :is(.panel,.op-panel,.clinical-panel,.pp-directory,.journey-layout,
+ .fr-config-grid,.crx-dashboard,.hv-calendar-panel,.hv-premium-hero) {
+  box-sizing:border-box!important;
+  min-width:0!important;
+ }
+ /* Los diálogos nativos de Pacientes tenían inset:auto!important: su
+    posición dependía del punto estático heredado y podía verse desplazada.
+    El navegador centra el rectángulo fijo con inset:0 + margin:auto. */
+ body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]) {
+  position:fixed!important;
+  inset:0!important;
+  margin:auto!important;
+  transform:none!important;
+  box-sizing:border-box!important;
+  min-width:0!important;
+  overflow:hidden!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium
+ dialog.pp-expedient-dialog[open] {
+  width:min(980px,calc(100vw - 60px))!important;
+  max-width:calc(100vw - 60px)!important;
+  height:min(88dvh,930px)!important;
+  max-height:calc(100dvh - 48px)!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium
+ dialog.pp-patient-form-dialog[open] {
+  width:min(780px,calc(100vw - 60px))!important;
+  max-width:calc(100vw - 60px)!important;
+  height:min(84dvh,820px)!important;
+  max-height:calc(100dvh - 48px)!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open] #patientWorkspace,
+ dialog.pp-patient-form-dialog[open] #patientFormPanel) {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-inline:0!important;
+ }
+ /* Las ventanas de otros módulos usan overlays flex. Reforzar su centrado
+    dentro del viewport y no del panel desplazado por el menú lateral. */
+ body.fr2-app-authorized :is(.hv-detail-backdrop,.hv-assignment-overlay,
+ .jp-lookup-overlay,.crx-detail-overlay,
+ #clinicalReviewModal.crx-review-overlay,
+ #crxAdministrationModal.crx-admin-overlay):not([hidden]) {
+  box-sizing:border-box!important;
+  position:fixed!important;
+  inset:0!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding-inline:clamp(14px,3vw,32px)!important;
+ }
+ body.fr2-app-authorized :is(
+ .hv-detail-backdrop>.hv-detail-dialog,
+ .hv-assignment-overlay>.hv-assignment-dialog,
+ .jp-lookup-overlay>.jp-lookup-dialog,
+ .crx-detail-overlay>.crx-detail-dialog,
+ #clinicalReviewModal .crx-review-dialog,
+ #crxAdministrationModal .crx-admin-card) {
+  box-sizing:border-box!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  max-width:calc(100vw - 64px)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+ }
+}
+@media screen and (min-width:1024px) {
+ /* PC: paneles y fichas proporcionados al área disponible, sin
+    copiar la rejilla de 2 indicadores que usa el teléfono. */
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:1360px!important;
+  margin-inline:auto!important;
+  justify-self:center!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout
+ >.pp-home-kpis[data-fr5-area="patient-kpis"] {
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:clamp(10px,1vw,16px)!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated
+ #patientsHome.pp-strict-layout .pp-directory-card.pp-integrated-card.pp-patient-ribbon {
+  grid-template-columns:55px minmax(0,1fr) 82px 152px!important;
+  gap:clamp(10px,1vw,16px)!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout
+ :is(.pp-directory,.pp-search-panel,.pp-patient-cards) {
+  box-sizing:border-box!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  margin-inline:auto!important;
+ }
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios #hvWorkspace,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-journey .journey-layout,
+ body.fr2-app-authorized.cm-workspace.vc-compact #view-settings .fr-config-grid,
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-processing,#view-clinical-studies,#view-reports,#view-catalog)
+ >:is(.clinical-layout,.crx-layout,.report-layout,.fr2-catalog-layout) {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  margin-inline:auto!important;
+ }
+ /* Escritorio: los modales también aprovechan el espacio vertical; no
+    necesitan fijar offsets a la izquierda del módulo. */
+ body.fr2-app-authorized #view-patients.pp-premium
+ dialog.pp-expedient-dialog[open] {
+  width:min(1040px,calc(100vw - 96px))!important;
+ }
+}
+@media screen and (min-width:761px) and (max-width:1023px) {
+ /* En tablet horizontal priorizar anchuras seguras sin forzar cuadrículas
+    de cuatro columnas como en un monitor grande. */
+ body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-patients.pp-premium.pp-integrated #patientsHome.pp-strict-layout {
+  width:100%!important;
+  max-width:100%!important;
+  margin-inline:auto!important;
+ }
+ body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]){
+  width:calc(100vw - 36px)!important;
+  max-width:calc(100vw - 36px)!important;
+  max-height:calc(100dvh - 36px)!important;
+ }
+}
+/* Teléfono <=760px y @media print: conservan íntegramente su diseño. */
