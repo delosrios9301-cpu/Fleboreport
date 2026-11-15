@@ -85,7 +85,7 @@
  if(typeof window==='undefined'||typeof document==='undefined')return;
  const core=window.FleboLiveDashboardCore;if(!core)return;
  const $=id=>document.getElementById(id);
- let data=null,verifiedWorkspace='',inflight=null,lastFetch=0,seq=0,timer=0,lastError='',installed=false;
+ let data=null,verifiedWorkspace='',inflight=null,lastFetch=0,seq=0,timer=0,lastError='',installed=false,refreshAfterInflight=false;
  let legacyMemo={workspace:'',revision:null,counts:null};
  const attr=(el,key,val)=>el.setAttribute(key,val);
  function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;}
@@ -233,7 +233,7 @@
    return false;
   }
   if(verifiedWorkspace!==session.workspace){verifiedWorkspace=session.workspace;legacyMemo={workspace:'',revision:null,counts:null};data=null;lastFetch=0;seq++;paintKpis();}
-  if(inflight)return inflight;
+  if(inflight){if(force)refreshAfterInflight=true;return inflight;}
   if(!force&&Date.now()-lastFetch<30000){paint();return true;}
   const ws=session.workspace,client=session.client,stamp=++seq,btn=$('dlLiveRefresh');
   if(btn)btn.disabled=true;
@@ -271,7 +271,7 @@
   })().catch(error=>{
    if(stamp===seq){lastError=error?.message||'Error de lectura';paint();setStatus('Error de sincronización del panel: '+lastError+'. No se sustituyeron las cifras por datos locales.');}
    return false;
-  }).finally(()=>{if(btn)btn.disabled=false;inflight=null;});
+  }).finally(()=>{if(btn)btn.disabled=false;inflight=null;if(refreshAfterInflight){refreshAfterInflight=false;schedule(true);}});
   return inflight;
  }
  function schedule(force=false){
@@ -283,7 +283,7 @@
   ensurePanel();
   const old=window.refreshDashboard;
   if(typeof old==='function'){
-   window.refreshDashboard=function(){const result=old.apply(this,arguments);if(onHome()){paint();schedule();}return result;};
+   window.refreshDashboard=function(){const result=old.apply(this,arguments);if(onHome()){paint();schedule(true);}return result;};
   }
   const kpis=$('operationalKpis');
   if(kpis&&typeof MutationObserver!=='undefined'){
@@ -292,6 +292,8 @@
   }
   window.addEventListener('flebo:auth-changed',()=>{seq++;data=null;lastFetch=0;paintKpis();schedule(true);});
   window.addEventListener('flebo:home-history-changed',()=>schedule(true));
+  window.addEventListener('flebo:cloud-save-confirmed',()=>schedule(true));
+  window.addEventListener('flebo:cloud-sync-ready',()=>schedule(true));
   window.addEventListener('flebo:local-state-saved',()=>schedule());
   window.addEventListener('focus',()=>schedule());
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(true);});
