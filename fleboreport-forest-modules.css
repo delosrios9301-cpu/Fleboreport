@@ -1,0 +1,222 @@
+/* FleboReport · Acabados por módulo en verde bosque.
+   Selectores reales de los modelos existentes. Solo pintura, tipografía y
+   bordes; se preserva el rojo/ámbar de alertas y el espacio responsive. */
+@media screen {
+ /* Pacientes: directorio, expediente, tarjetas de actividad y filtro. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-search-panel,.pp-directory,.pp-directory-card,.pp-patient-ribbon,
+ .pp-event-card,.pp-activity-test,.pp-record-panel) {
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   box-shadow:0 4px 14px rgba(20,60,32,.055)!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-directory-avatar,.pp-heading-icon,.pp-directory-head-icon,.pp-inline-icon){
+   background:#E0F1DF!important;color:#266945!important;
+   border-color:#C8E0C7!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-directory-info,.pp-patient-meta,.pp-event-info) :is(strong,span,b){
+   color:#1A2F21!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-open-patient,.pp-primary-action,.pp-event-action){
+   background:#236648!important;border-color:#236648!important;
+   color:#FFFFFF!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-open-patient,.pp-primary-action,.pp-event-action) :is(span,b,strong,svg){
+   color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ :is(.pp-chip:not(.selected),.pp-timeline-view,.pp-back) {
+   background:#EEF5EC!important;border-color:#D8E5D4!important;color:#265B3D!important;
+ }
+ html:root body.fr2-app-authorized #view-patients.pp-premium
+ :is(dialog.pp-expedient-dialog[open],dialog.pp-patient-form-dialog[open]){
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   color:#17291E!important;box-shadow:0 26px 70px rgba(19,62,31,.18)!important;
+ }
+ /* Domicilios: agenda/history aligned, compact controls, clear patient labels. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios
+ :is(.hv-ref-heading,.hv-ref-tools-panel,.hv-history-panel,.hv-calendar-panel,
+ .hv-ref-visit,.hv-premium-filters){
+   background:#FFFFFF!important;border-color:#DFE8DE!important;
+   box-shadow:0 3px 13px rgba(19,62,31,.055)!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios
+ :is(.hv-ref-house,.hv-ref-avatar,.hv-ref-pill-icon){
+   background:#E4F2E4!important;border-color:#CEE4CC!important;color:#246747!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios
+ :is(.hv-ref-new,.hv-ref-respond) {
+   background:#236648!important;border-color:#236648!important;
+   color:#FFFFFF!important;box-shadow:0 3px 9px rgba(28,81,47,.10)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios
+ :is(.hv-ref-actions button:not(.danger):not(.hv-archive-action),
+ .hv-ref-tools-toggle) {
+   color:#255A3F!important;background:#F0F6ED!important;
+   border-color:#D9E6D7!important;box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-domicilios
+ :is(.hv-ref-top,.hv-ref-meta,.hv-ref-detail,.hv-ref-location) {
+   color:#435B4A!important;text-shadow:none!important;
+ }
+ /* Jornada: identity, patient actions, report generation. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
+ :is(.jp-active-card,.jp-identity-card,.jp-action-card,.journey-entry-panel,
+ .journey-side-column,.journey-main-column>.panel){
+   background:#FFFFFF!important;border-color:#DFE8DE!important;
+   box-shadow:0 4px 13px rgba(19,62,31,.055)!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
+ :is(.jp-heading-icon,.jp-action-icon,.journey-kpi-icon) {
+   background:#E3F1DF!important;color:#246947!important;border-color:#D5E5D2!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
+ :is(.journey-register-button,.journey-report-button){
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
+ :is(.journey-register-button,.journey-report-button) :is(span,strong,b,small,svg){color:#FFFFFF!important;}
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-journey.jp-reference
+ :is(.journey-kpi,.journey-selected-tests,.journey-test-chip,.jp-lookup-result) {
+   border-color:#DFE8DE!important;box-shadow:none!important;
+ }
+ /* Estudios y Procesamiento: clinical listings and KPI surfaces. Status pills
+    intentionally keep their warning/error semantics unchanged. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-card,.crx-study-card,.crx-review-card,.crx-processing-card,
+ .crx-reception-stage,.clinical-panel,.crx-filter-panel,.crx-process-quickstrip){
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   box-shadow:0 4px 14px rgba(19,62,31,.055)!important;color:#17291E!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-icon,.crx-card-emblem,.crx-heading-symbol,.crx-kpi-symbol){
+   background:#E3F1DF!important;color:#236648!important;border-color:#D4E6D0!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-page-title,.crx-list-title,.crx-study-card strong,.crx-processing-card strong) {
+   color:#182A21!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-study-tab.is-selected,.crx-filter-button.is-active,
+ .crx-action:not(.danger):not(.warning),.crx-quick-filter.active){
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-study-tab:not(.is-selected),.crx-quick-filter:not(.active)) {
+   background:#EFF6EC!important;color:#265C40!important;border-color:#D7E6D2!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-process-kpis>.clinical-kpi,.crx-study-kpis>.clinical-kpi) {
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   box-shadow:0 3px 12px rgba(19,62,31,.055)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-clinical-studies.crx-ready,#view-clinical-processing.crx-ready)
+ :is(.crx-process-kpis>.clinical-kpi,.crx-study-kpis>.clinical-kpi) :is(b,strong,small) {
+   color:#203B29!important;text-shadow:none!important;
+ }
+ /* Catalog: rows and stats, no wasted empty panels. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium
+ :is(.fr2-catalog-hero,.fr2-catalog-list-panel,.fr2-catalog-item,
+ .cpr-row,.fr2-catalog-stat,.fr2-catalog-toolbar) {
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   box-shadow:0 3px 14px rgba(19,62,31,.05)!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium
+ :is(.cpr-hero-glyph,.cpr-library-glyph,.fr2-catalog-stat-icon) {
+   background:#E1F0DE!important;border-color:#CCE3CA!important;color:#236648!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium
+ :is(.fr2-catalog-new,.cpr-edit-action) {
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-catalog.cpr-premium
+ :is(.fr2-catalog-item-copy strong,.cpr-library-title,.fr2-catalog-stat strong){
+   color:#182A21!important;
+ }
+ /* Reportes + Historial: actionable cards and clearly separated audit trails. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-banner,.rhr-report-tile,.rhr-history-card,.rhr-archive-card,
+ .rhr-archive-disclosure,.rhr-audit-shell,.rhr-panel){
+   background:#FFFFFF!important;border-color:#DCE7DC!important;
+   box-shadow:0 4px 14px rgba(19,62,31,.055)!important;color:#17291E!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-main-symbol,.rhr-icon,.rhr-archive-icon,.rhr-history-symbol,.rhr-kpi-symbol) {
+   background:#E2F0DF!important;color:#236648!important;border-color:#D1E5CF!important;
+   box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-title,.rhr-report-tile strong,.rhr-history-info strong,.rhr-kpi-number) {
+   color:#182A21!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-export.rhr-pdf,.rhr-archive-open,.rhr-history-chip.selected){
+   background:#236648!important;border-color:#236648!important;color:#FFFFFF!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ :is(#view-reports.rhr-ready,#view-audit.rhr-ready)
+ :is(.rhr-export:not(.rhr-pdf),.rhr-history-chip:not(.selected)){
+   background:#EFF6ED!important;color:#24583D!important;border-color:#D8E6D5!important;
+ }
+ /* Configuración: proportional tiles with legible text, no vertical text. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-settings.sr-settings-ready
+ :is(.sr-settings-home,.sr-settings-detail,.sr-detail-header,.fr-config-card,.fr-na-card){
+   min-width:0!important;color:#182A21!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-settings.sr-settings-ready
+ :is(.sr-card-caption strong,.sr-detail-heading h2,.fr-config-card h2,.fr-config-card h3){
+   color:#182A21!important;writing-mode:horizontal-tb!important;
+   white-space:normal!important;overflow-wrap:normal!important;word-break:normal!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-settings.sr-settings-ready
+ :is(.sr-card-caption small,.sr-detail-heading p,.fr-config-field label){
+   color:#4D6257!important;writing-mode:horizontal-tb!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-settings.sr-settings-ready
+ :is(.sr-detail-tab.is-current,.fr-config-nav button.active) {
+   background:#236648!important;color:#FFFFFF!important;border-color:#236648!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-settings.sr-settings-ready
+ :is(.sr-detail-tab:not(.is-current),.fr-config-nav button:not(.active)){
+   background:#EFF6EC!important;color:#24583D!important;border-color:#D9E5D5!important;
+ }
+}
+@media screen and (min-width:1200px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-settings.sr-settings-ready #srSettingsHome>.sr-settings-cards {
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+   grid-auto-rows:minmax(106px,auto)!important;
+   width:100%!important;max-width:1300px!important;min-width:0!important;
+   justify-content:center!important;justify-items:stretch!important;gap:17px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-domicilios #hvWorkspace :is(#hvRows,#hvHistoryRows).hv-visit-list{
+   display:grid!important;
+   grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),380px))!important;
+   justify-items:stretch!important;justify-content:center!important;
+   width:100%!important;max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #view-patients.pp-premium
+ #patientsHome.pp-strict-layout{width:100%!important;max-width:1450px!important;margin-inline:auto!important;}
+}
