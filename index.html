@@ -1071,7 +1071,7 @@ window.FleboAppState={get:function(){return state},empty:function(){return EMPTY
 function toast(message){const el=$('toast');el.textContent=message;el.style.display='block';clearTimeout(window._toastTimer);window._toastTimer=setTimeout(function(){el.style.display='none'},2600)}
 function navigate(view,settingsTab){try{sessionStorage.setItem('fleboReport.lastView',view)}catch(_){}document.body.classList.toggle('print-clinical-studies',view==='clinical-studies');document.querySelectorAll('.view').forEach(function(el){el.classList.toggle('active',el.id==='view-'+view)});document.querySelectorAll('[data-nav]').forEach(function(el){el.classList.toggle('active',el.dataset.nav===view)});var homeFab=$('homeFab');if(homeFab)homeFab.hidden=view==='home';document.querySelectorAll('[data-mobile]').forEach(function(el){el.classList.toggle('active',el.dataset.mobile===view)});$('sidebar').classList.remove('open');var fab=$('moduleFab');if(fab)fab.setAttribute('aria-expanded','false');$('sidebar').setAttribute('aria-hidden','true');document.body.classList.remove('module-menu-open');if(view==='settings'&&settingsTab)showSettings(settingsTab);if(view==='clinical-studies'||view==='clinical-processing'){if(window.FleboClinicalCloud&&window.FleboClinicalCloud.ready&&window.FleboClinicalCloud.refreshSamples){window.FleboClinicalCloud.refreshSamples().catch(function(e){console.error('[FleboReport] No se pudo actualizar la bandeja clínica:',e);renderClinicalStudies()})}else{renderClinicalStudies()}}if(view==='home')refreshDashboard();if(view==='journey'){syncJourneyFormFromState();renderJourneyPatients()}if(view==='patients')renderPatients();if(view==='reports')renderReport();if(view==='catalog')renderCatalog();if(view==='companies')renderCompanies();if(view==='audit'&&window.FleboAuditHistory)window.FleboAuditHistory.open();window.scrollTo({top:0,behavior:'auto'})}
 function toggleDrawer(){var panel=$('sidebar'),fab=$('moduleFab'),open=!panel.classList.contains('open');panel.classList.toggle('open',open);if(fab)fab.setAttribute('aria-expanded',String(open));panel.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('module-menu-open',open)}
-function showSettings(tab){document.querySelectorAll('.settings-section').forEach(function(el){el.hidden=el.id!=='settings-'+tab});document.querySelectorAll('[data-settings]').forEach(function(el){el.classList.toggle('active',el.dataset.settings===tab)})}
+function showSettings(tab){document.querySelectorAll('.settings-section').forEach(function(el){el.hidden=el.id!=='settings-'+tab});document.querySelectorAll('[data-settings]').forEach(function(el){el.classList.toggle('active',el.dataset.settings===tab)});if(tab==='catalog')renderCatalog()}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('sidebar').classList.contains('open'))toggleDrawer()});document.addEventListener('click',function(e){if($('sidebar').classList.contains('open')&&!e.target.closest('#sidebar')&&!e.target.closest('#moduleFab')&&!e.target.closest('#fr2MenuToggle'))toggleDrawer()});
 function init(){
  $('todayChip').textContent=new Date().toLocaleDateString('es',{weekday:'short',day:'numeric',month:'short'});
@@ -1579,7 +1579,26 @@ function registerJourneyPatient(){
  renderAll();toast(entry?(added.length?'Pruebas añadidas al paciente de esta jornada.':'Este paciente y sus pruebas ya están en la jornada.'):'Paciente registrado en la jornada.')
 }
 function syncJourneyFormFromState(){if(!state.journey)state.journey={id:'j-'+Date.now(),date:new Date().toISOString().slice(0,10),start:'',end:'',responsible:'',companyId:'',updatedAt:''};populateCompanyOptions();var fields={journeyDate:state.journey.date||'',journeyStart:state.journey.start||'',journeyEnd:state.journey.end||'',journeyResponsible:state.journey.responsible||'',journeyCompany:state.journey.companyId||''};Object.keys(fields).forEach(function(id){var el=$(id);if(el)el.value=fields[id]});var draft=readJourneyDraft();$('journeyPatientName').value=draft.name;$('journeyPatientLastName').value=draft.lastName;$('journeyPatientId').value=draft.document;$('journeyPatientBirth').value=draft.birthDate;$('journeyPatientSex').value=draft.sex;$('journeyPatientTestSearch').value=draft.search;lookupExistingJourneyPatient();renderJourneyPatientChoices();filterJourneyPatientTests(draft.search);renderJourney();renderReport();renderJourneyPatients()}
-function renderAll(){renderCatalog();renderJourneyPatientChoices();renderJourneyPatients();renderJourney();renderReport();renderPatients();renderCompanies();refreshDashboard()}
+var frInitialRenderCompleted=false;
+function renderAll(){
+ // El primer render prepara las vistas y los selectores; después no
+ // reconstruir módulos invisibles con cada toque de Jornada o Catálogo.
+ if(!frInitialRenderCompleted){
+  frInitialRenderCompleted=true;
+  renderCatalog();renderJourneyPatientChoices();renderJourneyPatients();renderJourney();
+  renderReport();renderPatients();renderCompanies();refreshDashboard();
+  return;
+ }
+ const view=document.querySelector('.view.active')?.id||'';
+ if(view==='view-catalog'||view==='view-settings')renderCatalog();
+ if(view==='view-journey'){
+  renderJourneyPatientChoices();renderJourneyPatients();renderJourney();renderReport();
+ }
+ if(view==='view-patients')renderPatients();
+ if(view==='view-reports')renderReport();
+ if(view==='view-companies')renderCompanies();
+ if(view==='view-home')refreshDashboard();
+}
 /* v325 · La actualización de datos sigue inmediata; solo se difiere la pintura.
    Evitar renderizar diez módulos invisibles por cada lectura de nube. */
 var frCloudUiQueued=false,frCloudUiFrame=0;
