@@ -5,7 +5,7 @@
  'use strict';
  if(typeof window==='undefined')return;
  const SRC='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js';
- const MAX_OCR_PAGES=8;
+ const MAX_OCR_PAGES=500; // Procesar todas las páginas habituales; mostrar cobertura cuando se supera.
  const MAX_CANVAS_PIXELS=2100000;
  let loadPromise=null;
  async function getTesseract(){
