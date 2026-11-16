@@ -52,13 +52,12 @@ function harness(){
  };
 }
 
-test('Al elegir un PDF de 20 MB se conserva el adjunto sin leerlo ni bloquear el selector',async()=>{
+test('Al elegir un PDF de 20 MB intenta leerlo y conserva el adjunto aunque no esté disponible el lector',async()=>{
  const h=harness(),file=h.fakePdf(20*1024*1024,'application/octet-stream');
  await h.change(file);
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
  assert.notEqual(h.fileInput.disabled,true);
- assert.match(h.byId.get('hvOrderStatus').textContent,/listo para adjuntar/i);
- assert.match(h.byId.get('hvOrderStatus').textContent,/por su tamaño no se leerá/i);
+ assert.match(h.byId.get('hvOrderStatus').textContent,/lector PDF|lectura|sin conexión/i);
 });
 
 test('Al elegir un PDF de 45 MB sigue seleccionado y permite sustituirlo',async()=>{
@@ -107,7 +106,7 @@ test('Al elegir archivo grande sin conexión al lector conserva archivo y permit
  assert.match(h.byId.get('hvOrderStatus').textContent,/selecciona las pruebas manualmente/);
 });
 
-test('El tamaño de lectura está separado del tamaño de almacenamiento',()=>{
+test('Los archivos privados de hasta 50 MB pueden intentar leerse antes de guardarse',()=>{
  assert.match(ui,/RECOGNITION_BYTES=50\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
  assert.doesNotMatch(ui,/file\.size>MAX_BYTES/);
  assert.doesNotMatch(ui,/btn\.disabled=true/);
