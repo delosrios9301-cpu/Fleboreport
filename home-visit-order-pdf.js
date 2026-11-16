@@ -74,7 +74,11 @@
      for(const seg of segments)if(seg)rows.push(seg);
      if(rows.length>1800)break;
     }
-    if(rows.length<=2||rows.join(' ').trim().length<22)scannedPages.push(page);
+    const pageText=rows.join(' ').trim();
+    // Evitar OCR pesado cuando una página corta contiene exámenes legibles.
+    // Un encabezado sin listado aún puede esconder imágenes escaneadas.
+    if(pageText.length<22||(rows.length<=2&&/^(?:orden medica|solicitud de laboratorio|examenes solicitados)/i.test(pageText)))
+     scannedPages.push(page);
     all.push(...rows);
    }
    if(request===selectionVersion&&scannedPages.length){
