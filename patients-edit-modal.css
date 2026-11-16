@@ -164,3 +164,9 @@
   transition:none!important;animation:none!important;
  }
 }
+
+/* El formulario de pacientes mantiene el centro del viewport y scroll interno. */
+@media screen{
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog[open]{inset:0!important;margin:auto!important;max-height:calc(100dvh - 24px - env(safe-area-inset-bottom,0px))!important}
+ body.fr2-app-authorized #view-patients.pp-premium dialog.pp-patient-form-dialog #patientFormPanel{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+}
