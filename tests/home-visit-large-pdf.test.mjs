@@ -58,7 +58,7 @@ test('Al elegir un PDF de 20 MB se conserva el adjunto sin leerlo ni bloquear el
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
  assert.notEqual(h.fileInput.disabled,true);
  assert.match(h.byId.get('hvOrderStatus').textContent,/listo para adjuntar/i);
- assert.match(h.byId.get('hvOrderStatus').textContent,/por su tamaño no se leerán/i);
+ assert.match(h.byId.get('hvOrderStatus').textContent,/por su tamaño no se leerá/i);
 });
 
 test('Al elegir un PDF de 45 MB sigue seleccionado y permite sustituirlo',async()=>{
@@ -85,7 +85,7 @@ test('Un PDF mayor al límite del plan se acepta en el selector y se avisa antes
 test('Adjuntar orden PDF es opcional y nunca bloquea guardar el domicilio',()=>{
  const h=harness();
  assert.equal(h.fileInput.required,false);
- assert.match(ui,/Puedes guardar el domicilio sin adjuntar una orden/);
+ assert.match(ui,/Adjunta opcionalmente una fotografía/);
  assert.match(visits,/const pendingOrder=window\.FleboHomeVisitPDF\?\.pendingFile\?\.\(\)\|\|null/);
  assert.match(visits,/if\(orderPdf\)documentSaved=await uploadVisitDocument/);
  assert.match(visits,/Domicilio creado y guardado correctamente/);
@@ -104,7 +104,7 @@ test('Al elegir archivo grande sin conexión al lector conserva archivo y permit
  const h=harness(),file=h.fakePdf(18*1024*1024);
  await h.change(file);
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
- assert.match(h.byId.get('hvOrderStatus').textContent,/selecciónalas en el buscador/);
+ assert.match(h.byId.get('hvOrderStatus').textContent,/selecciona las pruebas manualmente/);
 });
 
 test('El tamaño de lectura está separado del tamaño de almacenamiento',()=>{
@@ -143,7 +143,7 @@ test('No se relajan las políticas de seguridad ni se publican documentos',()=>{
 
 test('La PWA precachea los recursos actualizados después de los módulos',()=>{
  for(const asset of ['home-visit-order-pdf.js','home-visit-order-pdf.css']){
-  assert.ok(html.includes('./'+asset+'?v=20261116-ocr1'));
+  assert.ok(html.includes('./'+asset+'?v='+(asset.endsWith('.js')?'20261116-doc2':'20261116-ocr1')));
  }
  assert.ok(html.includes('./home-visit-large-pdf-upload.js?v=20261115-order2'));
  assert.match(sw,/'\.\/home-visit-large-pdf-upload\.js'/);
