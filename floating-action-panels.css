@@ -211,3 +211,20 @@ body.fra-modal-open{overscroll-behavior:none}
  .fra-action-dialog .fr-config-card{padding:10px!important}
  .fra-action-dialog #frPermissionGrid{display:grid!important;grid-template-columns:1fr!important}
 }
+
+
+/* Componentes del catálogo trasladados al top layer: conservan visibilidad correcta. */
+.fra-action-dialog [hidden]:not(.fra-teleported-form){display:none!important}
+.fra-action-dialog #catalogAutoForm{
+ display:block;box-sizing:border-box;min-width:0;max-width:100%;
+ margin:10px 0 14px;padding:11px 13px;border:1px solid #c9e2df;
+ border-radius:12px;background:#f3faf8;color:#1c4b50
+}
+.fra-action-dialog #catalogAutoForm .catalog-auto-head{
+ display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:9px
+}
+.fra-action-dialog #catalogAutoForm .catalog-auto-head strong{font-size:13px}
+.fra-action-dialog #catalogAutoForm .catalog-auto-head span{font-size:11px}
+.fra-action-dialog #catalogAutoForm .catalog-auto-source{margin:7px 0}
+.fra-action-dialog #catalogAutoForm .catalog-auto-source a{color:#076879;text-decoration:underline}
+.fra-action-dialog #catalogAutoForm .btn{min-height:42px!important;max-width:100%!important;white-space:normal!important}
