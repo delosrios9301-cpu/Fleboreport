@@ -50,6 +50,22 @@ test('vista aprobada: estilos responsivos, legibilidad y archivos versionados',(
  assert.match(css, /prefers-reduced-motion:reduce/);
  assert.match(css, /\.hv-track-footer\{position:sticky/);
  assert.match(css, /\.hv-track-tabpanel\[hidden\]/);
- assert.match(html, /domicilios-seguimiento-exacto\.css\?v=20261116-ui1/);
- assert.match(html, /domicilios-seguimiento-exacto\.js\?v=20261116-ui1/);
+ assert.match(html, /domicilios-seguimiento-exacto\.css\?v=20261116-back2/);
+ assert.match(html, /domicilios-seguimiento-exacto\.js\?v=20261116-back2/);
+});
+
+test('flecha Volver: botón táctil cierra solamente el seguimiento y regresa a Domicilios',()=>{
+ assert.match(js, /<button type="button" class="hv-track-back-button" aria-label="Volver a Domicilios"/);
+ assert.match(js, /querySelector\('\.hv-track-back-button'\)\?\.addEventListener\('click',backToDomicilios\)/);
+ assert.match(css, /\.hv-track-back-button/);
+ assert.match(css, /min-width:44px!important;min-height:44px!important/);
+ assert.match(core, /window\.hvCloseDetail=event=>/);
+ let closed=0,prevented=0,stopped=0;
+ const context={window:{hvCloseDetail:()=>{closed++}},URL,encodeURIComponent};
+ runInNewContext(js,context);
+ context.window.FleboTrackUtils.backToDomicilios({preventDefault(){prevented++},stopPropagation(){stopped++}});
+ assert.equal(closed,1);
+ assert.equal(prevented,1);
+ assert.equal(stopped,1);
+ assert.doesNotMatch(js, /history\.back\(\)|location\.reload\(\)/);
 });
