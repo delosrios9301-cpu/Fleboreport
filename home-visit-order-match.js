@@ -63,13 +63,14 @@
  function candidateRows(text){
   const rows=String(text||'').split(/\r?\n/);
   const all=[];
-  for(const line of rows.slice(0,3500)){
+  for(const line of rows.slice(0,20000)){
    const clean=String(line||'').trim();
    if(clean)all.push(clean);
-   // Sólo dividir listas con separadores explícitos, no frases largas arbitrarias.
-   if(/[;,|]/.test(clean)){
-    const pieces=clean.split(/\s*[;|]\s*|,\s+(?=[A-ZÁÉÍÓÚ0-9])/);
-    if(pieces.length>1&&pieces.length<=18)all.push(...pieces);
+   // Presupuestos y listados pueden contener varias pruebas por línea.
+   // Separar delimitadores claros sin dividir decimales contables.
+   if(/[;,|]/.test(clean)||/\s+\+\s+/.test(clean)){
+    const pieces=clean.split(/\s*[;|]\s*|,(?!\d)\s*(?=[a-záéíóúñA-ZÁÉÍÓÚÑ])|\s+\+\s+/i);
+    if(pieces.length>1&&pieces.length<=80)all.push(...pieces);
    }
    // Líneas tabuladas o con separadores largos en formularios de varias columnas.
    const chunks=clean.split(/\t+|\s{3,}/).map(x=>x.trim()).filter(Boolean);
@@ -130,7 +131,12 @@
    .filter(x=>x&&x.active!==false&&x.id&&x.name).map(x=>({
     id:String(x.id),name:String(x.name),code:String(x.code||x.codigo||x.testCode||''),
     n:canonical(x.name),c:canonical(x.code||x.codigo||x.testCode||''),
-    variants:variants(x.name)
+    variants:[...new Set([
+     ...variants(x.name),
+     ...[x.aliases,x.abbreviations,x.synonyms,x.alias,x.abbreviation]
+      .flatMap(value=>Array.isArray(value)?value:String(value||'').split(/[;,|\n]/))
+      .map(canonical).filter(term=>term.length>=2)
+    ])]
    }));
   const index=new Map();
   const add=(term,test)=>{
@@ -147,7 +153,7 @@
   for(const raw of candidateRows(text)){
    const candidate=cleanLine(raw);
    const n=normalize(candidate),cn=canonical(candidate);
-   if(n.length<2||n.length>130||irrelevant.test(n)||reject.test(n)||/^\d+$/.test(n)||seen.has(cn))continue;
+   if(n.length<2||n.length>380||irrelevant.test(n)||reject.test(n)||/^\d+$/.test(n)||seen.has(cn))continue;
    seen.add(cn);
    // En presupuestos, el examen está entre el número de ítem y los precios.
    // Se prueban variantes contables, no coincidencias parciales arbitrarias.
@@ -194,12 +200,13 @@
      if(starts.length===1)suggestions.push({line:candidate,name:starts[0].name,id:starts[0].id});
     }
    }
-   if(found.size>=240)break;
+   if(found.size>=1500)break;
   }
-  return {matches:[...found.values()],ambiguous:ambiguous.slice(0,35),
-   unmatched:unmatched.slice(0,60),suggestions:suggestions.slice(0,25),examined:seen.size};
+  return {matches:[...found.values()],ambiguous:ambiguous.slice(0,450),
+   unmatched:unmatched.slice(0,1000),suggestions:suggestions.slice(0,400),examined:seen.size,
+   ambiguousCount:ambiguous.length,unmatchedCount:unmatched.length,suggestionsCount:suggestions.length};
  }
- function matchText(text,catalog,limit=240){
+ function matchText(text,catalog,limit=1500){
   const r=findCandidates(text,catalog);
   r.matches=r.matches.slice(0,limit);return r;
  }
