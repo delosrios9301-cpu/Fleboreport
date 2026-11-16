@@ -79,6 +79,11 @@ function setTab(dialog,tab){
   panel.hidden=panel.getAttribute('data-hv-track-panel')!==tab;
  });
 }
+// Volver cierra únicamente la ficha, sin cambiar la ruta ni reconstruir la agenda.
+function backToDomicilios(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ if(typeof window.hvCloseDetail==='function')window.hvCloseDetail();
+}
 function enhance(dialog,v){
  if(!dialog||!v||!v.id)return;
  var screen=dialog.querySelector('.hv-field-screen');
@@ -101,7 +106,7 @@ function enhance(dialog,v){
  '<div class="hv-track-layout">'+
   '<header class="hv-track-brand"><span class="hv-track-logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3C12 9 7 13 7 20a9 9 0 0 0 18 0c0-7-5-11-9-17Z" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/><path d="M15 13c-4 5-5 8-3 11" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.6"/></svg></span><strong>FleboReport</strong><span class="hv-track-close-slot" data-hv-track-slot="close"></span></header>'+
   '<div class="hv-track-content">'+
-   '<div class="hv-track-heading"><span class="hv-track-back-icon">'+svg('back')+'</span><div><h2>Ver seguimiento</h2><p>Visita a domicilio</p></div></div>'+
+   '<div class="hv-track-heading"><button type="button" class="hv-track-back-button" aria-label="Volver a Domicilios" title="Volver a Domicilios">'+svg('back')+'</button><div><h2>Ver seguimiento</h2><p>Visita a domicilio</p></div></div>'+
    '<section class="hv-track-hero" aria-label="Resumen de la visita"><div class="hv-track-hero-copy"><p class="hv-track-code">MI VISITA · '+esc(String(v.id).slice(0,8).toUpperCase())+'</p><h3>'+esc(name)+'</h3><p class="hv-track-when">'+svg('calendar')+esc(when)+'</p><div class="hv-track-chips"><span class="hv-track-state '+statusColor+'">'+svg(status==='En camino'?'pin':'check')+esc(labelStatus(status))+'</span><span class="hv-track-priority">'+esc(priority)+'</span></div></div><div class="hv-track-house" aria-hidden="true"><svg viewBox="0 0 130 120"><circle cx="67" cy="63" r="59" fill="#dcf8f2"/><path d="M28 66 67 32l38 34v38H28Z" fill="#fff"/><path d="M23 65 67 27l43 38" fill="none" stroke="#11a99a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/><path d="M58 75h18v29H58Z" fill="#13998d"/><circle cx="106" cy="38" r="19" fill="#13ac82" stroke="#fff" stroke-width="3"/><path d="M106 28v20M96 38h20" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="26" cy="102" r="16" fill="#91ddd0"/><circle cx="106" cy="103" r="16" fill="#91ddd0"/></svg></div></section>'+
    '<div class="hv-track-tabs" role="tablist" aria-label="Información del domicilio">'+tabButton('seguimiento','Seguimiento','pulse')+tabButton('paciente','Paciente','person')+tabButton('pruebas','Pruebas','vial')+'</div>'+
    '<section class="hv-track-tabpanel" role="tabpanel" id="hv-track-tab-seguimiento" data-hv-track-panel="seguimiento">'+
@@ -120,6 +125,7 @@ function enhance(dialog,v){
  '</div>';
  screen.insertAdjacentHTML('afterbegin',markup);
  var layout=screen.querySelector('.hv-track-layout'),slot=function(name){return layout.querySelector('[data-hv-track-slot="'+name+'"]');};
+ layout.querySelector('.hv-track-back-button')?.addEventListener('click',backToDomicilios);
  var close=dialog.querySelector(':scope > .hv-detail-close');if(close){close.textContent='×';slot('close').appendChild(close);}
  // Se trasladan los nodos originales (no copias): se conservan IDs, eventos y permisos.
  slot('patient').appendChild(cards[0]);slot('tests').appendChild(cards[1]);slot('docs').appendChild(cards[2]);
@@ -143,5 +149,5 @@ function enhance(dialog,v){
 }
 window.FleboTrackEnhance=enhance;
 window.FleboTrackReset=function(){selectedVisit='';selectedTab='seguimiento';};
-window.FleboTrackUtils={mapLink:mapLink,statusMessage:statusMessage};
+window.FleboTrackUtils={mapLink:mapLink,statusMessage:statusMessage,backToDomicilios:backToDomicilios};
 })();
