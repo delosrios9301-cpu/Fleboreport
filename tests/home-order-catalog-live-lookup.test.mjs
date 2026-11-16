@@ -90,7 +90,7 @@ test('La detección automática consulta datos reales, distingue errores y permi
  assert.doesNotMatch(pdf,/El catálogo aún no está disponible/);
  assert.match(pdf,/if\(!text\.trim\(\)\)/);
  assert.match(pdf,/window\.hvOrderApplyTests\(matches\.matches\.map\(x=>x\.id\)\)/);
- assert.match(pdf,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount/);
+ assert.match(pdf,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,isAnalyzing:\(\)=>running/);
  assert.match(oldTests,/La visita se guarda antes de adjuntar su PDF/);
 });
 
@@ -109,6 +109,6 @@ test('Botón de reintento con contraste y versiones nuevas evita servir scripts 
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\[hidden\]\{display:none!important;\}/);
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\{/);
  assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(html,/home-visit-order-pdf\.js\?v=20261115-catalogfix1/);
- assert.match(html,/home-visit-order-pdf\.css\?v=20261115-catalogfix1/);
+ assert.match(html,/home-visit-order-pdf\.js\?v=20261116-ocr1/);
+ assert.match(html,/home-visit-order-pdf\.css\?v=20261116-ocr1/);
 });
