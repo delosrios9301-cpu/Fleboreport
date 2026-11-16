@@ -180,7 +180,7 @@
     matches.matches.length?'success':'info');
   }catch(error){
    if(request!==selectionVersion)return;
-   status('No se pudo consultar el catálogo desde la nube: '+(error?.message||'Error de conexión o permisos')+'. El PDF permanece adjunto para guardar. Pulsa Reintentar búsqueda en catálogo.','error');
+   status('No se pudo consultar el catálogo desde la nube: '+(error?.message||'Error de conexión o permisos')+'. El documento permanece seleccionado para guardar. Pulsa Reintentar búsqueda en catálogo.','error');
    if(retry)retry.hidden=false;
   }finally{
    if(retry)retry.disabled=false;
@@ -195,8 +195,10 @@
   const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
   const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
   const reader=window.FleboHomeOrderDocuments;
-  const format=reader?.kind?.(file);
-  const expected=reader?.storageMime?.(file);
+  // Compatibilidad con sesiones donde el nuevo módulo aún no se haya cargado:
+  // nunca rechazar un PDF válido por falta del lector multiformato.
+  const format=reader?.kind?.(file)||(file.name.toLowerCase().endsWith('.pdf')?'pdf':'');
+  const expected=reader?.storageMime?.(file)||(format==='pdf'?'application/pdf':'');
   const permissiveMime=!file.type||file.type==='application/octet-stream'||
    (format==='pdf'&&file.type==='application/x-pdf')||
    (format==='image'&&file.type==='image/jpg')||
@@ -223,18 +225,18 @@
     status('Documento seleccionado, pero supera los 50 MB del almacenamiento. Puedes guardar el domicilio sin adjuntarlo y agregar después una versión más pequeña.','error');
     return;
    }
-   if(file.size>RECOGNITION_BYTES){
+   if(file.size>(format==='image'?STORAGE_BYTES:RECOGNITION_BYTES)){
     status('Documento listo para adjuntar. Por su tamaño no se leerá automáticamente; selecciona las pruebas manualmente.','info');
     return;
    }
    status('Leyendo las pruebas del documento (foto, presupuesto u orden médica)…');
    let text;
    try{
-    text=await reader.read(file,{
+    text=reader?.read?await reader.read(file,{
      pdfReader:extractText,request,ocr:window.FleboHomeOrderOCR,
      cancelled:()=>request!==selectionVersion,
      onProgress:progress=>status(progress)
-    });
+    }):await extractText(file,request);
    }catch(error){
     if(request===selectionVersion)status((error?.message||'No se pudo interpretar el documento.')+
      ' El archivo sigue seleccionado; agrega manualmente las pruebas que falten.','error');
@@ -242,7 +244,7 @@
    }
    if(request!==selectionVersion)return;
    if(!text.trim()){
-    status('No se detectó texto de pruebas legible en el documento. El archivo sigue seleccionado; ábrelo y agrega las pruebas manualmente. '+ocrNote,'error');return;
+    status('No se detectaron pruebas legibles en el documento. El archivo sigue seleccionado; ábrelo y agrega las pruebas manualmente. '+ocrNote,'error');return;
    }
    recognizedText=text;
    await matchAndApply(text,request);
