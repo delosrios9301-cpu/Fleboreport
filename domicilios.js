@@ -1428,7 +1428,7 @@ let homeOrderCatalogReadPromise=null;
 const canReadHomeOrderCatalog=()=>!!(cloud.client&&cloud.user?.id&&cloud.workspaceId&&
  ['admin','clinician','reception'].includes(cloud.role));
 const visibleHomeOrderCatalog=()=>canReadHomeOrderCatalog()
- ?remoteCatalog.filter(t=>t&&asUuid(t.id)&&t.name).map(t=>({id:t.id,name:t.name,code:t.code||'',active:true}))
+ ?remoteCatalog.filter(t=>t&&asUuid(t.id)&&t.name).map(t=>({id:t.id,name:t.name,code:t.code||'',description:t.description||'',aliases:t.aliases||'',abbreviations:t.abbreviations||'',active:true}))
  :[];
 window.hvOrderCatalog=visibleHomeOrderCatalog;
 window.hvOrderEnsureCatalog=async function(){
@@ -1438,13 +1438,26 @@ window.hvOrderEnsureCatalog=async function(){
  homeOrderCatalogReadPromise=(async()=>{
   // No esperar las escrituras de loadServiceCatalog(): las pruebas ya
   // guardadas en services deben estar disponibles inmediatamente.
-  const result=await cloud.client.from('services')
-   .select('id,catalog_source_id,code,name,category,description,fields,active')
-   .eq('workspace_id',workspace)
-   .eq('active',true)
-   .order('name')
-   .limit(2000);
-  if(result.error)throw new Error('La consulta de pruebas falló: '+(result.error.message||'Error de conexión o permisos.'));
+  // Supabase limita cada respuesta de la API (habitualmente 1000 filas).
+  // Una petición .limit(2000) puede devolver una lista incompleta sin error.
+  // Paginar con orden estable de ID hasta obtener todas las pruebas activas.
+  const PAGE_SIZE=400,MAX_CATALOG_ROWS=20000,allRows=[];
+  for(let start=0;start<MAX_CATALOG_ROWS;start+=PAGE_SIZE){
+   const result=await cloud.client.from('services')
+    .select('id,catalog_source_id,code,name,category,description,fields,active')
+    .eq('workspace_id',workspace)
+    .eq('active',true)
+    .order('id')
+    .range(start,start+PAGE_SIZE-1);
+   if(result.error)throw new Error('No se pudo leer el catálogo completo (bloque '+(Math.floor(start/PAGE_SIZE)+1)+'): '+(result.error.message||'Error de conexión o permisos.'));
+   if(workspace!==cloud.workspaceId||user!==cloud.user?.id)
+    throw new Error('La sesión cambió durante la lectura de las pruebas.');
+   const batch=result.data||[];
+   allRows.push(...batch);
+   if(batch.length<PAGE_SIZE)break;
+   if(allRows.length>=MAX_CATALOG_ROWS)throw new Error('El catálogo supera el límite de lectura segura; no se autoseleccionarán pruebas de una lista incompleta.');
+  }
+  const result={data:allRows};
   if(workspace!==cloud.workspaceId||user!==cloud.user?.id)
    throw new Error('La sesión cambió durante la consulta del catálogo. Vuelve a intentarlo.');
   const fresh=(result.data||[]).filter(x=>x&&asUuid(x.id)&&x.name).map(x=>{
@@ -1453,7 +1466,9 @@ window.hvOrderEnsureCatalog=async function(){
     sample:fields.sample||'',vessel:fields.vessel||'',colorName:fields.vessel?fields.colorName||'':'',
     fasting:fields.fasting||'',conditions:fields.conditions||'',instructions:fields.instructions||'',
     volume:fields.volume||'',method:fields.method||'',color:fields.vessel?fields.color||'':'',shape:fields.vessel?fields.shape||'':'',
-    category:x.category||'',description:x.description||''};
+    category:x.category||'',description:x.description||'',
+    abbreviations:fields.abbreviations||fields.abbreviation||fields.siglas||'',
+    aliases:fields.aliases||fields.synonyms||fields.sinonimos||fields.alternateNames||''};
   });
   // Reemplazar solo si la lectura resultó satisfactoria. Ante un error,
   // conservar el catálogo anterior; no borrar ni archivar ninguna prueba.
