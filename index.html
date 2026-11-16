@@ -1265,7 +1265,8 @@ function renderCatalog(){
  const term=normalizeCatalogSearch($('catalogSearch')&&$('catalogSearch').value||'');
  const filter=window.FleboCatalogReference?.getFilter?.()||'all';
  if(term!==catalogLastSearch||filter!==catalogLastFilter){catalogListLimit=70;catalogLastSearch=term;catalogLastFilter=filter;}
- const matching=(catalogViewActive?active:[]).filter(function(t){
+ const matching=active.filter(function(t){
+  if(!catalogViewActive)return false;
   if(filter==='pending'&&String(t.vessel||'').trim())return false;
   if(filter==='vessel'&&!String(t.vessel||'').trim())return false;
   return catalogSearchMatches(t,term);
