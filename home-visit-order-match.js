@@ -77,6 +77,48 @@
   }
   return all;
  }
+
+ function budgetVariants(value){
+  // Una cotización factura cada examen junto a su código, cantidad, precio y total.
+  // Retirar solo columnas contables de los EXTREMOS, sin perder palabras clínicas.
+  const raw=cleanLine(value),options=new Set([canonical(raw)]);
+  let row=raw,priceRemoved=false;
+  const money=/(?:\s+|[;\t|]\s*)(?:(?:B\/\.?|USD|US\$|\$)\s*)?\d{1,9}(?:[.,]\d{3})*(?:[.,]\d{2})\s*$/i;
+  const explicitMoney=/(?:\s+|[;\t|]\s*)(?:(?:B\/\.?|USD|US\$|\$)\s*)\d{1,9}(?:[.,]\d{2})?\s*$/i;
+  for(let n=0;n<5;n++){
+   const match=row.match(money)||row.match(explicitMoney);
+   if(!match)break;
+   // "T4 libre" no es un precio. Solo decimales o moneda explícita.
+   if(!/[.,]\d{2}\s*$/.test(match[0])&&!/(?:B\/\.?|USD|US\$|\$)/i.test(match[0]))break;
+   row=row.slice(0,-match[0].length).trim();priceRemoved=true;
+   if(row)options.add(canonical(row));
+  }
+  if(priceRemoved){
+   // Cantidad de la cotización inmediatamente antes del importe.
+   const withoutQty=row.replace(/\s+(?:x\s*)?\d{1,3}\s*$/i,'').trim();
+   if(withoutQty)options.add(canonical(withoutQty));
+   row=withoutQty||row;
+  }
+  // Los numerales o códigos del ítem van ANTES del nombre de la prueba.
+  const snapshot=[...options,row];
+  for(const option of snapshot){
+   const value=String(option||'').trim();
+   for(const pattern of [
+    /^\s*\d{1,9}[\s.)-]+(?=[a-záéíóúüñ])/i,
+    /^\s*(?:item|ítem|codigo|código|cod|ref|articulo|artículo)\s*[:#.\-]?\s*\w{1,14}[\s:.-]+/i,
+    /^\s*[A-Z]{1,5}[-\/]\d{1,10}[\s:.-]+/i
+   ]){
+    const cut=value.replace(pattern,'').trim();
+    if(cut&&cut!==value)options.add(canonical(cut));
+   }
+  }
+  // Precios se pudieron retirar antes del número de ítem.
+  if(priceRemoved)for(const option of [...options]){
+   const reduced=option.replace(/^\d{1,9}\s+/,'').replace(/\s+(?:x\s*)?\d{1,3}$/,'').trim();
+   if(reduced)options.add(canonical(reduced));
+  }
+  return [...options].filter(x=>x.length>=2).slice(0,14);
+ }
  function findCandidates(text,catalog){
   const tests=(Array.isArray(catalog)?catalog:[])
    .filter(x=>x&&x.active!==false&&x.id&&x.name).map(x=>({
@@ -101,8 +143,11 @@
    const n=normalize(candidate),cn=canonical(candidate);
    if(n.length<2||n.length>130||irrelevant.test(n)||reject.test(n)||/^\d+$/.test(n)||seen.has(cn))continue;
    seen.add(cn);
-   // 1) nombre o sigla exacta única; 2) código + nombre en una misma línea.
-   const possibilities=new Map(index.get(cn)||[]);
+   // En presupuestos, el examen está entre el número de ítem y los precios.
+   // Se prueban variantes contables, no coincidencias parciales arbitrarias.
+   const keys=budgetVariants(candidate);
+   const possibilities=new Map();
+   for(const key of keys)if(index.has(key))for(const [id,item] of index.get(key))possibilities.set(id,item);
    if(!possibilities.size){
     const exactPieces=cn.split(/\s*[-:]\s*/).filter(Boolean);
     for(const part of exactPieces)if(index.has(part))for(const [id,item] of index.get(part))possibilities.set(id,item);
@@ -152,5 +197,5 @@
   const r=findCandidates(text,catalog);
   r.matches=r.matches.slice(0,limit);return r;
  }
- return {normalize,canonical,cleanLine,matchText};
+ return {normalize,canonical,cleanLine,budgetVariants,matchText};
 });
