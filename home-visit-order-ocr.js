@@ -66,5 +66,34 @@
   return {text:lines.join('\n'),processed,
    remaining:Math.max(0,pages.length-processed),failed};
  }
- window.FleboHomeOrderOCR={recognizePages,MAX_OCR_PAGES};
+ async function recognizeImage(file,options={}){
+  const create=await getTesseract();
+  let worker=null,bmp=null,canvas=null;
+  try{
+   worker=await create('spa+eng');
+   let source=file;
+   // Reducir fotografías de alta resolución para no agotar memoria en Android.
+   if(typeof createImageBitmap==='function'){
+    bmp=await createImageBitmap(file);
+    const scale=Math.min(1,Math.sqrt(MAX_CANVAS_PIXELS/Math.max(1,bmp.width*bmp.height)));
+    canvas=document.createElement('canvas');
+    canvas.width=Math.max(1,Math.round(bmp.width*scale));
+    canvas.height=Math.max(1,Math.round(bmp.height*scale));
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw new Error('No se pudo preparar la fotografía.');
+    ctx.fillStyle='#fff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(bmp,0,0,canvas.width,canvas.height);
+    source=canvas;
+   }
+   if(options.cancelled?.())return{text:'',cancelled:true};
+   const result=await worker.recognize(source);
+   return {text:options.cancelled?.()?'':result?.data?.text||'',cancelled:!!options.cancelled?.()};
+  }finally{
+   if(bmp?.close)bmp.close();
+   if(canvas){canvas.width=0;canvas.height=0;}
+   if(worker)try{await worker.terminate()}catch(_){}
+  }
+ }
+ window.FleboHomeOrderOCR={recognizePages,recognizeImage,MAX_OCR_PAGES};
 })();
