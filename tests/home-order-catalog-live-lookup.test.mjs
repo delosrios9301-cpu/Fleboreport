@@ -124,7 +124,7 @@ test('Nuevo domicilio solicita catálogo actualizado sin interrumpir el buscador
 test('Botón de reintento con contraste y versiones nuevas evita servir scripts antiguos de PWA',()=>{
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\[hidden\]\{display:none!important;\}/);
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\{/);
- assert.match(html,/domicilios\.js\?v=20261116-full1/);
+ assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
  assert.match(html,/home-visit-order-pdf\.js\?v=20261116-full1/);
  assert.match(html,/home-visit-order-pdf\.css\?v=20261116-full1/);
 });
