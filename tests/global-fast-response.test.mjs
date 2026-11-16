@@ -28,7 +28,8 @@ test('Domicilios solo pinta agenda historial y calendario cuando el usuario los 
 });
 test('Pantallas invisibles no reconstruyen el catálogo durante acciones de otras vistas',()=>{
  assert.match(html,/const catalogViewActive=\$\('view-catalog'\)\?\.classList\.contains\('active'\)===true/);
- assert.match(html,/const matching=\(catalogViewActive\?active:\[\]\)\.filter/);
+ assert.match(html,/const matching=active\.filter/);
+ assert.match(html,/if\(!catalogViewActive\)return false/);
  assert.match(html,/if\(catalogViewActive\)\{/);
  assert.match(html,/const detailsChanged=revision!==catalogDetailRevision/);
  assert.match(html,/function showSettings\(tab\)/);
