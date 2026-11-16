@@ -26,7 +26,7 @@ function buildHarness({
    select(columns){calls.push(['select',columns]);return builder},
    eq(field,value){calls.push(['eq',field,value]);return builder},
    order(field){calls.push(['order',field]);return builder},
-   limit(n){calls.push(['limit',n]);return Promise.resolve({data:entries,error})}
+   range(from,to){calls.push(['range',from,to]);return Promise.resolve({data:entries.slice(from,to+1),error})}
   };
   return builder;
  }};
@@ -48,6 +48,22 @@ test('El catálogo de Domicilios se lee desde servicios activos aunque la sincro
  assert.ok(h.calls.some(x=>x[0]==='eq'&&x[1]==='workspace_id'&&x[2]==='workspace-test'));
  assert.ok(h.calls.some(x=>x[0]==='eq'&&x[1]==='active'&&x[2]===true));
  assert.ok(!h.calls.some(x=>['insert','upsert','delete','update'].includes(x[0])));
+});
+
+test('Lee el catálogo completo de 1166 pruebas mediante páginas de 400, sin truncar 1000',async()=>{
+ const rows=Array.from({length:1166},(_,index)=>({
+  id:'00000000-0000-0000-0000-'+String(index+1).padStart(12,'0'),
+  name:'Prueba '+index,code:'P'+index,active:true,
+  fields:{aliases:index===1165?'Nombre alternativo':''}
+ }));
+ const h=buildHarness({entries:rows});
+ const obtained=await h.window.hvOrderEnsureCatalog();
+ assert.equal(obtained.length,1166);
+ assert.equal(obtained.at(-1).name,'Prueba 1165');
+ assert.equal(obtained.at(-1).aliases,'Nombre alternativo');
+ const ranges=h.calls.filter(x=>x[0]==='range');
+ assert.deepEqual(Array.from(ranges,x=>[x[1],x[2]]),[[0,399],[400,799],[800,1199]]);
+ assert.equal(h.scope.remoteCatalog.length,1166);
 });
 
 test('Pruebas reconocidas por PDF se incorporan al mismo selector manual sin duplicarlas',async()=>{
