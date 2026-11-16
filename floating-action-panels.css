@@ -117,6 +117,57 @@ body.fra-modal-open{overscroll-behavior:none}
 #settings-company .form-panel[hidden],
 #settings-catalog .form-panel[hidden],
 #settings-clinical-config .form-panel[hidden]{display:none!important}
+
+/* Paneles administrativos dinámicos y vistas previas sin scroll de la página. */
+.fra-action-dialog .fra-modal-scroll > details,
+.fra-action-dialog .fra-modal-scroll > .fra-config-permissions,
+.fra-action-dialog .fra-modal-scroll > .fra-permissions-content,
+.fra-action-dialog .fra-modal-scroll > .fr-config-card{
+ display:block!important;box-sizing:border-box!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ margin:0!important;padding:0!important;background:#fff!important;
+ border:0!important;box-shadow:none!important;overflow:visible!important
+}
+.fra-action-dialog .fra-permissions-content .fr-config-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:start!important;gap:10px!important;margin-bottom:10px!important
+}
+.fra-action-dialog .fra-permissions-content .fr-config-card{
+ min-width:0!important;box-sizing:border-box!important
+}
+.fra-action-dialog .fr-config-form{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px!important
+}
+.fra-action-dialog .fr-config-form .fr-config-field.full{grid-column:1/-1}
+.fra-action-dialog .fr-config-table{max-width:100%!important}
+.fra-action-dialog .fr-config-form input,
+.fra-action-dialog .fr-config-form select,
+.fra-action-dialog .fr-config-form textarea{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+.fra-action-dialog .fr-config-actions{
+ position:sticky!important;bottom:0!important;
+ background:#fff!important;border-top:1px solid #e3eceb!important;
+ padding:12px 0 max(10px,env(safe-area-inset-bottom))!important;
+ z-index:2!important
+}
+.fra-action-dialog #frPermissionGrid{max-width:100%!important;min-width:0!important}
+.fra-action-dialog #frPermissionGrid .fr-perm-module{min-width:0!important}
+#settings-services .fra-create-entry,#settings-templates .fra-create-entry,
+#settings-report .fra-create-entry{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ text-align:center!important;max-width:100%!important
+}
+#settings-security .fr-config-grid > .fra-create-entry{
+ align-self:start!important;justify-self:stretch!important;
+ width:100%!important;margin:0!important
+}
+#fr-pane-permissions > .fra-create-entry{
+ width:100%!important;max-width:450px!important;min-height:48px!important
+}
+.fra-action-dialog #rhrReportPreview .report-paper,
+.fra-action-dialog #rhrReportPreview .report-card{
+ max-width:100%!important;min-width:0!important;box-sizing:border-box!important
+}
 @media(max-width:760px){
  dialog.fra-action-dialog{
   width:calc(100vw - 14px)!important;
@@ -151,4 +202,12 @@ body.fra-modal-open{overscroll-behavior:none}
 @media print{
  dialog.fra-action-dialog{position:static!important;max-height:none!important;box-shadow:none!important}
  .fra-action-dialog .fra-modal-close{display:none!important}
+}@media(max-width:760px){
+ .fra-action-dialog .fra-permissions-content .fr-config-grid,
+ .fra-action-dialog .fr-config-form{
+  grid-template-columns:minmax(0,1fr)!important
+ }
+ .fra-action-dialog .fr-config-form .fr-config-field.full{grid-column:auto!important}
+ .fra-action-dialog .fr-config-card{padding:10px!important}
+ .fra-action-dialog #frPermissionGrid{display:grid!important;grid-template-columns:1fr!important}
 }
