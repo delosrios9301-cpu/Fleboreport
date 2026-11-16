@@ -84,7 +84,7 @@ test('PDF de presupuesto con encabezado digital e imagen de tabla usa OCR',async
  };
  const pdf={numPages:1,getPage:async()=>fakePage,async destroy(){}};
  const context={
-  TextDecoder,Uint8Array,MAX_PAGES:15,selectionVersion:1,ocrNote:'',
+  TextDecoder,Uint8Array,MAX_PAGES:500,selectionVersion:1,ocrNote:'',coverage:{},
   pdfApi:async()=>({getDocument:()=>({promise:Promise.resolve(pdf),async destroy(){}})}),
   window:{FleboHomeOrderOCR:{async recognizePages(pages){
    ocrCalls++;assert.equal(pages[0],fakePage);
