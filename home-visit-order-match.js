@@ -108,9 +108,15 @@
    if(!possibilities.size){
     // Formato habitual «TP - Tiempo de protrombina», «HEM Hemograma».
     for(const t of tests){
-     if(t.c&&cn===t.c+' '+t.n||t.c&&cn===t.n+' '+t.c){
+     if(t.c&&(cn===t.c+' '+t.n||cn===t.n+' '+t.c||
+      t.variants.some(v=>cn===t.c+' '+v||cn===v+' '+t.c))){
       possibilities.set(t.id,t);continue;
      }
+     // Sigla a la izquierda y nombre exacto (p. ej. TP - Tiempo de protrombina),
+     // aun cuando el código registrado sea diferente.
+     const parts=cn.split(' ');
+     if(parts.length>1&&t.variants.includes(parts.slice(1).join(' '))&&
+        t.variants.includes(parts[0])){possibilities.set(t.id,t);continue;}
      const sample=/^(?:sangre|sangre total|suero|plasma|orina|heces|saliva|lcr|hisopado)$/;
      if(cn.startsWith(t.n+' ')&&sample.test(cn.slice(t.n.length+1)))possibilities.set(t.id,t);
     }
