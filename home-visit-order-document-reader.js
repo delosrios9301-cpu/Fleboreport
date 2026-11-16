@@ -92,26 +92,31 @@
   return lines.join('\n');
  }
  function csvAsLines(text){
-  // Respetar comas dentro de celdas entrecomilladas y convertir columnas a TAB.
+  const source=String(text||'');
+  // En presupuestos latinoamericanos suele usarse ';' para columnas
+  // y ',' para centavos. La cabecera determina el separador.
+  const first=source.split(/\r?\n/,1)[0]||'';
+  const separator=first.includes(';')?';':first.includes('\t')?'\t':',';
   const rows=[],cells=[];let cell='',quoted=false;
-  for(const char of String(text||'')){
-   if(char==='"'){
-    if(quoted&&cell.endsWith('"')){cell=cell.slice(0,-1)+'"';continue;}
+  function flushRow(){
+   cells.push(cell.trim());cell='';
+   if(cells.some(Boolean))rows.push(cells.join('\t'));
+   cells.length=0;
+  }
+  for(let i=0;i<source.length;i++){
+   const ch=source[i];
+   if(ch==='"'){
+    if(quoted&&source[i+1]==='"'){cell+='"';i++;continue;}
     quoted=!quoted;continue;
    }
-   if(!quoted&&(char===','||char===';'||char==='\t')){
-    cells.push(cell.trim());cell='';continue;
+   if(!quoted&&ch===separator){cells.push(cell.trim());cell='';continue;}
+   if(!quoted&&(ch==='\n'||ch==='\r')){
+    if(ch==='\r'&&source[i+1]==='\n')i++;
+    flushRow();continue;
    }
-   if(!quoted&&(char==='\n'||char==='\r')){
-    if(char==='\r')continue;
-    cells.push(cell.trim());cell='';
-    if(cells.some(Boolean))rows.push(cells.join('\t'));
-    cells.length=0;continue;
-   }
-   cell+=char;
+   cell+=ch;
   }
-  cells.push(cell.trim());
-  if(cells.some(Boolean))rows.push(cells.join('\t'));
+  flushRow();
   return rows.join('\n');
  }
  async function readText(file){
