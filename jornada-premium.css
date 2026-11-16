@@ -1019,3 +1019,26 @@ body.fr2-app-authorized.cm-workspace.vc-compact
   width:100%!important;max-width:none!important;
  }
 }
+
+
+/* Jornada v313 — Seguimiento: desplazamiento vertical independiente en Android.
+   El carrusel conserva el movimiento horizontal; no toca datos ni acciones. */
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout{
+ touch-action:pan-x pan-y!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-side-column{
+ flex:0 0 100%!important;
+ height:100%!important;min-height:0!important;max-height:100%!important;
+ overflow-x:hidden!important;overflow-y:scroll!important;
+ -webkit-overflow-scrolling:touch!important;
+ overscroll-behavior-y:contain!important;
+ touch-action:pan-y!important;
+ scroll-snap-align:start!important;
+ padding-bottom:max(32px,env(safe-area-inset-bottom,0px))!important;
+}
+body.fr2-app-authorized.cm-workspace.vc-compact
+ #view-journey.jp-reference.jp-workspace-open>.journey-layout>.journey-side-column>.panel{
+ flex:0 0 auto!important;min-height:fit-content!important;
+}
