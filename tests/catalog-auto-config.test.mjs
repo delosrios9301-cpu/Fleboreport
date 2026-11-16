@@ -221,6 +221,11 @@ test('La búsqueda por siglas obtiene TP, TTPa, hemograma CBC y evita coincidenc
  const search=vm.runInNewContext(html.slice(start,end)+';({normalizeCatalogSearch,catalogSearchMatches})');
  const run=(t,q)=>search.catalogSearchMatches({name:t,sample:'',vessel:'',code:'',testCode:''},search.normalizeCatalogSearch(q));
  assert.equal(run('Tiempo de protrombina (TP)','TP'),true);
+ assert.equal(run('Tiempo de protrombina','tp'),true);
+ assert.equal(run('Tiempo de tromboplastina parcial activada','ttpa'),true);
+ assert.equal(run('Perfil lipídico','pl'),true);
+ assert.equal(run('Terapia por plasma','tp'),false);
+
  assert.equal(run('Prueba de mezcla de TP','tp'),true);
  assert.equal(run('Tiempo de tromboplastina parcial activada (TTPa)','TTPA'),true);
  assert.equal(run('Hemograma completo (CBC)','CBC'),true);
@@ -228,6 +233,16 @@ test('La búsqueda por siglas obtiene TP, TTPa, hemograma CBC y evita coincidenc
  assert.equal(run('Ferritina','TP'),false);
  assert.equal(run('ANTIDOPING THC-COC','TP'),false);
  assert.equal(run('Hemograma completo (CBC)','hemograma'),true);
+});
+
+test('Gestión de pruebas alojada en Configuración y biblioteca separada',()=>{
+ const library=html.slice(html.indexOf('id="view-catalog"'),html.indexOf('id="view-reports"'));
+ const config=html.slice(html.indexOf('id="settings-catalog"'),html.indexOf('id="settings-templates"'));
+ assert.doesNotMatch(library,/id="catalogHeaderActions"|catalogImportOpen|fr2-catalog-new/);
+ assert.match(config,/id="catalogHeaderActions"/);
+ assert.match(config,/onclick="startNewCatalogTest\(\)"/);
+ assert.match(config,/id="catalogArchivedPanel"/);
+ assert.match(html,/oninput="queueCatalogSearch\(\)"/);
 });
 
 test('Solo activas e inactivas; volúmenes documentados y sin aprobación manual obligatoria',()=>{
