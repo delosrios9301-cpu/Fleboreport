@@ -79,10 +79,10 @@ test('PDF con 13 páginas escaneadas procesa las 13 sin descartar silenciosament
  const extract=vm.runInNewContext(extractSource+';extractText',ctx);
  const answer=await extract({arrayBuffer:async()=>new Uint8Array([37,80,68,70,45]).buffer},5);
  assert.equal(calls,1);
- assert.equal(coverage.pages,13);
- assert.equal(coverage.total,13);
- assert.equal(coverage.ocr,13);
- assert.equal(coverage.complete,true);
+ assert.equal(ctx.coverage.pages,13);
+ assert.equal(ctx.coverage.total,13);
+ assert.equal(ctx.coverage.ocr,13);
+ assert.equal(ctx.coverage.complete,true);
  assert.match(answer,/Hemograma completo/);
  assert.match(ocrSource,/MAX_OCR_PAGES=500/);
 });
