@@ -130,9 +130,12 @@
  function clinicalStudyForm(){
   return $('#clinicalStudyFormTitle')?.closest('.panel.form-panel');
  }
+ let entrySerial=0;
  function makeEntry(section,panel,title,openAction){
   if(!section||!panel)return;
-  const id=panel.dataset.fraEntry||'fra-'+(section.id||'config')+'-entry';
+  // Cada formulario dispone de un botón propio; un módulo puede tener
+  // varios editores (p. ej. servicios, paquetes y precios).
+  const id=panel.dataset.fraEntry||'fra-'+(section.id||'config')+'-entry-'+(++entrySerial);
   panel.dataset.fraEntry=id;
   if(!$(id)){
    const button=document.createElement('button');
