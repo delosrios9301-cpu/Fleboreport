@@ -65,7 +65,7 @@ test('PDF se analiza en el dispositivo, sin enviar su texto o datos a un servido
 test('Se exige revisión de las coincidencias en el formulario antes de guardar',()=>{
  assert.match(ui,/window\.hvOrderApplyTests\(matches\.matches\.map\(x=>x\.id\)\)/);
  assert.match(ui,/Las coincidencias seguras ya aparecen en Pruebas solicitadas/);
- assert.match(ui,/No hubo coincidencias únicas/);
+ assert.match(ui,/No se identificaron coincidencias seguras/);
  assert.match(ui,/No se detectaron pruebas legibles/);
  assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,isAnalyzing:\(\)=>running,cancelAnalysis:/);
  assert.match(ui,/RECOGNITION_BYTES=50\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
