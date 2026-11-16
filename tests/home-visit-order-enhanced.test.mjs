@@ -129,7 +129,7 @@ test('El flebotomista aceptado ve pruebas y abre la orden PDF privada',()=>{
  const field=dom.slice(begin,stop);
  assert.ok(begin>0&&stop>begin);
  assert.match(field,/Pruebas y recipientes/);
- assert.match(field,/Orden médica original/);
+ assert.match(field,/Documento original/);
  assert.match(field,/Ver orden original/);
  assert.match(field,/hvOpenDocument/);
  assert.match(field,/v\.documents\|\|\[\]/);
