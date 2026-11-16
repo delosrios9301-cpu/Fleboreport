@@ -1201,7 +1201,10 @@ function render(){
       if(detailBackdrop)document.body.appendChild(detailBackdrop);
     }
     const premiumDialog=document.querySelector('body > .hv-detail-backdrop .hv-detail-dialog');
-    if(premiumDialog)enhanceHomeVisitDetail(premiumDialog);
+    if(premiumDialog){
+      enhanceHomeVisitDetail(premiumDialog);
+      if(typeof window.FleboTrackEnhance==='function')window.FleboTrackEnhance(premiumDialog,activeVisit);
+    }
     if(detailPanel)detailPanel.hidden=true;
   }else{
     if(existingDetailModal)existingDetailModal.remove();
