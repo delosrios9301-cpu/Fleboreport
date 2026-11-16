@@ -8,10 +8,11 @@
  if(!core)return;
  const PDF_API='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.mjs';
  const PDF_WORKER='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.5.438/legacy/build/pdf.worker.mjs';
- const RECOGNITION_BYTES=16*1024*1024,STORAGE_BYTES=50*1024*1024,MAX_PAGES=15;
+ const RECOGNITION_BYTES=50*1024*1024,STORAGE_BYTES=50*1024*1024,MAX_PAGES=500;
  const el=(tag,cls,content)=>{const x=document.createElement(tag);if(cls)x.className=cls;if(content!=null)x.textContent=content;return x;};
  const $=id=>document.getElementById(id);
  let pending=null, pdfLib=null, running=false,mounted=false,observer=null,selectionVersion=0,recognizedText='',ocrNote='',previewUrl=null;
+ let coverage={pages:0,total:0,ocr:0,complete:true};
  const getCatalog=async()=>typeof window.hvOrderEnsureCatalog==='function'
   ?await window.hvOrderEnsureCatalog()
   :typeof window.hvOrderCatalog==='function'?window.hvOrderCatalog():[];
@@ -20,7 +21,7 @@
   node.textContent=message;node.dataset.kind=kind;node.setAttribute('role',kind==='error'?'alert':'status');
  }
  function reset(){
-  selectionVersion++;pending=null;running=false;recognizedText='';ocrNote='';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}const input=$('hvOrderPdfFile');if(input)input.value='';
+  selectionVersion++;pending=null;running=false;recognizedText='';ocrNote='';coverage={pages:0,total:0,ocr:0,complete:true};if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}const input=$('hvOrderPdfFile');if(input)input.value='';
   const preview=$('hvOrderPreviewPdf');if(preview)preview.hidden=true;
   const skip=$('hvOrderCancelRead');if(skip)skip.hidden=true;
   const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
@@ -46,8 +47,10 @@
   try{
    pdf=await documentTask.promise;
    const limit=Math.min(pdf.numPages,MAX_PAGES),all=[],scannedPages=[];
-   if(pdf.numPages>MAX_PAGES)ocrNote='Se analizarán las primeras '+MAX_PAGES+' páginas de '+pdf.numPages+'. Revisa el PDF original por las restantes.';
+   coverage={pages:0,total:pdf.numPages,ocr:0,complete:pdf.numPages<=MAX_PAGES};
+   if(pdf.numPages>MAX_PAGES)ocrNote='ATENCIÓN: el documento tiene '+pdf.numPages+' páginas; el dispositivo analizará las primeras '+MAX_PAGES+'. Debes revisar las restantes en el original.';
    for(let pageNumber=1;pageNumber<=limit;pageNumber++){
+    status('Leyendo página '+pageNumber+' de '+pdf.numPages+' del documento…');
     if(request!==selectionVersion)return '';
     const page=await pdf.getPage(pageNumber);
     const content=await page.getTextContent({includeMarkedContent:false});
@@ -80,11 +83,26 @@
     // Un presupuesto puede tener solo encabezados digitales y las pruebas
     // insertadas como fotografía. Intentar OCR también en páginas con poco texto.
     // En páginas con listado legible evitar OCR innecesario en Android.
+    // Algunos presupuestos contienen texto DIGITAL y una tabla de
+    // exámenes COMO IMAGEN en la misma página. OCR adicional si el PDF
+    // contiene imágenes raster y no hay un listado digital extenso.
+    let hasImage=false;
+    if(typeof page.getOperatorList==='function'&&lib.OPS&&rows.length<45){
+     try{
+      const op=await page.getOperatorList();
+      const kinds=[lib.OPS.paintImageXObject,lib.OPS.paintJpegXObject,
+       lib.OPS.paintInlineImageXObject,lib.OPS.paintImageXObjectRepeat]
+       .filter(x=>typeof x==='number');
+      hasImage=(op.fnArray||[]).some(x=>kinds.includes(x));
+     }catch(_){hasImage=false;}
+    }
     if(pageText.length<22||
+       (hasImage&&rows.length<45)||
        (rows.length<=12&&pageText.length<360&&
         !/(?:hemograma|biometria|glucosa|ferritina|protro[mn]bina|colesterol|triglicerid|creatinina|hemoglobina)/i.test(pageText)))
      scannedPages.push(page);
     all.push(...rows);
+    coverage.pages=pageNumber;
    }
    if(request===selectionVersion&&scannedPages.length){
     const ocr=window.FleboHomeOrderOCR;
@@ -99,6 +117,8 @@
       });
       if(request!==selectionVersion)return '';
       if(result.text)all.push(result.text);
+      coverage.ocr=result.processed||0;
+      if(result.remaining>0)coverage.complete=false;
       if(result.remaining>0)ocrNote=(ocrNote+' Faltan '+result.remaining+' página(s) escaneadas por revisar; abre el PDF original.').trim();
       if(result.failed)ocrNote=(ocrNote+' Algunas páginas no pudieron leerse; comprueba la orden.').trim();
      }catch(error){
@@ -149,11 +169,18 @@
    for(const hint of result.suggestions)ul.append(el('li','',hint.line+' → '+hint.name+' (no agregada)'));
    group.append(ul);section.append(group);
   }
+  if(coverage.total)section.append(el('p','hv-order-note',
+   'Páginas extraídas: '+coverage.pages+'/'+coverage.total+
+   (coverage.ocr?' · OCR de '+coverage.ocr+' página(s)':'')+
+   (coverage.complete?' · Lectura completada':' · Lectura parcial: revisión obligatoria')));
   if(ocrNote)section.append(el('p','hv-order-note',ocrNote));
-  if(recognizedText&&!result.matches.length){
+  if(recognizedText){
    const audit=el('details','hv-order-unmatched');
-   audit.append(el('summary','','Ver texto que se pudo leer del documento'));
-   audit.append(el('pre','hv-order-extracted',recognizedText.slice(0,3500)));
+   audit.append(el('summary','','Ver texto leído para comprobar pruebas faltantes'));
+   const extracted=el('pre','hv-order-extracted',recognizedText.slice(0,45000));
+   audit.append(extracted);
+   if(recognizedText.length>45000)audit.append(el('p','hv-order-note',
+    'Vista de texto limitada a 45 000 caracteres; todas las líneas disponibles se analizaron para encontrar exámenes.'));
    section.append(audit);
   }
   container.append(section);
@@ -180,8 +207,8 @@
    }
    renderReview(matches,added);
    status(matches.matches.length
-    ?'Catálogo recuperado ('+catalog.length+' pruebas activas). '+matches.matches.length+' prueba(s) reconocida(s), '+added+' nueva(s) ya agregada(s) antes de crear el domicilio. Revisa y completa lo pendiente.'
-    :'Catálogo recuperado ('+catalog.length+' pruebas activas). No hubo coincidencias únicas; revisa el documento original y añade las pruebas manualmente.',
+    ?'Catálogo completo: '+catalog.length+' pruebas activas. '+matches.matches.length+' reconocida(s) y '+added+' nueva(s) incorporada(s) antes de guardar. '+(matches.ambiguousCount||matches.ambiguous.length)+' ambiguas y '+(matches.unmatchedCount||matches.unmatched.length)+' líneas por revisar.'
+    :'Catálogo completo: '+catalog.length+' pruebas activas. No se identificaron coincidencias seguras. Comprueba el texto extraído y revisa los exámenes faltantes.',
     matches.matches.length?'success':'info');
   }catch(error){
    if(request!==selectionVersion)return;
