@@ -279,13 +279,13 @@ test('Un recipiente registrado conserva su icono aun sin color, sin mostrar inte
  assert.equal(visual.specimenVesselShape(jar),'jar','Recipiente debe ser envase, aunque exista forma heredada incorrecta');
  const jarIcon=visual.vesselSvg(jar);
  assert.match(jarIcon,/Envase o frasco registrado/);
- assert.doesNotMatch(jarIcon,/\\?/);
+ assert.doesNotMatch(jarIcon,/\?/);
  assert.doesNotMatch(jarIcon,/#237c49/i);
  const pendingTube={name:'Prueba por revisar',vessel:'Tubo de recolección',shape:'tube',colorName:'',color:'#237c49'};
  assert.equal(visual.specimenVesselShape(pendingTube),'tube');
  const pendingIcon=visual.vesselSvg(pendingTube);
  assert.match(pendingIcon,/con color de tapa pendiente/);
- assert.doesNotMatch(pendingIcon,/\\?/);
+ assert.doesNotMatch(pendingIcon,/\?/);
  assert.doesNotMatch(pendingIcon,/#237c49/i);
  const approved={vessel:'Tubo con EDTA',shape:'tube',colorName:'Morado',color:'#237c49'};
  assert.equal(visual.specimenVesselColor(approved),'#8258bf','El color documentado prevalece sobre el color visual obsoleto');
@@ -297,5 +297,5 @@ test('Un recipiente registrado conserva su icono aun sin color, sin mostrar inte
  assert.equal(visual.specimenVesselShape(missing),'');
  assert.match(visual.vesselSvg(missing),/Recipiente por configurar/);
  assert.match(html,/Color de tapa pendiente/);
- assert.match(html,/Color de tapa \\(si aplica\\)/);
+ assert.match(html,/Color de tapa \(si aplica\)/);
 });
