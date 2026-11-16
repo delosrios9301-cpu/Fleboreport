@@ -100,7 +100,7 @@ test('El adjunto usa el bucket privado existente con políticas RLS y sin URL p�
 test('Vista móvil y recursos PWA cargados sin modificar notificaciones',()=>{
  const files=['home-visit-order-match.js','home-visit-order-ocr.js','home-visit-order-pdf.js','home-visit-order-pdf.css'];
  for(const name of files){
-  assert.ok(html.includes('./'+name+'?v=20261116-ocr1'));
+  assert.ok(html.includes('./'+name+'?v='+(name.endsWith('.css')?'20261116-ocr1':'20261116-doc2')));
   assert.ok(worker.includes("'./"+name+"'"));
  }
  assert.ok(html.indexOf('home-visit-order-match.js')<html.indexOf('home-visit-order-pdf.js'));
