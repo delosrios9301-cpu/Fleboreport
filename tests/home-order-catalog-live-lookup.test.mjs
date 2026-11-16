@@ -86,7 +86,7 @@ test('La detección automática consulta datos reales, distingue errores y permi
  assert.match(pdf,/if\(recognizedText\)void matchAndApply\(recognizedText,selectionVersion\)/);
  assert.match(pdf,/if\(request!==selectionVersion\)return;/);
  assert.match(pdf,/No se pudo consultar el catálogo desde la nube/);
- assert.match(pdf,/El PDF permanece adjunto para guardar/);
+ assert.match(pdf,/El documento permanece seleccionado para guardar/);
  assert.doesNotMatch(pdf,/El catálogo aún no está disponible/);
  assert.match(pdf,/if\(!text\.trim\(\)\)/);
  assert.match(pdf,/window\.hvOrderApplyTests\(matches\.matches\.map\(x=>x\.id\)\)/);
@@ -109,6 +109,6 @@ test('Botón de reintento con contraste y versiones nuevas evita servir scripts 
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\[hidden\]\{display:none!important;\}/);
  assert.match(css,/#view-domicilios #hvOrderRetryCatalog\{/);
  assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(html,/home-visit-order-pdf\.js\?v=20261116-ocr1/);
+ assert.match(html,/home-visit-order-pdf\.js\?v=20261116-doc2/);
  assert.match(html,/home-visit-order-pdf\.css\?v=20261116-ocr1/);
 });
