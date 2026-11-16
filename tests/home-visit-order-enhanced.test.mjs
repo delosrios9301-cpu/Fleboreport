@@ -80,7 +80,7 @@ test('El lector de PDF extrae páginas de dos columnas y usa OCR si no hay texto
   async destroy(){}
  };
  const scope={
-  TextDecoder,Uint8Array,MAX_PAGES:500,selectionVersion:3,ocrNote:'',
+  TextDecoder,Uint8Array,MAX_PAGES:500,selectionVersion:3,ocrNote:'',coverage:{},
   window:{FleboHomeOrderOCR:{async recognizePages(pages,config){
    ocrCalls++;assert.equal(pages.length,1);
    config.onProgress(1,1);
