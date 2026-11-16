@@ -142,7 +142,7 @@ test('No se relajan las políticas de seguridad ni se publican documentos',()=>{
 
 test('La PWA precachea los recursos actualizados después de los módulos',()=>{
  for(const asset of ['home-visit-order-pdf.js','home-visit-order-pdf.css']){
-  assert.ok(html.includes('./'+asset+'?v='+(asset.endsWith('.js')?'20261116-doc3':'20261116-ocr1')));
+  assert.ok(html.includes('./'+asset+'?v='+(asset.endsWith('.js')?'20261116-full1':'20261116-full1')));
  }
  assert.ok(html.includes('./home-visit-large-pdf-upload.js?v=20261115-order2'));
  assert.match(sw,/'\.\/home-visit-large-pdf-upload\.js'/);
