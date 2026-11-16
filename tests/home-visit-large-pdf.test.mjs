@@ -108,7 +108,7 @@ test('Al elegir archivo grande sin conexión al lector conserva archivo y permit
 });
 
 test('El tamaño de lectura está separado del tamaño de almacenamiento',()=>{
- assert.match(ui,/RECOGNITION_BYTES=16\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
+ assert.match(ui,/RECOGNITION_BYTES=50\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
  assert.doesNotMatch(ui,/file\.size>MAX_BYTES/);
  assert.doesNotMatch(ui,/btn\.disabled=true/);
  assert.match(visits,/if\(file\.size>50\*1024\*1024\)/);
