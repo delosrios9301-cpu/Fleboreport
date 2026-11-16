@@ -133,7 +133,7 @@ test('El flebotomista aceptado ve pruebas y abre la orden PDF privada',()=>{
  assert.match(field,/Ver orden original/);
  assert.match(field,/hvOpenDocument/);
  assert.match(field,/v\.documents\|\|\[\]/);
- assert.ok(field.indexOf('if(locked){')<field.indexOf('Orden médica original'));
+ assert.ok(field.indexOf('if(locked){')<field.indexOf('Documento original'));
  assert.match(dom,/home_visit_documents\(\*\)/);
  assert.match(dom,/createSignedUrl\(d\.storage_path,90\)/);
 });
