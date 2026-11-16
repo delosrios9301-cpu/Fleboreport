@@ -106,3 +106,60 @@
  #view-domicilios #hvOrderPdfPanel .hv-order-tools{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
  #view-domicilios #hvOrderPdfPanel .hv-order-tools button{width:100%!important}
 }
+
+
+/* Revisión clínica completa y accionable: sin perder pruebas por truncamiento visual. */
+#view-domicilios .hv-order-review-list,
+#view-domicilios .hv-order-unmatched-list{
+ max-height:min(55dvh,540px);
+ overflow:auto;overscroll-behavior:contain;
+ scrollbar-gutter:stable;
+ -webkit-overflow-scrolling:touch;
+ padding:7px 4px 9px!important;
+}
+#view-domicilios .hv-order-review-list{display:grid;gap:9px;min-width:0}
+#view-domicilios .hv-order-review-item{
+ display:grid;gap:7px;min-width:0;padding:10px 11px;
+ border:1px solid #dce6e2;border-radius:10px;background:#fff;
+ color:#254b42;font-size:12px;line-height:1.45;
+}
+#view-domicilios .hv-order-review-choice{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:8px;padding:5px 0;border-top:1px solid #edf2ef;min-width:0
+}
+#view-domicilios .hv-order-review-choice > span{
+ min-width:0;flex:1 1 auto;overflow-wrap:break-word
+}
+#view-domicilios .hv-order-reviewed-add{
+ min-width:115px;min-height:42px;padding:8px 12px;
+ flex:0 0 auto;border:1px solid #bdd6ce;border-radius:10px;
+ background:#e7f3ee;color:#185844;
+ font:inherit;font-size:12px;font-weight:760;
+ text-align:center;white-space:normal;cursor:pointer
+}
+#view-domicilios .hv-order-reviewed-add[disabled]{
+ opacity:.78;cursor:default;color:#315f50;background:#f0f6f2
+}
+#view-domicilios .hv-order-reviewed-add:focus-visible{
+ outline:3px solid #5dad8a;outline-offset:2px
+}
+#view-domicilios .hv-order-review-original{
+ font-weight:600;color:#506b62;overflow-wrap:anywhere
+}
+#view-domicilios .hv-order-review-name{
+ font-weight:750;color:#194f3a;overflow-wrap:anywhere
+}
+#view-domicilios .hv-order-extracted{
+ display:block;white-space:pre-wrap;word-break:break-word;
+ font-family:ui-monospace,Consolas,monospace;font-size:11px;
+ color:#3f584e;background:#f6f9f7;padding:10px;
+ max-height:min(52dvh,530px);overflow:auto;border-radius:10px
+}
+@media(max-width:760px){
+ #view-domicilios .hv-order-review-choice{
+  flex-wrap:wrap;align-items:stretch
+ }
+ #view-domicilios .hv-order-reviewed-add{
+  min-height:44px;flex:1 0 100%;width:100%
+ }
+}
