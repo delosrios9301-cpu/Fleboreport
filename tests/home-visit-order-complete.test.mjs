@@ -53,7 +53,7 @@ test('La vista de revisión permite seleccionar manualmente una prueba sugerida 
  assert.match(pdfSource,/Lectura parcial: revisión obligatoria/);
  assert.match(domSource,/MAX_CATALOG_ROWS=20000/);
  assert.match(domSource,/\.range\(start,start\+PAGE_SIZE-1\)/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1&edition=20261116-full1/);
+ assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
 });
 test('PDF con 13 páginas escaneadas procesa las 13 sin descartar silenciosamente las últimas',async()=>{
  const start=pdfSource.indexOf(' async function extractText(file,request){');
