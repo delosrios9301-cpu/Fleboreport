@@ -107,6 +107,7 @@
    if(request===selectionVersion&&scannedPages.length){
     const ocr=window.FleboHomeOrderOCR;
     if(!ocr?.recognizePages){
+     coverage.complete=false;
      ocrNote=(ocrNote+' No se pudo iniciar OCR para las páginas escaneadas.').trim();
     }else{
      status('Se detectaron '+scannedPages.length+' página(s) con poco texto; intentando lectura de imágenes en este dispositivo…');
@@ -120,8 +121,9 @@
       coverage.ocr=result.processed||0;
       if(result.remaining>0)coverage.complete=false;
       if(result.remaining>0)ocrNote=(ocrNote+' Faltan '+result.remaining+' página(s) escaneadas por revisar; abre el PDF original.').trim();
-      if(result.failed)ocrNote=(ocrNote+' Algunas páginas no pudieron leerse; comprueba la orden.').trim();
+      if(result.failed){coverage.complete=false;ocrNote=(ocrNote+' Algunas páginas no pudieron leerse; comprueba la orden.').trim();}
      }catch(error){
+      coverage.complete=false;
       ocrNote=(ocrNote+' Lectura de escaneos no disponible: '+(error?.message||'Error de OCR')+'.').trim();
      }
     }
