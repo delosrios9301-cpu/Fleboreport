@@ -1151,7 +1151,7 @@ function render(){
 
   const quickBar=$('hvRefQuick');
   if(quickBar){
-   quickBar.innerHTML=[['pending','Pendientes','☷'],['accepted','Aceptados','✓'],['route','En camino','↗']].map(([key,label,glyph])=>{
+   if(activeTab==='agenda')quickBar.innerHTML=[['pending','Pendientes','☷'],['accepted','Aceptados','✓'],['route','En camino','↗']].map(([key,label,glyph])=>{
     const n=visits.filter(v=>!historyStatuses.includes(v.status)&&hvReferenceStatusGroups[key].includes(v.status)).length;
     const active=referenceQuickStatus===key;
     return '<button type="button" data-hv-ref-quick="'+key+'" aria-pressed="'+active+'" class="hv-ref-pill hv-ref-pill-'+key+(active?' is-active':'')+'"><span aria-hidden="true" class="hv-ref-pill-icon">'+glyph+'</span>'+label+' ('+n+')</button>';
@@ -1160,20 +1160,22 @@ function render(){
   }
   const createRef=$('hvRefNew');if(createRef)createRef.hidden=!manager||technician;
 
-  if(kpis)kpis.innerHTML=[['Hoy',todayList.length,'calendar'],['Pendientes',visits.filter(v=>['Pendiente de asignación','Pendiente de aceptación'].includes(v.status)).length,'waiting'],['En proceso',visits.filter(v=>['Aceptado','En camino','En domicilio'].includes(v.status)).length,'working'],['Finalizados',visits.filter(v=>v.status==='Finalizado').length,'done']].map(x=>'<div class="hv-kpi hv-premium-kpi hv-premium-kpi-'+x[2]+'"><span class="hv-premium-kpi-label">'+esc(x[0])+'</span><span class="hv-premium-kpi-bottom"><b>'+x[1]+'</b><span class="hv-premium-kpi-symbol" aria-hidden="true">'+({calendar:'◷',waiting:'◉',working:'↗',done:'✓'}[x[2]])+'</span></span></div>').join('');
+  if(kpis&&activeTab!=='create')kpis.innerHTML=[['Hoy',todayList.length,'calendar'],['Pendientes',visits.filter(v=>['Pendiente de asignación','Pendiente de aceptación'].includes(v.status)).length,'waiting'],['En proceso',visits.filter(v=>['Aceptado','En camino','En domicilio'].includes(v.status)).length,'working'],['Finalizados',visits.filter(v=>v.status==='Finalizado').length,'done']].map(x=>'<div class="hv-kpi hv-premium-kpi hv-premium-kpi-'+x[2]+'"><span class="hv-premium-kpi-label">'+esc(x[0])+'</span><span class="hv-premium-kpi-bottom"><b>'+x[1]+'</b><span class="hv-premium-kpi-symbol" aria-hidden="true">'+({calendar:'◷',waiting:'◉',working:'↗',done:'✓'}[x[2]])+'</span></span></div>').join('');
   hvOpenedSwipe=null;hvSwipeGesture=null;
   const rowHtml=v=>hvReferenceVisitCard(v,technician);
-  $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">'+(cloudDataVerified?'No hay domicilios activos para estos filtros.':'Comprobando domicilios en el servidor. La lista aún no está verificada y no significa que se hayan eliminado registros.')+'</div>';
+  if(activeTab==='agenda'&&$('hvRows')){
+   $('hvRows').innerHTML=activeList.length?activeList.map(rowHtml).join(''):'<div class="hv-empty">'+(cloudDataVerified?'No hay domicilios activos para estos filtros.':'Comprobando domicilios en el servidor. La lista aún no está verificada y no significa que se hayan eliminado registros.')+'</div>';
+  }
   const historyHost=$('hvHistoryRows');
   const historyRowHtml=v=>v.historySummaryOnly?'<article class="hv-archived-row"><div><strong>'+esc(v.patientName||'Paciente')+'</strong><small>'+esc(dateLabel(v.scheduledDate))+' · '+esc(v.status)+'</small></div><span class="hv-archived-mark">Detalles pendientes de conexión</span></article>':rowHtml(v);
-  if(historyHost)historyHost.innerHTML=historyList.length?historyList.map(historyRowHtml).join(''):
+  if(historyHost&&activeTab==='history')historyHost.innerHTML=historyList.length?historyList.map(historyRowHtml).join(''):
    '<div class="hv-empty">'+(historyQuery||historyDate?'No hay coincidencias con los filtros. Pulsa Limpiar filtros.':(historyCloudError?'No se pudo verificar el historial: '+esc(historyCloudError)+'. Se conservan los registros previos.':!historyCloudVerified?'Consultando el historial directamente en el servidor…': 'No hay visitas finalizadas con estos filtros.'))+'</div>';
   const auditPanel=$('hvArchivedAudit'),archiveHost=$('hvArchivedRows');
   if(auditPanel){
    auditPanel.hidden=cloud.role!=='admin';
    const count=$('hvArchivedAuditCount');
    if(count)count.textContent=archivedHistoryLoaded?String(archivedHistoryVisits.length):'—';
-   if(archiveHost&&cloud.role==='admin'){
+   if(archiveHost&&cloud.role==='admin'&&activeTab==='history'){
     const filtered=archivedHistoryVisits.filter(historyMatches);
     archiveHost.innerHTML=archiveHistoryError?'<p class="hv-archive-warning">No se pudo consultar el archivo. Pulsa Actualizar historial.</p>':
      !archivedHistoryLoaded?'<p class="hv-archive-empty">Abre Historial para cargar el archivo.</p>':
@@ -1207,7 +1209,7 @@ function render(){
   }
   portalAssignmentOverlay();
   let moreSearch=$('hvMoreTestsSearch');if(moreSearch){if(!moreSearch.dataset.bound){moreSearch.addEventListener('input',()=>{drawTestPicker('hvMoreTests',moreSearch.value,true);clearTimeout(serviceSearchTimer);serviceSearchTimer=setTimeout(()=>refreshCentralCatalogForSearch('hvMoreTests',moreSearch.value),280)});moreSearch.addEventListener('focus',()=>refreshCentralCatalogForSearch('hvMoreTests',moreSearch.value));moreSearch.dataset.bound='1'}drawTestPicker('hvMoreTests',moreSearch.value)}
-  renderCalendar();
+  if(activeTab==='calendar')renderCalendar();
 }
 async function uploadVisitDocument(id,providedFile=null,options={}){
  if(!cloud.ready||!cloud.client){if(!options.quiet)say('Conecta la agenda antes de adjuntar documentos.');return false}
