@@ -44,6 +44,14 @@ test('Configuración administrativa tiene editores flotantes sin desplazar pági
  assert.match(css,/@media\(max-width:380px\)/);
  assert.match(css,/safe-area-inset-bottom/);
 });
+test('Cada editor del mismo módulo obtiene su propio botón de acceso',()=>{
+ assert.match(js,/let entrySerial=0/);
+ assert.match(js,/const id=panel\.dataset\.fraEntry\|\|'fra-'\+\(section\.id\|\|'config'\)\+'-entry-'\+\(\+\+entrySerial\)/);
+ assert.match(js,/installStaticConfiguration\(\)/);
+ assert.match(js,/enhanceSecurityForms\(\)/);
+ assert.match(js,/settings-templates','settings-services','settings-report/);
+ assert.match(js,/if\(active\.current\?\.anchor&&!active\.current\.anchor\.isConnected\)close\(\)/);
+});
 test('Reportes usan ventana flotante en lugar de scroll obligatorio',()=>{
  assert.match(reports,/FleboFloatingActions\?\.open/);
  assert.match(reports,/Vista previa del reporte/);
