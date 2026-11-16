@@ -947,7 +947,7 @@ body.fr2-app-authorized .topbar .fr2-sync-holder{display:none!important}
 </section>
 <section class="view fr5-screen fr5-screen-catalog" id="view-catalog" data-fr5-model="clinical-library">
  <header class="fr2-catalog-hero" data-fr5-area="catalog-hero">
-  <div class="fr2-catalog-intro"><div class="eyebrow">BASE MAESTRA DEL LABORATORIO</div><h1>Catálogo de pruebas</h1><p>Administra los estudios disponibles, sus muestras, recipientes y requisitos de preparación desde un único catálogo.</p></div>
+  <div class="fr2-catalog-intro"><div class="eyebrow">BASE MAESTRA DEL LABORATORIO</div><h1>Catálogo de pruebas</h1><p>Consulta y busca las pruebas disponibles. La importación y los ajustes están en Configuración → Catálogo.</p></div>
  </header>
  <div class="fr2-catalog-stats" data-fr5-area="catalog-metrics">
   <article class="fr2-catalog-stat"><span class="fr2-catalog-stat-icon">⚗</span><div><small>Pruebas activas</small><strong id="catalogMetricTotal">0</strong></div></article>
@@ -1158,6 +1158,15 @@ const CATALOG_SEARCH_ALIASES={
  'tgo':['aspartato aminotransferasa','ast'],
  'tgp':['alanina aminotransferasa','alt']
 };
+// Siglas derivadas de las iniciales del nombre: TP = Tiempo de Protrombina,
+// TTPA = Tiempo de Tromboplastina Parcial Activada, sin asumir protocolos.
+function catalogNameAcronyms(name){
+ const main=normalizeCatalogSearch(String(name||'').replace(/\([^)]*\)/g,' '));
+ const stop=new Set(['de','del','la','las','el','los','y','en','por','para','con','sin','a','al','un','una','tipo','prueba','ensayo']);
+ const terms=main.split(' ').filter(word=>word&&!stop.has(word));
+ const initials=terms.map(word=>word[0]).join('');
+ return initials.length>=2?[initials]:[];
+}
 function catalogSearchMatches(t,term){
  if(!term)return true;
  const all=normalizeCatalogSearch([t.name,t.code,t.testCode,t.sample,t.vessel,t.colorName,t.volume,t.method,t.fasting,t.conditions,t.instructions].join(' '));
@@ -1166,6 +1175,7 @@ function catalogSearchMatches(t,term){
  if(term.length<=3&&/^[a-z0-9]+$/.test(term)){
   const words=all.split(/\s+/);
   if(words.includes(term))return true;
+  if(catalogNameAcronyms(t.name).includes(term))return true;
  }else if(all.includes(term))return true;
  const aliases=CATALOG_SEARCH_ALIASES[term]||[];
  const name=normalizeCatalogSearch(t.name||'');
