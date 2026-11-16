@@ -256,7 +256,7 @@
   const input=$('hvOrderPdfFile'),file=input?.files?.[0];
   if(!file)return;
   const request=++selectionVersion;
-  pending=null;recognizedText='';ocrNote='';if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}const preview=$('hvOrderPreviewPdf');if(preview)preview.hidden=true;
+  pending=null;recognizedText='';ocrNote='';coverage={pages:0,total:0,ocr:0,complete:true};if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl=null;}const preview=$('hvOrderPreviewPdf');if(preview)preview.hidden=true;
   const skip=$('hvOrderCancelRead');if(skip)skip.hidden=false;
   const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
   const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
