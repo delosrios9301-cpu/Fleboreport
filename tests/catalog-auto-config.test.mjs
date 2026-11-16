@@ -265,3 +265,37 @@ test('Solo activas e inactivas; volúmenes documentados y sin aprobación manual
  assert.equal(core.missingFields({sample:'',volume:'',validated:true},p).volume,p.fields.volume);
  assert.equal(core.missingFields({sample:'Sangre local',volume:'2 mL'},p).volume,undefined);
 });
+
+
+test('Un recipiente registrado conserva su icono aun sin color, sin mostrar interrogación ni colores ficticios',()=>{
+ const normalizeLine=html.match(/function normalizeCatalogSearch\(text\)\{[^\n]+\}/)?.[0];
+ assert.ok(normalizeLine,'Normalizador del catálogo disponible');
+ const start=html.indexOf('function specimenVesselShape(test){');
+ const end=html.indexOf('function updateCompanyPreview(){',start);
+ assert.ok(start>0&&end>start,'La representación del recipiente está disponible');
+ const source=normalizeLine+'\n'+html.slice(start,end)+';({specimenVesselShape,specimenVesselColor,vesselSvg})';
+ const visual=vm.runInNewContext(source,{esc:x=>String(x)});
+ const jar={name:'Urocultivo',sample:'Orina',vessel:'Recipiente estéril',shape:'tube',colorName:'',color:'#237c49'};
+ assert.equal(visual.specimenVesselShape(jar),'jar','Recipiente debe ser envase, aunque exista forma heredada incorrecta');
+ const jarIcon=visual.vesselSvg(jar);
+ assert.match(jarIcon,/Envase o frasco registrado/);
+ assert.doesNotMatch(jarIcon,/\\?/);
+ assert.doesNotMatch(jarIcon,/#237c49/i);
+ const pendingTube={name:'Prueba por revisar',vessel:'Tubo de recolección',shape:'tube',colorName:'',color:'#237c49'};
+ assert.equal(visual.specimenVesselShape(pendingTube),'tube');
+ const pendingIcon=visual.vesselSvg(pendingTube);
+ assert.match(pendingIcon,/con color de tapa pendiente/);
+ assert.doesNotMatch(pendingIcon,/\\?/);
+ assert.doesNotMatch(pendingIcon,/#237c49/i);
+ const approved={vessel:'Tubo con EDTA',shape:'tube',colorName:'Morado',color:'#237c49'};
+ assert.equal(visual.specimenVesselColor(approved),'#8258bf','El color documentado prevalece sobre el color visual obsoleto');
+ assert.match(visual.vesselSvg(approved),/#8258bf/);
+ const generic={vessel:'Medio de transporte específico',shape:'',colorName:''};
+ assert.equal(visual.specimenVesselShape(generic),'generic');
+ assert.match(visual.vesselSvg(generic),/forma por confirmar/);
+ const missing={vessel:'',shape:'tube',colorName:'Morado'};
+ assert.equal(visual.specimenVesselShape(missing),'');
+ assert.match(visual.vesselSvg(missing),/Recipiente por configurar/);
+ assert.match(html,/Color de tapa pendiente/);
+ assert.match(html,/Color de tapa \\(si aplica\\)/);
+});
