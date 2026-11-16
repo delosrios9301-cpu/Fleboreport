@@ -64,10 +64,10 @@ test('PDF se analiza en el dispositivo, sin enviar su texto o datos a un servido
 });
 test('Se exige revisión de las coincidencias en el formulario antes de guardar',()=>{
  assert.match(ui,/window\.hvOrderApplyTests\(matches\.matches\.map\(x=>x\.id\)\)/);
- assert.match(ui,/Revisa las pruebas seleccionadas antes de Guardar domicilio/);
- assert.match(ui,/No se encontraron coincidencias exactas/);
- assert.match(ui,/posible escaneo/);
- assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,reset,mount,STORAGE_BYTES,RECOGNITION_BYTES\}/);
+ assert.match(ui,/Las coincidencias seguras ya aparecen en Pruebas solicitadas/);
+ assert.match(ui,/No hubo coincidencias únicas/);
+ assert.match(ui,/No se detectaron pruebas legibles/);
+ assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,isAnalyzing:\(\)=>running,cancelAnalysis:/);
  assert.match(ui,/RECOGNITION_BYTES=16\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
  assert.match(ui,/MAX_PAGES=15/);
  assert.match(ui,/signature!=='%PDF-'/);
@@ -98,9 +98,9 @@ test('El adjunto usa el bucket privado existente con políticas RLS y sin URL p�
  assert.doesNotMatch(dom.slice(dom.indexOf('async function uploadVisitDocument('),dom.indexOf('async function openVisitDocument(')),/getPublicUrl/);
 });
 test('Vista móvil y recursos PWA cargados sin modificar notificaciones',()=>{
- const files=['home-visit-order-match.js','home-visit-order-pdf.js','home-visit-order-pdf.css'];
+ const files=['home-visit-order-match.js','home-visit-order-ocr.js','home-visit-order-pdf.js','home-visit-order-pdf.css'];
  for(const name of files){
-  assert.ok(html.includes('./'+name+'?v=20261115-'+(name.endsWith('match.js')?'order1':'catalogfix1')));
+  assert.ok(html.includes('./'+name+'?v=20261116-ocr1'));
   assert.ok(worker.includes("'./"+name+"'"));
  }
  assert.ok(html.indexOf('home-visit-order-match.js')<html.indexOf('home-visit-order-pdf.js'));
