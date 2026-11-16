@@ -174,7 +174,7 @@ body.fra-modal-open{overscroll-behavior:none}
   max-width:calc(100vw - 14px)!important;
   max-height:min(var(--fra-viewport-height),calc(100dvh - 12px))!important;
   border-radius:15px!important;
-  margin:6px auto!important;
+  margin:auto!important;
  }
  .fra-action-dialog .fra-modal-header{padding:9px 11px!important;min-height:52px!important}
  .fra-action-dialog .fra-modal-title{font-size:15px!important}
@@ -228,3 +228,9 @@ body.fra-modal-open{overscroll-behavior:none}
 .fra-action-dialog #catalogAutoForm .catalog-auto-source{margin:7px 0}
 .fra-action-dialog #catalogAutoForm .catalog-auto-source a{color:#076879;text-decoration:underline}
 .fra-action-dialog #catalogAutoForm .btn{min-height:42px!important;max-width:100%!important;white-space:normal!important}
+
+/* Centrado real de los diálogos de acciones en todas las pantallas. */
+@media screen{
+ dialog.fra-action-dialog[open]{inset:0!important;margin:auto!important;max-height:calc(100dvh - 24px - env(safe-area-inset-bottom,0px))!important}
+ .fra-action-dialog .fra-modal-scroll{overflow-y:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+}
