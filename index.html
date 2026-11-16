@@ -1260,11 +1260,12 @@ function renderCatalog(){
  if(!list)return;
  const all=Array.isArray(state.catalog)?state.catalog.filter(function(t){return t&&typeof t==='object'}):[];
  const active=all.filter(function(t){return t.active!==false}),archived=all.filter(function(t){return t.active===false});
+ const catalogViewActive=$('view-catalog')?.classList.contains('active')===true;
  // Filtrar el conjunto completo ANTES de pintar tarjetas: útil para 1.400+ pruebas en Android.
  const term=normalizeCatalogSearch($('catalogSearch')&&$('catalogSearch').value||'');
  const filter=window.FleboCatalogReference?.getFilter?.()||'all';
  if(term!==catalogLastSearch||filter!==catalogLastFilter){catalogListLimit=70;catalogLastSearch=term;catalogLastFilter=filter;}
- const matching=active.filter(function(t){
+ const matching=(catalogViewActive?active:[]).filter(function(t){
   if(filter==='pending'&&String(t.vessel||'').trim())return false;
   if(filter==='vessel'&&!String(t.vessel||'').trim())return false;
   return catalogSearchMatches(t,term);
@@ -1278,6 +1279,7 @@ function renderCatalog(){
  if($('catalogMetricTotal'))$('catalogMetricTotal').textContent=active.length;
  if($('catalogMetricPending'))$('catalogMetricPending').textContent=archived.length;
  if($('catalogMetricVessels'))$('catalogMetricVessels').textContent=active.filter(function(t){return!!String(t.vessel||'').trim()}).length;
+ if(catalogViewActive){
  const empty=term?'<div class="empty-state">No hay pruebas que coincidan con esa búsqueda.</div>':'<div class="empty-state">No hay pruebas activas. Crea la primera prueba para configurar el catálogo.</div>';
  list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item" data-catalog-id="'+esc(t.id)+'"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+'<span class="badge">Activa</span>'+(t.vessel&&specimenVesselShape(t)==='tube'&&!specimenVesselColor(t)?'<span class="fr2-catalog-tag cpr-color-pending">Color de tapa pendiente</span>':'')+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="showCatalogDetails(\''+esc(t.id)+'\')">Ver ficha</button></span></article>'}).join(''):empty;
  // Una búsqueda muestra sus resultados inmediatamente sin procesar miles de tarjetas.
@@ -1288,6 +1290,7 @@ function renderCatalog(){
   const more=document.createElement('button');more.type='button';more.className='btn catalog-search-more';
   more.textContent='Mostrar más ('+visible.length+' de '+matching.length+')';
   more.addEventListener('click',showMoreCatalog);list.append(more);
+ }
  }
  if(settings&&detailsChanged)settings.innerHTML=all.length?all.slice().sort(function(a,b){return(a.active===false)-(b.active===false)||String(a.name||'').localeCompare(String(b.name||''),'es')}).map(function(t){return '<div class="list-row'+(t.active===false?' fr2-archived-row':'')+'"><span><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+' · '+(t.active===false?'Inactiva':'Activa')+'</small></span><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button>'+(t.active===false?'<button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Activar</button>':'<button class="btn danger" type="button" onclick="deleteTest(\''+esc(t.id)+'\')">Desactivar</button>')+'</span></div>'}).join(''):'<div class="empty-state">El catálogo está vacío. Añade tu primera prueba.</div>';
  if(archivePanel){archivePanel.hidden=archived.length===0;if($('catalogArchivedCount'))$('catalogArchivedCount').textContent=archived.length;if(archiveList&&detailsChanged)archiveList.innerHTML=archived.map(function(t){return '<article class="fr2-catalog-archive-item"><div><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+'</small></div><span class="list-actions"><button class="btn" type="button" onclick="editTest(\''+esc(t.id)+'\')">Editar</button><button class="btn primary" type="button" onclick="restoreTest(\''+esc(t.id)+'\')">Activar</button></span></article>'}).join('')}
