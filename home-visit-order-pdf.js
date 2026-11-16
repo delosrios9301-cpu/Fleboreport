@@ -25,7 +25,7 @@
   const skip=$('hvOrderCancelRead');if(skip)skip.hidden=true;
   const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
   const box=$('hvOrderResults');if(box){box.replaceChildren();box.hidden=true;}
-  const f=$('hvOrderPdfInfo');if(f)f.textContent='Puedes seleccionar una orden PDF con texto; sus pruebas se añadirán al selector para que las revises.';
+  const f=$('hvOrderPdfInfo');if(f)f.textContent='Puedes adjuntar foto, PDF, presupuesto, orden médica, Word, Excel o listado. Las coincidencias seguras aparecerán antes de guardar.';
   status('No se ha seleccionado ninguna orden.');
  }
  async function pdfApi(){
@@ -133,7 +133,7 @@
   }
   if(result.unmatched.length){
    const group=el('details','hv-order-unmatched');
-   group.append(el('summary','',result.unmatched.length+' línea(s) no identificadas: comprobar contra PDF original'));
+   group.append(el('summary','',result.unmatched.length+' línea(s) no identificadas: comprobar contra documento original'));
    const ul=el('ul');result.unmatched.slice(0,18).forEach(x=>ul.append(el('li','',x)));
    group.append(ul);section.append(group);
   }
@@ -145,6 +145,12 @@
    group.append(ul);section.append(group);
   }
   if(ocrNote)section.append(el('p','hv-order-note',ocrNote));
+  if(recognizedText&&!result.matches.length){
+   const audit=el('details','hv-order-unmatched');
+   audit.append(el('summary','','Ver texto que se pudo leer del documento'));
+   audit.append(el('pre','hv-order-extracted',recognizedText.slice(0,3500)));
+   section.append(audit);
+  }
   container.append(section);
  }
  /* La lectura del PDF no depende de la sincronización del Catálogo.
@@ -170,7 +176,7 @@
    renderReview(matches,added);
    status(matches.matches.length
     ?'Catálogo recuperado ('+catalog.length+' pruebas activas). '+matches.matches.length+' prueba(s) reconocida(s), '+added+' nueva(s) ya agregada(s) antes de crear el domicilio. Revisa y completa lo pendiente.'
-    :'Catálogo recuperado ('+catalog.length+' pruebas activas). No hubo coincidencias únicas; revisa el PDF original y añade las pruebas manualmente.',
+    :'Catálogo recuperado ('+catalog.length+' pruebas activas). No hubo coincidencias únicas; revisa el documento original y añade las pruebas manualmente.',
     matches.matches.length?'success':'info');
   }catch(error){
    if(request!==selectionVersion)return;
@@ -188,37 +194,55 @@
   const skip=$('hvOrderCancelRead');if(skip)skip.hidden=false;
   const retry=$('hvOrderRetryCatalog');if(retry)retry.hidden=true;
   const results=$('hvOrderResults');if(results){results.hidden=true;results.replaceChildren();}
-  const extension=file.name.toLowerCase().endsWith('.pdf'),
-   validMime=!file.type||['application/pdf','application/x-pdf','application/octet-stream'].includes(file.type);
-  if(!extension||!validMime||file.size===0){
-   input.value='';status('El archivo debe ser un PDF válido y no estar vacío.','error');return;
+  const reader=window.FleboHomeOrderDocuments;
+  const format=reader?.kind?.(file);
+  const expected=reader?.storageMime?.(file);
+  const permissiveMime=!file.type||file.type==='application/octet-stream'||
+   (format==='pdf'&&file.type==='application/x-pdf')||
+   (format==='image'&&file.type==='image/jpg')||
+   (format==='text'&&file.type==='application/vnd.ms-excel')||
+   file.type===expected;
+  if(!format||!permissiveMime||file.size===0){
+   input.value='';status('Archivo no compatible. Usa foto JPG/PNG/WEBP, PDF, Word DOCX, Excel XLSX o CSV/TXT.','error');
+   return;
   }
   running=true;
   // Nunca deshabilitar el selector: leer un PDF escaneado puede demorar.
   // Permitir reemplazar la orden en cualquier momento sin bloquear el panel.
   try{
-   const signature=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
-   if(signature!=='%PDF-')throw new Error('El archivo no parece ser un PDF válido.');
+   if(format==='pdf'){
+    const signature=new TextDecoder().decode(await file.slice(0,5).arrayBuffer());
+    if(signature!=='%PDF-')throw new Error('El archivo no parece ser un PDF válido.');
+   }
    if(request!==selectionVersion)return;
    pending=file; // conserva el archivo aunque el lector PDF falle
    if(preview)preview.hidden=false;
    const info=$('hvOrderPdfInfo');
    if(info)info.textContent=file.name+' · '+(file.size/1024/1024).toFixed(1)+' MB · seleccionado como adjunto de la visita.';
    if(file.size>STORAGE_BYTES){
-    status('PDF seleccionado, pero supera los 50 MB del almacenamiento. Puedes guardar el domicilio sin adjuntarlo y agregar después una versión más pequeña.','error');
+    status('Documento seleccionado, pero supera los 50 MB del almacenamiento. Puedes guardar el domicilio sin adjuntarlo y agregar después una versión más pequeña.','error');
     return;
    }
    if(file.size>RECOGNITION_BYTES){
-    status('PDF seleccionado y listo para adjuntar. Por su tamaño no se leerán las pruebas automáticamente; selecciónalas en el buscador.','info');
+    status('Documento listo para adjuntar. Por su tamaño no se leerá automáticamente; selecciona las pruebas manualmente.','info');
     return;
    }
-   status('Leyendo las pruebas de la orden PDF…');
+   status('Leyendo las pruebas del documento (foto, presupuesto u orden médica)…');
    let text;
-   try{text=await extractText(file,request)}
-   catch(error){if(request===selectionVersion)status(error?.message||'No se pudo leer el texto del PDF. Selecciona las pruebas manualmente.','error');return}
+   try{
+    text=await reader.read(file,{
+     pdfReader:extractText,request,ocr:window.FleboHomeOrderOCR,
+     cancelled:()=>request!==selectionVersion,
+     onProgress:progress=>status(progress)
+    });
+   }catch(error){
+    if(request===selectionVersion)status((error?.message||'No se pudo interpretar el documento.')+
+     ' El archivo sigue seleccionado; agrega manualmente las pruebas que falten.','error');
+    return;
+   }
    if(request!==selectionVersion)return;
    if(!text.trim()){
-    status('No se detectaron pruebas legibles en texto ni en las páginas escaneadas. El PDF sigue listo para adjuntarse; abre la orden y agrega las pruebas manualmente. '+ocrNote,'error');return;
+    status('No se detectó texto de pruebas legible en el documento. El archivo sigue seleccionado; ábrelo y agrega las pruebas manualmente. '+ocrNote,'error');return;
    }
    recognizedText=text;
    await matchAndApply(text,request);
@@ -233,24 +257,25 @@
   if(!panel||!tests)return false;
   const section=el('section','field full hv-order-pdf-panel');section.id='hvOrderPdfPanel';
   const heading=el('div','hv-order-heading');
-  heading.append(el('strong','', 'Orden médica en PDF'),
-   el('small','', 'Opcional · se conservará como documento privado del domicilio'));
+  heading.append(el('strong','', 'Adjuntar pruebas desde documento'),
+   el('small','', 'Foto, presupuesto, orden médica o listado · opcional y privado'));
   const input=el('input');input.type='file';input.id='hvOrderPdfFile';input.required=false;
-  input.accept='.pdf,application/pdf';input.setAttribute('aria-label','Adjuntar PDF con pruebas solicitadas');
+  input.accept='.pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.txt,application/pdf,image/*';
+  input.setAttribute('aria-label','Adjuntar fotografía, presupuesto u orden médica para reconocer pruebas');
   input.addEventListener('change',handleFile);
-  const info=el('p','hv-order-help','Puedes guardar el domicilio sin adjuntar una orden. Agrega un PDF opcional: sus pruebas se reconocerán y seleccionarán antes de crear o asignar el domicilio. También puedes elegirlas manualmente. Los archivos de hasta 50 MB pueden almacenarse.');
+  const info=el('p','hv-order-help','Adjunta opcionalmente una fotografía, presupuesto, orden médica o listado PDF, Word, Excel, CSV o TXT. Se reconocerán sus pruebas antes de crear o asignar el domicilio. Revisa las coincidencias y conserva el original como adjunto privado (hasta 50 MB). Los formatos antiguos DOC/XLS pueden adjuntarse, pero requieren revisión manual.');
   info.id='hvOrderPdfInfo';
   const message=el('p','hv-order-status','No se ha seleccionado ninguna orden.');message.id='hvOrderStatus';message.setAttribute('role','status');
   const retry=el('button','hv-order-catalog-retry','Reintentar búsqueda en catálogo');
   retry.type='button';retry.id='hvOrderRetryCatalog';retry.hidden=true;
   retry.addEventListener('click',()=>{if(recognizedText)void matchAndApply(recognizedText,selectionVersion);});
-  const preview=el('button','hv-order-catalog-retry','Ver PDF original');
+  const preview=el('button','hv-order-catalog-retry','Ver documento original');
   preview.id='hvOrderPreviewPdf';preview.type='button';preview.hidden=true;
   preview.addEventListener('click',()=>{
    if(!pending)return;
    if(!previewUrl)previewUrl=URL.createObjectURL(pending);
    const opened=window.open(previewUrl,'_blank');
-   if(!opened)status('El navegador bloqueó la vista previa. Permite ventanas emergentes para consultar el PDF.','error');
+   if(!opened)status('El navegador bloqueó la apertura del documento. Permite ventanas emergentes o utiliza una aplicación compatible para consultar el original.','error');
   });
   const cancel=el('button','hv-order-catalog-retry','Detener lectura y agregar pruebas manualmente');
   cancel.type='button';cancel.id='hvOrderCancelRead';cancel.hidden=true;
