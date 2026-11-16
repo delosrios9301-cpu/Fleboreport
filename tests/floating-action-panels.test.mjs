@@ -54,7 +54,11 @@ function fakeDom(){
  class Node {
   constructor(tag){this.tagName=tag.toUpperCase();this.children=[];this.parentNode=null;
    this.hidden=false;this.open=false;this.style={setProperty(){}};this.dataset={};
-   this.classes=new Set();this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),contains:c=>this.classes.has(c)};
+   this.classes=new Set();this._className='';
+   Object.defineProperty(this,'className',{get:()=>this._className,set:v=>{
+    this._className=String(v||'');this.classes=new Set(this._className.split(/\s+/).filter(Boolean));
+   }});
+   this.classList={add:c=>this.classes.add(c),remove:c=>this.classes.delete(c),contains:c=>this.classes.has(c)};
    this.attributes=new Map();this.listeners=new Map();this.textContent='';this.scrollTop=0;}
   get isConnected(){let n=this;while(n){if(n===doc.body)return true;n=n.parentNode;}return false}
   matches(){return true}
