@@ -116,9 +116,9 @@ test('Vista previa de la orden disponible antes de guardar y desde la ficha ya c
  assert.match(pdfSource,/window\.open\(previewUrl,'_blank'\)/);
  assert.match(pdfSource,/hvOrderCancelRead/);
  assert.match(pdfSource,/const pending=|let pending=/);
- assert.match(html,/home-visit-order-ocr\.js\?v=20261116-ocr1/);
- assert.match(html,/home-visit-order-pdf\.js\?v=20261116-ocr1/);
- assert.match(html,/home-visit-order-match\.js\?v=20261116-ocr1/);
+ assert.match(html,/home-visit-order-ocr\.js\?v=20261116-doc2/);
+ assert.match(html,/home-visit-order-pdf\.js\?v=20261116-doc2/);
+ assert.match(html,/home-visit-order-match\.js\?v=20261116-doc2/);
  assert.match(sw,/'\.\/home-visit-order-ocr\.js'/);
 });
 
