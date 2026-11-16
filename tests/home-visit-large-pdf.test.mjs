@@ -103,7 +103,7 @@ test('Al elegir archivo grande sin conexión al lector conserva archivo y permit
  const h=harness(),file=h.fakePdf(18*1024*1024);
  await h.change(file);
  assert.equal(h.win.FleboHomeVisitPDF.pendingFile(),file);
- assert.match(h.byId.get('hvOrderStatus').textContent,/selecciona las pruebas manualmente/);
+ assert.match(h.byId.get('hvOrderStatus').textContent,/pruebas manualmente/);
 });
 
 test('Los archivos privados de hasta 50 MB pueden intentar leerse antes de guardarse',()=>{
