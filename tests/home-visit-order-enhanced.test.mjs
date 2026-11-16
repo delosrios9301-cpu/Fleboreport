@@ -50,7 +50,7 @@ test('Los PDF escaneados se convierten a texto con OCR local y modelos descargad
  assert.match(ocrSource,/page\.render\(\{canvasContext:ctx,viewport\}\)/);
  assert.match(ocrSource,/worker\.recognize\(canvas\)/);
  assert.match(ocrSource,/await worker\.terminate\(\)/);
- assert.match(ocrSource,/MAX_OCR_PAGES=8/);
+ assert.match(ocrSource,/MAX_OCR_PAGES=500/);
  assert.doesNotMatch(ocrSource,/FormData|\.upload\(|\.post\(|getPublicUrl/);
  assert.match(pdfSource,/const ocr=window\.FleboHomeOrderOCR/);
  assert.match(pdfSource,/ocr\.recognizePages\(scannedPages/);
@@ -80,7 +80,7 @@ test('El lector de PDF extrae páginas de dos columnas y usa OCR si no hay texto
   async destroy(){}
  };
  const scope={
-  TextDecoder,Uint8Array,MAX_PAGES:15,selectionVersion:3,ocrNote:'',
+  TextDecoder,Uint8Array,MAX_PAGES:500,selectionVersion:3,ocrNote:'',
   window:{FleboHomeOrderOCR:{async recognizePages(pages,config){
    ocrCalls++;assert.equal(pages.length,1);
    config.onProgress(1,1);
