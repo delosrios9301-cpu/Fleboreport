@@ -295,20 +295,34 @@
   wrap('showSettings',args=>{
    if(active.current&&active.current.node.closest?.('#view-settings')&&args[0]!=='catalog'&&args[0]!=='clinical-config')close();
   });
-  let checking=false;
-  const observer=typeof MutationObserver==='function'?new MutationObserver(()=>{
-   if(checking)return;
-   checking=true;
-   try{
-    // Si el módulo reconstruyó un editor después de guardar, conservar la vista nueva.
-    if(active.current?.anchor&&!active.current.anchor.isConnected)close();
-    const source=active.current?.anchor?.parentNode;
-    if(source?.closest?.('.settings-section[hidden],.fr-config-pane[hidden]'))close();
-    if(active.current?.node?.id==='hvCreatePanel'&&active.current.node.hidden)close();
-    enhanceSecurityForms();
-   }finally{checking=false;}
-  }):null;
-  if(observer)observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
+  // Una observación de TODO document.body se ejecutaba en cada render de
+  // cualquier módulo, incluso al escribir o pulsar botones. Configuración
+  // es la única sección que monta formularios administrativos dinámicos.
+  let securityRefreshTimer=0;
+  const refreshSecurityForms=()=>{
+   securityRefreshTimer=0;
+   if(active.current?.anchor&&!active.current.anchor.isConnected)close();
+   const source=active.current?.anchor?.parentNode;
+   if(source?.closest?.('.settings-section[hidden],.fr-config-pane[hidden]'))close();
+   enhanceSecurityForms();
+  };
+  const settingsRoot=$('view-settings');
+  const observer=settingsRoot&&typeof MutationObserver==='function'
+   ?new MutationObserver(records=>{
+    const relevant=records.some(record=>
+     record.type==='childList'&&record.addedNodes?.length&&
+     Array.from(record.addedNodes).some(node=>
+      node.nodeType===1&&(
+       node.id==='fr-pane-permissions'||node.id==='frCreateSite'||
+       node.id==='frAssignSiteBtn'||node.id==='frSaveSecurity'||
+       node.querySelector?.('#frCreateSite,#frAssignSiteBtn,#frSaveSecurity,#fr-pane-permissions')
+      )));
+    if(!relevant||securityRefreshTimer)return;
+    securityRefreshTimer=setTimeout(refreshSecurityForms,100);
+   }):null;
+  if(observer)observer.observe(settingsRoot,{subtree:true,childList:true});
+  // Domicilios ya instala un observador ESPECÍFICO del formulario activo
+  // mediante closeWhenHidden; no requiere escuchar todo el documento.
   window.addEventListener('beforeunload',close);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
