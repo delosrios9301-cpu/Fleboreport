@@ -56,6 +56,8 @@
   }
   const parts=String(name||'').match(/\(([a-zA-Z0-9]{2,8})\)/g)||[];
   for(const a of parts){const token=canonical(a.slice(1,-1));if(token.length>=2)s.add(token);}
+  // Acrónimos clínicos independientes como PCR pueden referirse a pruebas distintas.
+  for(const a of String(name||'').match(/\b(?:PCR|HCG|VIH|HIV|COVID|DNA|RNA)\b/g)||[])s.add(canonical(a));
   return [...s].filter(Boolean);
  }
  function candidateRows(text){
@@ -124,6 +126,10 @@
    const unique=[...possibilities.values()];
    if(unique.length===1){
     const t=unique[0];
+    // Estas abreviaturas aisladas no definen un método único aunque exista una sola ficha.
+    if(['pcr','hcg','dna','rna'].includes(cn)){
+     ambiguous.push({line:candidate,names:[t.name]});continue;
+    }
     if(!found.has(t.id))found.set(t.id,{id:t.id,name:t.name,line:candidate,
      confidence:index.has(cn)?'exacta':'combinada'});
    }else if(unique.length>1){
