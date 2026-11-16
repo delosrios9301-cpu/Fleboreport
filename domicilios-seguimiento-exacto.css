@@ -15,7 +15,7 @@ body .hv-tracking-dialog .hv-track-screen{display:block!important;padding:0!impo
 .hv-tracking-dialog .hv-track-icon{display:inline-block;width:20px;height:20px;flex:0 0 auto;vertical-align:middle}
 .hv-tracking-dialog .hv-track-brand{display:flex;align-items:center;gap:9px;min-height:76px;padding:16px 24px;background:linear-gradient(120deg,#004b3e,#00695d);color:#fff;position:relative}
 .hv-tracking-dialog .hv-track-brand strong{font-size:20px;letter-spacing:-.02em;color:#fff}
-.hv-tracking-dialog .hv-track-logo{font-size:29px;font-weight:800;line-height:1;color:#eafff8;transform:rotate(180deg)}
+.hv-tracking-dialog .hv-track-logo{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;color:#eafff8}.hv-tracking-dialog .hv-track-logo svg{display:block;width:36px;height:36px;stroke:currentColor}
 .hv-tracking-dialog .hv-track-close-slot{margin-left:auto}
 body.fr2-app-authorized.cm-workspace.vc-compact .hv-tracking-dialog .hv-track-close-slot .hv-detail-close,
 body .hv-tracking-dialog .hv-track-close-slot .hv-detail-close{
