@@ -124,7 +124,13 @@
   exports.append(png,pdf);content.append(exports);
   const openPreview=button('','rhr-banner-more',()=>{
    const details=$('rhrReportPreview');
-   if(details){details.open=true;details.scrollIntoView({behavior:'smooth',block:'start'});}
+   if(details){
+    details.open=true;
+    if(!window.FleboFloatingActions?.open?.(details,'Vista previa del reporte',{owner:'view-reports',
+     onClose:()=>{details.open=false;}})){
+     details.scrollIntoView({behavior:'auto',block:'start'});
+    }
+   }
   },'chevron');
   openPreview.setAttribute('aria-label','Mostrar vista previa del reporte de Jornada');
   banner.append(art,content,openPreview);
