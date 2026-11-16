@@ -126,6 +126,40 @@
   }
   return [...options].filter(x=>x.length>=2).slice(0,14);
  }
+ function distanceWithin(a,b,max=3){
+  if(Math.abs(a.length-b.length)>max)return max+1;
+  let previous=Array.from({length:b.length+1},(_,i)=>i),next=new Array(b.length+1);
+  for(let i=1;i<=a.length;i++){
+   next[0]=i;let min=i;
+   for(let j=1;j<=b.length;j++){
+    next[j]=Math.min(previous[j]+1,next[j-1]+1,previous[j-1]+(a[i-1]===b[j-1]?0:1));
+    if(next[j]<min)min=next[j];
+   }
+   if(min>max)return max+1;
+   [previous,next]=[next,previous];
+  }
+  return previous[b.length];
+ }
+ function nearCandidates(input,tests){
+  const keys=budgetVariants(input).filter(x=>x.length>=6&&x.length<=95)
+   .map(x=>x.replace(/\s+/g,' ').trim());
+  const closest=new Map();
+  for(const key of keys){
+   for(const test of tests){
+    const variants=test.variants.filter(v=>v.length>=6&&v.length<=95);
+    for(const variant of variants){
+     const threshold=variant.length>=22?4:variant.length>=12?3:2;
+     if(Math.abs(key.length-variant.length)>threshold)continue;
+     if(key[0]!==variant[0]&&key.slice(0,2)!==variant.slice(0,2))continue;
+     const dist=distanceWithin(key,variant,threshold);
+     if(dist>threshold)continue;
+     const prior=closest.get(test.id);
+     if(!prior||dist<prior.distance)closest.set(test.id,{id:test.id,name:test.name,distance:dist});
+    }
+   }
+  }
+  return [...closest.values()].sort((a,b)=>a.distance-b.distance||a.name.localeCompare(b.name)).slice(0,3);
+ }
  function findCandidates(text,catalog){
   const tests=(Array.isArray(catalog)?catalog:[])
    .filter(x=>x&&x.active!==false&&x.id&&x.name).map(x=>({
@@ -185,19 +219,21 @@
     const t=unique[0];
     // Estas abreviaturas aisladas no definen un método único aunque exista una sola ficha.
     if(['pcr','hcg','dna','rna'].includes(cn)){
-     ambiguous.push({line:candidate,names:[t.name]});continue;
+     ambiguous.push({line:candidate,names:[t.name],options:[{id:t.id,name:t.name}]});continue;
     }
     if(!found.has(t.id))found.set(t.id,{id:t.id,name:t.name,line:candidate,
      confidence:index.has(cn)?'exacta':'combinada'});
    }else if(unique.length>1){
-    ambiguous.push({line:candidate,names:unique.slice(0,6).map(x=>x.name)});
+    ambiguous.push({line:candidate,names:unique.slice(0,12).map(x=>x.name),
+     options:unique.slice(0,12).map(x=>({id:x.id,name:x.name}))});
    }else if(candidate.length>=3&&!/\b(?:https?:|www\.|@|\/\d{2,4}\/)/i.test(candidate)){
     unmatched.push(candidate);
-    // No autocargar variantes de OCR dudoso; mostrar como revisión opcional.
-    if(cn.length>=7&&!/\d{3,}/.test(cn)){
-     const starts=tests.filter(t=>t.n.length>=6&&(t.n.startsWith(cn)||cn.startsWith(t.n))
-      &&Math.abs(t.n.length-cn.length)<=8).slice(0,4);
-     if(starts.length===1)suggestions.push({line:candidate,name:starts[0].name,id:starts[0].id});
+    // OCR inexacto: sugerir, NUNCA autoseleccionar por parecido.
+    if(suggestions.length<400&&candidate.length<=120){
+     const near=nearCandidates(candidate,tests);
+     if(near.length===1||near.length>1&&near[0].distance<near[1].distance)
+      suggestions.push({line:candidate,name:near[0].name,id:near[0].id,
+       reason:'Texto similar; necesita validación'});
     }
    }
    if(found.size>=1500)break;
