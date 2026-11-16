@@ -69,7 +69,7 @@ test('Se exige revisión de las coincidencias en el formulario antes de guardar'
  assert.match(ui,/No se detectaron pruebas legibles/);
  assert.match(ui,/window\.FleboHomeVisitPDF=\{pendingFile:\(\)=>pending,isAnalyzing:\(\)=>running,cancelAnalysis:/);
  assert.match(ui,/RECOGNITION_BYTES=16\*1024\*1024,STORAGE_BYTES=50\*1024\*1024/);
- assert.match(ui,/MAX_PAGES=15/);
+ assert.match(ui,/MAX_PAGES=500/);
  assert.match(ui,/signature!=='%PDF-'/);
  assert.match(ui,/createElement\('input'\)|el\('input'\)/);
 });
