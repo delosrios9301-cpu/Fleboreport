@@ -16,7 +16,8 @@
   if(item.observer)item.observer.disconnect();
   if(anchor.parentNode)anchor.parentNode.replaceChild(node,anchor);
   else if(item.originalParent?.isConnected)item.originalParent.appendChild(node);
-  node.hidden=wasHidden;
+  // Si el flujo cerró/ocultó el formulario (p. ej. al guardar domicilio), conservar ese estado.
+  node.hidden=wasHidden||node.hidden;
   node.classList.remove('fra-teleported-form');
   try{if(dialog.open)dialog.close()}catch(_){}
   dialog.remove();
@@ -192,13 +193,13 @@
    });
    wrap('editClinicalCatalogItem',()=>open(generic,'Editar configuración clínica',{owner:'view-settings'}));
    wrap('saveClinicalCatalogItem',()=>{
-    const field=generic.querySelector('input[id^="ccf-"]');
+    const field=generic.querySelector('#ccf-name')||generic.querySelector('input[id^="ccf-"]');
     if(active.current?.node===generic&&$('clinicalConfigEditId')?.value===''&&
        (!field||!String(field.value||'').trim()))close();
    });
    wrap('selectClinicalConfig',()=>{
     if(active.current?.node===generic)close();
-    const button=$('fraClinicalGenericForm-entry')||generic.previousElementSibling;
+    const button=generic.previousElementSibling;
     if(button?.classList.contains('fra-create-entry'))button.hidden=host.hidden;
     generic.hidden=true;
    });
