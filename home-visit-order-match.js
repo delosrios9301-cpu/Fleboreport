@@ -65,13 +65,11 @@
   const all=[];
   for(const line of rows.slice(0,20000)){
    const clean=String(line||'').trim();
-   if(clean)all.push(clean);
-   // Presupuestos y listados pueden contener varias pruebas por línea.
-   // Separar delimitadores claros sin dividir decimales contables.
-   if(/[;,|]/.test(clean)||/\s+\+\s+/.test(clean)){
-    const pieces=clean.split(/\s*[;|]\s*|,(?!\d)\s*(?=[a-záéíóúñA-ZÁÉÍÓÚÑ])|\s+\+\s+/i);
-    if(pieces.length>1&&pieces.length<=80)all.push(...pieces);
-   }
+   const pieces=(/[;,|]/.test(clean)||/\s+\+\s+/.test(clean))
+    ?clean.split(/\s*[;|]\s*|,(?!\d)\s*(?=[a-záéíóúñA-ZÁÉÍÓÚÑ])|\s+\+\s+/i):[];
+   // Una línea con varias pruebas no es por sí misma una prueba sin identificar.
+   if(clean&&!(pieces.length>1&&pieces.length<=80))all.push(clean);
+   if(pieces.length>1&&pieces.length<=80)all.push(...pieces);
    // Líneas tabuladas o con separadores largos en formularios de varias columnas.
    const chunks=clean.split(/\t+|\s{3,}/).map(x=>x.trim()).filter(Boolean);
    if(chunks.length>1&&chunks.length<=10)all.push(...chunks);
@@ -227,6 +225,15 @@
     ambiguous.push({line:candidate,names:unique.slice(0,12).map(x=>x.name),
      options:unique.slice(0,12).map(x=>({id:x.id,name:x.name}))});
    }else if(candidate.length>=3&&!/\b(?:https?:|www\.|@|\/\d{2,4}\/)/i.test(candidate)){
+    // Nombre genérico sin método/especificación: ofrecer variantes a elegir,
+    // nunca asignar automáticamente una prueba diferente.
+    const options=cn.length>=5&&cn.length<=55
+     ?tests.filter(t=>t.n.startsWith(cn+' ')).slice(0,12):[];
+    if(options.length){
+     ambiguous.push({line:candidate,names:options.map(t=>t.name),
+      options:options.map(t=>({id:t.id,name:t.name}))});
+     continue;
+    }
     unmatched.push(candidate);
     // OCR inexacto: sugerir, NUNCA autoseleccionar por parecido.
     if(suggestions.length<400&&candidate.length<=120){
