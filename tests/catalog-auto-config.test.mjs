@@ -224,7 +224,7 @@ test('La búsqueda por siglas obtiene TP, TTPa, hemograma CBC y evita coincidenc
  assert.equal(run('Tiempo de protrombina','tp'),true);
  assert.equal(run('Tiempo de tromboplastina parcial activada','ttpa'),true);
  assert.equal(run('Perfil lipídico','pl'),true);
- assert.equal(run('Terapia por plasma','tp'),false);
+ assert.equal(run('Terapia hepática','tp'),false);
 
  assert.equal(run('Prueba de mezcla de TP','tp'),true);
  assert.equal(run('Tiempo de tromboplastina parcial activada (TTPa)','TTPA'),true);
