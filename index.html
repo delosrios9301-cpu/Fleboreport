@@ -1087,7 +1087,41 @@ function init(){
  renderAll();populateCompanyOptions();$('journeyCompany').value=state.journey.companyId||'';showSettings('company');setStyle(state.style);try{var lastView=sessionStorage.getItem('fleboReport.lastView');if(lastView&&document.getElementById('view-'+lastView))navigate(lastView)}catch(_){}
 }
 function formatDate(date){if(!date)return'Fecha sin definir';const d=new Date(date+'T12:00:00');return d.toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'})}
-function vesselSvg(test){const color=test.color||'#199ab1';const shape=test.shape||'tube';if(!String(test.vessel||'').trim()||window.FleboAutoConfigCore?.isLegacyPlaceholder?.(test)||!String(test.colorName||'').trim())return '<span role="img" aria-label="Color de recipiente pendiente" title="Recipiente o color no definido">?</span>';if(shape==='jar')return '<svg viewBox="0 0 64 80" aria-hidden="true"><defs><linearGradient id="jarGlass" x1="0" x2="1"><stop stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="'+esc(color)+'" stop-opacity=".25"/></linearGradient></defs><path d="M19 14h26v8l4 6v38a7 7 0 0 1-7 7H22a7 7 0 0 1-7-7V28l4-6z" fill="url(#jarGlass)" stroke="'+esc(color)+'" stroke-width="4"/><rect x="16" y="9" width="32" height="10" rx="3" fill="'+esc(color)+'"/><path d="M21 43h22M21 50h22" stroke="'+esc(color)+'" stroke-width="3" stroke-linecap="round"/><path d="M24 61q8 5 16 0" fill="none" stroke="'+esc(color)+'" stroke-width="3"/></svg>';return '<svg viewBox="0 0 64 80" aria-hidden="true"><defs><linearGradient id="tubeGlass" x1="0" x2="1"><stop stop-color="'+esc(color)+'" stop-opacity=".35"/><stop offset=".48" stop-color="#fff" stop-opacity=".92"/><stop offset="1" stop-color="'+esc(color)+'" stop-opacity=".2"/></linearGradient></defs><rect x="19" y="7" width="26" height="10" rx="3" fill="'+esc(color)+'"/><path d="M22 16h20v48a10 10 0 0 1-20 0z" fill="url(#tubeGlass)" stroke="'+esc(color)+'" stroke-width="3"/><path d="M23 48h18v15a9 9 0 0 1-18 0z" fill="'+esc(color)+'" opacity=".75"/><path d="M27 27h10M27 34h10" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>'}
+function specimenVesselShape(test){
+ const vessel=normalizeCatalogSearch(test&&test.vessel||'');
+ if(!vessel)return '';
+ // La descripción explícita del recipiente prevalece sobre una forma heredada de importación.
+ if(/\b(tubo|vacutainer|microtainer|capilar|tubos)\b/.test(vessel))return 'tube';
+ if(/\b(envase|recipiente|frasco|bote|tarro|vaso|contenedor|copa|pote|frasquitos)\b/.test(vessel))return 'jar';
+ if(test.shape==='tube'||test.shape==='jar')return test.shape;
+ return 'generic';
+}
+function specimenVesselColor(test){
+ // Un color sin nombre confirmado puede ser solo el valor predeterminado del formulario.
+ // No usarlo para pintar una tapa clínica.
+ const name=normalizeCatalogSearch(test&&test.colorName||'');
+ if(!name)return null;
+ const palette={rojo:'#cf4352',azul:'#3986cf',celeste:'#58afd0',morado:'#8258bf',
+  lila:'#9670bd',lavanda:'#9670bd',verde:'#24946a',amarillo:'#d5a52d',
+  gris:'#81909a',negro:'#30383d',blanco:'#d8e2e5'};
+ if(palette[name])return palette[name];
+ const manual=String(test.color||'').trim();
+ return name==='otro'&&/^#[0-9a-f]{6}$/i.test(manual)?manual:null;
+}
+function vesselSvg(test){
+ const shape=specimenVesselShape(test),specified=specimenVesselColor(test);
+ const color=specified||'#8a9da5';
+ const tone=esc(color);
+ if(!shape)return '<svg viewBox="0 0 64 80" role="img" aria-label="Recipiente por configurar"><path d="M15 24h34v43H15z" fill="#edf2f4" stroke="#9baeb5" stroke-width="3" stroke-dasharray="5 4"/><path d="M11 19h42" stroke="#9baeb5" stroke-width="4" stroke-linecap="round"/><path d="M22 43h20" stroke="#9baeb5" stroke-width="3" stroke-linecap="round"/></svg>';
+ if(shape==='jar'){
+  return '<svg viewBox="0 0 64 80" role="img" aria-label="Envase o frasco registrado'+(specified?' con color de tapa definido':' sin color de tapa especificado')+'"><path d="M19 19h26v7l4 4v35a7 7 0 0 1-7 7H22a7 7 0 0 1-7-7V30l4-4z" fill="#edf5f6" stroke="#8199a3" stroke-width="3"/><rect x="16" y="9" width="32" height="11" rx="3" fill="'+tone+'"/><path d="M22 41h20M22 48h20" stroke="#8199a3" stroke-width="3" stroke-linecap="round"/><path d="M23 60q9 5 18 0" fill="none" stroke="#8199a3" stroke-width="3"/></svg>';
+ }
+ if(shape==='tube'){
+  return '<svg viewBox="0 0 64 80" role="img" aria-label="Tubo registrado'+(specified?' con tapa del color documentado':' con color de tapa pendiente')+'"><rect x="19" y="7" width="26" height="10" rx="3" fill="'+tone+'"/><path d="M22 16h20v48a10 10 0 0 1-20 0z" fill="#edf5f6" stroke="#829ba4" stroke-width="3"/><path d="M23 48h18v15a9 9 0 0 1-18 0z" fill="#c7e6e9" opacity=".82"/><path d="M27 27h10M27 34h10" stroke="#91b0b8" stroke-width="2" stroke-linecap="round"/></svg>';
+ }
+ // Hay recipiente textual, pero no información suficiente para afirmar tubo o frasco.
+ return '<svg viewBox="0 0 64 80" role="img" aria-label="Recipiente registrado; forma por confirmar"><rect x="15" y="17" width="34" height="52" rx="7" fill="#edf5f6" stroke="#829ba4" stroke-width="3"/><rect x="13" y="10" width="38" height="10" rx="4" fill="#c2d2d6"/><path d="M23 38h18M23 45h18" stroke="#829ba4" stroke-width="3" stroke-linecap="round"/></svg>';
+}
 function updateCompanyPreview(){prepareExportLogo();const logo=$('reportLogo');logo.src=state.company.logo||'';logo.hidden=!state.company.logo;$('reportCompany').textContent=state.company.name||'';const client=(state.companies.find(function(c){return c.id===state.journey.companyId})||{}).name;$('reportContact').textContent=[state.company.contact,client].filter(Boolean).join(' · ');$('reportWatermark').innerHTML=state.company.logo?'<img src="'+state.company.logo+'" alt="">':''}
 function saveCompany(){state.company.name=$('companyName').value.trim();state.company.contact=$('companyContact').value.trim();save();updateCompanyPreview();toast('Configuración del laboratorio guardada.')}
 function readLogo(){const file=$('companyLogo').files[0];if(!file)return;if(file.size>6*1024*1024){toast('Elige una imagen de menos de 6 MB.');this.value='';return}const reader=new FileReader();reader.onload=function(){const img=new Image();img.onload=function(){const max=1100,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);state.company.logo=canvas.toDataURL('image/jpeg',.84);$('logoStatus').textContent='Logotipo cargado y listo para los reportes.';save();updateCompanyPreview();toast('Logotipo guardado.')};img.onerror=function(){toast('No se pudo abrir esa imagen.')};img.src=reader.result};reader.readAsDataURL(file)}
@@ -1206,7 +1240,7 @@ function showCatalogDetails(id){
  const rows=[
   ['Estado','Activa'],['Tipo de muestra',test.sample||'Sin definir'],
   ['Recipiente',test.vessel||'Sin definir'],
-  ['Color del tubo',test.vessel&&test.colorName?test.colorName:'Sin definir / no aplica'],
+  ['Color de tapa (si aplica)',test.vessel&&test.colorName?test.colorName:(specimenVesselShape(test)==='tube'?'Pendiente de confirmar':'No especificado para este recipiente')],
   ['Volumen requerido',test.volume||'Sin definir'],
   ['Ayuno o preparación',test.fasting||'Sin definir'],
   ['Condiciones de toma',test.conditions||'Sin definir'],
@@ -1245,7 +1279,7 @@ function renderCatalog(){
  if($('catalogMetricPending'))$('catalogMetricPending').textContent=archived.length;
  if($('catalogMetricVessels'))$('catalogMetricVessels').textContent=active.filter(function(t){return!!String(t.vessel||'').trim()}).length;
  const empty=term?'<div class="empty-state">No hay pruebas que coincidan con esa búsqueda.</div>':'<div class="empty-state">No hay pruebas activas. Crea la primera prueba para configurar el catálogo.</div>';
- list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item" data-catalog-id="'+esc(t.id)+'"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+'<span class="badge">Activa</span>'+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="showCatalogDetails(\''+esc(t.id)+'\')">Ver ficha</button></span></article>'}).join(''):empty;
+ list.innerHTML=visible.length?visible.map(function(t){return '<article class="fr2-catalog-item" data-catalog-id="'+esc(t.id)+'"><span class="catalog-icon">'+vesselSvg(t)+'</span><div class="fr2-catalog-item-copy"><strong>'+esc(t.name)+'</strong><small>'+esc(t.sample||'Muestra pendiente')+' · '+esc(t.vessel||'Recipiente pendiente')+(t.volume?' · '+esc(t.volume):'')+(t.fasting?' · Ayuno: '+esc(t.fasting):'')+'</small><div class="fr2-catalog-item-tags">'+'<span class="badge">Activa</span>'+(t.vessel&&specimenVesselShape(t)==='tube'&&!specimenVesselColor(t)?'<span class="fr2-catalog-tag cpr-color-pending">Color de tapa pendiente</span>':'')+(t.conditions?'<span class="fr2-catalog-tag">'+esc(t.conditions)+'</span>':'')+'</div></div><span class="list-actions"><button class="btn" type="button" onclick="showCatalogDetails(\''+esc(t.id)+'\')">Ver ficha</button></span></article>'}).join(''):empty;
  // Una búsqueda muestra sus resultados inmediatamente sin procesar miles de tarjetas.
  const feedback=document.createElement('div');feedback.className='catalog-search-results';feedback.setAttribute('role','status');
  feedback.textContent=term?matching.length+' coincidencia(s) para «'+$('catalogSearch').value.trim()+'»':matching.length+' prueba(s) en este filtro';
