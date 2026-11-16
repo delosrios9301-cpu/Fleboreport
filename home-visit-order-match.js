@@ -93,6 +93,12 @@
    row=row.slice(0,-match[0].length).trim();priceRemoved=true;
    if(row)options.add(canonical(row));
   }
+  // Presupuestos sin decimales: columnas cantidad, valor unitario y total.
+  // Solo tratar el sufijo como contabilidad si hay tabulaciones o número de ítem.
+  if(!priceRemoved&&(/[\t|]/.test(String(value))||/^\s*\d{1,9}[.)\s-]+/.test(raw))){
+   const noIntegers=raw.replace(/(?:\s+\d{1,9}){2,3}\s*$/,'').trim();
+   if(noIntegers&&noIntegers!==raw)options.add(canonical(noIntegers));
+  }
   if(priceRemoved){
    // Cantidad de la cotización inmediatamente antes del importe.
    const withoutQty=row.replace(/\s+(?:x\s*)?\d{1,3}\s*$/i,'').trim();
