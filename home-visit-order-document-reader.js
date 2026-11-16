@@ -91,11 +91,35 @@
   }
   return lines.join('\n');
  }
+ function csvAsLines(text){
+  // Respetar comas dentro de celdas entrecomilladas y convertir columnas a TAB.
+  const rows=[],cells=[];let cell='',quoted=false;
+  for(const char of String(text||'')){
+   if(char==='"'){
+    if(quoted&&cell.endsWith('"')){cell=cell.slice(0,-1)+'"';continue;}
+    quoted=!quoted;continue;
+   }
+   if(!quoted&&(char===','||char===';'||char==='\t')){
+    cells.push(cell.trim());cell='';continue;
+   }
+   if(!quoted&&(char==='\n'||char==='\r')){
+    if(char==='\r')continue;
+    cells.push(cell.trim());cell='';
+    if(cells.some(Boolean))rows.push(cells.join('\t'));
+    cells.length=0;continue;
+   }
+   cell+=char;
+  }
+  cells.push(cell.trim());
+  if(cells.some(Boolean))rows.push(cells.join('\t'));
+  return rows.join('\n');
+ }
  async function readText(file){
   const bytes=new Uint8Array(await file.arrayBuffer());
   const encoding=bytes[0]===0xff&&bytes[1]===0xfe?'utf-16le':
    bytes[0]===0xfe&&bytes[1]===0xff?'utf-16be':'utf-8';
-  return new TextDecoder(encoding).decode(bytes).replace(/\0/g,'').slice(0,550000);
+  const body=new TextDecoder(encoding).decode(bytes).replace(/\0/g,'').slice(0,550000);
+  return extension(file)==='csv'?csvAsLines(body):body;
  }
  async function read(file,options={}){
   const type=kind(file);
@@ -116,5 +140,5 @@
   // Word .doc y Excel .xls son binarios antiguos; nunca afirmar reconocimiento.
   throw new Error('El formato antiguo .doc o .xls no permite lectura fiable en este navegador. Convierte a PDF, DOCX, XLSX o foto; el archivo puede adjuntarse para revisión.');
  }
- return {extension,kind,storageMime,read,readWord,readWorkbook,readText};
+ return {extension,kind,storageMime,read,readWord,readWorkbook,readText,csvAsLines};
 });
