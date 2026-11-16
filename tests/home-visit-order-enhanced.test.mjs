@@ -121,3 +121,19 @@ test('Vista previa de la orden disponible antes de guardar y desde la ficha ya c
  assert.match(html,/home-visit-order-match\.js\?v=20261116-ocr1/);
  assert.match(sw,/'\.\/home-visit-order-ocr\.js'/);
 });
+
+
+test('El flebotomista aceptado ve pruebas y abre la orden PDF privada',()=>{
+ const begin=dom.indexOf('function technicianFieldScreen(v){');
+ const stop=dom.indexOf('async function saveFieldObservation(',begin);
+ const field=dom.slice(begin,stop);
+ assert.ok(begin>0&&stop>begin);
+ assert.match(field,/Pruebas y recipientes/);
+ assert.match(field,/Orden médica original/);
+ assert.match(field,/Ver orden original/);
+ assert.match(field,/hvOpenDocument/);
+ assert.match(field,/v\.documents\|\|\[\]/);
+ assert.ok(field.indexOf('if(locked){')<field.indexOf('Orden médica original'));
+ assert.match(dom,/home_visit_documents\(\*\)/);
+ assert.match(dom,/createSignedUrl\(d\.storage_path,90\)/);
+});
