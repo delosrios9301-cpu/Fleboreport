@@ -234,6 +234,46 @@
   wrap('closeAttentionForm',()=>{if(active.current?.node===$('attentionForm'))close()});
   return true;
  }
+ function installStaticConfiguration(){
+  // Formularios administrativos que antes quedaban al final de la sección.
+  // El panel original se reutiliza sin cambiar sus guardados ni validaciones.
+  for(const id of ['settings-templates','settings-services','settings-report']){
+   const section=$(id);
+   if(!section)continue;
+   const panels=Array.from(section.querySelectorAll('.panel.form-panel'));
+   for(const panel of panels){
+    if(panel.dataset.fraEntry||!panel.querySelector('input,select,textarea'))continue;
+    const heading=panel.querySelector('h2,h3')?.textContent?.trim()||'Configuración';
+    makeEntry(section,panel,'Modificar '+heading,()=>open(panel,heading,{owner:'view-settings'}));
+   }
+  }
+ }
+ function enhanceSecurityForms(){
+  // Se crean dinámicamente tras obtener datos y permisos de Supabase.
+  const targets=[
+   ['frCreateSite','+ Registrar sede','Registrar sede'],
+   ['frAssignSiteBtn','Asignar sede a usuario','Asignación de sede'],
+   ['frSaveSecurity','Editar seguridad','Seguridad del laboratorio']
+  ];
+  for(const [id,title,modalTitle] of targets){
+   const control=$(id);
+   const card=control?.closest('.fr-config-card');
+   if(!card||card.dataset.fraEntry)continue;
+   makeEntry(card.parentNode,card,title,()=>open(card,modalTitle,{owner:'view-settings'}));
+  }
+  const pane=$('fr-pane-permissions'),layout=pane?.querySelector(':scope > .fr-config-grid');
+  if(layout&&!pane.querySelector('.fra-permissions-content')){
+   const group=document.createElement('section');
+   group.className='fra-permissions-content';
+   pane.insertBefore(group,layout);
+   group.append(layout);
+   const table=pane.querySelector(':scope > .fr-config-card');
+   if(table)group.append(table);
+   makeEntry(pane,group,'Administrar permisos y cargos',()=>{
+    open(group,'Permisos y autorizaciones',{owner:'view-settings'});
+   });
+  }
+ }
  function hookNewEntries(){
   // Un botón explícito para editar la identidad del laboratorio.
   const company=$('settings-company'),form=company?.querySelector('.panel.form-panel');
@@ -248,15 +288,24 @@
   if(installed)return;
   if(!$('view-settings'))return;
   installed=true;
-  installCatalog();installStudies();installHomeVisits();installPatientActions();hookNewEntries();
+  installCatalog();installStudies();installHomeVisits();installPatientActions();hookNewEntries();installStaticConfiguration();enhanceSecurityForms();
   wrap('showSettings',args=>{
    if(active.current&&active.current.node.closest?.('#view-settings')&&args[0]!=='catalog'&&args[0]!=='clinical-config')close();
   });
+  let checking=false;
   const observer=typeof MutationObserver==='function'?new MutationObserver(()=>{
-   // La agenda se monta de forma dinámica; no mover ni reconstruir sus nodos.
-   if(active.current?.node?.id==='hvCreatePanel'&&active.current.node.hidden)close();
+   if(checking)return;
+   checking=true;
+   try{
+    // Si el módulo reconstruyó un editor después de guardar, conservar la vista nueva.
+    if(active.current?.anchor&&!active.current.anchor.isConnected)close();
+    const source=active.current?.anchor?.parentNode;
+    if(source?.closest?.('.settings-section[hidden],.fr-config-pane[hidden]'))close();
+    if(active.current?.node?.id==='hvCreatePanel'&&active.current.node.hidden)close();
+    enhanceSecurityForms();
+   }finally{checking=false;}
   }):null;
-  if(observer)observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden']});
+  if(observer)observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
   window.addEventListener('beforeunload',close);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
