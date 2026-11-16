@@ -132,13 +132,26 @@
    try{await documentTask.destroy()}catch(_){}
   }
  }
+ function makeReviewButton(id,name){
+  const button=el('button','hv-order-reviewed-add','+ Agregar');
+  button.type='button';
+  button.setAttribute('aria-label','Agregar prueba revisada: '+name);
+  button.addEventListener('click',()=>{
+   const added=typeof window.hvOrderApplyTests==='function'?window.hvOrderApplyTests([id]):0;
+   button.disabled=true;
+   button.textContent=added?'✓ Agregada':'✓ Ya seleccionada';
+   status('Prueba revisada: '+name+'. Comprueba el resto de la orden antes de guardar.','success');
+  });
+  return button;
+ }
  function renderReview(result,added){
   const container=$('hvOrderResults');if(!container)return;
   container.replaceChildren();container.hidden=false;
   const section=el('div','hv-order-review');
   const title=el('strong','hv-order-title',result.matches.length+
    ' coincidencia(s) con el catálogo · '+added+' prueba(s) incorporadas antes de guardar');
-  const caption=el('p','hv-order-note','Las coincidencias seguras ya aparecen en Pruebas solicitadas. Revisa los exámenes, completa los que falten y luego guarda el domicilio; el responsable recibirá la lista desde el primer momento.');
+  const caption=el('p','hv-order-note',
+   'Las coincidencias seguras ya aparecen en Pruebas solicitadas. Revisa los exámenes, completa los que falten y luego guarda el domicilio; el responsable recibirá la lista desde el primer momento.');
   section.append(title,caption);
   if(result.matches.length){
    const list=el('div','hv-order-matches');
@@ -151,22 +164,41 @@
   }
   if(result.ambiguous.length){
    const group=el('details','hv-order-unmatched');
-   group.append(el('summary','',result.ambiguous.length+' resultado(s) ambiguos (no se agregaron automáticamente)'));
-   const ul=el('ul');
-   result.ambiguous.forEach(x=>ul.append(el('li','',x.line)));
-   group.append(ul);section.append(group);
-  }
-  if(result.unmatched.length){
-   const group=el('details','hv-order-unmatched');
-   group.append(el('summary','',result.unmatched.length+' línea(s) no identificadas: comprobar contra documento original'));
-   const ul=el('ul');result.unmatched.slice(0,18).forEach(x=>ul.append(el('li','',x)));
-   group.append(ul);section.append(group);
+   group.append(el('summary','',(result.ambiguousCount||result.ambiguous.length)+
+    ' resultado(s) ambiguos (no se agregaron automáticamente) · toca la prueba correcta'));
+   const list=el('div','hv-order-review-list');
+   for(const match of result.ambiguous){
+    const item=el('div','hv-order-review-item');
+    item.append(el('strong','',match.line));
+    for(const option of match.options||[]){
+     const row=el('div','hv-order-review-choice');
+     row.append(el('span','',option.name),makeReviewButton(option.id,option.name));
+     item.append(row);
+    }
+    list.append(item);
+   }
+   group.append(list);section.append(group);
   }
   if(result.suggestions?.length){
    const group=el('details','hv-order-unmatched');
-   group.append(el('summary','',result.suggestions.length+' posible(s) coincidencia(s) para revisión'));
-   const ul=el('ul');
-   for(const hint of result.suggestions)ul.append(el('li','',hint.line+' → '+hint.name+' (no agregada)'));
+   group.append(el('summary','',(result.suggestionsCount||result.suggestions.length)+
+    ' posible(s) coincidencia(s) para revisión'));
+   const list=el('div','hv-order-review-list');
+   for(const hint of result.suggestions){
+    const row=el('div','hv-order-review-item');
+    row.append(el('span','hv-order-review-original',hint.line),
+     el('span','hv-order-review-name','Posible prueba: '+hint.name),
+     makeReviewButton(hint.id,hint.name));
+    list.append(row);
+   }
+   group.append(list);section.append(group);
+  }
+  if(result.unmatched.length){
+   const group=el('details','hv-order-unmatched');
+   group.append(el('summary','',(result.unmatchedCount||result.unmatched.length)+
+    ' línea(s) no identificadas: comprobar contra documento original'));
+   const ul=el('ul','hv-order-unmatched-list');
+   for(const line of result.unmatched)ul.append(el('li','',line));
    group.append(ul);section.append(group);
   }
   if(coverage.total)section.append(el('p','hv-order-note',
