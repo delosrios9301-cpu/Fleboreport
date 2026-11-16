@@ -679,6 +679,7 @@ async function create(){
  try{
   if(!cloud.ready||!cloud.client){say('No se pudo crear el domicilio: la conexión con el laboratorio todavía no está lista.');return}
   if(!['admin','clinician','reception'].includes(cloud.role)){say('Tu perfil no tiene permiso para crear domicilios principales.');return}
+  if(window.FleboHomeVisitPDF?.isAnalyzing?.()){say('La orden PDF aún se está leyendo. Espera a que aparezcan las pruebas reconocidas, o pulsa Detener lectura y agrégalas manualmente antes de guardar.');return}
   const name=$('hvName').value.trim(),documentNumber=$('hvDoc').value.trim(),date=$('hvDate').value,time=$('hvTime').value,address=$('hvAddress').value.trim(),priority=priorityDb($('hvPriority')?.value||'normal'),ids=newTestSelection.slice(),assignee=$('hvAssignee').value.trim();
   if(!name||!date||!time||!address||!ids.length||!['urgent','high','normal'].includes(priority)){say('Completa paciente, fecha, hora, prioridad, dirección y pruebas.');return}
   // El adjunto es opcional: jamás impedir registrar una visita por no adjuntar PDF
