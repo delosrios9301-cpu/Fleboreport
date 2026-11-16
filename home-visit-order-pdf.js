@@ -77,7 +77,12 @@
     const pageText=rows.join(' ').trim();
     // Evitar OCR pesado cuando una página corta contiene exámenes legibles.
     // Un encabezado sin listado aún puede esconder imágenes escaneadas.
-    if(pageText.length<22||(rows.length<=2&&/^(?:orden medica|solicitud de laboratorio|examenes solicitados)/i.test(pageText)))
+    // Un presupuesto puede tener solo encabezados digitales y las pruebas
+    // insertadas como fotografía. Intentar OCR también en páginas con poco texto.
+    // En páginas con listado legible evitar OCR innecesario en Android.
+    if(pageText.length<22||
+       (rows.length<=12&&pageText.length<360&&
+        !/(?:hemograma|biometria|glucosa|ferritina|protro[mn]bina|colesterol|triglicerid|creatinina|hemoglobina)/i.test(pageText)))
      scannedPages.push(page);
     all.push(...rows);
    }
