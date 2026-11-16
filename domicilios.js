@@ -1191,19 +1191,42 @@ function render(){
   const activeVisit=visits.find(v=>v.id===selected);
   const existingDetailModal=document.querySelector('body > .hv-detail-backdrop');
   if(activeVisit&&detailOpen&&['agenda','history'].includes(activeTab)){
-    const dialogMarkup='<button type="button" class="hv-detail-close" onclick="hvCloseDetail()" aria-label="Cerrar detalles">×</button>'+detail(activeVisit)+additionalPatientsPanel(activeVisit);
-    if(existingDetailModal){
-      const existingDialog=existingDetailModal.querySelector('.hv-detail-dialog');
-      if(existingDialog)existingDialog.innerHTML=dialogMarkup;
-    }else if(detailPanel){
-      detailPanel.innerHTML='<div class="hv-detail-backdrop" onclick="hvCloseDetail(event)" role="presentation"><section class="hv-detail-dialog" role="dialog" aria-modal="true" aria-label="Detalle y seguimiento del domicilio" onclick="event.stopPropagation()">'+dialogMarkup+'</section></div>';
-      const detailBackdrop=detailPanel.querySelector('.hv-detail-backdrop');
-      if(detailBackdrop)document.body.appendChild(detailBackdrop);
-    }
-    const premiumDialog=document.querySelector('body > .hv-detail-backdrop .hv-detail-dialog');
-    if(premiumDialog){
-      enhanceHomeVisitDetail(premiumDialog);
-      if(typeof window.FleboTrackEnhance==='function')window.FleboTrackEnhance(premiumDialog,activeVisit);
+    const existingDialog=existingDetailModal?.querySelector('.hv-detail-dialog');
+    // El seguimiento abierto no se destruye al llegar una sincronización idéntica.
+    // Conserva pestañas, foco y posición, evitando destellos y pulsaciones perdidas.
+    const trackingMode=cloud.role==='technician'||isMyAssignedDomicile(activeVisit);
+    const trackingSignature=trackingMode?JSON.stringify([activeVisit,cloud.role,additionalFormOpenFor,dismissedInvitationId]):'';
+    const trackingUnchanged=!!(trackingSignature&&existingDialog?.classList.contains('hv-tracking-dialog')
+      &&existingDialog.dataset.hvTrackingSignature===trackingSignature);
+    if(!trackingUnchanged){
+      const previousScroll=existingDialog?.scrollTop||0;
+      const previousActionsOpen=!!existingDialog?.querySelector('.hv-track-action-list:not([hidden])');
+      const wasEditingObservation=existingDialog?.querySelector('#hvFieldObservation')===document.activeElement;
+      const observationDraft=wasEditingObservation?document.activeElement.value:null;
+      const dialogMarkup='<button type="button" class="hv-detail-close" onclick="hvCloseDetail()" aria-label="Cerrar detalles">×</button>'+detail(activeVisit)+additionalPatientsPanel(activeVisit);
+      if(existingDialog){
+        existingDialog.innerHTML=dialogMarkup;
+      }else if(detailPanel){
+        detailPanel.innerHTML='<div class="hv-detail-backdrop" onclick="hvCloseDetail(event)" role="presentation"><section class="hv-detail-dialog" role="dialog" aria-modal="true" aria-label="Detalle y seguimiento del domicilio" onclick="event.stopPropagation()">'+dialogMarkup+'</section></div>';
+        const detailBackdrop=detailPanel.querySelector('.hv-detail-backdrop');
+        if(detailBackdrop)document.body.appendChild(detailBackdrop);
+      }
+      const premiumDialog=document.querySelector('body > .hv-detail-backdrop .hv-detail-dialog');
+      if(premiumDialog){
+        enhanceHomeVisitDetail(premiumDialog);
+        if(typeof window.FleboTrackEnhance==='function')window.FleboTrackEnhance(premiumDialog,activeVisit);
+        if(trackingSignature)premiumDialog.dataset.hvTrackingSignature=trackingSignature;
+        if(previousActionsOpen){
+          const menu=premiumDialog.querySelector('.hv-track-action-list');
+          const trigger=premiumDialog.querySelector('[data-hv-track-action-trigger]');
+          if(menu&&trigger&&!trigger.hidden){menu.hidden=false;trigger.setAttribute('aria-expanded','true');}
+        }
+        if(observationDraft!==null){
+          const field=premiumDialog.querySelector('#hvFieldObservation');
+          if(field){field.value=observationDraft;field.focus({preventScroll:true});}
+        }
+        if(previousScroll)premiumDialog.scrollTop=previousScroll;
+      }
     }
     if(detailPanel)detailPanel.hidden=true;
   }else{
