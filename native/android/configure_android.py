@@ -25,7 +25,6 @@ tree=ET.parse(manifest)
 base=tree.getroot()
 ns='{http://schemas.android.com/apk/res/android}'
 if not any(x.get(ns+'name')=='android.permission.CAMERA' for x in base.findall('uses-permission')):
-    ET.Element('placeholder') if False else None
     base.insert(0,ET.Element('uses-permission',{ns+'name':'android.permission.CAMERA'}))
 application=base.find('application')
 assert application is not None
