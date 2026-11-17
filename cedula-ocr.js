@@ -17,30 +17,32 @@ async function startCamera(){
 }
 
 function beginAutoCapture(){
- const canvas=document.createElement('canvas');canvas.width=160;canvas.height=110;
- const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return;
+ const video=$('frIdScanVideo');
+ const sample=document.createElement('canvas');sample.width=96;sample.height=64;
+ const ctx=sample.getContext('2d',{willReadFrequently:true});
+ if(!ctx){$('frIdScanStatus').textContent='Captura automática no disponible. Usa Capturar foto.';return;}
  autoSamples=0;autoPrevious=null;autoStarted=Date.now();
  autoTimer=setInterval(()=>{
-  const video=$('frIdScanVideo');
   if(!cameraStream||processing||!video||video.readyState<2||!video.videoWidth)return;
-  ctx.drawImage(video,0,0,160,110);
-  const pixels=ctx.getImageData(0,0,160,110).data;
-  const grey=new Uint8Array(160*110);let sum=0,edges=0,count=0;
-  for(let i=0;i<grey.length;i++){grey[i]=(pixels[i*4]*77+pixels[i*4+1]*150+pixels[i*4+2]*29)>>8;sum+=grey[i];}
-  for(let y=1;y<109;y+=2)for(let x=1;x<159;x+=2){const i=y*160+x;edges+=Math.abs(grey[i]-grey[i-1])+Math.abs(grey[i]-grey[i-160]);count++;}
-  const contrast=edges/Math.max(1,count),brightness=sum/grey.length;
-  let motion=0;
-  if(autoPrevious){for(let i=0;i<grey.length;i+=19)motion+=Math.abs(grey[i]-autoPrevious[i]);motion/=Math.ceil(grey.length/19);}
-  autoPrevious=grey;
-  if(contrast>9&&brightness>32&&brightness<240&&motion<16)autoSamples++;
-  else autoSamples=Math.max(0,autoSamples-1);
+  ctx.drawImage(video,0,0,96,64);
+  const rgba=ctx.getImageData(0,0,96,64).data;
+  const grey=new Uint8Array(96*64);let total=0,edge=0;
+  for(let i=0;i<grey.length;i++){grey[i]=(rgba[i*4]*77+rgba[i*4+1]*150+rgba[i*4+2]*29)>>8;total+=grey[i];}
+  for(let y=1;y<63;y+=2)for(let x=1;x<95;x+=2){const p=y*96+x;edge+=Math.abs(grey[p]-grey[p-1])+Math.abs(grey[p]-grey[p-96]);}
+  let motion=0;if(autoPrevious){for(let i=0;i<grey.length;i+=11)motion+=Math.abs(grey[i]-autoPrevious[i]);motion/=Math.ceil(grey.length/11);}
+  const hasPrevious=!!autoPrevious;autoPrevious=grey;
+  const light=total/grey.length,sharp=edge/1488;
+  if(hasPrevious&&motion<18&&light>35&&light<235&&sharp>7)autoSamples++;else autoSamples=0;
   const elapsed=Date.now()-autoStarted;
-  if(autoSamples>=3 || (elapsed>6500&&contrast>8&&brightness>35&&brightness<238&&motion<19)){
-   if(autoBusy)return;autoBusy=true;clearInterval(autoTimer);autoTimer=null;
-   $('frIdScanStatus').textContent='Fotografía capturada automáticamente. Reconociendo datos…';$('frIdScanSnap').click();
-  }else if(elapsed>13000){clearInterval(autoTimer);autoTimer=null;$('frIdScanStatus').textContent='No se detectó una imagen suficientemente estable. Ajusta la iluminación y presiona Capturar foto o Abrir cámara para reintentar.';}
-
- },650);
+  if(autoSamples>=3){
+   clearInterval(autoTimer);autoTimer=null;
+   $('frIdScanStatus').textContent='Captura automática realizada. Analizando fotografía…';
+   $('frIdScanSnap').click();
+  }else if(elapsed>9000){
+   clearInterval(autoTimer);autoTimer=null;
+   $('frIdScanStatus').textContent='No se pudo garantizar una imagen nítida. Ajusta la cédula y pulsa Capturar foto o reintenta. No se tomará una fotografía borrosa automáticamente.';
+  }else $('frIdScanStatus').textContent='Enfoca la cédula y mantenla quieta. Captura automática en cuanto la imagen sea estable.';
+ },550);
 }
 
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
@@ -74,9 +76,16 @@ function extract(raw){
   const chunks=upper.map(candidate).filter(Boolean);
   if(chunks.length===2){last=chunks[0];name=chunks[1];}
  }
+ // Rótulos comunes en dos columnas: NOMBRES y APELLIDOS pueden aparecer juntos antes de los valores.
+ if(!name&&!last){
+  const labelIndex=upper.findIndex(x=>/\\bNOMBRES?\\b/.test(x)&&/\\bAPELLIDOS?\\b/.test(x));
+  if(labelIndex>=0){const values=upper.slice(labelIndex+1,labelIndex+4).map(candidate).filter(Boolean);if(values.length===2){name=values[0];last=values[1];}}
+ }
  let sex='';
  const explicit=text.match(/\b(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\b/);
  if(explicit)sex=/^(F|FEMENINO|MUJER)$/.test(explicit[1])?'Femenino':'Masculino';
+ else if(/\\b(?:FEMALE|FEMALE\\/F|MUJER)\\b/.test(text))sex='Femenino';
+ else if(/\\b(?:MALE|HOMBRE)\\b/.test(text))sex='Masculino';
  else{
   const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?$/.test(x));
   if(sexLine>=0){const v=upper[sexLine+1]||'';if(/^(F|FEMENINO|MUJER)$/.test(v))sex='Femenino';if(/^(M|MASCULINO|HOMBRE)$/.test(v))sex='Masculino';}
@@ -89,7 +98,7 @@ function build(){
  const modal=document.createElement('div');modal.id='frIdScanModal';modal.className='fr-idscan-modal';modal.hidden=true;
  modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><div class="fr-idscan-actions"><button type="button" id="frIdScanCamera">Abrir cámara</button><button type="button" id="frIdScanGallery">Galería</button></div><video id="frIdScanVideo" autoplay playsinline muted hidden style="width:100%;max-height:46dvh;object-fit:contain;background:#111;border-radius:10px"></video><button type="button" id="frIdScanSnap" hidden>Capturar foto</button><input id="frIdScanFile" type="file" accept="image/*" capture="environment" hidden><input id="frIdScanGalleryFile" type="file" accept="image/*" hidden><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
  document.body.appendChild(modal);
- $('frIdScanCancel').onclick=()=>{if(!processing){stopCamera();modal.hidden=true;current=null;$('frIdScanFile').value='';}};
+ $('frIdScanCancel').onclick=()=>{if(!processing){stopCamera();modal.hidden=true;current=null;$('frIdScanFile').value='';$('frIdScanGalleryFile').value='';}};
  $('frIdScanCamera').onclick=()=>startCamera();
  $('frIdScanGallery').onclick=()=>{$('frIdScanGalleryFile').click();};
  $('frIdScanSnap').onclick=async()=>{const video=$('frIdScanVideo');if(!video.videoWidth)return;const canvas=document.createElement('canvas');const scale=Math.min(1,Math.sqrt(2100000/(video.videoWidth*video.videoHeight)));canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);stopCamera();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));canvas.width=0;canvas.height=0;if(blob)await processFile(blob);};
