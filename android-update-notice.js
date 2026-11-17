@@ -3,14 +3,14 @@
  'use strict';
  if(!window.Capacitor?.isNativePlatform?.())return;
  const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
- if(!plugin?.getAppVersion)return;
+ if(!plugin?.scan)return;
  let last=0,working=false,closedVersion=0;
  async function check(){
   if(working||Date.now()-last<6*60*60*1000)return;
   working=true;last=Date.now();
   try{
    const [installed,request]=await Promise.all([
-    plugin.getAppVersion(),
+    plugin.getAppVersion?plugin.getAppVersion():Promise.resolve({versionCode:1,versionName:'1.0'}),
     fetch(new URL('./android-update.json',location.href),{cache:'no-store'})
    ]);
    if(!request.ok)throw Error('No se pudo consultar la versión');
