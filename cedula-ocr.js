@@ -90,16 +90,37 @@ function extract(raw){
  const sex=sexMatch?(/^(M|MASCULINO)$/.test(sexMatch[1])?'Masculino':'Femenino'):'';
  return {doc,name,last,birth,sex};
 }
+// Formato delimitado del QR de la cédula; no registrar el contenido bruto.
+function extractQr(raw){
+ const parts=String(raw||'').split('|').map(v=>v.trim());
+ if(parts.length<6)throw Error('El QR no tiene el formato esperado de cédula. No se transfirieron datos.');
+ const doc=parts[0].replace(/\s+/g,'');
+ if(!/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc))throw Error('No se pudo validar el número de cédula del QR.');
+ const name=parts[1]||'',last=parts[2]||'';
+ const sexToken=parts.slice(3,7).find(x=>/^(M|F)$/i.test(x))||'';
+ const sex=sexToken.toUpperCase()==='M'?'Masculino':sexToken.toUpperCase()==='F'?'Femenino':'';
+ // Fecha de nacimiento: primera fecha posterior al sexo. Las posteriores
+ // corresponden a otros datos del documento y no deben usarse como nacimiento.
+ const sexIndex=parts.findIndex((x,i)=>i>=3&&/^(M|F)$/i.test(x));
+ const dates=parts.slice(sexIndex>=0?sexIndex+1:3).filter(x=>/^\d{2}[-/]\d{2}[-/]\d{4}$/.test(x));
+ let birth='';
+ if(dates.length){
+  const [day,month,year]=dates[0].split(/[-/]/).map(Number);
+  const date=new Date(Date.UTC(year,month-1,day));
+  if(year>=1900&&year<=new Date().getUTCFullYear()&&date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day)
+   birth=year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+ }
+ return {doc,name,last,birth,sex};
+}
 // El puente nativo se activa solo cuando la app Android registra el plugin.
 async function recognizeNative(){
  const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
  if(!plugin?.scan)throw Error('El escáner nativo no está instalado en esta versión Android.');
  const response=await plugin.scan();
  if(!response||response.cancelled)return null;
- const raw=String(response.text||'').trim();
- if(!raw)throw Error('ML Kit no detectó texto en la fotografía. Reintenta con la cédula completa, bien iluminada y sin reflejos.');
- const parsed=extract(raw);
- return {...parsed,_ocrLines:raw.split(/\r?\n/).filter(x=>x.trim()).length};
+ const raw=String(response.qr||'').trim();
+ if(!raw)throw Error('El escáner no devolvió un código QR válido. Actualiza el APK para activar la lectura QR.');
+ return extractQr(raw);
 }
 function build(){
  if($('frIdScanModal'))return;
@@ -166,7 +187,7 @@ function attach(){
     try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
      for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
      $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
-     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'ML Kit detectó '+found._ocrLines+' líneas, pero no identificó campos fiables. Usa una fotografía frontal, nítida y sin reflejos, o introduce los datos manualmente.';
+     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'El QR se leyó, pero no se pudieron identificar campos fiables. Comprueba el reverso de la cédula.';
     }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Puedes utilizar Galería o Abrir cámara.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
