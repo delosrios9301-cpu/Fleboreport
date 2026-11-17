@@ -1,0 +1,12 @@
+{
+  "appId": "com.fleboreport.app",
+  "appName": "FleboReport",
+  "webDir": "www",
+  "server": {
+    "url": "https://delosrios9301-cpu.github.io/Fleboreport/",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
