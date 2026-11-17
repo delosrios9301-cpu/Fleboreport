@@ -86,6 +86,14 @@ function extract(raw){
  const sex=sexMatch?(/^(M|MASCULINO)$/.test(sexMatch[1])?'Masculino':'Femenino'):'';
  return {doc,name,last,birth,sex};
 }
+// El puente nativo se activa solo cuando la app Android registra el plugin.
+async function recognizeNative(){
+ const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
+ if(!plugin?.scan)throw Error('El escáner nativo no está instalado en esta versión Android.');
+ const response=await plugin.scan();
+ if(!response||response.cancelled)return null;
+ return extract(response.text||'');
+}
 function build(){
  if($('frIdScanModal'))return;
  const style=document.createElement('style');style.textContent='.fr-idscan-btn{margin:8px 0 12px!important;min-height:44px!important}.fr-idscan-modal[hidden]{display:none!important}.fr-idscan-modal{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(10,25,36,.66)}.fr-idscan-card{box-sizing:border-box;width:min(100%,520px);max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;color:#17323c;border-radius:17px;padding:18px;box-shadow:0 20px 65px #0005}.fr-idscan-card label{display:block;margin:9px 0 4px;font-weight:700}.fr-idscan-card input{box-sizing:border-box;width:100%;min-height:40px;padding:8px}.fr-idscan-actions{position:sticky;bottom:-18px;background:white;display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}.fr-idscan-actions button{flex:1;min-height:44px}.fr-idscan-card p{line-height:1.45}';document.head.appendChild(style);
@@ -140,7 +148,17 @@ function attach(){
  for(const target of targets){
   const anchor=$(target.anchor);if(!anchor||document.querySelector('[data-idscan-for="'+target.anchor+'"]'))continue;
   const host=anchor.closest('.field')||anchor.parentElement;if(!host)continue;
-  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent='▣ Escanear cédula';btn.onclick=()=>{build();current=target;$('frIdScanModal').hidden=false;$('frIdScanFields').hidden=true;$('frIdScanApply').disabled=true;$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();};host.insertAdjacentElement('afterend',btn);
+  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent='▣ Escanear cédula';btn.onclick=async()=>{
+   build();current=target;$('frIdScanModal').hidden=false;$('frIdScanFields').hidden=true;$('frIdScanApply').disabled=true;
+   if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){
+    $('frIdScanStatus').textContent='Abriendo escáner Android…';
+    try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
+     for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
+     $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
+     $('frIdScanStatus').textContent='Revisa los datos detectados antes de rellenar el formulario.';
+    }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Puedes utilizar Galería o Abrir cámara.';}
+   }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
+  };host.insertAdjacentElement('afterend',btn);
  }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
