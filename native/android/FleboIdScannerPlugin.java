@@ -37,6 +37,19 @@ public class FleboIdScannerPlugin extends Plugin {
     private File pendingPhoto;
 
     @PluginMethod
+    public void getAppVersion(PluginCall call) {
+        try {
+            android.content.pm.PackageInfo info = getContext().getPackageManager().getPackageInfo(getContext().getPackageName(), 0);
+            JSObject response = new JSObject();
+            response.put("versionCode", androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(info));
+            response.put("versionName", info.versionName);
+            call.resolve(response);
+        } catch (Exception e) {
+            call.reject("No se pudo consultar la versión instalada.");
+        }
+    }
+
+    @PluginMethod
     public void scan(PluginCall call) {
         if (getPermissionState("camera") != com.getcapacitor.PermissionState.GRANTED) {
             requestPermissionForAlias("camera", call, "onCameraPermission");
