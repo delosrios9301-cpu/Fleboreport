@@ -24,6 +24,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.text.Text;
 import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.barcode.BarcodeScanning;
+import com.google.mlkit.vision.barcode.BarcodeScanner;
+import com.google.mlkit.vision.barcode.common.Barcode;
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.io.File;
@@ -127,17 +131,30 @@ public class FleboIdScannerPlugin extends Plugin {
             final Bitmap finalBitmap = bitmap;
             // El archivo temporal se elimina antes de iniciar el OCR; ML Kit recibe únicamente memoria.
             cleanup();
-            com.google.mlkit.vision.text.TextRecognizer recognizer =
-                TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
-            recognizer.process(image)
-                .addOnSuccessListener(text -> {
-                    JSObject response = new JSObject();
-                    response.put("text", text.getText());
-                    call.resolve(response);
+            // Únicamente QR: ignorar PDF417 y otros códigos del reverso.
+            BarcodeScannerOptions scanOptions = new BarcodeScannerOptions.Builder()
+                .setBarcodeFormats(Barcode.FORMAT_QR_CODE).build();
+            BarcodeScanner scanner = BarcodeScanning.getClient(scanOptions);
+            scanner.process(image)
+                .addOnSuccessListener(barcodes -> {
+                    String qr = null;
+                    for (Barcode barcode : barcodes) {
+                        if (barcode.getFormat() == Barcode.FORMAT_QR_CODE && barcode.getRawValue() != null) {
+                            qr = barcode.getRawValue();
+                            break;
+                        }
+                    }
+                    if (qr == null || qr.trim().isEmpty()) {
+                        call.reject("No se detectó un QR legible. Enfoca solo el QR del reverso y vuelve a tomar la foto.");
+                    } else {
+                        JSObject response = new JSObject();
+                        response.put("qr", qr);
+                        call.resolve(response);
+                    }
                 })
-                .addOnFailureListener(e -> call.reject("No se pudo reconocer texto: " + e.getMessage()))
+                .addOnFailureListener(e -> call.reject("No se pudo leer el QR: " + e.getMessage()))
                 .addOnCompleteListener(task -> {
-                    recognizer.close();
+                    scanner.close();
                     finalBitmap.recycle();
                 });
         } catch (Exception e) {
