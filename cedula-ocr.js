@@ -136,10 +136,14 @@ function build(){
   const data={doc:$('frIdScanDoc').value.trim(),name:$('frIdScanName').value.trim(),last:$('frIdScanLast').value.trim(),birth:$('frIdScanBirth').value,sex:$('frIdScanSex').value};
   const f=current.fields;
   const set=(id,value)=>{const el=$(id);if(!el||!value)return false;if(el.tagName==='SELECT'&&!Array.from(el.options).some(o=>o.value===value))return false;el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return el.value===value;};
-  set(f.doc,data.doc);set(f.birth,data.birth);set(f.sex,data.sex);
-  if(f.last){set(f.name,data.name);set(f.last,data.last);}else set(f.name,[data.name,data.last].filter(Boolean).join(' '));
-  const required=[f.doc,f.name,f.birth,f.sex].filter(Boolean);const missing=required.filter(id=>!$(id));
-  if(missing.length){$('frIdScanStatus').textContent='No se localizaron estos campos del formulario: '+missing.join(', ')+'. No se puede confirmar el rellenado.';return;}
+  const required=[f.doc,f.name,f.birth,f.sex].filter(Boolean);
+  const missing=required.filter(id=>!$(id));
+  if(missing.length){$('frIdScanStatus').textContent='El formulario no contiene los campos: '+missing.join(', ')+'. No se transfirieron datos.';return;}
+  const results=[['cédula',f.doc,data.doc],['fecha de nacimiento',f.birth,data.birth],['sexo',f.sex,data.sex]];
+  if(f.last){results.push(['nombres',f.name,data.name],['apellidos',f.last,data.last]);}
+  else results.push(['nombre completo',f.name,[data.name,data.last].filter(Boolean).join(' ')]);
+  const failed=results.filter(([label,id,value])=>id&&value&&!set(id,value)).map(([label])=>label);
+  if(failed.length){$('frIdScanStatus').textContent='No se pudieron transferir: '+failed.join(', ')+'. Revisa el formulario.';return;}
   stopCamera();modal.hidden=true;current=null;$('frIdScanFields').hidden=true;
   if(window.toast)window.toast('Datos transferidos al formulario. Verifica antes de guardar.');
  };
