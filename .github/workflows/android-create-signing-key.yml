@@ -1,0 +1,47 @@
+name: Preparar firma Android desde celular
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: fleboreport-android-signing-key
+  cancel-in-progress: false
+jobs:
+  create-key:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Validar contraseña privada y ausencia de clave previa
+        env:
+          BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$BACKUP_PASSWORD" || { echo "::error::Configura primero el secreto ANDROID_SIGNING_BACKUP_PASSWORD"; exit 1; }
+          test "${#BACKUP_PASSWORD}" -ge 20 || { echo "::error::Usa una contraseña de al menos 20 caracteres"; exit 1; }
+          test ! -e native/android/signing/fleboreport-release.jks.enc || { echo "::error::Ya existe una clave cifrada. No crear otra: cambiaría la firma Android."; exit 1; }
+      - name: Crear clave y cifrar respaldo sin publicar clave privada
+        env:
+          BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
+        run: |
+          set -euo pipefail
+          mkdir -p native/android/signing
+          STORE_PASS="$(printf '%s' "$BACKUP_PASSWORD" | openssl dgst -sha256 -binary | xxd -p -c 256)"
+          export STORE_PASS
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/fleboreport-release.jks" -alias fleboreport -keyalg RSA -keysize 3072 -validity 10000 -storepass "$STORE_PASS" -keypass "$STORE_PASS" -dname "CN=FleboReport, OU=Android, O=FleboReport, C=PA"
+          printf '%s' "$BACKUP_PASSWORD" | openssl enc -aes-256-cbc -salt -pbkdf2 -iter 250000 -in "$RUNNER_TEMP/fleboreport-release.jks" -out native/android/signing/fleboreport-release.jks.enc -pass stdin
+          rm -f "$RUNNER_TEMP/fleboreport-release.jks"
+          test -s native/android/signing/fleboreport-release.jks.enc
+      - name: Guardar únicamente respaldo cifrado
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add native/android/signing/fleboreport-release.jks.enc
+          git commit -m "chore(android): almacenar respaldo cifrado de firma permanente"
+          git push
