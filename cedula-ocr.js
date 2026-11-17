@@ -55,19 +55,19 @@ function extract(raw){
  let birth='';
  if(date){const d=+date[1],m=+date[2],y=+date[3];const dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCDate()===d&&dt.getUTCMonth()===m-1&&dt.getUTCFullYear()===y)birth=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
  const ignore=/REPUBLICA|PANAMA|CEDULA|IDENTIDAD|PERSONAL|NACIMIENTO|NACIONALIDAD|EXPEDICION|VENCIMIENTO|DONANTE|DIRECCION|REGISTRO|TRIBUNAL|ELECTORAL|FECHA|DOCUMENTO|FIRMA|LUGAR|ESTADO|CIVIL|NUMERO|SEXO|NOMBRE|APELLIDO|VALIDA|VALIDO|SANGRE|EMISION|AUTORIDAD/;
- const cleanName=value=>norm(String(value||'').replace(/[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]/g,' ').replace(/\\s+/g,' ')).replace(/^[ -]+|[ -]+$/g,'');
+ const cleanName=value=>norm(String(value||'').replace(/[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]/g,' ').replace(/\s+/g,' ')).replace(/^[ -]+|[ -]+$/g,'');
  function candidate(value){const v=cleanName(value);return v.length>=3&&v.length<=75&&/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]+$/.test(v)&&!ignore.test(v.toUpperCase())?v:'';}
  function labeled(re){
   for(let i=0;i<upper.length;i++){
    const m=upper[i].match(re);if(!m)continue;
-   const inline=candidate(upper[i].slice(m.index+m[0].length).replace(/^[\\s:.-]+/,''));
+   const inline=candidate(upper[i].slice(m.index+m[0].length).replace(/^[\s:.-]+/,''));
    if(inline)return inline;
    for(let j=i+1;j<=Math.min(i+2,upper.length-1);j++){const next=candidate(upper[j]);if(next)return next;if(/CEDULA|NACIMIENTO|SEXO|APELLIDO|NOMBRE/.test(upper[j]))break;}
   }
   return '';
  }
- let name=labeled(/\\b(?:NOMBRES?|PRIMER\\s+NOMBRE|GIVEN\\s+NAMES?)\\s*[:.-]?/);
- let last=labeled(/\\b(?:APELLIDOS?|PRIMER\\s+APELLIDO|SURNAMES?|LAST\\s+NAME)\\s*[:.-]?/);
+ let name=labeled(/\b(?:NOMBRES?|PRIMER\s+NOMBRE|GIVEN\s+NAMES?)\s*[:.-]?/);
+ let last=labeled(/\b(?:APELLIDOS?|PRIMER\s+APELLIDO|SURNAMES?|LAST\s+NAME)\s*[:.-]?/);
  // Algunas cédulas imprimen los nombres y apellidos en líneas independientes, sin rótulos.
  // Solo inferir cuando hay dos líneas consecutivas inequívocamente alfabéticas.
  if(!name&&!last){
@@ -75,10 +75,10 @@ function extract(raw){
   if(chunks.length===2){last=chunks[0];name=chunks[1];}
  }
  let sex='';
- const explicit=text.match(/\\b(?:SEXO|SEX|GENERO|GENDER)\\s*[:.-]?\\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\\b/);
+ const explicit=text.match(/\b(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\b/);
  if(explicit)sex=/^(F|FEMENINO|MUJER)$/.test(explicit[1])?'Femenino':'Masculino';
  else{
-  const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\\s*[:.-]?$/.test(x));
+  const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?$/.test(x));
   if(sexLine>=0){const v=upper[sexLine+1]||'';if(/^(F|FEMENINO|MUJER)$/.test(v))sex='Femenino';if(/^(M|MASCULINO|HOMBRE)$/.test(v))sex='Masculino';}
  }
  return {doc,name,last,birth,sex};
