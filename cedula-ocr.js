@@ -103,8 +103,16 @@ function build(){
   processing=true;$('frIdScanApply').disabled=true;$('frIdScanFields').hidden=true;$('frIdScanStatus').textContent='Reconociendo texto de la fotografía…';
   try{
    if(!window.FleboHomeOrderOCR?.recognizeImage)throw Error('El motor OCR no está disponible. Reabre la aplicación con conexión.');
-   const result=await window.FleboHomeOrderOCR.recognizeImage(file);
-   const found=extract(result.text);
+   const ocr=window.FleboHomeOrderOCR;
+   const result=ocr.recognizeIdImage?await ocr.recognizeIdImage(file):{full:(await ocr.recognizeImage(file)).text};
+   const found=extract(result.full);
+   const names=extract(['TRIBUNAL ELECTORAL',result.names,'NOMBRE USUAL:'].join('\n'));
+   const details=extract(result.details);
+   const document=extract(result.document);
+   if(names.name&&names.last){found.name=names.name;found.last=names.last;}
+   if(details.birth)found.birth=details.birth;
+   if(details.sex)found.sex=details.sex;
+   if(document.doc)found.doc=document.doc;
    // No registrar ni mostrar el texto OCR completo: contiene datos sensibles.
    for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
    $('frIdScanFields').hidden=false;
