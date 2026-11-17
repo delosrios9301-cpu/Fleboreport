@@ -98,7 +98,8 @@ async function recognizeNative(){
  if(!response||response.cancelled)return null;
  const raw=String(response.text||'').trim();
  if(!raw)throw Error('ML Kit no detectó texto en la fotografía. Reintenta con la cédula completa, bien iluminada y sin reflejos.');
- return extract(raw);
+ const parsed=extract(raw);
+ return {...parsed,_ocrLines:raw.split(/\r?\n/).filter(x=>x.trim()).length};
 }
 function build(){
  if($('frIdScanModal'))return;
@@ -165,7 +166,7 @@ function attach(){
     try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
      for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
      $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
-     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'ML Kit detectó texto, pero no pudo identificar campos fiables de la cédula. Reintenta con la tarjeta completa o introduce los datos manualmente.';
+     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'ML Kit detectó '+found._ocrLines+' líneas, pero no identificó campos fiables. Usa una fotografía frontal, nítida y sin reflejos, o introduce los datos manualmente.';
     }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Puedes utilizar Galería o Abrir cámara.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
