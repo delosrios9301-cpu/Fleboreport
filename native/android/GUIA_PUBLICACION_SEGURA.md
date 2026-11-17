@@ -1,3 +1,15 @@
+# Método desde celular Android (recomendado)
+
+1. En GitHub abre el repositorio FleboReport > Settings > Secrets and variables > Actions > New repository secret.
+2. Nombre exacto: `ANDROID_SIGNING_BACKUP_PASSWORD`. Valor: una frase secreta **única, aleatoria y de al menos 20 caracteres**, guardada fuera de GitHub en un gestor de contraseñas. No compartirla por chat.
+3. Abre Actions > **Preparar firma Android desde celular** > Run workflow > Run workflow. El flujo genera la clave, cifra su respaldo y guarda **solo el archivo cifrado** en el repositorio. Nunca publica el JKS sin cifrar.
+4. Confirma que la ejecución termine en verde y que exista `native/android/signing/fleboreport-release.jks.enc`. Conserva la contraseña: si la pierdes no podrás recuperar la clave de firma.
+5. Solo entonces usa Actions > **Publicar APK Android firmado**, con la versión que coincida con `configure_android.py`. Antes de distribuirla, valida la migración desde APK debug y conserva los datos actuales.
+
+**Importante:** este procedimiento crea una clave nueva para las versiones release; no sirve para instalar encima de una versión debug firmada con otra clave. No desinstales la app actual sin respaldo verificado.
+
+---
+
 # Publicación segura de FleboReport Android
 
 ## Antes de publicar
