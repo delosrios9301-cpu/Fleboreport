@@ -60,8 +60,9 @@ jobs:
           trap 'rm -f "$RUNNER_TEMP/release.jks"' EXIT
           APK=native/android/android/app/build/outputs/apk/release/app-release-unsigned.apk
           test -f "$APK"
-          ZIPALIGN="$ANDROID_HOME/build-tools/35.0.0/zipalign"
-          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          ZIPALIGN="$BUILD_TOOLS/zipalign"
+          APKSIGNER="$BUILD_TOOLS/apksigner"
           test -x "$ZIPALIGN" && test -x "$APKSIGNER"
           "$ZIPALIGN" -f -p 4 "$APK" "$RUNNER_TEMP/aligned.apk"
           "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" --ks-pass env:STORE_PASS --key-pass env:KEY_PASS --out "FleboReport-${{ inputs.version }}.apk" "$RUNNER_TEMP/aligned.apk"
