@@ -78,14 +78,14 @@ function extract(raw){
  }
  // Rótulos comunes en dos columnas: NOMBRES y APELLIDOS pueden aparecer juntos antes de los valores.
  if(!name&&!last){
-  const labelIndex=upper.findIndex(x=>/\\bNOMBRES?\\b/.test(x)&&/\\bAPELLIDOS?\\b/.test(x));
+  const labelIndex=upper.findIndex(x=>/\bNOMBRES?\b/.test(x)&&/\bAPELLIDOS?\b/.test(x));
   if(labelIndex>=0){const values=upper.slice(labelIndex+1,labelIndex+4).map(candidate).filter(Boolean);if(values.length===2){name=values[0];last=values[1];}}
  }
  let sex='';
  const explicit=text.match(/\b(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\b/);
  if(explicit)sex=/^(F|FEMENINO|MUJER)$/.test(explicit[1])?'Femenino':'Masculino';
- else if(/\\b(?:FEMALE|FEMALE\\/F|MUJER)\\b/.test(text))sex='Femenino';
- else if(/\\b(?:MALE|HOMBRE)\\b/.test(text))sex='Masculino';
+ else if(/\b(?:FEMALE|FEMALE\/F|MUJER)\b/.test(text))sex='Femenino';
+ else if(/\b(?:MALE|HOMBRE)\b/.test(text))sex='Masculino';
  else{
   const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?$/.test(x));
   if(sexLine>=0){const v=upper[sexLine+1]||'';if(/^(F|FEMENINO|MUJER)$/.test(v))sex='Femenino';if(/^(M|MASCULINO|HOMBRE)$/.test(v))sex='Masculino';}
