@@ -7,13 +7,35 @@ const targets=[
  {anchor:'indPatientName',fields:{name:'indPatientName',doc:'indPatientDocument',birth:'indPatientBirth',sex:'indPatientSex'}}
 ];
 const $=id=>document.getElementById(id);
-let current=null,processing=false,cameraStream=null;
-function stopCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}const video=$('frIdScanVideo');if(video){video.pause();video.srcObject=null;video.hidden=true;}if($('frIdScanSnap'))$('frIdScanSnap').hidden=true;}
+let current=null,processing=false,cameraStream=null,autoTimer=null,autoSamples=0,autoPrevious=null;
+function stopCamera(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}autoSamples=0;autoPrevious=null;if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}const video=$('frIdScanVideo');if(video){video.pause();video.srcObject=null;video.hidden=true;}if($('frIdScanSnap'))$('frIdScanSnap').hidden=true;}
 async function startCamera(){
  const video=$('frIdScanVideo');
  if(!navigator.mediaDevices?.getUserMedia){$('frIdScanStatus').textContent='Este navegador no permite cámara directa. Usa Tomar foto o Galería.';$('frIdScanFile').click();return;}
- try{stopCamera();cameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'}}});video.srcObject=cameraStream;video.hidden=false;await video.play();$('frIdScanSnap').hidden=false;$('frIdScanStatus').textContent='Enfoca la cédula y presiona Capturar foto.';}
+ try{stopCamera();cameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'}}});video.srcObject=cameraStream;video.hidden=false;await video.play();$('frIdScanSnap').hidden=false;$('frIdScanStatus').textContent='Coloca la cédula dentro de la cámara y mantén el teléfono quieto. La captura será automática cuando la imagen esté estable.';beginAutoCapture();}
  catch(err){stopCamera();$('frIdScanStatus').textContent='No se pudo abrir la cámara ('+(err.name||'permiso')+'). Permite el acceso o usa Galería.';}
+}
+
+function beginAutoCapture(){
+ const canvas=document.createElement('canvas');canvas.width=160;canvas.height=110;
+ const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return;
+ autoSamples=0;autoPrevious=null;
+ autoTimer=setInterval(()=>{
+  const video=$('frIdScanVideo');
+  if(!cameraStream||processing||!video||video.readyState<2||!video.videoWidth)return;
+  ctx.drawImage(video,0,0,160,110);
+  const pixels=ctx.getImageData(0,0,160,110).data;
+  const grey=new Uint8Array(160*110);let sum=0,edges=0,count=0;
+  for(let i=0;i<grey.length;i++){grey[i]=(pixels[i*4]*77+pixels[i*4+1]*150+pixels[i*4+2]*29)>>8;sum+=grey[i];}
+  for(let y=1;y<109;y+=2)for(let x=1;x<159;x+=2){const i=y*160+x;edges+=Math.abs(grey[i]-grey[i-1])+Math.abs(grey[i]-grey[i-160]);count++;}
+  const contrast=edges/Math.max(1,count),brightness=sum/grey.length;
+  let motion=0;
+  if(autoPrevious){for(let i=0;i<grey.length;i+=19)motion+=Math.abs(grey[i]-autoPrevious[i]);motion/=Math.ceil(grey.length/19);}
+  autoPrevious=grey;
+  if(contrast>25&&brightness>45&&brightness<225&&motion<9)autoSamples++;
+  else autoSamples=0;
+  if(autoSamples>=3){clearInterval(autoTimer);autoTimer=null;$('frIdScanStatus').textContent='Imagen estable detectada. Capturando automáticamente…';$('frIdScanSnap').click();}
+ },650);
 }
 
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
