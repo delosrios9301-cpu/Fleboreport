@@ -20,14 +20,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Comprobar secretos de firma
+      - name: Comprobar respaldo cifrado de firma
         env:
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
         run: |
-          test -n "$KEYSTORE_B64" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS" || { echo 'Faltan secretos de firma Android'; exit 1; }
+          test -n "$BACKUP_PASSWORD" || { echo "::error::Falta ANDROID_SIGNING_BACKUP_PASSWORD"; exit 1; }
+          test -s native/android/signing/fleboreport-release.jks.enc || { echo "::error::Ejecuta primero Preparar firma Android desde celular"; exit 1; }
       - name: Preparar Capacitor
         working-directory: native/android
         run: |
@@ -48,16 +46,15 @@ jobs:
       - name: Compilar APK release
         working-directory: native/android/android
         run: bash gradlew assembleRelease --no-daemon --max-workers=2
-      - name: Firmar y verificar APK
+      - name: Descifrar, firmar y verificar APK
         env:
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
         run: |
           set -euo pipefail
-          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          printf '%s' "$BACKUP_PASSWORD" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 250000 -in native/android/signing/fleboreport-release.jks.enc -out "$RUNNER_TEMP/release.jks" -pass stdin
           trap 'rm -f "$RUNNER_TEMP/release.jks"' EXIT
+          STORE_PASS="$(printf '%s' "$BACKUP_PASSWORD" | openssl dgst -sha256 -binary | xxd -p -c 256)"
+          export STORE_PASS
           APK=native/android/android/app/build/outputs/apk/release/app-release-unsigned.apk
           test -f "$APK"
           BUILD_TOOLS="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
@@ -65,7 +62,7 @@ jobs:
           APKSIGNER="$BUILD_TOOLS/apksigner"
           test -x "$ZIPALIGN" && test -x "$APKSIGNER"
           "$ZIPALIGN" -f -p 4 "$APK" "$RUNNER_TEMP/aligned.apk"
-          "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" --ks-pass env:STORE_PASS --key-pass env:KEY_PASS --out "FleboReport-${{ inputs.version }}.apk" "$RUNNER_TEMP/aligned.apk"
+          "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias fleboreport --ks-pass env:STORE_PASS --key-pass env:STORE_PASS --out "FleboReport-${{ inputs.version }}.apk" "$RUNNER_TEMP/aligned.apk"
           "$APKSIGNER" verify --verbose "FleboReport-${{ inputs.version }}.apk"
       - name: Publicar GitHub Release
         env:
