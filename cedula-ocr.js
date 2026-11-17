@@ -47,42 +47,46 @@ function beginAutoCapture(){
 
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function extract(raw){
- const lines=String(raw||'').split(/[\r\n]+/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
- const normalize=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const lines=String(raw||'').split(/[\\r\\n]+/).map(s=>s.replace(/\\s+/g,' ').trim()).filter(Boolean);
+ const normalize=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
  const upper=lines.map(normalize),text=upper.join(' ');
- // La cédula panameña tiene nombre y apellido en líneas superiores sin rótulos.
- const header=upper.findIndex(s=>/TRIBUNAL\s+ELECTORAL/.test(s));
- const firstField=upper.findIndex(s=>/NOMBRE\s+USUAL|FECHA\s+DE\s+NACIMIENTO|LUGAR\s+DE\s+NACIMIENTO|SEXO\s*:/.test(s));
- const nameArea=header>=0?upper.slice(header+1,firstField>header?firstField:header+5):[];
- const nameCandidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA)\b/.test(s);
- const nameLines=nameArea.filter(nameCandidate);
- // El OCR puede unir nombres y apellidos en una sola línea; no adivinar cómo separarlos.
- // Excluir textos administrativos para evitar completar un nombre incorrecto.
+ const header=upper.findIndex(s=>/TRIBUNAL\\s+ELECTORAL/.test(s));
+ const firstField=upper.findIndex(s=>/NOMBRE\\s+USUAL|FECHA\\s+(?:DE\\s+)?NACIMIENTO|LUGAR\\s+(?:DE\\s+)?NACIMIENTO|\\bSEXO\\b/.test(s));
+ const invalid=/\\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA|FIRMA|DOCUMENTO|NACIONALIDAD|REGISTRO|TIPO|CONTROL|EMISION|VENCE|VENCIMIENTO)\\b/;
+ const candidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!invalid.test(s)&&!/[0-9]/.test(s);
+ // A veces ML Kit divide TRIBUNAL ELECTORAL en dos líneas; localizar el bloque
+ // por sus rótulos sin asumir que cada nombre ocupa una posición fija.
+ const top=header>=0?header+1:upper.findIndex(s=>/ELECTORAL/.test(s))+1;
+ const end=firstField>top?firstField:Math.min(upper.length,top+7);
+ const area=top>0?upper.slice(top,end):[];
+ const clean=s=>s.replace(/^[^A-ZÑ]+/,'').replace(/[^A-ZÑ' -]+$/,'').trim();
+ const nameLines=area.map(clean).filter(candidate);
  let name='',last='';
  if(nameLines.length>=2){name=nameLines[0];last=nameLines[1];}
- function labeled(re){
+ const labeled=re=>{
   for(let i=0;i<upper.length;i++){
    const m=upper[i].match(re);if(!m)continue;
-   const value=upper[i].slice(m.index+m[0].length).replace(/^[\s:.-]+/,'');
-   if(nameCandidate(value))return value;
-   if(nameCandidate(upper[i+1]||''))return upper[i+1];
+   const value=clean(upper[i].slice(m.index+m[0].length));
+   if(candidate(value))return value;
+   const next=clean(upper[i+1]||'');
+   if(candidate(next))return next;
   }
   return '';
- }
- if(!name)name=labeled(/\b(?:NOMBRES|GIVEN\s+NAMES?)\s*[:.-]?/);
- if(!last)last=labeled(/\b(?:APELLIDOS?|SURNAMES?)\s*[:.-]?/);
- const idMatches=[...text.matchAll(/\b((?:PE|E|N|AV|\d{1,2})\s*[-–]\s*\d{1,5}\s*[-–]\s*\d{1,6})\b/g)];
- const doc=idMatches.map(m=>m[1].replace(/\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
+ };
+ if(!name)name=labeled(/\\b(?:NOMBRES|GIVEN\\s+NAMES?)\\s*[:.-]?/);
+ if(!last)last=labeled(/\\b(?:APELLIDOS?|SURNAMES?)\\s*[:.-]?/);
+ const idMatches=[...text.matchAll(/\\b((?:PE|E|N|AV|\\d{1,2})\\s*[-–]\\s*\\d{1,5}\\s*[-–]\\s*\\d{1,6})\\b/g)];
+ const doc=idMatches.map(m=>m[1].replace(/\\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
  const months={ENE:1,FEB:2,MAR:3,ABR:4,MAY:5,JUN:6,JUL:7,AGO:8,SEP:9,SET:9,OCT:10,NOV:11,DIC:12,DEC:12,JAN:1,APR:4,AUG:8};
- const datePattern=/(\d{1,2})\s*[-/.]\s*(\d{1,2}|[A-Z]{3,10})\s*[-/.]\s*((?:19|20)\d{2})/;
- const birthRow=upper.findIndex(s=>/FECHA\s+DE\s+NACIMIENTO|BIRTH\s+DATE/.test(s));
+ const datePattern=/(\\d{1,2})\\s*[-/.]\\s*(\\d{1,2}|[A-Z]{3,10})\\s*[-/.]\\s*((?:19|20)\\d{2})/;
+ const birthRow=upper.findIndex(s=>/FECHA\\s+(?:DE\\s+)?NACIMIENTO|BIRTH\\s+DATE/.test(s));
  let dateMatch=birthRow>=0?(upper[birthRow].match(datePattern)||(upper[birthRow+1]||'').match(datePattern)):null;
  let birth='';
  if(dateMatch){
-  const day=Number(dateMatch[1]),token=dateMatch[2],month=/^\d+$/.test(token)?Number(token):months[token.slice(0,3)],year=Number(dateMatch[3]);
+  const day=Number(dateMatch[1]),token=dateMatch[2],month=/^\\d+$/.test(token)?Number(token):months[token.slice(0,3)],year=Number(dateMatch[3]);
   if(month>=1&&month<=12){const d=new Date(Date.UTC(year,month-1,day));if(d.getUTCFullYear()===year&&d.getUTCMonth()===month-1&&d.getUTCDate()===day)birth=year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
  }
- const sexMatch=text.match(/\bSEXO\s*[:.]?\s*(MASCULINO|FEMENINO|M|F)\b/);
+ const sexMatch=text.match(/\\bSEXO\\s*[:.]?\\s*(MASCULINO|FEMENINO|M|F)\\b/);
  const sex=sexMatch?(/^(M|MASCULINO)$/.test(sexMatch[1])?'Masculino':'Femenino'):'';
  return {doc,name,last,birth,sex};
 }
@@ -92,7 +96,9 @@ async function recognizeNative(){
  if(!plugin?.scan)throw Error('El escáner nativo no está instalado en esta versión Android.');
  const response=await plugin.scan();
  if(!response||response.cancelled)return null;
- return extract(response.text||'');
+ const raw=String(response.text||'').trim();
+ if(!raw)throw Error('ML Kit no detectó texto en la fotografía. Reintenta con la cédula completa, bien iluminada y sin reflejos.');
+ return extract(raw);
 }
 function build(){
  if($('frIdScanModal'))return;
@@ -159,7 +165,7 @@ function attach(){
     try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
      for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
      $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
-     $('frIdScanStatus').textContent='Revisa los datos detectados antes de rellenar el formulario.';
+     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'ML Kit detectó texto, pero no pudo identificar campos fiables de la cédula. Reintenta con la tarjeta completa o introduce los datos manualmente.';
     }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Puedes utilizar Galería o Abrir cámara.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
