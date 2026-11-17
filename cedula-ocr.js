@@ -7,8 +7,8 @@ const targets=[
  {anchor:'indPatientName',fields:{name:'indPatientName',doc:'indPatientDocument',birth:'indPatientBirth',sex:'indPatientSex'}}
 ];
 const $=id=>document.getElementById(id);
-let current=null,processing=false,cameraStream=null,autoTimer=null,autoSamples=0,autoPrevious=null;
-function stopCamera(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}autoSamples=0;autoPrevious=null;if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}const video=$('frIdScanVideo');if(video){video.pause();video.srcObject=null;video.hidden=true;}if($('frIdScanSnap'))$('frIdScanSnap').hidden=true;}
+let current=null,processing=false,cameraStream=null,autoTimer=null,autoSamples=0,autoPrevious=null,autoStarted=0,autoBusy=false;
+function stopCamera(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}autoSamples=0;autoPrevious=null;autoStarted=0;autoBusy=false;if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}const video=$('frIdScanVideo');if(video){video.pause();video.srcObject=null;video.hidden=true;}if($('frIdScanSnap'))$('frIdScanSnap').hidden=true;}
 async function startCamera(){
  const video=$('frIdScanVideo');
  if(!navigator.mediaDevices?.getUserMedia){$('frIdScanStatus').textContent='Este navegador no permite cámara directa. Usa Tomar foto o Galería.';$('frIdScanFile').click();return;}
@@ -19,7 +19,7 @@ async function startCamera(){
 function beginAutoCapture(){
  const canvas=document.createElement('canvas');canvas.width=160;canvas.height=110;
  const ctx=canvas.getContext('2d',{willReadFrequently:true});if(!ctx)return;
- autoSamples=0;autoPrevious=null;
+ autoSamples=0;autoPrevious=null;autoStarted=Date.now();
  autoTimer=setInterval(()=>{
   const video=$('frIdScanVideo');
   if(!cameraStream||processing||!video||video.readyState<2||!video.videoWidth)return;
@@ -32,9 +32,14 @@ function beginAutoCapture(){
   let motion=0;
   if(autoPrevious){for(let i=0;i<grey.length;i+=19)motion+=Math.abs(grey[i]-autoPrevious[i]);motion/=Math.ceil(grey.length/19);}
   autoPrevious=grey;
-  if(contrast>25&&brightness>45&&brightness<225&&motion<9)autoSamples++;
-  else autoSamples=0;
-  if(autoSamples>=3){clearInterval(autoTimer);autoTimer=null;$('frIdScanStatus').textContent='Imagen estable detectada. Capturando automáticamente…';$('frIdScanSnap').click();}
+  if(contrast>9&&brightness>32&&brightness<240&&motion<16)autoSamples++;
+  else autoSamples=Math.max(0,autoSamples-1);
+  const elapsed=Date.now()-autoStarted;
+  if(autoSamples>=3 || (elapsed>6500&&contrast>8&&brightness>35&&brightness<238&&motion<19)){
+   if(autoBusy)return;autoBusy=true;clearInterval(autoTimer);autoTimer=null;
+   $('frIdScanStatus').textContent='Fotografía capturada automáticamente. Reconociendo datos…';$('frIdScanSnap').click();
+  }else if(elapsed>13000){clearInterval(autoTimer);autoTimer=null;$('frIdScanStatus').textContent='No se detectó una imagen suficientemente estable. Ajusta la iluminación y presiona Capturar foto o Abrir cámara para reintentar.';}
+
  },650);
 }
 
@@ -49,10 +54,33 @@ function extract(raw){
  let date= birthLine>=0 ? (upper[birthLine].match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](19\d{2}|20\d{2})\b/)||upper[birthLine+1]?.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](19\d{2}|20\d{2})\b/)) : (dates.length===1?dates[0]:null);
  let birth='';
  if(date){const d=+date[1],m=+date[2],y=+date[3];const dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCDate()===d&&dt.getUTCMonth()===m-1&&dt.getUTCFullYear()===y)birth=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
- function named(re){let i=upper.findIndex(x=>re.test(x));if(i<0)return '';let v=upper[i].replace(re,'').replace(/^[\s:.-]+/,'');if(!v||/^(S|ES|COMPLETO)$/.test(v))v=upper[i+1]||'';return /^[A-ZÑ ]{3,}$/.test(v)&&!/REPUBLICA|PANAMA|CEDULA|IDENTIDAD|PERSONAL|NACIMIENTO/.test(v)?norm(v):'';}
- const name=named(/^(?:NOMBRES?|GIVEN NAMES?)\s*:?\s*/);
- const last=named(/^(?:APELLIDOS?|SURNAMES?)\s*:?\s*/);
- const sex=/\b(?:SEXO|SEX)\s*:?\s*(?:F|FEMENINO|MUJER)\b/.test(text)?'Femenino':/\b(?:SEXO|SEX)\s*:?\s*(?:M|MASCULINO|HOMBRE)\b/.test(text)?'Masculino':'';
+ const ignore=/REPUBLICA|PANAMA|CEDULA|IDENTIDAD|PERSONAL|NACIMIENTO|NACIONALIDAD|EXPEDICION|VENCIMIENTO|DONANTE|DIRECCION|REGISTRO|TRIBUNAL|ELECTORAL|FECHA|DOCUMENTO|FIRMA|LUGAR|ESTADO|CIVIL|NUMERO|SEXO|NOMBRE|APELLIDO|VALIDA|VALIDO|SANGRE|EMISION|AUTORIDAD/;
+ const cleanName=value=>norm(String(value||'').replace(/[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]/g,' ').replace(/\\s+/g,' ')).replace(/^[ -]+|[ -]+$/g,'');
+ function candidate(value){const v=cleanName(value);return v.length>=3&&v.length<=75&&/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]+$/.test(v)&&!ignore.test(v.toUpperCase())?v:'';}
+ function labeled(re){
+  for(let i=0;i<upper.length;i++){
+   const m=upper[i].match(re);if(!m)continue;
+   const inline=candidate(upper[i].slice(m.index+m[0].length).replace(/^[\\s:.-]+/,''));
+   if(inline)return inline;
+   for(let j=i+1;j<=Math.min(i+2,upper.length-1);j++){const next=candidate(upper[j]);if(next)return next;if(/CEDULA|NACIMIENTO|SEXO|APELLIDO|NOMBRE/.test(upper[j]))break;}
+  }
+  return '';
+ }
+ let name=labeled(/\\b(?:NOMBRES?|PRIMER\\s+NOMBRE|GIVEN\\s+NAMES?)\\s*[:.-]?/);
+ let last=labeled(/\\b(?:APELLIDOS?|PRIMER\\s+APELLIDO|SURNAMES?|LAST\\s+NAME)\\s*[:.-]?/);
+ // Algunas cédulas imprimen los nombres y apellidos en líneas independientes, sin rótulos.
+ // Solo inferir cuando hay dos líneas consecutivas inequívocamente alfabéticas.
+ if(!name&&!last){
+  const chunks=upper.map(candidate).filter(Boolean);
+  if(chunks.length===2){last=chunks[0];name=chunks[1];}
+ }
+ let sex='';
+ const explicit=text.match(/\\b(?:SEXO|SEX|GENERO|GENDER)\\s*[:.-]?\\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\\b/);
+ if(explicit)sex=/^(F|FEMENINO|MUJER)$/.test(explicit[1])?'Femenino':'Masculino';
+ else{
+  const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\\s*[:.-]?$/.test(x));
+  if(sexLine>=0){const v=upper[sexLine+1]||'';if(/^(F|FEMENINO|MUJER)$/.test(v))sex='Femenino';if(/^(M|MASCULINO|HOMBRE)$/.test(v))sex='Masculino';}
+ }
  return {doc,name,last,birth,sex};
 }
 function build(){
