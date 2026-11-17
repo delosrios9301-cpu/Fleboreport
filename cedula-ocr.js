@@ -47,49 +47,41 @@ function beginAutoCapture(){
 
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function extract(raw){
- const lines=String(raw||'').split(/[\r\n]+/).map(norm).filter(Boolean);
- const upper=lines.map(x=>x.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));
- const text=upper.join(' ');
- const doc=text.match(/\b(?:PE|E|N|AV|[1-9]|1[0-3])[-\s]?\d{1,5}[-\s]\d{1,6}\b/)?.[0]?.replace(/\s+/g,'-')||'';
- const dates=[...text.matchAll(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](19\d{2}|20\d{2})\b/g)];
- const birthLine=upper.findIndex(x=>/NACIMIENTO|FECHA DE NAC|BIRTH/.test(x));
- let date= birthLine>=0 ? (upper[birthLine].match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](19\d{2}|20\d{2})\b/)||upper[birthLine+1]?.match(/\b(\d{1,2})[\/.-](\d{1,2})[\/.-](19\d{2}|20\d{2})\b/)) : (dates.length===1?dates[0]:null);
- let birth='';
- if(date){const d=+date[1],m=+date[2],y=+date[3];const dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCDate()===d&&dt.getUTCMonth()===m-1&&dt.getUTCFullYear()===y)birth=y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0');}
- const ignore=/REPUBLICA|PANAMA|CEDULA|IDENTIDAD|PERSONAL|NACIMIENTO|NACIONALIDAD|EXPEDICION|VENCIMIENTO|DONANTE|DIRECCION|REGISTRO|TRIBUNAL|ELECTORAL|FECHA|DOCUMENTO|FIRMA|LUGAR|ESTADO|CIVIL|NUMERO|SEXO|NOMBRE|APELLIDO|VALIDA|VALIDO|SANGRE|EMISION|AUTORIDAD/;
- const cleanName=value=>norm(String(value||'').replace(/[^A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]/g,' ').replace(/\s+/g,' ')).replace(/^[ -]+|[ -]+$/g,'');
- function candidate(value){const v=cleanName(value);return v.length>=3&&v.length<=75&&/^[A-ZÁÉÍÓÚÜÑa-záéíóúüñ' -]+$/.test(v)&&!ignore.test(v.toUpperCase())?v:'';}
+ const lines=String(raw||'').split(/[\r\n]+/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
+ const normalize=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ const upper=lines.map(normalize),text=upper.join(' ');
+ // La cédula panameña tiene nombre y apellido en líneas superiores sin rótulos.
+ const header=upper.findIndex(s=>/TRIBUNAL\s+ELECTORAL/.test(s));
+ const firstField=upper.findIndex(s=>/NOMBRE\s+USUAL|FECHA\s+DE\s+NACIMIENTO|LUGAR\s+DE\s+NACIMIENTO|SEXO\s*:/.test(s));
+ const nameArea=header>=0?upper.slice(header+1,firstField>header?firstField:header+5):[];
+ const nameCandidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA)\b/.test(s);
+ const nameLines=nameArea.filter(nameCandidate);
+ let name='',last='';
+ if(nameLines.length>=2){name=nameLines[0];last=nameLines[1];}
  function labeled(re){
   for(let i=0;i<upper.length;i++){
    const m=upper[i].match(re);if(!m)continue;
-   const inline=candidate(upper[i].slice(m.index+m[0].length).replace(/^[\s:.-]+/,''));
-   if(inline)return inline;
-   for(let j=i+1;j<=Math.min(i+2,upper.length-1);j++){const next=candidate(upper[j]);if(next)return next;if(/CEDULA|NACIMIENTO|SEXO|APELLIDO|NOMBRE/.test(upper[j]))break;}
+   const value=upper[i].slice(m.index+m[0].length).replace(/^[\s:.-]+/,'');
+   if(nameCandidate(value))return value;
+   if(nameCandidate(upper[i+1]||''))return upper[i+1];
   }
   return '';
  }
- let name=labeled(/\b(?:NOMBRES?|PRIMER\s+NOMBRE|GIVEN\s+NAMES?)\s*[:.-]?/);
- let last=labeled(/\b(?:APELLIDOS?|PRIMER\s+APELLIDO|SURNAMES?|LAST\s+NAME)\s*[:.-]?/);
- // Algunas cédulas imprimen los nombres y apellidos en líneas independientes, sin rótulos.
- // Solo inferir cuando hay dos líneas consecutivas inequívocamente alfabéticas.
- if(!name&&!last){
-  const chunks=upper.map(candidate).filter(Boolean);
-  if(chunks.length===2){last=chunks[0];name=chunks[1];}
+ if(!name)name=labeled(/\b(?:NOMBRES?|GIVEN\s+NAMES?)\s*[:.-]?/);
+ if(!last)last=labeled(/\b(?:APELLIDOS?|SURNAMES?)\s*[:.-]?/);
+ const idMatches=[...text.matchAll(/\b((?:PE|E|N|AV|\d{1,2})\s*[-–]\s*\d{1,5}\s*[-–]\s*\d{1,6})\b/g)];
+ const doc=idMatches.map(m=>m[1].replace(/\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
+ const months={ENE:1,FEB:2,MAR:3,ABR:4,MAY:5,JUN:6,JUL:7,AGO:8,SEP:9,SET:9,OCT:10,NOV:11,DIC:12,DEC:12,JAN:1,APR:4,AUG:8};
+ const datePattern=/(\d{1,2})\s*[-/.]\s*(\d{1,2}|[A-Z]{3,10})\s*[-/.]\s*((?:19|20)\d{2})/;
+ const birthRow=upper.findIndex(s=>/FECHA\s+DE\s+NACIMIENTO|BIRTH\s+DATE/.test(s));
+ let dateMatch=birthRow>=0?(upper[birthRow].match(datePattern)||(upper[birthRow+1]||'').match(datePattern)):null;
+ let birth='';
+ if(dateMatch){
+  const day=Number(dateMatch[1]),token=dateMatch[2],month=/^\d+$/.test(token)?Number(token):months[token.slice(0,3)],year=Number(dateMatch[3]);
+  if(month>=1&&month<=12){const d=new Date(Date.UTC(year,month-1,day));if(d.getUTCFullYear()===year&&d.getUTCMonth()===month-1&&d.getUTCDate()===day)birth=year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
  }
- // Rótulos comunes en dos columnas: NOMBRES y APELLIDOS pueden aparecer juntos antes de los valores.
- if(!name&&!last){
-  const labelIndex=upper.findIndex(x=>/\bNOMBRES?\b/.test(x)&&/\bAPELLIDOS?\b/.test(x));
-  if(labelIndex>=0){const values=upper.slice(labelIndex+1,labelIndex+4).map(candidate).filter(Boolean);if(values.length===2){name=values[0];last=values[1];}}
- }
- let sex='';
- const explicit=text.match(/\b(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?\s*(FEMENINO|MASCULINO|MUJER|HOMBRE|F|M)\b/);
- if(explicit)sex=/^(F|FEMENINO|MUJER)$/.test(explicit[1])?'Femenino':'Masculino';
- else if(/\b(?:FEMALE|FEMALE\/F|MUJER)\b/.test(text))sex='Femenino';
- else if(/\b(?:MALE|HOMBRE)\b/.test(text))sex='Masculino';
- else{
-  const sexLine=upper.findIndex(x=>/^(?:SEXO|SEX|GENERO|GENDER)\s*[:.-]?$/.test(x));
-  if(sexLine>=0){const v=upper[sexLine+1]||'';if(/^(F|FEMENINO|MUJER)$/.test(v))sex='Femenino';if(/^(M|MASCULINO|HOMBRE)$/.test(v))sex='Masculino';}
- }
+ const sexMatch=text.match(/\bSEXO\s*[:.]?\s*(MASCULINO|FEMENINO|M|F)\b/);
+ const sex=sexMatch?(/^(M|MASCULINO)$/.test(sexMatch[1])?'Masculino':'Femenino'):'';
  return {doc,name,last,birth,sex};
 }
 function build(){
