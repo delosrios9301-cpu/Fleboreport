@@ -19,7 +19,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-          cache: gradle
       - name: Comprobar SDK Android preinstalado
         run: |
           test -n "$ANDROID_HOME"
