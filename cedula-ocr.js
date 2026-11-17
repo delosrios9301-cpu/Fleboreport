@@ -106,13 +106,12 @@ function build(){
    const ocr=window.FleboHomeOrderOCR;
    const result=ocr.recognizeIdImage?await ocr.recognizeIdImage(file):{full:(await ocr.recognizeImage(file)).text};
    const found=extract(result.full);
-   const namesText=String(result.names||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-   const cleanNames=namesText.filter(x=>/^[a-záéíóúüñ' -]{3,65}$/i.test(x)&&!/\b(?:REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|FECHA|SEXO|NACIMIENTO)\b/i.test(x));
-   const names=cleanNames.length===2?{name:cleanNames[0],last:cleanNames[1]}:{name:'',last:''};
+   // Priorizar exclusivamente las dos líneas entre TRIBUNAL ELECTORAL y NOMBRE USUAL
+   // del OCR de la tarjeta completa. Los recortes sin bordes detectados pueden
+   // incluir rótulos y producir nombres falsos (p. ej. "USUAL A").
    const details=extract(result.details);
    const document=extract(result.document);
-   if(names.name&&names.last){found.name=names.name;found.last=names.last;}
-   if(/\bUSUAL\b/i.test(found.name)||/\bUSUAL\b/i.test(found.last)){found.name='';found.last='';}
+   if(!found.name||!found.last){found.name='';found.last='';}
    if(details.birth)found.birth=details.birth;
    if(details.sex)found.sex=details.sex;
    if(document.doc)found.doc=document.doc;
