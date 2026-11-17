@@ -107,9 +107,9 @@
    worker=await create('spa+eng');
    const regions=[
     ['full',0,0,1,1,1800],
-    ['names',.045,.14,.57,.23,1600],
-    ['details',.045,.36,.77,.30,1700],
-    ['document',.72,.30,.26,.23,1000]
+    ['names',.20,.29,.46,.24,1700],
+    ['details',.20,.45,.65,.27,1700],
+    ['document',.67,.40,.28,.23,1100]
    ];
    for(const [key,x,y,w,h,targetWidth] of regions){
     const sx=Math.floor(bmp.width*x),sy=Math.floor(bmp.height*y);
