@@ -20,15 +20,11 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
-import com.google.android.gms.tasks.Task;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.Text;
-import com.google.mlkit.vision.text.TextRecognition;
 import com.google.mlkit.vision.barcode.BarcodeScanning;
 import com.google.mlkit.vision.barcode.BarcodeScanner;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.io.File;
 import java.io.IOException;
