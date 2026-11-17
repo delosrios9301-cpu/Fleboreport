@@ -43,7 +43,7 @@ jobs:
           version=os.environ['VERSION']
           assert re.fullmatch(r'[0-9]+\.[0-9]+(\.[0-9]+)?',version), 'Versión inválida'
           gradle=pathlib.Path('native/android/android/app/build.gradle').read_text()
-          assert re.search(r'versionName\s+["\']'+re.escape(version)+r'["\']',gradle), 'Versión solicitada no coincide con APK'
+          assert ('versionName "'+version+'"') in gradle, 'Versión solicitada no coincide con APK'
           PY
       - name: Compilar APK release
         working-directory: native/android/android
@@ -71,4 +71,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
         run: |
-          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --title "FleboReport Android $VERSION" --notes "APK Android firmado. Instalar sobre versiones con la misma firma. No desinstalar la aplicación anterior." --verify-tag
+          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --title "FleboReport Android $VERSION" --notes "APK Android firmado. Instalar sobre versiones con la misma firma. No desinstalar la aplicación anterior."
