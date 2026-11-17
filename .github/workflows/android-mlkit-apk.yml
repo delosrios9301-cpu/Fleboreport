@@ -19,6 +19,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+          cache: gradle
       - name: Comprobar SDK Android preinstalado
         run: |
           test -n "$ANDROID_HOME"
@@ -34,7 +35,7 @@ jobs:
         run: python3 configure_android.py
       - name: Compilar APK de prueba
         working-directory: native/android/android
-        run: bash gradlew assembleDebug --no-daemon
+        run: bash gradlew assembleDebug --no-daemon --max-workers=2
       - name: Publicar APK de prueba como artefacto privado de Actions
         uses: actions/upload-artifact@v4
         with:
