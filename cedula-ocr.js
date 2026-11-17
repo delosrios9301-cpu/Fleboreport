@@ -47,12 +47,12 @@ function beginAutoCapture(){
 
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function extract(raw){
- const lines=String(raw||'').split(/[\\r\\n]+/).map(s=>s.replace(/\\s+/g,' ').trim()).filter(Boolean);
- const normalize=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'');
+ const lines=String(raw||'').split(/[\r\n]+/).map(s=>s.replace(/\s+/g,' ').trim()).filter(Boolean);
+ const normalize=s=>String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
  const upper=lines.map(normalize),text=upper.join(' ');
- const header=upper.findIndex(s=>/TRIBUNAL\\s+ELECTORAL/.test(s));
- const firstField=upper.findIndex(s=>/NOMBRE\\s+USUAL|FECHA\\s+(?:DE\\s+)?NACIMIENTO|LUGAR\\s+(?:DE\\s+)?NACIMIENTO|\\bSEXO\\b/.test(s));
- const invalid=/\\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA|FIRMA|DOCUMENTO|NACIONALIDAD|REGISTRO|TIPO|CONTROL|EMISION|VENCE|VENCIMIENTO)\\b/;
+ const header=upper.findIndex(s=>/TRIBUNAL\s+ELECTORAL/.test(s));
+ const firstField=upper.findIndex(s=>/NOMBRE\s+USUAL|FECHA\s+(?:DE\s+)?NACIMIENTO|LUGAR\s+(?:DE\s+)?NACIMIENTO|\bSEXO\b/.test(s));
+ const invalid=/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA|FIRMA|DOCUMENTO|NACIONALIDAD|REGISTRO|TIPO|CONTROL|EMISION|VENCE|VENCIMIENTO)\b/;
  const candidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!invalid.test(s)&&!/[0-9]/.test(s);
  // A veces ML Kit divide TRIBUNAL ELECTORAL en dos líneas; localizar el bloque
  // por sus rótulos sin asumir que cada nombre ocupa una posición fija.
@@ -73,20 +73,20 @@ function extract(raw){
   }
   return '';
  };
- if(!name)name=labeled(/\\b(?:NOMBRES|GIVEN\\s+NAMES?)\\s*[:.-]?/);
- if(!last)last=labeled(/\\b(?:APELLIDOS?|SURNAMES?)\\s*[:.-]?/);
- const idMatches=[...text.matchAll(/\\b((?:PE|E|N|AV|\\d{1,2})\\s*[-–]\\s*\\d{1,5}\\s*[-–]\\s*\\d{1,6})\\b/g)];
- const doc=idMatches.map(m=>m[1].replace(/\\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
+ if(!name)name=labeled(/\b(?:NOMBRES|GIVEN\s+NAMES?)\s*[:.-]?/);
+ if(!last)last=labeled(/\b(?:APELLIDOS?|SURNAMES?)\s*[:.-]?/);
+ const idMatches=[...text.matchAll(/\b((?:PE|E|N|AV|\d{1,2})\s*[-–]\s*\d{1,5}\s*[-–]\s*\d{1,6})\b/g)];
+ const doc=idMatches.map(m=>m[1].replace(/\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
  const months={ENE:1,FEB:2,MAR:3,ABR:4,MAY:5,JUN:6,JUL:7,AGO:8,SEP:9,SET:9,OCT:10,NOV:11,DIC:12,DEC:12,JAN:1,APR:4,AUG:8};
- const datePattern=/(\\d{1,2})\\s*[-/.]\\s*(\\d{1,2}|[A-Z]{3,10})\\s*[-/.]\\s*((?:19|20)\\d{2})/;
- const birthRow=upper.findIndex(s=>/FECHA\\s+(?:DE\\s+)?NACIMIENTO|BIRTH\\s+DATE/.test(s));
+ const datePattern=/(\d{1,2})\s*[-/.]\s*(\d{1,2}|[A-Z]{3,10})\s*[-/.]\s*((?:19|20)\d{2})/;
+ const birthRow=upper.findIndex(s=>/FECHA\s+(?:DE\s+)?NACIMIENTO|BIRTH\s+DATE/.test(s));
  let dateMatch=birthRow>=0?(upper[birthRow].match(datePattern)||(upper[birthRow+1]||'').match(datePattern)):null;
  let birth='';
  if(dateMatch){
-  const day=Number(dateMatch[1]),token=dateMatch[2],month=/^\\d+$/.test(token)?Number(token):months[token.slice(0,3)],year=Number(dateMatch[3]);
+  const day=Number(dateMatch[1]),token=dateMatch[2],month=/^\d+$/.test(token)?Number(token):months[token.slice(0,3)],year=Number(dateMatch[3]);
   if(month>=1&&month<=12){const d=new Date(Date.UTC(year,month-1,day));if(d.getUTCFullYear()===year&&d.getUTCMonth()===month-1&&d.getUTCDate()===day)birth=year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0');}
  }
- const sexMatch=text.match(/\\bSEXO\\s*[:.]?\\s*(MASCULINO|FEMENINO|M|F)\\b/);
+ const sexMatch=text.match(/\bSEXO\s*[:.]?\s*(MASCULINO|FEMENINO|M|F)\b/);
  const sex=sexMatch?(/^(M|MASCULINO)$/.test(sexMatch[1])?'Masculino':'Femenino'):'';
  return {doc,name,last,birth,sex};
 }
