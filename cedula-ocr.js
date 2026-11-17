@@ -56,6 +56,8 @@ function extract(raw){
  const nameArea=header>=0?upper.slice(header+1,firstField>header?firstField:header+5):[];
  const nameCandidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA)\b/.test(s);
  const nameLines=nameArea.filter(nameCandidate);
+ // El OCR puede unir nombres y apellidos en una sola línea; no adivinar cómo separarlos.
+ // Excluir textos administrativos para evitar completar un nombre incorrecto.
  let name='',last='';
  if(nameLines.length>=2){name=nameLines[0];last=nameLines[1];}
  function labeled(re){
@@ -103,6 +105,7 @@ function build(){
    if(!window.FleboHomeOrderOCR?.recognizeImage)throw Error('El motor OCR no está disponible. Reabre la aplicación con conexión.');
    const result=await window.FleboHomeOrderOCR.recognizeImage(file);
    const found=extract(result.text);
+   // No registrar ni mostrar el texto OCR completo: contiene datos sensibles.
    for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
    $('frIdScanFields').hidden=false;
    $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa y corrige los datos detectados. Los campos vacíos no se pudieron reconocer.':'No se identificaron datos fiables. Prueba otra foto o completa los campos manualmente.';
@@ -114,11 +117,13 @@ function build(){
   if(!current)return;
   const data={doc:$('frIdScanDoc').value.trim(),name:$('frIdScanName').value.trim(),last:$('frIdScanLast').value.trim(),birth:$('frIdScanBirth').value,sex:$('frIdScanSex').value};
   const f=current.fields;
-  const set=(id,value)=>{const el=$(id);if(el&&value){el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}};
+  const set=(id,value)=>{const el=$(id);if(!el||!value)return false;if(el.tagName==='SELECT'&&!Array.from(el.options).some(o=>o.value===value))return false;el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));return el.value===value;};
   set(f.doc,data.doc);set(f.birth,data.birth);set(f.sex,data.sex);
   if(f.last){set(f.name,data.name);set(f.last,data.last);}else set(f.name,[data.name,data.last].filter(Boolean).join(' '));
+  const required=[f.doc,f.name,f.birth,f.sex].filter(Boolean);const missing=required.filter(id=>!$(id));
+  if(missing.length){$('frIdScanStatus').textContent='No se localizaron estos campos del formulario: '+missing.join(', ')+'. No se puede confirmar el rellenado.';return;}
   stopCamera();modal.hidden=true;current=null;$('frIdScanFields').hidden=true;
-  if(window.toast)window.toast('Datos rellenados. Verifica antes de guardar.');
+  if(window.toast)window.toast('Datos transferidos al formulario. Verifica antes de guardar.');
  };
 }
 function attach(){
