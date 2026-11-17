@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/actions/workflows/android-mlkit-apk.yml",
-  "notes": "Mejoras del escáner y aviso de nuevas versiones Android. Descarga el artefacto APK de la ejecución exitosa más reciente."
+  "versionCode": 3,
+  "versionName": "1.2",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/actions/runs/44189538744",
+  "notes": "Lector nativo QR de cédulas. La descarga desde GitHub Actions requiere iniciar sesión y extraer el ZIP. No desinstales la versión anterior."
 }
