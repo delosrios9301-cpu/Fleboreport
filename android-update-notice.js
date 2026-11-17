@@ -17,14 +17,15 @@
    const latest=await request.json();
    const version=Number(latest.versionCode);
    if(!Number.isSafeInteger(version)||version<=Number(installed.versionCode)||version===closedVersion)return;
-   if(typeof latest.releasePage!=='string'||!/^https:\/\/github\.com\/delosrios9301-cpu\/Fleboreport\/actions\//.test(latest.releasePage))return;
+   const direct=typeof latest.apkUrl==='string'&&/^https:\/\/github\.com\/delosrios9301-cpu\/Fleboreport\/releases\/download\/android-v[0-9.]+\/FleboReport-[0-9.]+\.apk$/.test(latest.apkUrl);
+   if(!direct&&(typeof latest.releasePage!=='string'||!/^https:\/\/github\.com\/delosrios9301-cpu\/Fleboreport\/actions\//.test(latest.releasePage)))return;
    if(document.getElementById('frAndroidUpdateNotice'))return;
    const box=document.createElement('section');box.id='frAndroidUpdateNotice';
    box.setAttribute('role','status');
    Object.assign(box.style,{position:'fixed',bottom:'max(16px, env(safe-area-inset-bottom))',left:'12px',right:'12px',zIndex:'2147483600',background:'#f5faf8',color:'#163b36',border:'1px solid #8eb9ad',borderRadius:'14px',padding:'14px',boxShadow:'0 8px 32px #0004',fontFamily:'system-ui,sans-serif'});
    const heading=document.createElement('strong');heading.textContent='Actualización Android disponible · '+String(latest.versionName||version);
-   const desc=document.createElement('p');desc.textContent='Hay una nueva versión de FleboReport Android. Descarga el APK desde GitHub, extrae el ZIP y confirma la instalación. No desinstales la aplicación anterior.';desc.style.margin='8px 0';
-   const link=document.createElement('a');link.href=latest.releasePage;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Descargar actualización';link.style.marginRight='16px';
+   const desc=document.createElement('p');desc.textContent=direct?'Hay una nueva versión de FleboReport Android. Descarga el APK y confirma la instalación. No desinstales la aplicación anterior.':'Hay una nueva versión de FleboReport Android. Descarga el APK desde GitHub, extrae el ZIP y confirma la instalación. No desinstales la aplicación anterior.';desc.style.margin='8px 0';
+   const link=document.createElement('a');link.href=direct?latest.apkUrl:latest.releasePage;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Descargar actualización';link.style.marginRight='16px';
    const close=document.createElement('button');close.type='button';close.textContent='Más tarde';close.onclick=()=>{closedVersion=version;box.remove();};
    box.append(heading,desc,link,close);document.body.appendChild(box);
   }catch(_){/* Sin red o versión no disponible: no bloquear la aplicación. */}
