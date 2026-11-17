@@ -1,6 +1,10 @@
 name: Android ML Kit APK (manual)
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'native/android/**'
+      - '.github/workflows/android-mlkit-apk.yml'
 permissions:
   contents: read
 jobs:
