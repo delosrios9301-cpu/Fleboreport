@@ -7,7 +7,15 @@ const targets=[
  {anchor:'indPatientName',fields:{name:'indPatientName',doc:'indPatientDocument',birth:'indPatientBirth',sex:'indPatientSex'}}
 ];
 const $=id=>document.getElementById(id);
-let current=null,processing=false;
+let current=null,processing=false,cameraStream=null;
+function stopCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}const video=$('frIdScanVideo');if(video){video.pause();video.srcObject=null;video.hidden=true;}if($('frIdScanSnap'))$('frIdScanSnap').hidden=true;}
+async function startCamera(){
+ const video=$('frIdScanVideo');
+ if(!navigator.mediaDevices?.getUserMedia){$('frIdScanStatus').textContent='Este navegador no permite cámara directa. Usa Tomar foto o Galería.';$('frIdScanFile').click();return;}
+ try{stopCamera();cameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'}}});video.srcObject=cameraStream;video.hidden=false;await video.play();$('frIdScanSnap').hidden=false;$('frIdScanStatus').textContent='Enfoca la cédula y presiona Capturar foto.';}
+ catch(err){stopCamera();$('frIdScanStatus').textContent='No se pudo abrir la cámara ('+(err.name||'permiso')+'). Permite el acceso o usa Galería.';}
+}
+
 const norm=s=>String(s||'').replace(/\s+/g,' ').trim();
 function extract(raw){
  const lines=String(raw||'').split(/[\r\n]+/).map(norm).filter(Boolean);
@@ -29,11 +37,15 @@ function build(){
  if($('frIdScanModal'))return;
  const style=document.createElement('style');style.textContent='.fr-idscan-btn{margin:8px 0 12px!important;min-height:44px!important}.fr-idscan-modal[hidden]{display:none!important}.fr-idscan-modal{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(10,25,36,.66)}.fr-idscan-card{box-sizing:border-box;width:min(100%,520px);max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;color:#17323c;border-radius:17px;padding:18px;box-shadow:0 20px 65px #0005}.fr-idscan-card label{display:block;margin:9px 0 4px;font-weight:700}.fr-idscan-card input{box-sizing:border-box;width:100%;min-height:40px;padding:8px}.fr-idscan-actions{position:sticky;bottom:-18px;background:white;display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}.fr-idscan-actions button{flex:1;min-height:44px}.fr-idscan-card p{line-height:1.45}';document.head.appendChild(style);
  const modal=document.createElement('div');modal.id='frIdScanModal';modal.className='fr-idscan-modal';modal.hidden=true;
- modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><input id="frIdScanFile" type="file" accept="image/*" capture="environment" aria-label="Tomar foto o seleccionar imagen"><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
+ modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><div class="fr-idscan-actions"><button type="button" id="frIdScanCamera">Abrir cámara</button><button type="button" id="frIdScanGallery">Galería</button></div><video id="frIdScanVideo" autoplay playsinline muted hidden style="width:100%;max-height:46dvh;object-fit:contain;background:#111;border-radius:10px"></video><button type="button" id="frIdScanSnap" hidden>Capturar foto</button><input id="frIdScanFile" type="file" accept="image/*" capture="environment" hidden><input id="frIdScanGalleryFile" type="file" accept="image/*" hidden><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
  document.body.appendChild(modal);
- $('frIdScanCancel').onclick=()=>{if(!processing){modal.hidden=true;current=null;$('frIdScanFile').value='';}};
- $('frIdScanFile').onchange=async e=>{
-  const file=e.target.files?.[0];if(!file)return;
+ $('frIdScanCancel').onclick=()=>{if(!processing){stopCamera();modal.hidden=true;current=null;$('frIdScanFile').value='';}};
+ $('frIdScanCamera').onclick=()=>startCamera();
+ $('frIdScanGallery').onclick=()=>{$('frIdScanGalleryFile').click();};
+ $('frIdScanSnap').onclick=async()=>{const video=$('frIdScanVideo');if(!video.videoWidth)return;const canvas=document.createElement('canvas');const scale=Math.min(1,Math.sqrt(2100000/(video.videoWidth*video.videoHeight)));canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);stopCamera();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));canvas.width=0;canvas.height=0;if(blob)await processFile(blob);};
+ $('frIdScanFile').onchange=e=>{const file=e.target.files?.[0];if(file)processFile(file);};
+ $('frIdScanGalleryFile').onchange=e=>{const file=e.target.files?.[0];if(file)processFile(file);};
+ async function processFile(file){
   if(!file.type.startsWith('image/')){$('frIdScanStatus').textContent='Selecciona una imagen de la cédula.';return;}
   processing=true;$('frIdScanApply').disabled=true;$('frIdScanFields').hidden=true;$('frIdScanStatus').textContent='Reconociendo texto de la fotografía…';
   try{
@@ -45,8 +57,8 @@ function build(){
    $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa y corrige los datos detectados. Los campos vacíos no se pudieron reconocer.':'No se identificaron datos fiables. Prueba otra foto o completa los campos manualmente.';
    $('frIdScanApply').disabled=false;
   }catch(err){$('frIdScanStatus').textContent='No fue posible leer la imagen: '+(err.message||'error OCR');}
-  finally{processing=false;$('frIdScanFile').value='';}
- };
+  finally{processing=false;$('frIdScanFile').value='';$('frIdScanGalleryFile').value='';}
+ }
  $('frIdScanApply').onclick=()=>{
   if(!current)return;
   const data={doc:$('frIdScanDoc').value.trim(),name:$('frIdScanName').value.trim(),last:$('frIdScanLast').value.trim(),birth:$('frIdScanBirth').value,sex:$('frIdScanSex').value};
@@ -54,7 +66,7 @@ function build(){
   const set=(id,value)=>{const el=$(id);if(el&&value){el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}};
   set(f.doc,data.doc);set(f.birth,data.birth);set(f.sex,data.sex);
   if(f.last){set(f.name,data.name);set(f.last,data.last);}else set(f.name,[data.name,data.last].filter(Boolean).join(' '));
-  modal.hidden=true;current=null;$('frIdScanFields').hidden=true;
+  stopCamera();modal.hidden=true;current=null;$('frIdScanFields').hidden=true;
   if(window.toast)window.toast('Datos rellenados. Verifica antes de guardar.');
  };
 }
@@ -62,7 +74,7 @@ function attach(){
  for(const target of targets){
   const anchor=$(target.anchor);if(!anchor||document.querySelector('[data-idscan-for="'+target.anchor+'"]'))continue;
   const host=anchor.closest('.field')||anchor.parentElement;if(!host)continue;
-  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent='▣ Escanear cédula';btn.onclick=()=>{build();current=target;$('frIdScanModal').hidden=false;$('frIdScanFields').hidden=true;$('frIdScanApply').disabled=true;$('frIdScanStatus').textContent='Selecciona una fotografía nítida de la cédula.';};host.insertAdjacentElement('afterend',btn);
+  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent='▣ Escanear cédula';btn.onclick=()=>{build();current=target;$('frIdScanModal').hidden=false;$('frIdScanFields').hidden=true;$('frIdScanApply').disabled=true;$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();};host.insertAdjacentElement('afterend',btn);
  }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach);else attach();
