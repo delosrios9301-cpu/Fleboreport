@@ -17,7 +17,7 @@ gradle=app/'build.gradle'
 s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
-s=s.replace(needle,needle+"\n    implementation 'com.google.mlkit:text-recognition:16.0.1'\n    implementation 'androidx.exifinterface:exifinterface:1.3.7'",1)
+s=s.replace(needle,needle+"\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'androidx.exifinterface:exifinterface:1.3.7'",1)
 s=s.replace('versionCode 1','versionCode 2').replace('versionName "1.0"','versionName "1.1"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
