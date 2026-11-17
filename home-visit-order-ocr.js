@@ -95,5 +95,41 @@
    if(worker)try{await worker.terminate()}catch(_){}
   }
  }
- window.FleboHomeOrderOCR={recognizePages,recognizeImage,MAX_OCR_PAGES};
+
+ // Lectura por regiones de la cara frontal de la cédula: un solo worker OCR,
+ // recortes ampliados y procesamiento exclusivamente en memoria.
+ async function recognizeIdImage(file){
+  const create=await getTesseract();
+  let worker=null,bmp=null;
+  const results={full:'',names:'',details:'',document:''};
+  try{
+   bmp=await createImageBitmap(file);
+   worker=await create('spa+eng');
+   const regions=[
+    ['full',0,0,1,1,1800],
+    ['names',.045,.14,.57,.23,1600],
+    ['details',.045,.36,.77,.30,1700],
+    ['document',.72,.30,.26,.23,1000]
+   ];
+   for(const [key,x,y,w,h,targetWidth] of regions){
+    const sx=Math.floor(bmp.width*x),sy=Math.floor(bmp.height*y);
+    const sw=Math.max(1,Math.min(bmp.width-sx,Math.round(bmp.width*w)));
+    const sh=Math.max(1,Math.min(bmp.height-sy,Math.round(bmp.height*h)));
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.min(2200,Math.max(sw, targetWidth));
+    canvas.height=Math.max(1,Math.round(canvas.width*sh/sw));
+    const ctx=canvas.getContext('2d',{alpha:false});
+    if(!ctx)throw Error('No se pudo preparar la imagen.');
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(bmp,sx,sy,sw,sh,0,0,canvas.width,canvas.height);
+    try{results[key]=(await worker.recognize(canvas))?.data?.text||'';}
+    finally{canvas.width=0;canvas.height=0;}
+   }
+   return results;
+  }finally{
+   if(bmp?.close)bmp.close();
+   if(worker)try{await worker.terminate()}catch(_){}
+  }
+ }
+ window.FleboHomeOrderOCR={recognizePages,recognizeImage,recognizeIdImage,MAX_OCR_PAGES};
 })();
