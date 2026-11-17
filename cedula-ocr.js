@@ -54,7 +54,7 @@ function extract(raw){
  const header=upper.findIndex(s=>/TRIBUNAL\s+ELECTORAL/.test(s));
  const firstField=upper.findIndex(s=>/NOMBRE\s+USUAL|FECHA\s+DE\s+NACIMIENTO|LUGAR\s+DE\s+NACIMIENTO|SEXO\s*:/.test(s));
  const nameArea=header>=0?upper.slice(header+1,firstField>header?firstField:header+5):[];
- const nameCandidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA)\b/.test(s);
+ const nameCandidate=s=>/^[A-ZÑ][A-ZÑ' -]{2,65}$/.test(s)&&!/\b(REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|IDENTIDAD|PERSONAL|FECHA|NACIMIENTO|SEXO|SANGRE|LUGAR|EXPEDIDA|EXPIRA)\b/.test(s);
  const nameLines=nameArea.filter(nameCandidate);
  // El OCR puede unir nombres y apellidos en una sola línea; no adivinar cómo separarlos.
  // Excluir textos administrativos para evitar completar un nombre incorrecto.
@@ -69,7 +69,7 @@ function extract(raw){
   }
   return '';
  }
- if(!name)name=labeled(/\b(?:NOMBRES?|GIVEN\s+NAMES?)\s*[:.-]?/);
+ if(!name)name=labeled(/\b(?:NOMBRES|GIVEN\s+NAMES?)\s*[:.-]?/);
  if(!last)last=labeled(/\b(?:APELLIDOS?|SURNAMES?)\s*[:.-]?/);
  const idMatches=[...text.matchAll(/\b((?:PE|E|N|AV|\d{1,2})\s*[-–]\s*\d{1,5}\s*[-–]\s*\d{1,6})\b/g)];
  const doc=idMatches.map(m=>m[1].replace(/\s+/g,'').replace(/–/g,'-')).find(v=>!/^0-/.test(v))||'';
@@ -100,16 +100,19 @@ function build(){
  $('frIdScanGalleryFile').onchange=e=>{const file=e.target.files?.[0];if(file)processFile(file);};
  async function processFile(file){
   if(!file.type.startsWith('image/')){$('frIdScanStatus').textContent='Selecciona una imagen de la cédula.';return;}
-  processing=true;$('frIdScanApply').disabled=true;$('frIdScanFields').hidden=true;$('frIdScanStatus').textContent='Reconociendo texto de la fotografía…';
+  stopCamera();processing=true;$('frIdScanApply').disabled=true;$('frIdScanFields').hidden=true;$('frIdScanStatus').textContent='Reconociendo texto de la fotografía…';
   try{
    if(!window.FleboHomeOrderOCR?.recognizeImage)throw Error('El motor OCR no está disponible. Reabre la aplicación con conexión.');
    const ocr=window.FleboHomeOrderOCR;
    const result=ocr.recognizeIdImage?await ocr.recognizeIdImage(file):{full:(await ocr.recognizeImage(file)).text};
    const found=extract(result.full);
-   const names=extract(['TRIBUNAL ELECTORAL',result.names,'NOMBRE USUAL:'].join('\n'));
+   const namesText=String(result.names||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+   const cleanNames=namesText.filter(x=>/^[a-záéíóúüñ' -]{3,65}$/i.test(x)&&!/\b(?:REPUBLICA|PANAMA|TRIBUNAL|ELECTORAL|NOMBRE|USUAL|CEDULA|FECHA|SEXO|NACIMIENTO)\b/i.test(x));
+   const names=cleanNames.length===2?{name:cleanNames[0],last:cleanNames[1]}:{name:'',last:''};
    const details=extract(result.details);
    const document=extract(result.document);
    if(names.name&&names.last){found.name=names.name;found.last=names.last;}
+   if(/\bUSUAL\b/i.test(found.name)||/\bUSUAL\b/i.test(found.last)){found.name='';found.last='';}
    if(details.birth)found.birth=details.birth;
    if(details.sex)found.sex=details.sex;
    if(document.doc)found.doc=document.doc;
