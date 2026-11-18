@@ -1,7 +1,7 @@
 {
-  "versionCode": 3,
-  "versionName": "1.2",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.2",
-  "notes": "APK Android 1.2 firmado. Descarga directa desde GitHub Releases. Si tienes una versión de prueba con firma distinta, no la desinstales sin respaldar primero tus datos.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.2/FleboReport-1.2.apk"
+  "versionCode": 4,
+  "versionName": "1.3",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.3",
+  "notes": "Lector QR de cédulas en vivo, cierre automático de cámara y llenado del formulario con revisión antes de guardar. Actualiza la app 1.2 sin desinstalarla; Android solicitará confirmación para instalar.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.3/FleboReport-1.3.apk"
 }
