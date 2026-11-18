@@ -870,7 +870,13 @@ test('los resultados del catálogo de domicilios mantienen el texto horizontal e
 
 
 test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vista de campo', () => {
-  assert.match(domicilios, /if\(await save\(v\)\)\{if\(next==='Aceptado'\|\|next==='Rechazado'\)\{closeAssignmentOverlays\(\);dismissedInvitationId=id;const current=visits\.find\(x=>x\.id===id\)\|\|v;current\.status=next;current\.assignmentStatus=next==='Aceptado'\?'accepted':'rejected';/);
+  // Con el guardado optimizado el éxito se evalúa una vez y nunca se
+  // presenta la aceptación como confirmada hasta recibir respuesta de nube.
+  assert.match(domicilios, /const saved=await save\(v,\{skipTests:next!=='Muestras tomadas'\}\)/);
+  assert.match(domicilios, /if\(saved\)\{if\(next==='Aceptado'\|\|next==='Rechazado'\)\{closeAssignmentOverlays\(\);dismissedInvitationId=id;const current=visits\.find\(x=>x\.id===id\)\|\|v;current\.status=next;current\.assignmentStatus=next==='Aceptado'\?'accepted':'rejected';/);
+  assert.match(domicilios, /if\(!technicianResponse&&\!staffReassignment&&\!options\.skipTests\)/);
+  assert.match(domicilios, /pendingVisitTransitions\.has\(id\)/);
+  assert.match(domicilios, /pendingVisitTransitions\.delete\(id\)/);
   assert.match(domicilios, /function closeAssignmentOverlays\(\)\{document\.querySelectorAll\('\.hv-assignment-overlay'\)\.forEach\(node=>node\.remove\(\)\)\}/);
   assert.match(domicilios, /const locked=v\.status==='Pendiente de aceptación'&&v\.assignmentStatus!=='accepted'/);
 });
