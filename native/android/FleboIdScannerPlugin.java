@@ -64,7 +64,17 @@ public class FleboIdScannerPlugin extends Plugin {
         boolean androidPermission = Build.VERSION.SDK_INT < 33
             || ContextCompat.checkSelfPermission(getContext(),
                 Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
-        return androidPermission && NotificationManagerCompat.from(getContext()).areNotificationsEnabled();
+        if (!androidPermission || !NotificationManagerCompat.from(getContext()).areNotificationsEnabled())
+            return false;
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationManager manager =
+                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationChannel channel = manager == null ? null
+                : manager.getNotificationChannel(CLINICAL_CHANNEL);
+            if (channel != null && channel.getImportance() == NotificationManager.IMPORTANCE_NONE)
+                return false;
+        }
+        return true;
     }
 
     /**
@@ -83,6 +93,25 @@ public class FleboIdScannerPlugin extends Plugin {
         result.put("enabled", notificationPermissionGranted());
         result.put("requested", true);
         call.resolve(result);
+    }
+
+    /** Abre la configuración de notificaciones de FleboReport si fue denegada. */
+    @PluginMethod
+    public void openSystemNotificationSettings(PluginCall call) {
+        try {
+            Intent settings;
+            if (Build.VERSION.SDK_INT >= 26) {
+                settings = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+                settings.putExtra(Settings.EXTRA_APP_PACKAGE, getContext().getPackageName());
+            } else {
+                settings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                settings.setData(Uri.parse("package:" + getContext().getPackageName()));
+            }
+            getActivity().startActivity(settings);
+            call.resolve();
+        } catch (Exception error) {
+            call.reject("No se pudieron abrir los ajustes de notificaciones.");
+        }
     }
 
     private void ensureNotificationChannel() {
