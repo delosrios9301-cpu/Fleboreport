@@ -101,13 +101,20 @@
    var aliquotInfo='<strong>Principales:</strong> '+esc(x.primaryAliquots==null?'—':x.primaryAliquots)+'<br><strong>Backup:</strong> '+esc(x.backupAliquots==null?'—':x.backupAliquots)+'<br><strong>Total:</strong> '+((Number(x.primaryAliquots)||0)+(Number(x.backupAliquots)||0));
    function actorTime(raw){if(!raw)return '';var d=new Date(raw);return Number.isNaN(d.getTime())?String(raw):d.toLocaleString('es-PA',{dateStyle:'short',timeStyle:'short'})}var actorRows=[['Recibió',x.receivedBy,x.receivedAt],['Verificó',x.reviewedBy,x.reviewedAt],['Inició proceso',x.processingStartedBy,x.processingStartedAt],['Procesó',x.processedBy,x.processedAt],['Almacenó',x.storedBy,x.storedAt]].filter(function(item){return !!(item[1]||item[2])}).map(function(item){return '<small><strong>'+esc(item[0])+':</strong> '+esc(item[1]||'Responsable no identificado')+(item[2]?' · '+esc(actorTime(item[2])):'')+'</small>'}).join('<br>')||'—';
    var ageClass=sampleAgeClass(x,st);
-   return '<tr'+(ageClass?' class="'+ageClass+'"':'')+'><td>'+esc(typeof clinicalStudyName==='function'?clinicalStudyName(x.studyId):'—')+'<br><strong>'+esc(x.subjectCode||'—')+'</strong></td><td>'+esc(x.visit||'—')+'<br>'+esc(x.sampleType||'—')+'</td><td>'+esc(x.collectionDate||'—')+' '+esc(x.collectionTime||'')+'<br>'+esc(typeof clinicalRecordDate==='function'?clinicalRecordDate(x):'—')+' '+esc(typeof clinicalRecordTime==='function'?clinicalRecordTime(x):'')+'</td><td>'+esc(x.tubes==null?'—':x.tubes)+'</td><td>'+aliquotInfo+'</td><td><span class="clinical-status">'+esc(labels[st]||st)+'</span></td><td>'+actorRows+'</td><td class="clinical-actions">'+action+'</td></tr>';
+   return '<tr data-clinical-fast-id="'+esc(x.id)+'"'+(ageClass?' class="'+ageClass+'"':'')+'><td>'+esc(typeof clinicalStudyName==='function'?clinicalStudyName(x.studyId):'—')+'<br><strong>'+esc(x.subjectCode||'—')+'</strong></td><td>'+esc(x.visit||'—')+'<br>'+esc(x.sampleType||'—')+'</td><td>'+esc(x.collectionDate||'—')+' '+esc(x.collectionTime||'')+'<br>'+esc(typeof clinicalRecordDate==='function'?clinicalRecordDate(x):'—')+' '+esc(typeof clinicalRecordTime==='function'?clinicalRecordTime(x):'')+'</td><td>'+esc(x.tubes==null?'—':x.tubes)+'</td><td>'+aliquotInfo+'</td><td><span class="clinical-status">'+esc(labels[st]||st)+'</span></td><td>'+actorRows+'</td><td class="clinical-actions">'+action+'</td></tr>';
   }).join('');
   var empty=byId('clinicalQueueEmpty');if(empty)empty.hidden=visible.length>0;
  }
  async function move(sample,next,note,extra){
   if(!sample||busy.has(sample.id))return;
   busy.add(sample.id);
+  // Mostrar respuesta inmediata sin fingir que el servidor ya confirmó.
+  var row=Array.from(document.querySelectorAll('#clinicalQueueRows tr[data-clinical-fast-id]'))
+   .find(function(el){return el.dataset.clinicalFastId===String(sample.id)});
+  var actionButtons=row?Array.from(row.querySelectorAll('td.clinical-actions button')):[];
+  var previousLabels=actionButtons.map(function(el){return el.textContent});
+  actionButtons.forEach(function(el){el.disabled=true;el.setAttribute('aria-busy','true');el.textContent='Guardando…'});
+  var startedAt=performance.now(),completed=false;
   try{
    var cloud=window.FleboClinicalCloud;
    if(!cloud)throw new Error('No está disponible la conexión clínica con Supabase.');
@@ -124,13 +131,20 @@
    if(typeof appendClinicalSampleHistory==='function')appendClinicalSampleHistory(sample,previous,next,note,typeof clinicalActor==='function'?clinicalActor():'',now);
    if(typeof save==='function'&&!save())throw new Error('El cambio llegó a la nube, pero no se pudo guardar la vista local. Recarga la bandeja para recuperar el estado confirmado.');
    if(typeof auditAdd==='function')auditAdd('Procesamiento de muestras','Cambió estado de '+(sample.subjectCode||sample.sampleType||sample.id)+' a '+labels[next]);
+   completed=true;
    renderQueue();
-   if(typeof window.renderOperationalDashboard==='function')window.renderOperationalDashboard();
+   // El dashboard oculto se actualizará al volver a Inicio.
+   if(document.querySelector('#view-home.active')&&typeof window.renderOperationalDashboard==='function')
+    window.renderOperationalDashboard();
    if(typeof toast==='function')toast('Estado actualizado: '+labels[next]+'.');
   }catch(error){
    console.error('[FleboReport · Procesamiento simplificado]',error);
    if(typeof toast==='function')toast(error&&error.message?error.message:'No se pudo actualizar el estado.');
-  }finally{busy.delete(sample.id)}
+  }finally{
+   window.FleboEngine?.record('clinical.processing-status',performance.now()-startedAt,completed);
+   actionButtons.forEach(function(el,i){if(el.isConnected){el.disabled=false;el.removeAttribute('aria-busy');el.textContent=previousLabels[i]}});
+   busy.delete(sample.id);
+  }
  }
  // Ficha de inicio: esta versión es la autoridad final y lee siempre el estado vigente.
  window.openClinicalProcessingModal=function(id){
