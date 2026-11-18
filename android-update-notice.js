@@ -78,25 +78,60 @@
    };
    box.append(heading,desc,button,close,fallback);document.body.appendChild(box);
    if(plugin.prepareUpdate&&plugin.installPreparedUpdate){
-    // Desde Android 1.5: descarga segura en el caché privado; sin navegador ni archivos manuales.
+    // Descarga anticipada, sin instalación silenciosa. Android siempre pide confirmar.
     let prepared=false;
+    let waitingForInstallPermission=false;
     let progressListener=null;
-    const releaseListener=async()=>{if(progressListener){try{await progressListener.remove();}catch(_){}progressListener=null;}};
+    let installing=false;
+    const releaseListener=async()=>{
+     if(progressListener){try{await progressListener.remove();}catch(_){}progressListener=null;}
+    };
     const install=async()=>{
+     if(installing || !prepared)return;
+     installing=true;
      button.disabled=true;button.textContent='Abriendo instalador…';
      try{
-      await plugin.installPreparedUpdate({versionName:latest.versionName});
-      desc.textContent='Android te pedirá confirmar la instalación. Tus datos se conservan.';
-      button.textContent='Abrir instalador otra vez';
+      const result=await plugin.installPreparedUpdate({versionName:latest.versionName});
+      if(result?.permissionRequired){
+       waitingForInstallPermission=true;
+       desc.textContent='Autoriza «Permitir desde esta fuente» para FleboReport en los ajustes de Android. Al regresar, se abrirá el instalador oficial.';
+       button.textContent='Revisar permiso de instalación';
+      }else{
+       waitingForInstallPermission=false;
+       desc.textContent='Instalador de Android abierto. Confirma «Actualizar» o «Instalar» para conservar tus datos.';
+       button.textContent='Abrir instalador otra vez';
+      }
      }catch(error){
       const detail=String(error?.message||'No se pudo abrir el instalador Android.').slice(0,300);
       showFallback('No fue posible iniciar la instalación interna: '+detail);
       button.textContent='Reintentar instalación';
-     }finally{button.disabled=false;}
+     }finally{installing=false;button.disabled=false;}
     };
+    // Si Android abre Ajustes para autorizar la fuente, reintenta al volver
+    // únicamente cuando el usuario sí habilitó el permiso.
+    const onReturn=async()=>{
+     if(!waitingForInstallPermission||document.hidden||!box.isConnected||installing)return;
+     if(!plugin.getInstallPermissionStatus)return;
+     try{
+      const status=await plugin.getInstallPermissionStatus();
+      if(status?.allowed){
+       waitingForInstallPermission=false;
+       await install();
+      }else{
+       desc.textContent='La instalación sigue pendiente: activa «Permitir desde esta fuente» para FleboReport o usa la descarga alternativa.';
+      }
+     }catch(_){/* El botón de reintento queda disponible. */}
+    };
+    window.addEventListener('focus',onReturn);
+    document.addEventListener('visibilitychange',onReturn);
+    close.addEventListener('click',()=>{
+     window.removeEventListener('focus',onReturn);
+     document.removeEventListener('visibilitychange',onReturn);
+     void releaseListener();
+    });
     const prepare=async()=>{
      button.disabled=true;button.textContent='Descargando…';
-     desc.textContent='Descargando automáticamente la versión firmada. Puedes seguir utilizando FleboReport.';
+     desc.textContent='Descargando y verificando el APK firmado en FleboReport. Si tarda demasiado, puedes usar el enlace alternativo.';
      try{
       progressListener=await plugin.addListener('updateProgress',event=>{
        const percentage=Number(event?.percentage);
@@ -104,17 +139,29 @@
       });
       await plugin.prepareUpdate({versionName:latest.versionName,apkUrl:latest.apkUrl,sha256:latest.sha256||''});
       prepared=true;
-      desc.textContent='Descarga completa y firma verificada. Solo falta confirmar la instalación en Android.';
-      button.disabled=false;button.textContent='Instalar actualización';
+      let allowed=true;
+      if(plugin.getInstallPermissionStatus){
+       try{allowed=Boolean((await plugin.getInstallPermissionStatus())?.allowed);}catch(_){}
+      }
+      desc.textContent=allowed
+       ?'APK descargado y verificado. Presiona «Instalar actualización» para abrir la confirmación de Android.'
+       :'APK descargado y verificado. Android necesita autorizar las instalaciones desde FleboReport una sola vez.';
+      button.textContent=allowed?'Instalar actualización':'Autorizar e instalar';
       button.onclick=install;
      }catch(error){
       const detail=String(error?.message||'Fallo en descarga o escritura del archivo.').slice(0,300);
-      showFallback('No se pudo guardar la APK desde la aplicación: '+detail);
-      button.disabled=false;button.textContent='Reintentar descarga';
+      showFallback('No se pudo preparar la APK desde la aplicación: '+detail);
+      button.textContent='Reintentar descarga';
       button.onclick=prepare;
-     }finally{await releaseListener();}
+     }finally{
+      button.disabled=false;
+      await releaseListener();
+     }
     };
     button.onclick=()=>prepared?install():prepare();
+    // El enlace oficial debe quedar siempre accesible si el instalador interno
+    // no termina, incluso cuando todavía no hay un error de red declarado.
+    fallback.style.display='block';
     void prepare();
    }else{
     // Las versiones 1.4 y anteriores todavía no tienen descargador nativo.
