@@ -7,6 +7,7 @@
  const repoUrl='https://github.com/delosrios9301-cpu/Fleboreport';
  const api='https://api.github.com/repos/delosrios9301-cpu/Fleboreport/releases?per_page=30';
  let last=0,working=false,closedVersion='';
+ const CHECK_INTERVAL=60*1000; // Reintentos al abrir y regresar a la app, sin esperar seis horas.
  const parts=v=>/^[0-9]+\.[0-9]+(?:\.[0-9]+)?$/.test(String(v||''))?String(v).split('.').map(Number):null;
  function isNewer(a,b){
   const x=parts(a),y=parts(b);
@@ -37,14 +38,15 @@
   return available[0]||null;
  }
  async function fromStaticManifest(){
-  const request=await fetch(new URL('./android-update.json',location.href),{cache:'no-store'});
+  // Identificador estable para eludir cualquier manifest 1.2 guardado por el Service Worker anterior.
+  const request=await fetch(new URL('./android-update.json?androidUpdates=20261117-v2',location.href),{cache:'no-store'});
   if(!request.ok)return null;
   const latest=await request.json();
   if(!validatedAsset(latest.versionName,latest.apkUrl))return null;
   return {versionName:String(latest.versionName),apkUrl:latest.apkUrl,versionCode:Number(latest.versionCode)};
  }
- async function check(){
-  if(working||Date.now()-last<6*60*60*1000)return;
+ async function check(force=false){
+  if(working||(!force&&Date.now()-last<CHECK_INTERVAL))return;
   working=true;last=Date.now();
   try{
    const installed=await plugin.getAppVersion();
@@ -64,9 +66,16 @@
    const link=document.createElement('a');link.href=latest.apkUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Descargar actualización';link.style.marginRight='16px';
    const close=document.createElement('button');close.type='button';close.textContent='Más tarde';close.onclick=()=>{closedVersion=latest.versionName;box.remove();};
    box.append(heading,desc,link,close);document.body.appendChild(box);
-  }catch(_){/* Sin red o sin versión publicada: no bloquear la aplicación. */}
+  }catch(error){console.warn('[FleboReport][Actualizaciones] No se pudo comprobar versión:',error?.message||error);}
   finally{working=false;}
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',check);else check();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>check());else check();
+ // En Android al reabrir, volver del navegador o recuperar conexión se verifica de nuevo.
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});
+ window.addEventListener('focus',()=>check());
+ window.addEventListener('pageshow',()=>check());
+ window.addEventListener('online',()=>check());
+ window.setInterval(()=>{if(!document.hidden)check();},5*60*1000);
+ // Permite integrar un botón «Buscar actualizaciones» sin alterar la comprobación automática.
+ window.FleboReportCheckForUpdates=()=>check(true);
 })();
