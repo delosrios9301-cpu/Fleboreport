@@ -30,7 +30,7 @@
    const versionName=match[1];
    const asset=(release.assets||[]).find(item=>item.name==='FleboReport-'+versionName+'.apk'
       && validatedAsset(versionName,item.browser_download_url));
-   if(asset)available.push({versionName,apkUrl:asset.browser_download_url});
+   if(asset){const shaMatch=/^sha256:([0-9a-f]{64})$/i.exec(String(asset.digest||''));available.push({versionName,apkUrl:asset.browser_download_url,sha256:shaMatch?shaMatch[1]:''});}
   }
   available.sort((a,b)=>isNewer(a.versionName,b.versionName)?-1:isNewer(b.versionName,a.versionName)?1:0);
   return available[0]||null;
@@ -41,7 +41,7 @@
   if(!request.ok)return null;
   const latest=await request.json();
   if(!validatedAsset(latest.versionName,latest.apkUrl))return null;
-  return {versionName:String(latest.versionName),apkUrl:latest.apkUrl,versionCode:Number(latest.versionCode)};
+  return {versionName:String(latest.versionName),apkUrl:latest.apkUrl,versionCode:Number(latest.versionCode),sha256:/^[0-9a-f]{64}$/i.test(String(latest.sha256||''))?latest.sha256:''};
  }
  async function check(force=false){
   if(!window.Capacitor?.isNativePlatform?.())return;
@@ -61,12 +61,58 @@
    box.setAttribute('role','status');
    Object.assign(box.style,{position:'fixed',bottom:'max(16px, env(safe-area-inset-bottom))',left:'12px',right:'12px',zIndex:'2147483600',background:'#f5faf8',color:'#163b36',border:'1px solid #8eb9ad',borderRadius:'14px',padding:'14px',boxShadow:'0 8px 32px #0004',fontFamily:'system-ui,sans-serif'});
    const heading=document.createElement('strong');heading.textContent='Actualización Android disponible · '+latest.versionName;
-   const desc=document.createElement('p');
-   desc.textContent='FleboReport Android tiene una versión firmada nueva. Descarga el APK y confirma la instalación sobre la versión actual; no es necesario desinstalar.';
-   desc.style.margin='8px 0';
-   const link=document.createElement('a');link.href=latest.apkUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Descargar actualización';link.style.marginRight='16px';
-   const close=document.createElement('button');close.type='button';close.textContent='Más tarde';close.onclick=()=>{closedVersion=latest.versionName;box.remove();};
-   box.append(heading,desc,link,close);document.body.appendChild(box);
+   const desc=document.createElement('p');desc.style.margin='8px 0';
+   const close=document.createElement('button');close.type='button';close.textContent='Más tarde';
+   close.onclick=()=>{closedVersion=latest.versionName;box.remove();};
+   const button=document.createElement('button');button.type='button';
+   button.style.marginRight='16px';
+   box.append(heading,desc,button,close);document.body.appendChild(box);
+   if(plugin.prepareUpdate&&plugin.installPreparedUpdate){
+    // Desde Android 1.5: descarga segura en el caché privado; sin navegador ni archivos manuales.
+    let prepared=false;
+    let progressListener=null;
+    const releaseListener=async()=>{if(progressListener){try{await progressListener.remove();}catch(_){}progressListener=null;}};
+    const install=async()=>{
+     button.disabled=true;button.textContent='Abriendo instalador…';
+     try{
+      await plugin.installPreparedUpdate({versionName:latest.versionName});
+      desc.textContent='Android te pedirá confirmar la instalación. Tus datos se conservan.';
+      button.textContent='Abrir instalador otra vez';
+     }catch(error){
+      desc.textContent=error?.message||'Autoriza la instalación desde FleboReport en los ajustes de Android y vuelve a intentar.';
+      button.textContent='Continuar instalación';
+     }finally{button.disabled=false;}
+    };
+    const prepare=async()=>{
+     button.disabled=true;button.textContent='Descargando…';
+     desc.textContent='Descargando automáticamente la versión firmada. Puedes seguir utilizando FleboReport.';
+     try{
+      progressListener=await plugin.addListener('updateProgress',event=>{
+       const percentage=Number(event?.percentage);
+       if(Number.isFinite(percentage))desc.textContent='Descargando actualización: '+Math.max(0,Math.min(100,percentage))+' %.';
+      });
+      await plugin.prepareUpdate({versionName:latest.versionName,apkUrl:latest.apkUrl,sha256:latest.sha256||''});
+      prepared=true;
+      desc.textContent='Descarga completa y firma verificada. Solo falta confirmar la instalación en Android.';
+      button.disabled=false;button.textContent='Instalar actualización';
+      button.onclick=install;
+     }catch(error){
+      desc.textContent=error?.message||'No fue posible descargar la actualización. Revisa tu conexión.';
+      button.disabled=false;button.textContent='Reintentar descarga';
+      button.onclick=prepare;
+     }finally{await releaseListener();}
+    };
+    button.onclick=()=>prepared?install():prepare();
+    void prepare();
+   }else{
+    // Las versiones 1.4 y anteriores todavía no tienen descargador nativo.
+    // Requieren una única instalación convencional para adquirir esta función.
+    desc.textContent='Esta versión necesita una última instalación desde el navegador. Después FleboReport descargará las siguientes actualizaciones por sí mismo.';
+    button.remove();
+    const link=document.createElement('a');link.href=latest.apkUrl;link.target='_blank';
+    link.rel='noopener noreferrer';link.textContent='Descargar última actualización';
+    link.style.marginRight='16px';box.insertBefore(link,close);
+   }
   }catch(error){console.warn('[FleboReport][Actualizaciones] No se pudo comprobar versión:',error?.message||error);}
   finally{working=false;}
  }
