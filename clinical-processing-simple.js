@@ -114,6 +114,13 @@
   var actionButtons=row?Array.from(row.querySelectorAll('td.clinical-actions button')):[];
   var previousLabels=actionButtons.map(function(el){return el.textContent});
   actionButtons.forEach(function(el){el.disabled=true;el.setAttribute('aria-busy','true');el.textContent='Guardando…'});
+  // Indicar en la propia fila la etapa solicitada sin adelantar el estado
+  // definitivo hasta la confirmación del servidor.
+  var statusBadge=row?.querySelector('.clinical-status'),oldBadgeText=statusBadge?.textContent;
+  if(statusBadge){
+   statusBadge.textContent=(labels[next]||next)+' · Guardando…';
+   statusBadge.setAttribute('aria-live','polite');
+  }
   var startedAt=performance.now(),completed=false;
   try{
    var cloud=window.FleboClinicalCloud;
@@ -141,6 +148,10 @@
    console.error('[FleboReport · Procesamiento simplificado]',error);
    if(typeof toast==='function')toast(error&&error.message?error.message:'No se pudo actualizar el estado.');
   }finally{
+   if(statusBadge?.isConnected){
+    statusBadge.textContent=completed?(labels[next]||next):oldBadgeText;
+    statusBadge.removeAttribute('aria-live');
+   }
    window.FleboEngine?.record('clinical.processing-status',performance.now()-startedAt,completed);
    actionButtons.forEach(function(el,i){if(el.isConnected){el.disabled=false;el.removeAttribute('aria-busy');el.textContent=previousLabels[i]}});
    busy.delete(sample.id);
