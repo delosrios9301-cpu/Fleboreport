@@ -1,13 +1,27 @@
 name: Publicar APK Android firmado
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-signed-release.yml'
+      - 'native/android/configure_android.py'
+      - 'native/android/FleboIdScannerPlugin.java'
+      - 'native/android/MainActivity.java'
+      - 'native/android/package.json'
+      - 'native/android/capacitor.config.json'
+      - 'cedula-ocr.js'
+      - 'android-update-notice.js'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión (ej. 1.3); debe coincidir con configure_android.py'
-        required: true
+        description: 'Opcional: versión que debe coincidir con configure_android.py'
+        required: false
         type: string
 permissions:
   contents: write
+concurrency:
+  group: fleboreport-android-release
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -20,35 +34,81 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Comprobar respaldo cifrado de firma
+      - name: Determinar versión y comprobar publicación existente
+        id: info
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > "$RUNNER_TEMP/version.txt"
+          import pathlib, re
+          s=pathlib.Path('native/android/configure_android.py').read_text()
+          names=re.findall(r'versionName "([0-9]+\.[0-9]+(?:\.[0-9]+)?)"',s)
+          codes=re.findall(r'versionCode ([0-9]+)',s)
+          assert len(names)>=2 and len(codes)>=2, 'No se pudo identificar la versión de Android'
+          assert int(codes[-1])>3, 'versionCode debe ser superior al de Android 1.2'
+          print(names[-1])
+          print(codes[-1])
+          PY
+          VERSION="$(sed -n '1p' "$RUNNER_TEMP/version.txt")"
+          CODE="$(sed -n '2p' "$RUNNER_TEMP/version.txt")"
+          if [ -n "$REQUESTED_VERSION" ] && [ "$REQUESTED_VERSION" != "$VERSION" ]; then
+            echo "::error::La versión solicitada no coincide con configure_android.py: $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "version_code=$CODE" >> "$GITHUB_OUTPUT"
+          TAG="android-v$VERSION"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/release-assets.txt" 2>/dev/null; then
+            if grep -Fxq "FleboReport-$VERSION.apk" "$RUNNER_TEMP/release-assets.txt"; then
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              echo "La versión $VERSION ya está publicada."
+            else
+              echo "::error::El release $TAG existe sin el APK previsto; revisar manualmente."
+              exit 1
+            fi
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Preparando publicación de Android $VERSION (código $CODE)."
+          fi
+      - name: Comprobar firma permanente
+        if: steps.info.outputs.publish == 'true'
         env:
           BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
         run: |
           test -n "$BACKUP_PASSWORD" || { echo "::error::Falta ANDROID_SIGNING_BACKUP_PASSWORD"; exit 1; }
-          test -s native/android/signing/fleboreport-release.jks.enc || { echo "::error::Ejecuta primero Preparar firma Android desde celular"; exit 1; }
+          test -s native/android/signing/fleboreport-release.jks.enc || { echo "::error::Falta el respaldo cifrado del keystore"; exit 1; }
       - name: Preparar Capacitor
+        if: steps.info.outputs.publish == 'true'
         working-directory: native/android
         run: |
           npm install --no-audit --no-fund
           npx cap add android
           python3 configure_android.py
-      - name: Validar versión solicitada
+      - name: Validar versión compilada
+        if: steps.info.outputs.publish == 'true'
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.info.outputs.version }}
+          CODE: ${{ steps.info.outputs.version_code }}
         run: |
           python3 - <<'PY'
-          import os,re,pathlib
-          version=os.environ['VERSION']
-          assert re.fullmatch(r'[0-9]+\.[0-9]+(\.[0-9]+)?',version), 'Versión inválida'
+          import os, pathlib
           gradle=pathlib.Path('native/android/android/app/build.gradle').read_text()
-          assert ('versionName "'+version+'"') in gradle, 'Versión solicitada no coincide con APK'
+          assert ('versionName "'+os.environ['VERSION']+'"') in gradle, 'versionName incorrecta'
+          assert ('versionCode '+os.environ['CODE']) in gradle, 'versionCode incorrecto'
           PY
-      - name: Compilar APK release
+      - name: Compilar APK
+        if: steps.info.outputs.publish == 'true'
         working-directory: native/android/android
         run: bash gradlew assembleRelease --no-daemon --max-workers=2
-      - name: Descifrar, firmar y verificar APK
+      - name: Firmar APK y comprobar certificado de Android 1.2
+        if: steps.info.outputs.publish == 'true'
         env:
           BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
+          VERSION: ${{ steps.info.outputs.version }}
+          CODE: ${{ steps.info.outputs.version_code }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           printf '%s' "$BACKUP_PASSWORD" | openssl enc -d -aes-256-cbc -pbkdf2 -iter 250000 -in native/android/signing/fleboreport-release.jks.enc -out "$RUNNER_TEMP/release.jks" -pass stdin
@@ -62,11 +122,24 @@ jobs:
           APKSIGNER="$BUILD_TOOLS/apksigner"
           test -x "$ZIPALIGN" && test -x "$APKSIGNER"
           "$ZIPALIGN" -f -p 4 "$APK" "$RUNNER_TEMP/aligned.apk"
-          "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias fleboreport --ks-pass env:STORE_PASS --key-pass env:STORE_PASS --out "FleboReport-${{ inputs.version }}.apk" "$RUNNER_TEMP/aligned.apk"
-          "$APKSIGNER" verify --verbose "FleboReport-${{ inputs.version }}.apk"
-      - name: Publicar GitHub Release
+          "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias fleboreport --ks-pass env:STORE_PASS --key-pass env:STORE_PASS --out "FleboReport-$VERSION.apk" "$RUNNER_TEMP/aligned.apk"
+          "$APKSIGNER" verify --verbose --print-certs "FleboReport-$VERSION.apk" > "$RUNNER_TEMP/new-signature.txt"
+          "$BUILD_TOOLS/aapt" dump badging "FleboReport-$VERSION.apk" > "$RUNNER_TEMP/package.txt"
+          grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/package.txt"
+          grep -F "versionCode='$CODE'" "$RUNNER_TEMP/package.txt"
+          grep -F "versionName='$VERSION'" "$RUNNER_TEMP/package.txt"
+          mkdir -p "$RUNNER_TEMP/previous"
+          gh release download android-v1.2 --repo "$GITHUB_REPOSITORY" --pattern FleboReport-1.2.apk --dir "$RUNNER_TEMP/previous"
+          "$APKSIGNER" verify --verbose --print-certs "$RUNNER_TEMP/previous/FleboReport-1.2.apk" > "$RUNNER_TEMP/previous-signature.txt"
+          OLD_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/previous-signature.txt" | head -1)"
+          NEW_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/new-signature.txt" | head -1)"
+          test -n "$OLD_CERT" && test "$OLD_CERT" = "$NEW_CERT" || { echo "::error::La firma no coincide con Android 1.2. No publicar."; exit 1; }
+          echo "Firma y versión verificadas; APK compatible con Android 1.2."
+      - name: Publicar GitHub Release automáticamente
+        if: steps.info.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.info.outputs.version }}
+          CODE: ${{ steps.info.outputs.version_code }}
         run: |
-          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --title "FleboReport Android $VERSION" --notes "APK Android firmado. Instalar sobre versiones con la misma firma. No desinstalar la aplicación anterior."
+          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --repo "$GITHUB_REPOSITORY" --title "FleboReport Android $VERSION" --notes "APK Android firmado (versionCode $CODE). Firma comprobada contra FleboReport 1.2. Instalar encima de la anterior con confirmación de Android."
