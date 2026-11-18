@@ -1,17 +1,17 @@
 package com.fleboreport.app;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
-import com.google.mlkit.common.MlKitException;
-import com.google.mlkit.vision.barcode.common.Barcode;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanner;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions;
-import com.google.mlkit.vision.codescanner.GmsBarcodeScanning;
 
-/** QR en video continuo, sin fotografías: la cámara se cierra al reconocerlo. */
+/** Escanea QR de cédula mediante CameraX/ML Kit local. No almacena fotos ni QR. */
 @CapacitorPlugin(name = "FleboIdScanner")
 public class FleboIdScannerPlugin extends Plugin {
     private boolean scanning = false;
@@ -19,7 +19,7 @@ public class FleboIdScannerPlugin extends Plugin {
     @PluginMethod
     public void getAppVersion(PluginCall call) {
         try {
-            android.content.pm.PackageInfo info = getContext().getPackageManager()
+            PackageInfo info = getContext().getPackageManager()
                 .getPackageInfo(getContext().getPackageName(), 0);
             JSObject response = new JSObject();
             response.put("versionCode",
@@ -34,49 +34,45 @@ public class FleboIdScannerPlugin extends Plugin {
     @PluginMethod
     public void scan(PluginCall call) {
         if (scanning) {
-            call.reject("Ya hay un escaneo de QR en curso.");
+            call.reject("Ya existe un escaneo en curso.");
             return;
         }
         scanning = true;
         try {
-            GmsBarcodeScannerOptions options = new GmsBarcodeScannerOptions.Builder()
-                .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
-                .enableAutoZoom()
-                .build();
-            GmsBarcodeScanner scanner = GmsBarcodeScanning.getClient(getActivity(), options);
-            scanner.startScan()
-                .addOnSuccessListener(barcode -> {
-                    scanning = false;
-                    String qr = barcode != null ? barcode.getRawValue() : null;
-                    if (barcode == null || barcode.getFormat() != Barcode.FORMAT_QR_CODE
-                        || qr == null || qr.trim().isEmpty()) {
-                        call.reject("No se detectó un QR válido de la cédula.");
-                        return;
-                    }
-                    JSObject response = new JSObject();
-                    response.put("qr", qr);
-                    call.resolve(response);
-                })
-                .addOnCanceledListener(() -> {
-                    scanning = false;
-                    JSObject response = new JSObject();
-                    response.put("cancelled", true);
-                    call.resolve(response);
-                })
-                .addOnFailureListener(error -> {
-                    scanning = false;
-                    if (error instanceof MlKitException
-                        && ((MlKitException) error).getErrorCode() == MlKitException.CODE_SCANNER_CANCELLED) {
-                        JSObject response = new JSObject();
-                        response.put("cancelled", true);
-                        call.resolve(response);
-                        return;
-                    }
-                    call.reject("No se pudo iniciar el lector QR. Comprueba que Servicios de Google Play esté actualizado y vuelve a intentar.");
-                });
-        } catch (Exception e) {
+            Intent intent = new Intent(getActivity(), FleboQrCameraActivity.class);
+            startActivityForResult(call, intent, "onScanResult");
+        } catch (Exception error) {
             scanning = false;
-            call.reject("El lector QR no está disponible en este Android. Comprueba Servicios de Google Play.");
+            call.reject("No se pudo abrir el lector de cédulas. Reintenta desde Jornada.");
         }
+    }
+
+    @ActivityCallback
+    private void onScanResult(PluginCall call, ActivityResult result) {
+        scanning = false;
+        if (call == null) return;
+        Intent data = result.getData();
+        if (result.getResultCode() != Activity.RESULT_OK) {
+            String error = data == null ? null : data.getStringExtra("error");
+            if (error != null && !error.isEmpty()) {
+                call.reject(error);
+            } else {
+                JSObject cancelled = new JSObject();
+                cancelled.put("cancelled", true);
+                call.resolve(cancelled);
+            }
+            return;
+        }
+
+        String value = data == null ? null : data.getStringExtra("qr");
+        if (value == null || value.trim().isEmpty()) {
+            call.reject("La cámara terminó sin recuperar un código QR.");
+            return;
+        }
+        // Solo se transmite al formulario web de la app, nunca a un servidor o log.
+        JSObject response = new JSObject();
+        response.put("qr", value);
+        response.put("format", "QR_CODE");
+        call.resolve(response);
     }
 }
