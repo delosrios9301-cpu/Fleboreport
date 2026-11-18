@@ -418,7 +418,7 @@ async function loadCloudVisits(options={}){
  saveHomeVisitCache();
  return true;
 }
-async function persistVisit(v){
+async function persistVisit(v,options={}){
  const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
  const technician=cloud.role==='technician'||isMyAssignedDomicile(v);
  const staffReassignment=!technician&&!!v.assignmentId&&v.assignmentStatus==='rejected';
@@ -474,7 +474,9 @@ async function persistVisit(v){
  const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
  if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
- if(!technicianResponse&&!staffReassignment){
+ // Los cambios puros de estado NO reenvían todas las pruebas. Sus estados
+ // y catálogo solo se guardan al editar pruebas o confirmar «Muestras tomadas».
+ if(!technicianResponse&&!staffReassignment&&!options.skipTests){
   const testRows=[];
   for(const t of (v.tests||[])){
    const normalizedTestId=asUuid(t.id)||crypto.randomUUID();t.id=normalizedTestId;
@@ -509,9 +511,9 @@ async function persistVisit(v){
  }
  if(v.status!=='Cancelado'&&v.assignedTo&&['admin','clinician','reception'].includes(cloud.role)&&(!v.assignmentId||staffReassignment))await ensureVisitAssignment(v);
 }
-async function save(v){
+async function save(v,options={}){
  if(!cloud.ready||!cloud.client){say('No se guardó: inicia sesión y conecta el laboratorio a Supabase.');return false}
- try{await persistVisit(v);const n=$('hvConnectionNotice');if(n)n.style.display='none';return true}
+ try{await persistVisit(v,options);const n=$('hvConnectionNotice');if(n)n.style.display='none';return true}
  catch(e){cloudNotice('Error al guardar en Supabase: '+(e.message||'Error desconocido')+'. El cambio no se confirmó.',true);say('No se pudo guardar el cambio: '+(e.message||'Error desconocido'));return false}
 }
 let cloudRefreshTimer=null,cloudRefreshRunning=false,cloudRefreshAgain=false;
@@ -821,10 +823,19 @@ async function openSamplesReview(id){
  const search=overlay.querySelector('#hvCorrectionSearch');search.addEventListener('input',()=>renderCatalogResults(search.value));
  document.body.appendChild(overlay);renderCatalogResults('');refresh();
 }
-async function changeStatus(id,next,confirmed=false){if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}const actionMessage=$('hvFieldActionMessage');if(actionMessage){actionMessage.textContent='Guardando cambio a '+next+'…';actionMessage.style.color='';}
- let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));if(await save(v)){if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.events.shift();render();
+const pendingVisitTransitions=new Set();
+async function changeStatus(id,next,confirmed=false){if(pendingVisitTransitions.has(id))return;if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}const actionMessage=$('hvFieldActionMessage');if(actionMessage){actionMessage.textContent='Guardando cambio a '+next+'…';actionMessage.style.color='';}
+ pendingVisitTransitions.add(id);
+ try{
+ let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
+ const saved=await save(v,{skipTests:next!=='Muestras tomadas'});
+ window.FleboEngine?.record('domicilios.status-save',performance.now()-startedAt,saved);
+ if(saved){if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.events.shift();render();
  const failed=$('hvFieldActionMessage');if(failed){failed.textContent='No se confirmó el cambio de estado. Revisa el mensaje de error de la agenda.';failed.style.color='#a33e47';}
- }}async function addTests(id){
+ 
+ }
+ }finally{pendingVisitTransitions.delete(id)}
+}async function addTests(id){
  if(!cloud.ready){say('Conecta la agenda con Supabase antes de agregar pruebas.');return}
  let v=visits.find(x=>x.id===id);if(!v)return;
  let ids=moreTestSelection.slice();if(!ids.length){say('Selecciona pruebas del catálogo central.');return}
