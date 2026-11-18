@@ -18,7 +18,7 @@ gradle=app/'build.gradle'
 s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
-s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.6.2'\n    implementation 'androidx.camera:camera-lifecycle:1.6.2'\n    implementation 'androidx.camera:camera-view:1.6.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'",1)
+s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.5.2'\n    implementation 'androidx.camera:camera-lifecycle:1.5.2'\n    implementation 'androidx.camera:camera-view:1.5.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'",1)
 s=s.replace('versionCode 1','versionCode 5').replace('versionName "1.0"','versionName "1.4"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
