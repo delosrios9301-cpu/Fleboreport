@@ -92,10 +92,10 @@ function extract(raw){
 }
 // Formato delimitado del QR de la cédula; no registrar el contenido bruto.
 function extractQr(raw){
- const parts=String(raw||'').split('|').map(v=>v.trim());
- if(parts.length<6)throw Error('El QR no tiene el formato esperado de cédula. No se transfirieron datos.');
+ const parts=String(raw||'').split(/[|;\r\n]+/).map(v=>v.trim()).filter(Boolean);
+ if(parts.length<5)throw Error('El QR fue leído correctamente, pero su estructura no coincide con los datos esperados. No se transfirió información.');
  const doc=parts[0].replace(/\s+/g,'');
- if(!/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc))throw Error('No se pudo validar el número de cédula del QR.');
+ if(!/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc))throw Error('El QR fue leído, pero no se pudo validar el número de cédula. Revisa el documento.');
  const name=parts[1]||'',last=parts[2]||'';
  const sexToken=parts.slice(3,7).find(x=>/^(M|F)$/i.test(x))||'';
  const sex=sexToken.toUpperCase()==='M'?'Masculino':sexToken.toUpperCase()==='F'?'Femenino':'';
@@ -119,7 +119,7 @@ async function recognizeNative(){
  const response=await plugin.scan();
  if(!response||response.cancelled)return null;
  const raw=String(response.qr||'').trim();
- if(!raw)throw Error('El escáner no devolvió un código QR válido. Actualiza el APK para activar la lectura QR.');
+ if(!raw)throw Error('El escáner terminó sin devolver información del QR.');
  return extractQr(raw);
 }
 function build(){
@@ -206,7 +206,7 @@ function attach(){
        ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
        :'QR detectado automáticamente. Revisa los datos incompletos antes de rellenar el formulario.';
      }
-    }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Vuelve a intentar el escaneo QR.';}
+    }catch(error){$('frIdScanStatus').textContent='Escaneo de cédula: '+(error.message||'error de lectura')+'. Puedes introducir los datos manualmente.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
  }
