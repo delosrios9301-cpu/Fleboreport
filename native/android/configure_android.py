@@ -28,6 +28,9 @@ base=tree.getroot()
 ns='{http://schemas.android.com/apk/res/android}'
 if not any(x.get(ns+'name')=='android.permission.CAMERA' for x in base.findall('uses-permission')):
     base.insert(0,ET.Element('uses-permission',{ns+'name':'android.permission.CAMERA'}))
+# Solo para el instalador oficial de APK firmados publicados en GitHub.
+if not any(x.get(ns+'name')=='android.permission.REQUEST_INSTALL_PACKAGES' for x in base.findall('uses-permission')):
+    base.insert(0,ET.Element('uses-permission',{ns+'name':'android.permission.REQUEST_INSTALL_PACKAGES'}))
 application=base.find('application')
 assert application is not None
 provider=ET.SubElement(application,'provider',{ns+'name':'androidx.core.content.FileProvider',ns+'authorities':'${applicationId}.idscanner.provider',ns+'exported':'false',ns+'grantUriPermissions':'true'})
