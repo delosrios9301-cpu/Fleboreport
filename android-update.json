@@ -1,8 +1,8 @@
 {
-  "versionCode": 6,
-  "versionName": "1.5",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.5",
-  "notes": "Mejora de actualizaciones Android: detección automática, descarga interna de APK desde GitHub Releases, verificación SHA-256, paquete y firma, e instalación con confirmación del sistema. Mantiene el lector QR CameraX/ML Kit. Instala esta versión una sola vez para habilitar descargas automáticas futuras.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.5/FleboReport-1.5.apk",
-  "sha256": "54393bbefca80fb512bf6439d9822399a21859763da4c29b26476ea739456514"
+  "versionCode": 7,
+  "versionName": "1.6",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.6",
+  "notes": "Lector nativo de QR de cédula con doble reconocimiento ML Kit y ZXing, enfoque inicial, ampliación automática y manual; captura sin fotos ni almacenamiento de imagen. Actualiza desde FleboReport 1.5 tras la confirmación de Android.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.6/FleboReport-1.6.apk",
+  "sha256": "cf3bd99e05122e35fc9b7083bb19692a0f1219e52542c092f9606513ec4cc96c"
 }
