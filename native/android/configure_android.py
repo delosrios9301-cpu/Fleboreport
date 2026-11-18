@@ -17,8 +17,8 @@ gradle=app/'build.gradle'
 s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
-s=s.replace(needle,needle+"\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'androidx.exifinterface:exifinterface:1.3.7'",1)
-s=s.replace('versionCode 1','versionCode 3').replace('versionName "1.0"','versionName "1.2"')
+s=s.replace(needle,needle+"\n    implementation 'com.google.android.gms:play-services-code-scanner:16.1.0'",1)
+s=s.replace('versionCode 1','versionCode 4').replace('versionName "1.0"','versionName "1.3"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
 ET.register_namespace('android','http://schemas.android.com/apk/res/android')
@@ -31,5 +31,8 @@ application=base.find('application')
 assert application is not None
 provider=ET.SubElement(application,'provider',{ns+'name':'androidx.core.content.FileProvider',ns+'authorities':'${applicationId}.idscanner.provider',ns+'exported':'false',ns+'grantUriPermissions':'true'})
 ET.SubElement(provider,'meta-data',{ns+'name':'android.support.FILE_PROVIDER_PATHS',ns+'resource':'@xml/flebo_idscanner_paths'})
+# Solicitar disponibilidad del visor QR de Google Play services en los dispositivos compatibles.
+if not any(x.get(ns+'name')=='com.google.mlkit.vision.DEPENDENCIES' for x in application.findall('meta-data')):
+    ET.SubElement(application,'meta-data',{ns+'name':'com.google.mlkit.vision.DEPENDENCIES',ns+'value':'barcode_ui'})
 tree.write(manifest,encoding='utf-8',xml_declaration=True)
-print('Android configurado con plugin ML Kit')
+print('Android configurado con lector QR en vivo')
