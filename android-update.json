@@ -1,8 +1,8 @@
 {
-  "versionCode": 7,
-  "versionName": "1.6",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.6",
-  "notes": "Lector nativo de QR de cédula con doble reconocimiento ML Kit y ZXing, enfoque inicial, ampliación automática y manual; captura sin fotos ni almacenamiento de imagen. Actualiza desde FleboReport 1.5 tras la confirmación de Android.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.6/FleboReport-1.6.apk",
-  "sha256": "cf3bd99e05122e35fc9b7083bb19692a0f1219e52542c092f9606513ec4cc96c"
+  "versionCode": 8,
+  "versionName": "1.7",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.7",
+  "notes": "Notificaciones del sistema Android mientras FleboReport está abierto: permiso nativo, barra de avisos y prueba desde la campana. El contenido no expone datos clínicos en pantalla bloqueada. El envío con la aplicación completamente cerrada sigue pendiente de un proveedor FCM configurado.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.7/FleboReport-1.7.apk",
+  "sha256": "320ed783e7519eb8eb8d1502073b73e1c71e1e643a81c31828fdb0211ec70ff1"
 }
