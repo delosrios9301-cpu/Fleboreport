@@ -1,8 +1,8 @@
 {
-  "versionCode": 9,
-  "versionName": "1.8",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.8",
-  "notes": "Corrección de pantalla Android: hora, batería, señal y notificaciones visibles en la barra superior, con espacio seguro para el encabezado y la navegación. Conserva el lector QR y los datos. Para aplicar cambios nativos se necesita instalar la APK 1.8 sobre la versión anterior con confirmación de Android.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.8/FleboReport-1.8.apk",
-  "sha256": "f91d6b58e0b98ffb7b693d04dd3a057e4d8610f4225ed14a2598b1a5962a0c83"
+  "versionCode": 10,
+  "versionName": "1.9",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.9",
+  "notes": "Actualizador Android corregido: instala mediante el instalador oficial, reanuda al volver de permisos de fuentes desconocidas, conserva APK validado y mantiene enlace de descarga alternativa. Requiere confirmación de Android. Conserva datos, lector QR y notificaciones.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.9/FleboReport-1.9.apk",
+  "sha256": "1404c92c7a1c9a9b5e5ab84a1ce3a7377125d2fecf7b457eed042efb02a93f52"
 }
