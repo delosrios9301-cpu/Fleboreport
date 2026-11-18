@@ -2707,8 +2707,23 @@ var oldRenderStudies=renderClinicalStudies;
  function workflowLabel(status){
   return ({REGISTRADO:'Registrado',EN_REVISION:'En revisión',PENDIENTE_PROCESO:'Pendiente de proceso',PROCESANDO:'Procesando',ALMACENAMIENTO_TEMPORAL:'Almacenamiento temporal',CONGELADOR_DEFINITIVO:'Congelador definitivo'})[status]||status;
  }
+ var clinicalStagesPending=new Set();
  async function transitionSampleUI(sample,next,note,args){
-  if(!sample)return;
+  if(!sample||clinicalStagesPending.has(sample.id))return;
+  clinicalStagesPending.add(sample.id);
+  // La fila cambia de forma inmediata a «Guardando…», pero no se altera
+  // el estado clínico hasta que la transición se confirme por Supabase.
+  var row=Array.from(document.querySelectorAll('#clinicalQueueRows tr')).find(function(tr){
+   return Array.from(tr.querySelectorAll('button[onclick]')).some(function(button){
+    return button.getAttribute('onclick').includes("'"+String(sample.id)+"'");
+   });
+  });
+  var badge=row?.querySelector('.clinical-status'),oldBadge=badge?.textContent;
+  var buttons=row?Array.from(row.querySelectorAll('button')):[];
+  var priorDisabled=buttons.map(function(button){return button.disabled});
+  var nextLabel=next==='EN_REVISION'?'En revisión':next==='PENDIENTE_PROCESO'?'Pendiente de procesamiento':next;
+  if(badge){badge.textContent=nextLabel+' · Guardando…';badge.setAttribute('aria-live','polite');}
+  buttons.forEach(function(button){button.disabled=true;button.setAttribute('aria-busy','true')});
   try{
    if(!window.FleboClinicalCloud)throw new Error('No está disponible el servicio clínico de Supabase.');
    var transitionResult=await window.FleboClinicalCloud.transition(sample,next,Object.assign({notes:note||''},args||{}));
@@ -2719,6 +2734,11 @@ var oldRenderStudies=renderClinicalStudies;
    save();
    auditAdd('Registro de sujetos','Transición de muestra '+sample.subjectCode+' → '+next);
   }catch(error){console.error('[FleboReport Clinical Workflow]',error);toast(error.message||'No se pudo cambiar el estado de la muestra.')}
+  finally{
+   if(badge?.isConnected){badge.textContent=oldBadge;badge.removeAttribute('aria-live');}
+   buttons.forEach(function(button,i){if(button.isConnected){button.disabled=priorDisabled[i];button.removeAttribute('aria-busy');}});
+   clinicalStagesPending.delete(sample.id);
+  }
  }
  setClinicalSampleStatus=async function(id,next,note){
   var sample=state.clinicalSamples.find(function(x){return x.id===id});if(!sample)return;
