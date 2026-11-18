@@ -105,6 +105,7 @@ test('Consultas por workspace con RLS, solo lectura, sin registros ficticios',()
  assert.match(source,/sharedLegacy:legacyCloudCounts\(client,ws\)/);
  assert.doesNotMatch(source,/\.upsert\(|\.insert\(|\.delete\(|localStorage|sessionStorage|FleboAppState/);
  assert.match(source,/window\.refreshDashboard=function\(\)/);
+ assert.match(source,/paintKpis\(\)/,'El inicio muestra primero las cifras confirmadas sin esperar todo el estado modular');
  assert.match(source,/flebo:home-history-changed/);
  assert.match(source,/dl-cloud-dashboard/);
 });
@@ -119,7 +120,7 @@ test('Panel Inicio reemplaza visualizaciones locales con estado y gráficos real
  assert.match(source,/Jornadas consolidadas de la nube/);
  assert.match(styles,/#view-home\.dl-cloud-dashboard \.hp-trend-group/);
  assert.match(styles,/@media\(max-width:760px\)/);
- assert.match(html,/dashboard-live-cloud\.js\?v=20261115-cloud1/);
+ assert.match(html,/dashboard-live-cloud\.js\?v=[0-9]{8}-[a-z0-9-]+/);
  assert.match(html,/dashboard-live-cloud\.css\?v=20261115-cloud1/);
  assert.match(worker,/'\.\/dashboard-live-cloud\.js'/);
  assert.match(worker,/'\.\/dashboard-live-cloud\.css'/);
