@@ -71,6 +71,9 @@
   finally{working=false;}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>check());else check();
+ // Reintentos rápidos tras iniciar el WebView Android, antes del intervalo periódico.
+ window.setTimeout(()=>check(),1500);
+ window.setTimeout(()=>check(),5000);
  // En Android al reabrir, volver del navegador o recuperar conexión se verifica de nuevo.
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)check();});
  window.addEventListener('focus',()=>check());
