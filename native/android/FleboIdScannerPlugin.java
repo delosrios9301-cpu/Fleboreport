@@ -18,8 +18,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -125,8 +123,9 @@ public class FleboIdScannerPlugin extends Plugin {
             return;
         }
         updatesExecutor.execute(() -> {
-            File target = new File(updateDirectory(), "FleboReport-" + version + ".apk");
+            File target = null;
             try {
+                target = new File(updateDirectory(), "FleboReport-" + version + ".apk");
                 if (!target.isFile() || !digestMatches(target, sha256)) {
                     downloadApk(assetUrl, target, sha256);
                 }
@@ -140,7 +139,7 @@ public class FleboIdScannerPlugin extends Plugin {
             } catch (Exception failure) {
                 preparedVersion = "";
                 // Si la firma, el APK o la descarga son inválidos, no conservar el archivo.
-                if (target.exists()) target.delete();
+                if (target != null && target.exists()) target.delete();
                 call.reject("No se pudo preparar la actualización: " + failure.getMessage());
             } finally {
                 downloadingUpdate.set(false);
