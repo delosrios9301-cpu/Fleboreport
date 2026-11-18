@@ -1,9 +1,7 @@
 /* Actualizaciones Android: detecta SOLO APK firmados publicados; nunca instala sin autorización. */
 (function(){
  'use strict';
- if(!window.Capacitor?.isNativePlatform?.())return;
- const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
- if(!plugin?.getAppVersion)return;
+ // El puente nativo puede estar disponible después de cargar el script; comprobarlo en cada intento.
  const repoUrl='https://github.com/delosrios9301-cpu/Fleboreport';
  const api='https://api.github.com/repos/delosrios9301-cpu/Fleboreport/releases?per_page=30';
  let last=0,working=false,closedVersion='';
@@ -46,6 +44,9 @@
   return {versionName:String(latest.versionName),apkUrl:latest.apkUrl,versionCode:Number(latest.versionCode)};
  }
  async function check(force=false){
+  if(!window.Capacitor?.isNativePlatform?.())return;
+  const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
+  if(!plugin?.getAppVersion)return;
   if(working||(!force&&Date.now()-last<CHECK_INTERVAL))return;
   working=true;last=Date.now();
   try{
