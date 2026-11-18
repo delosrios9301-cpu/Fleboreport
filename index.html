@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#123D30">
+<!-- Conectar antes los recursos indispensables para restaurar la sesión Android.
+     No precargar expedientes: el acceso sigue comprobándose en Supabase. -->
+<link rel="preconnect" href="https://knfjwvafwbhallhpsjqe.supabase.co" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/+esm" crossorigin>
+<link rel="preload" as="script" href="./supabase-auth.js?v=20261118-startup1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="FleboReport">
 <link rel="manifest" href="./manifest.webmanifest">
@@ -2997,7 +3003,7 @@ var oldDeleteBox=window.deleteClinicalStorageBox;
  #sidebar.sidebar,#sidebar .nav-list button,#sidebar .nav-group>summary svg,#sidebar .module-menu-close{transition:none!important}
 }
 </style>
-<script src="./supabase-auth.js?v=20261108-role-permission-fallback1"></script>
+<script src="./supabase-auth.js?v=20261118-startup1"></script>
 <script src="./flebo-engine.js?v=20261109-engine1"></script>
 <script src="./cloud-state-sync.js?v=20261113-remove1"></script>
 <script src="./patient-cloud-sync.js?v=20261113-remove1"></script>
@@ -3776,7 +3782,7 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./inicio-premium.css?v=20261114-inicio4" media="screen">
 <script src="./inicio-premium.js?v=20261113-inicio1"></script>
 <link rel="stylesheet" href="./dashboard-live-cloud.css?v=20261115-cloud1" media="screen">
-<script src="./dashboard-live-cloud.js?v=20261115-cloud1"></script>
+<script src="./dashboard-live-cloud.js?v=20261118-startup1"></script>
 <link rel="stylesheet" href="./clinical-reference-panels.css?v=20261113-clinical4" media="screen">
 <script src="./clinical-reference-panels.js?v=20261113-clinical6"></script>
 <link rel="stylesheet" href="./settings-reference-panels.css?v=20261113-settings1" media="screen">
