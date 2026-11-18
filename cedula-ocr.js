@@ -128,6 +128,13 @@ function build(){
  const modal=document.createElement('div');modal.id='frIdScanModal';modal.className='fr-idscan-modal';modal.hidden=true;
  modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><div class="fr-idscan-actions"><button type="button" id="frIdScanCamera">Abrir cámara</button><button type="button" id="frIdScanGallery">Galería</button></div><video id="frIdScanVideo" autoplay playsinline muted hidden style="width:100%;max-height:46dvh;object-fit:contain;background:#111;border-radius:10px"></video><button type="button" id="frIdScanSnap" hidden>Capturar foto</button><input id="frIdScanFile" type="file" accept="image/*" capture="environment" hidden><input id="frIdScanGalleryFile" type="file" accept="image/*" hidden><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
  document.body.appendChild(modal);
+ // En Android el lector nativo usa vídeo continuo; no mostrar opciones de foto/OCR.
+ if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){
+  modal.querySelector('p').textContent='Apunta al QR del reverso. La cámara lo lee y se cierra automáticamente, sin guardar fotografías. Comprueba los datos antes de guardar al paciente.';
+  $('frIdScanCamera').parentElement.style.display='none';
+  $('frIdScanSnap').hidden=true;
+ }
+
  $('frIdScanCancel').onclick=()=>{if(!processing){stopCamera();modal.hidden=true;current=null;$('frIdScanFile').value='';$('frIdScanGalleryFile').value='';}};
  $('frIdScanCamera').onclick=()=>startCamera();
  $('frIdScanGallery').onclick=()=>{$('frIdScanGalleryFile').click();};
@@ -187,8 +194,19 @@ function attach(){
     try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
      for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
      $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
-     $('frIdScanStatus').textContent=Object.values(found).some(Boolean)?'Revisa los datos detectados antes de rellenar el formulario.':'El QR se leyó, pero no se pudieron identificar campos fiables. Comprueba el reverso de la cédula.';
-    }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Puedes utilizar Galería o Abrir cámara.';}
+     // Tras una lectura completa, rellenar inmediatamente SIN guardar el registro.
+     // Si faltan campos o hay una cédula diferente, exigir revisión para evitar sobrescribir datos.
+     const existingDoc=$(target.fields.doc)?.value?.trim()||'';
+     const complete=[found.doc,found.name,found.last,found.birth,found.sex].every(Boolean);
+     if(complete&&(!existingDoc||existingDoc===found.doc)){
+      $('frIdScanApply').click();
+      if(!modal.hidden)$('frIdScanStatus').textContent='QR detectado. Revisa los campos que no se pudieron transferir.';
+     }else{
+      $('frIdScanStatus').textContent=existingDoc&&existingDoc!==found.doc
+       ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
+       :'QR detectado automáticamente. Revisa los datos incompletos antes de rellenar el formulario.';
+     }
+    }catch(error){$('frIdScanStatus').textContent='Escáner nativo: '+(error.message||'error')+'. Vuelve a intentar el escaneo QR.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
  }
