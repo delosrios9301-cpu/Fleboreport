@@ -7,6 +7,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.ClipData;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.app.ActivityCompat;
@@ -47,6 +48,7 @@ public class FleboIdScannerPlugin extends Plugin {
     private final ExecutorService updatesExecutor = Executors.newSingleThreadExecutor();
     private static final long MAX_APK_BYTES = 125L * 1024L * 1024L;
     private volatile String preparedVersion = "";
+    private static final String UPDATE_PREFS = "flebo_verified_apk_updates";
     private static final String CLINICAL_CHANNEL = "flebo_clinical_updates_v1";
     private static final int NOTIFICATION_REQUEST = 824;
 
@@ -257,6 +259,17 @@ public class FleboIdScannerPlugin extends Plugin {
      * Comprueba packageId, versión superior y firma instalada antes de ofrecer la instalación.
      * Nunca se descargan archivos clínicos, ni se modifica la base de datos.
      */
+    /** Comprueba el permiso por fuente sin abrir ajustes ni alterar el dispositivo. */
+    @PluginMethod
+    public void getInstallPermissionStatus(PluginCall call) {
+        JSObject response = new JSObject();
+        boolean allowed = Build.VERSION.SDK_INT < 26
+            || getContext().getPackageManager().canRequestPackageInstalls();
+        response.put("allowed", allowed);
+        response.put("requiresPermission", Build.VERSION.SDK_INT >= 26);
+        call.resolve(response);
+    }
+
     @PluginMethod
     public void prepareUpdate(PluginCall call) {
         String version = call.getString("versionName", "");
@@ -285,6 +298,10 @@ public class FleboIdScannerPlugin extends Plugin {
                 }
                 validateApk(target, version);
                 preparedVersion = version;
+                // Si Android destruye la Activity al regresar de Ajustes, mantener
+                // la referencia al archivo verificado (solo version y hash; no datos clínicos).
+                getContext().getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+                    .edit().putString("version", version).putString("sha256", sha256).apply();
                 JSObject out = new JSObject();
                 out.put("ready", true);
                 out.put("versionName", version);
@@ -292,6 +309,8 @@ public class FleboIdScannerPlugin extends Plugin {
                 call.resolve(out);
             } catch (Exception failure) {
                 preparedVersion = "";
+                getContext().getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+                    .edit().remove("version").remove("sha256").apply();
                 // Si la firma, el APK o la descarga son inválidos, no conservar el archivo.
                 if (target != null && target.exists()) target.delete();
                 call.reject("No se pudo preparar la actualización: " + failure.getMessage());
@@ -301,36 +320,74 @@ public class FleboIdScannerPlugin extends Plugin {
         });
     }
 
-    /** Solicita el instalador del sistema tras comprobar de nuevo la APK preparada. */
+    /**
+     * Abre el instalador oficial de Android con una URI temporal de FileProvider.
+     * No instala silenciosamente: el usuario siempre confirma en Android.
+     * Puede reanudar tras volver de Ajustes sin volver a descargar el APK.
+     */
     @PluginMethod
     public void installPreparedUpdate(PluginCall call) {
         String version = call.getString("versionName", "");
-        if (!version.equals(preparedVersion) ||
-            !version.matches("[0-9]+\\.[0-9]+(\\.[0-9]+)?")) {
-            call.reject("Primero debe descargarse y verificarse la actualización.");
+        if (!version.matches("[0-9]+\\.[0-9]+(\\.[0-9]+)?")) {
+            call.reject("Versión de instalación inválida.");
             return;
         }
-        File file = new File(updateDirectory(), "FleboReport-" + version + ".apk");
+        String verifiedVersion = getContext()
+            .getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+            .getString("version", "");
+        if (!version.equals(preparedVersion) && !version.equals(verifiedVersion)) {
+            call.reject("Primero descarga y verifica la actualización.");
+            return;
+        }
         try {
+            File file = new File(updateDirectory(), "FleboReport-" + version + ".apk");
+            String sha = getContext()
+                .getSharedPreferences(UPDATE_PREFS, Context.MODE_PRIVATE)
+                .getString("sha256", "");
+            if (!sha.isEmpty() && !digestMatches(file, sha))
+                throw new SecurityException("El archivo descargado no coincide con el SHA-256 publicado.");
             validateApk(file, version);
+
             if (Build.VERSION.SDK_INT >= 26
                 && !getContext().getPackageManager().canRequestPackageInstalls()) {
                 Intent settings = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
                     Uri.parse("package:" + getContext().getPackageName()));
-                getActivity().startActivity(settings);
-                call.reject("Autoriza instalar aplicaciones desde FleboReport y regresa "
-                    + "a la aplicación para continuar.");
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        getActivity().startActivity(settings);
+                        JSObject status = new JSObject();
+                        status.put("permissionRequired", true);
+                        call.resolve(status);
+                    } catch (Exception failure) {
+                        call.reject("No se pudieron abrir los ajustes de instalación: "
+                            + failure.getMessage());
+                    }
+                });
                 return;
             }
+
             Uri apkUri = FileProvider.getUriForFile(getContext(),
                 getContext().getPackageName() + ".idscanner.provider", file);
-            Intent installer = new Intent(Intent.ACTION_VIEW);
-            installer.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            // ACTION_INSTALL_PACKAGE entrega el APK directamente al instalador oficial.
+            // ClipData y FLAG_GRANT_READ_URI_PERMISSION permiten que este lea el
+            // archivo privado en Android modernos sin copiarlo a Descargas.
+            Intent installer = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+            installer.setData(apkUri);
+            installer.setClipData(ClipData.newRawUri("FleboReport APK", apkUri));
             installer.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getActivity().startActivity(installer);
-            call.resolve();
+            getActivity().runOnUiThread(() -> {
+                try {
+                    getActivity().startActivity(installer);
+                    JSObject response = new JSObject();
+                    response.put("installerOpened", true);
+                    call.resolve(response);
+                } catch (Exception failure) {
+                    call.reject("Android no pudo abrir el instalador del paquete: "
+                        + failure.getMessage());
+                }
+            });
         } catch (Exception failure) {
-            call.reject("No se pudo abrir el instalador: " + failure.getMessage());
+            call.reject("No se pudo abrir el instalador seguro: " + failure.getMessage());
         }
     }
 
