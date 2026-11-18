@@ -1,7 +1,8 @@
 {
-  "versionCode": 5,
-  "versionName": "1.4",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.4",
-  "notes": "Lector QR de cédulas con CameraX y Google ML Kit, captura automática al detectar el código y revisión del formulario antes de guardar. APK firmada con el mismo certificado que Android 1.3; instalar sobre la 1.3 sin desinstalar.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.4/FleboReport-1.4.apk"
+  "versionCode": 6,
+  "versionName": "1.5",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.5",
+  "notes": "Mejora de actualizaciones Android: detección automática, descarga interna de APK desde GitHub Releases, verificación SHA-256, paquete y firma, e instalación con confirmación del sistema. Mantiene el lector QR CameraX/ML Kit. Instala esta versión una sola vez para habilitar descargas automáticas futuras.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.5/FleboReport-1.5.apk",
+  "sha256": "54393bbefca80fb512bf6439d9822399a21859763da4c29b26476ea739456514"
 }
