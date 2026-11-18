@@ -146,15 +146,21 @@ jobs:
           import pathlib, re, sys
           p=pathlib.Path(sys.argv[1])
           data=p.read_text(errors='replace')
-          match=re.search(r'(?im)^\s*Signer\s*#?1\s+certificate\s+SHA[- ]?256\s+digest\s*:\s*([0-9a-f:]{64,95})', data)
-          if not match:
-              lines=[line.split(':')[0][:100] for line in data.splitlines() if 'certificate' in line.lower() or 'signer' in line.lower() or 'SHA' in line]
-              print(f"No se identificó huella en {p.name}. Etiquetas: {lines[:8]}",file=sys.stderr)
+          hashes=set()
+          for line in data.splitlines():
+              if 'source stamp' in line.lower():
+                  continue
+              # Las versiones recientes del SDK imprimen "V3.0 Signer #1: certificate...".
+              m=re.search(r'certificate\s+SHA[- ]?256\s+digest\s*:\s*([0-9a-f:]{64,95})',line,re.I)
+              if m:
+                  value=m.group(1).replace(':','').lower()
+                  if re.fullmatch(r'[0-9a-f]{64}',value):
+                      hashes.add(value)
+          if len(hashes)!=1:
+              labels=[re.sub(r'[0-9a-f]{64}', '<huella>', line)[:140] for line in data.splitlines() if 'SHA' in line.upper() or 'signer' in line.lower()]
+              print(f"Certificado ambiguo en {p.name}. Etiquetas: {labels[:8]}",file=sys.stderr)
               sys.exit(1)
-          fingerprint=match.group(1).replace(':','').lower()
-          if not re.fullmatch(r'[0-9a-f]{64}',fingerprint):
-              sys.exit('Huella SHA-256 incompleta')
-          print(fingerprint)
+          print(hashes.pop())
           PY
           }
           OLD_CERT="$(extract_sha256_cert "$RUNNER_TEMP/previous-signature.txt")"
