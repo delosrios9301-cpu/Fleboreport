@@ -426,8 +426,30 @@
    sharedLegacy:legacyCloudCounts(client,ws)
   };
   const keys=Object.keys(calls);
+  const coldStart=!data;
   inflight=(async()=>{
-   const results=await Promise.allSettled(Object.values(calls));
+   // Mostrar cifras verificadas conforme regresen las tablas rápidas. La
+   // consulta del estado modular puede tardar más de un segundo: no bloquear
+   // los pacientes, domicilios y otras métricas ya confirmadas por Supabase.
+   const partial={},pending=keys.map(key=>Promise.resolve(calls[key]).then(value=>{
+    if(coldStart&&stamp===seq&&ws===verifiedWorkspace){
+     partial[key]=value;
+     if(!partialTimer){
+      partialTimer=setTimeout(()=>{
+       partialTimer=0;
+       if(!finalized&&stamp===seq&&ws===verifiedWorkspace){
+        data=core.calculate(partial);
+        paintKpis();
+       }
+      },110);
+     }
+    }
+    return value;
+   }));
+   let partialTimer=0,finalized=false;
+   const results=await Promise.allSettled(pending);
+   finalized=true;
+   if(partialTimer){clearTimeout(partialTimer);partialTimer=0;}
    if(stamp!==seq||ws!==verifiedWorkspace)return false;
    const values={},issues=[];
    for(let i=0;i<results.length;i++){
@@ -456,7 +478,7 @@
   ensurePanel();
   const old=window.refreshDashboard;
   if(typeof old==='function'){
-   window.refreshDashboard=function(){const result=old.apply(this,arguments);if(onHome()){paint();schedule(true);}return result;};
+   window.refreshDashboard=function(){const result=old.apply(this,arguments);if(onHome()){paint();schedule();}return result;};
   }
   const kpis=$('operationalKpis');
   if(kpis&&typeof MutationObserver!=='undefined'){
