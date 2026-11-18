@@ -1,6 +1,7 @@
 {
   "versionCode": 3,
   "versionName": "1.2",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/actions/runs/44189538744",
-  "notes": "Lector nativo QR de cédulas. La descarga desde GitHub Actions requiere iniciar sesión y extraer el ZIP. No desinstales la versión anterior."
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.2",
+  "notes": "APK Android 1.2 firmado. Descarga directa desde GitHub Releases. Si tienes una versión de prueba con firma distinta, no la desinstales sin respaldar primero tus datos.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.2/FleboReport-1.2.apk"
 }
