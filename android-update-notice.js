@@ -66,7 +66,17 @@
    close.onclick=()=>{closedVersion=latest.versionName;box.remove();};
    const button=document.createElement('button');button.type='button';
    button.style.marginRight='16px';
-   box.append(heading,desc,button,close);document.body.appendChild(box);
+   const fallback=document.createElement('a');fallback.href=latest.apkUrl;
+   fallback.target='_blank';fallback.rel='noopener noreferrer';
+   fallback.textContent='Descarga oficial alternativa';
+   fallback.style.cssText='display:none;margin-top:9px;color:#075f8b;text-decoration:underline;font-weight:600';
+   // En equipos donde falla la escritura del APK en el caché privado,
+   // ofrecer una salida verificable sin pedir que se desinstale FleboReport.
+   const showFallback=(message)=>{
+    fallback.style.display='block';
+    desc.textContent=message+' Puedes abrir la descarga oficial sin desinstalar FleboReport.';
+   };
+   box.append(heading,desc,button,close,fallback);document.body.appendChild(box);
    if(plugin.prepareUpdate&&plugin.installPreparedUpdate){
     // Desde Android 1.5: descarga segura en el caché privado; sin navegador ni archivos manuales.
     let prepared=false;
@@ -79,8 +89,9 @@
       desc.textContent='Android te pedirá confirmar la instalación. Tus datos se conservan.';
       button.textContent='Abrir instalador otra vez';
      }catch(error){
-      desc.textContent=error?.message||'Autoriza la instalación desde FleboReport en los ajustes de Android y vuelve a intentar.';
-      button.textContent='Continuar instalación';
+      const detail=String(error?.message||'No se pudo abrir el instalador Android.').slice(0,300);
+      showFallback('No fue posible iniciar la instalación interna: '+detail);
+      button.textContent='Reintentar instalación';
      }finally{button.disabled=false;}
     };
     const prepare=async()=>{
@@ -97,7 +108,8 @@
       button.disabled=false;button.textContent='Instalar actualización';
       button.onclick=install;
      }catch(error){
-      desc.textContent=error?.message||'No fue posible descargar la actualización. Revisa tu conexión.';
+      const detail=String(error?.message||'Fallo en descarga o escritura del archivo.').slice(0,300);
+      showFallback('No se pudo guardar la APK desde la aplicación: '+detail);
       button.disabled=false;button.textContent='Reintentar descarga';
       button.onclick=prepare;
      }finally{await releaseListener();}
