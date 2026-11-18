@@ -824,8 +824,35 @@ async function openSamplesReview(id){
  document.body.appendChild(overlay);renderCatalogResults('');refresh();
 }
 const pendingVisitTransitions=new Set();
+// La ficha informa al instante el siguiente paso sin afirmar que ya se
+// confirmó en Supabase. No reconstruye el modal ni pierde el scroll.
+function markVisitTransitionPending(id,next){
+ const elements=[];
+ document.querySelectorAll('.hv-ref-visit').forEach(card=>{
+  const trigger=card.querySelector('[data-hv-ref-details]');
+  if(trigger?.dataset.hvRefDetails!==String(id))return;
+  const badge=card.querySelector('.hv-ref-state');
+  if(!badge)return;
+  elements.push([badge,badge.innerHTML,false]);
+  badge.textContent=next+' · Guardando…';
+  badge.setAttribute('aria-live','polite');
+ });
+ document.querySelectorAll('body > .hv-detail-backdrop .hv-field-action,body > .hv-detail-backdrop .hv-track-action-list button').forEach(button=>{
+  elements.push([button,button.disabled,true]);
+  button.disabled=true;
+  button.setAttribute('aria-busy','true');
+ });
+ return ()=>{
+  for(const [element,old,button] of elements){
+   if(!element.isConnected)continue;
+   if(button){element.disabled=old;element.removeAttribute('aria-busy');}
+   else{element.innerHTML=old;element.removeAttribute('aria-live');}
+  }
+ };
+}
 async function changeStatus(id,next,confirmed=false){if(pendingVisitTransitions.has(id))return;if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}const actionMessage=$('hvFieldActionMessage');if(actionMessage){actionMessage.textContent='Guardando cambio a '+next+'…';actionMessage.style.color='';}
  pendingVisitTransitions.add(id);
+ const restorePending=markVisitTransitionPending(id,next);
  try{
  let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
  const saved=await save(v,{skipTests:next!=='Muestras tomadas'});
@@ -834,7 +861,7 @@ async function changeStatus(id,next,confirmed=false){if(pendingVisitTransitions.
  const failed=$('hvFieldActionMessage');if(failed){failed.textContent='No se confirmó el cambio de estado. Revisa el mensaje de error de la agenda.';failed.style.color='#a33e47';}
  
  }
- }finally{pendingVisitTransitions.delete(id)}
+ }finally{restorePending();pendingVisitTransitions.delete(id)}
 }async function addTests(id){
  if(!cloud.ready){say('Conecta la agenda con Supabase antes de agregar pruebas.');return}
  let v=visits.find(x=>x.id===id);if(!v)return;
