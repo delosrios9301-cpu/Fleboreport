@@ -10,6 +10,7 @@ java=app/'src/main/java/com/fleboreport/app'
 java.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(root/'MainActivity.java',java/'MainActivity.java')
 shutil.copyfile(root/'FleboIdScannerPlugin.java',java/'FleboIdScannerPlugin.java')
+shutil.copyfile(root/'FleboQrCameraActivity.java',java/'FleboQrCameraActivity.java')
 xml=app/'src/main/res/xml'
 xml.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(root/'flebo_idscanner_paths.xml',xml/'flebo_idscanner_paths.xml')
@@ -17,8 +18,8 @@ gradle=app/'build.gradle'
 s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
-s=s.replace(needle,needle+"\n    implementation 'com.google.android.gms:play-services-code-scanner:16.1.0'",1)
-s=s.replace('versionCode 1','versionCode 4').replace('versionName "1.0"','versionName "1.3"')
+s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.5.2'\n    implementation 'androidx.camera:camera-lifecycle:1.5.2'\n    implementation 'androidx.camera:camera-view:1.5.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'",1)
+s=s.replace('versionCode 1','versionCode 5').replace('versionName "1.0"','versionName "1.4"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
 ET.register_namespace('android','http://schemas.android.com/apk/res/android')
@@ -34,5 +35,7 @@ ET.SubElement(provider,'meta-data',{ns+'name':'android.support.FILE_PROVIDER_PAT
 # Solicitar disponibilidad del visor QR de Google Play services en los dispositivos compatibles.
 if not any(x.get(ns+'name')=='com.google.mlkit.vision.DEPENDENCIES' for x in application.findall('meta-data')):
     ET.SubElement(application,'meta-data',{ns+'name':'com.google.mlkit.vision.DEPENDENCIES',ns+'value':'barcode_ui'})
+if not any(x.get(ns+'name')=='.FleboQrCameraActivity' for x in application.findall('activity')):
+    ET.SubElement(application,'activity',{ns+'name':'.FleboQrCameraActivity',ns+'exported':'false',ns+'screenOrientation':'portrait'})
 tree.write(manifest,encoding='utf-8',xml_declaration=True)
-print('Android configurado con lector QR en vivo')
+print('Android 1.4 configurado con lector QR CameraX/ML Kit integrado')

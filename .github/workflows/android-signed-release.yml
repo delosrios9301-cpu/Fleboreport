@@ -6,6 +6,7 @@ on:
       - '.github/workflows/android-signed-release.yml'
       - 'native/android/configure_android.py'
       - 'native/android/FleboIdScannerPlugin.java'
+      - 'native/android/FleboQrCameraActivity.java'
       - 'native/android/MainActivity.java'
       - 'native/android/package.json'
       - 'native/android/capacitor.config.json'
