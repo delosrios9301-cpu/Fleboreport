@@ -146,7 +146,7 @@ jobs:
           import pathlib, re, sys
           p=pathlib.Path(sys.argv[1])
           data=p.read_text(errors='replace')
-          match=re.search(r'(?im)^\\s*Signer\\s*#?1\\s+certificate\\s+SHA[- ]?256\\s+digest\\s*:\\s*([0-9a-f:]{64,95})', data)
+          match=re.search(r'(?im)^\s*Signer\s*#?1\s+certificate\s+SHA[- ]?256\s+digest\s*:\s*([0-9a-f:]{64,95})', data)
           if not match:
               lines=[line.split(':')[0][:100] for line in data.splitlines() if 'certificate' in line.lower() or 'signer' in line.lower() or 'SHA' in line]
               print(f"No se identificó huella en {p.name}. Etiquetas: {lines[:8]}",file=sys.stderr)
