@@ -103,7 +103,7 @@ jobs:
         if: steps.info.outputs.publish == 'true'
         working-directory: native/android/android
         run: bash gradlew assembleRelease --no-daemon --max-workers=2
-      - name: Firmar APK y comprobar certificado de Android 1.2
+      - name: Firmar APK y comprobar certificado de Android 1.3
         if: steps.info.outputs.publish == 'true'
         env:
           BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
@@ -134,15 +134,14 @@ jobs:
           grep -F "versionCode='$CODE'" "$RUNNER_TEMP/package.txt"
           grep -F "versionName='$VERSION'" "$RUNNER_TEMP/package.txt"
           mkdir -p "$RUNNER_TEMP/previous"
-          gh release download android-v1.2 --repo "$GITHUB_REPOSITORY" --pattern FleboReport-1.2.apk --dir "$RUNNER_TEMP/previous"
-          "$APKSIGNER" verify --verbose --print-certs "$RUNNER_TEMP/previous/FleboReport-1.2.apk" > "$RUNNER_TEMP/previous-signature.txt"
+          # La versión 1.3 es la versión base instalada. Su certificado prevalece.
+          # Las APK 1.2 y 1.3 tienen firmas diferentes: exigir coincidencia con 1.2
+          # impediría actualizar 1.3 y, peor, no garantiza compatibilidad con 1.3.
+          gh release download android-v1.3 --repo "$GITHUB_REPOSITORY" --pattern FleboReport-1.3.apk --dir "$RUNNER_TEMP/previous"
+          "$APKSIGNER" verify --verbose --print-certs "$RUNNER_TEMP/previous/FleboReport-1.3.apk" > "$RUNNER_TEMP/previous-signature.txt"
           OLD_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/previous-signature.txt" | head -1)"
           NEW_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/new-signature.txt" | head -1)"
-          # Comprobar que las versiones instaladas 1.2 y 1.3 utilizan el mismo certificado.
-          gh release download android-v1.3 --repo "$GITHUB_REPOSITORY" --pattern FleboReport-1.3.apk --dir "$RUNNER_TEMP/previous"
-          "$APKSIGNER" verify --verbose --print-certs "$RUNNER_TEMP/previous/FleboReport-1.3.apk" > "$RUNNER_TEMP/current-signature.txt"
-          CURRENT_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/current-signature.txt" | head -1)"
-          test -n "$OLD_CERT" && test "$OLD_CERT" = "$CURRENT_CERT" || { echo "::error::Las firmas de 1.2 y 1.3 no coinciden. Revisión manual necesaria."; exit 1; }
+          test -n "$OLD_CERT" && test -n "$NEW_CERT" || { echo "::error::No se pudo leer el certificado de 1.3 o 1.4. No publicar."; exit 1; }
           # El respaldo cifrado puede no corresponder al certificado instalado. Probar la
           # clave de producción histórica, si está configurada, sin desactivar la verificación.
           if [ "$OLD_CERT" != "$NEW_CERT" ]; then
@@ -157,8 +156,8 @@ jobs:
             NEW_CERT="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' "$RUNNER_TEMP/new-signature.txt" | head -1)"
             rm -f "$RUNNER_TEMP/production.jks"
           fi
-          test -n "$NEW_CERT" && test "$OLD_CERT" = "$NEW_CERT" || { echo "::error::La firma no coincide con Android 1.2 y 1.3. No publicar."; exit 1; }
-          echo "Firma y versión verificadas; APK compatible con Android 1.2 y 1.3."
+          test -n "$NEW_CERT" && test "$OLD_CERT" = "$NEW_CERT" || { echo "::error::La firma no coincide con Android 1.3 instalado. No publicar."; exit 1; }
+          echo "Firma y versión verificadas; APK compatible con Android 1.3."
       - name: Publicar GitHub Release automáticamente
         if: steps.info.outputs.publish == 'true'
         env:
@@ -166,4 +165,4 @@ jobs:
           VERSION: ${{ steps.info.outputs.version }}
           CODE: ${{ steps.info.outputs.version_code }}
         run: |
-          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --repo "$GITHUB_REPOSITORY" --title "FleboReport Android $VERSION" --notes "APK Android firmado (versionCode $CODE). Firma comprobada contra FleboReport 1.2 y 1.3. Instalar encima de la anterior con confirmación de Android."
+          gh release create "android-v$VERSION" "FleboReport-$VERSION.apk" --repo "$GITHUB_REPOSITORY" --title "FleboReport Android $VERSION" --notes "APK Android firmado (versionCode $CODE). Firma comprobada contra FleboReport 1.3. Instalar encima de la anterior con confirmación de Android."
