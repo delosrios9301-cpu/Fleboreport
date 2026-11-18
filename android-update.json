@@ -1,7 +1,7 @@
 {
-  "versionCode": 4,
-  "versionName": "1.3",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.3",
-  "notes": "Lector QR de cédulas en vivo, cierre automático de cámara y llenado del formulario con revisión antes de guardar. Actualiza la app 1.2 sin desinstalarla; Android solicitará confirmación para instalar.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.3/FleboReport-1.3.apk"
+  "versionCode": 5,
+  "versionName": "1.4",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.4",
+  "notes": "Lector QR de cédulas con CameraX y Google ML Kit, captura automática al detectar el código y revisión del formulario antes de guardar. APK firmada con el mismo certificado que Android 1.3; instalar sobre la 1.3 sin desinstalar.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.4/FleboReport-1.4.apk"
 }
