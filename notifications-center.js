@@ -11,7 +11,7 @@ function style(){if($('frNotifStyles'))return;const s=document.createElement('st
 '#frNotifList{overflow:auto;padding:7px;overscroll-behavior:contain}.fr-notif-item{width:100%;display:block;text-align:left;border:0;border-bottom:1px solid #edf2f5;background:#fff;padding:12px 10px;cursor:pointer}.fr-notif-item:last-child{border-bottom:0}.fr-notif-item.unread{background:#f1f8fb}.fr-notif-item strong{display:block;color:#20465c;font-size:11px}.fr-notif-item p{margin:5px 0;color:#60798a;font-size:10px;line-height:1.45;white-space:pre-line}.fr-notif-item time{color:#91a1ab;font-size:9px}.fr-notif-empty{padding:35px 14px;text-align:center;color:#8395a0;font-size:11px;line-height:1.6}.fr-notif-item.sla-warning{border-left:4px solid #d89b25}.fr-notif-item.sla-critical{border-left:4px solid #e4772e}.fr-notif-item.sla-overdue{border-left:4px solid #cf3945}.fr-notif-tag{float:right;border-radius:20px;padding:3px 6px;font-size:8px;font-weight:800;background:#fff1d2;color:#956912}'+
 '@media(max-width:760px){#frNotifBell{position:absolute;right:14px;top:9px;width:40px;height:40px}#frNotifPanel{top:62px;right:8px;max-height:calc(100dvh - 82px)}}';document.head.appendChild(s)}
 function mount(){if(!$('frNotifBell')){const top=document.querySelector('.topbar');if(!top)return;const b=document.createElement('button');b.id='frNotifBell';b.type='button';b.setAttribute('aria-label','Abrir notificaciones');b.setAttribute('aria-expanded','false');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg><span id="frNotifCount">0</span>';b.addEventListener('click',toggle);top.appendChild(b)}
-if(!$('frNotifPanel')){const p=document.createElement('aside');p.id='frNotifPanel';p.setAttribute('aria-label','Centro de notificaciones');p.innerHTML='<div class="fr-notif-head"><div><strong>Notificaciones</strong><small id="frNotifSummary">Avisos personales de FleboReport</small></div><button type="button" id="frNotifReadAll">Marcar todas leídas</button></div><div id="frPushDiag" style="display:none;margin:8px 10px 0;padding:8px 10px;border:1px solid #dce8ee;border-radius:9px;background:#f6fafc;color:#526c7c;font-size:10px;line-height:1.45"></div><div id="frNotifList"><div class="fr-notif-empty">Conectando…</div></div>';document.body.appendChild(p);$('frNotifReadAll').addEventListener('click',readAll)}}
+if(!$('frNotifPanel')){const p=document.createElement('aside');p.id='frNotifPanel';p.setAttribute('aria-label','Centro de notificaciones');p.innerHTML='<div class="fr-notif-head"><div><strong>Notificaciones</strong><small id="frNotifSummary">Avisos personales de FleboReport</small></div><button type="button" id="frNotifReadAll">Marcar todas leídas</button></div><div id="frAndroidNotifySettings" style="display:none;padding:10px 12px;border-bottom:1px solid #eaf0f3;color:#274a5d;font-size:11px"><div id="frAndroidNotifyMessage">Las notificaciones Android no están activadas.</div><button type="button" id="frAndroidNotifyEnable" style="margin-top:7px;padding:8px;border-radius:9px;border:1px solid #8db2ba;background:#eef7f6;color:#145a56;font-weight:700">Activar notificaciones Android</button><button type="button" id="frAndroidNotifyTest" style="margin-top:7px;margin-left:6px;padding:8px;border-radius:9px;border:1px solid #8db2ba;background:#fff;color:#145a56;font-weight:700">Probar aviso</button></div><div id="frPushDiag" style="display:none;margin:8px 10px 0;padding:8px 10px;border:1px solid #dce8ee;border-radius:9px;background:#f6fafc;color:#526c7c;font-size:10px;line-height:1.45"></div><div id="frNotifList"><div class="fr-notif-empty">Conectando…</div></div>';document.body.appendChild(p);$('frNotifReadAll').addEventListener('click',readAll);const activate=$('frAndroidNotifyEnable'),test=$('frAndroidNotifyTest');if(activate)activate.addEventListener('click',activateAndroidNotifications);if(test)test.addEventListener('click',testAndroidNotification)}}
 function toggle(){const p=$('frNotifPanel'),open=!p.classList.contains('open');p.classList.toggle('open',open);$('frNotifBell').setAttribute('aria-expanded',String(open));if(open)load()}
 function titleOf(n){if(n.isSla){const t={volunteer_available:'Domicilio disponible para asignación voluntaria',volunteer_claimed:'Domicilio asignado voluntariamente',departure_due:'Salida próxima del domicilio',departure_followup:'Seguimiento de salida',departure_overdue:'Domicilio fuera de hora',sample_registered:'Nueva muestra registrada · Pendiente de revisión',sample_received:'Muestra aprobada · Pendiente de procesamiento',sample_24h:'Muestra: quedan 24 horas',sample_20m:'Muestra: quedan 20 minutos',sample_overdue:'Muestra fuera del plazo de 72 horas',coagulation_minimum:'Muestra: tiempo mínimo de coagulación alcanzado',coagulation_near_maximum:'Muestra próxima al máximo de coagulación',coagulation_maximum:'Alerta crítica: tiempo máximo de coagulación alcanzado'};return t[n.alert_code]||'Alerta de cumplimiento'}return n.metadata?.title||(n.template_name==='home_visit_assigned'?'Domicilio pendiente de aprobación':n.template_name)||'Notificación de FleboReport'}
 function messageOf(n){
@@ -22,7 +22,105 @@ function messageOf(n){
    'Un miembro asumió voluntariamente un domicilio. Revisa la agenda.';
  if(n.isSla&&n.alert_code==='coagulation_minimum')return 'La muestra alcanzó el tiempo mínimo de coagulación configurado. El reloj continúa hasta que inicie el procesamiento.';if(n.isSla&&n.alert_code==='coagulation_near_maximum')return 'La muestra se acerca al tiempo máximo de coagulación configurado. Inicia el procesamiento dentro del límite establecido.';if(n.isSla&&n.alert_code==='coagulation_maximum')return 'La muestra alcanzó o superó el tiempo máximo de coagulación configurado. Revisa y documenta la incidencia.';if(n.isSla&&n.alert_code==='sample_registered')return 'Se registró una muestra y está pendiente de revisión. Ingresa al módulo Estudios Clínicos para verificarla.';if(n.isSla&&n.alert_code==='sample_received')return 'La muestra fue revisada y aprobada y ya está disponible en el módulo Procesamiento.';if(n.isSla){const subject=n.entity==='home_visit'?'domicilio':'muestra clínica';const sev=n.severity==='overdue'?'El plazo ya venció.':n.severity==='critical'?'Atención inmediata: el plazo está por agotarse.':'Se aproxima un límite de tiempo.';return sev+' Revisa el seguimiento de '+subject+'.'}const raw=String(n.message_body||'');const p=raw.includes('\n')?raw.split('\n'):raw.split('\\n');return p.length>1?p.slice(1).join('\n'):raw}
 function dateOf(v){try{return new Intl.DateTimeFormat('es-PA',{dateStyle:'short',timeStyle:'short'}).format(new Date(v))}catch(_){return ''}}
-function showDeviceNotification(n){try{if(!n||!('Notification'in window)||Notification.permission!=='granted')return;const title=titleOf(n),body=messageOf(n),clinical=n.entity==='clinical_sample'||(String(n.alert_code||'').startsWith('sample_')||String(n.alert_code||'').startsWith('coagulation_')),url=clinical?'?view=clinical-processing':'?view=domicilios'+(n.home_visit_id?'&visit='+encodeURIComponent(n.home_visit_id):'');if(navigator.serviceWorker?.ready)navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,{body,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag:'fleboreport-notif-'+n.id,data:{url}})).catch(()=>{});else new Notification(title,{body,icon:'./icons/icon-192.png',tag:'fleboreport-'+n.id})}catch(e){console.warn('No se pudo mostrar el aviso del dispositivo:',e)}}
+// La APK Android no admite PushManager del Service Worker como una PWA de Chrome.
+// Para avisos recibidos mientras está abierta usar NotificationManager nativo.
+const NATIVE_PERMISSION_KEY='fleboReport.nativeNotifyPrompt.v1';
+let nativePermissionCheckBusy=false;
+function androidNotifications(){
+ const c=window.Capacitor;
+ if(c?.getPlatform?.()!=='android')return null;
+ const p=c?.Plugins?.FleboIdScanner;
+ return p?.showSystemNotification&&p?.getSystemNotificationStatus?p:null;
+}
+async function checkAndroidNotificationPermission(askOnce=false){
+ const p=androidNotifications(),panel=$('frAndroidNotifySettings'),button=$('frAndroidNotifyEnable');
+ if(!p||!panel||nativePermissionCheckBusy)return;
+ if(!window.FleboAuth?.user||window.FleboAuth?.membership?.active!==true){panel.style.display='none';return}
+ nativePermissionCheckBusy=true;
+ try{
+  let status=await p.getSystemNotificationStatus();
+  const alreadyAsked=localStorage.getItem(NATIVE_PERMISSION_KEY)==='true';
+  if(askOnce&&!status.enabled&&!alreadyAsked){
+   // Android presenta su diálogo oficial una sola vez al entrar con una sesión autorizada.
+   localStorage.setItem(NATIVE_PERMISSION_KEY,'true');
+   await p.requestSystemNotificationPermission();
+   status=await p.getSystemNotificationStatus();
+  }
+  panel.style.display='block';
+  const message=$('frAndroidNotifyMessage');
+  if(message)message.textContent=status.enabled
+   ?'Avisos de Android activados. Las alertas nuevas aparecerán en la barra mientras FleboReport esté abierto.'
+   :'Para recibir avisos en la barra, permite las notificaciones de FleboReport en Android.';
+  if(button)button.textContent=status.enabled?'Ajustes de avisos Android':'Activar notificaciones Android';
+ }catch(error){
+  panel.style.display='block';
+  const message=$('frAndroidNotifyMessage');
+  if(message)message.textContent='No fue posible verificar los permisos de notificaciones Android.';
+ }finally{nativePermissionCheckBusy=false}
+}
+async function activateAndroidNotifications(){
+ const p=androidNotifications();if(!p)return;
+ try{
+  const state=await p.getSystemNotificationStatus();
+  if(!state.enabled){
+   await p.requestSystemNotificationPermission();
+   // Si ya se denegó, Android no necesariamente vuelve a mostrar el cuadro.
+   const next=await p.getSystemNotificationStatus();
+   if(!next.enabled&&p.openSystemNotificationSettings)await p.openSystemNotificationSettings();
+  }else if(p.openSystemNotificationSettings)await p.openSystemNotificationSettings();
+ }catch(e){console.warn('[FleboReport Android] No se pudieron activar los avisos:',e)}
+ await checkAndroidNotificationPermission();
+}
+async function testAndroidNotification(){
+ const p=androidNotifications();if(!p)return;
+ try{
+  const status=await p.getSystemNotificationStatus();
+  if(!status.enabled){await activateAndroidNotifications();return}
+  await p.showSystemNotification({category:'domicilios',eventId:'test-'+Date.now()});
+  const m=$('frAndroidNotifyMessage');
+  if(m)m.textContent='Aviso de prueba enviado a la barra Android. Desliza desde la parte superior para verlo.';
+ }catch(e){
+  const m=$('frAndroidNotifyMessage');
+  if(m)m.textContent='No se pudo mostrar el aviso de prueba. Revisa los permisos de Android.';
+  console.warn('[FleboReport Android] Aviso de prueba:',e);
+ }
+}
+function showDeviceNotification(n){
+ if(!n)return;
+ const clinical=n.entity==='clinical_sample'
+  ||String(n.alert_code||'').startsWith('sample_')
+  ||String(n.alert_code||'').startsWith('coagulation_');
+ const p=androidNotifications();
+ if(p){
+  // No se envía texto clínico, identificadores de pacientes ni direcciones a Android.
+  const eventId=String(n.id||'');
+  if(!eventId)return;
+  p.showSystemNotification({
+   eventId,category:clinical?'clinical-processing':'domicilios'
+  }).catch(error=>{
+   console.warn('[FleboReport Android] Aviso del sistema no mostrado:',error?.message||error);
+   void checkAndroidNotificationPermission();
+  });
+  return;
+ }
+ try{
+  if(!('Notification'in window)||Notification.permission!=='granted')return;
+  const title=titleOf(n),body=messageOf(n);
+  const url=clinical?'?view=clinical-processing':'?view=domicilios'+(n.home_visit_id?'&visit='+encodeURIComponent(n.home_visit_id):'');
+  if(navigator.serviceWorker?.ready)navigator.serviceWorker.ready.then(reg=>reg.showNotification(title,{body,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag:'fleboreport-notif-'+n.id,data:{url}})).catch(()=>{});
+  else new Notification(title,{body,icon:'./icons/icon-192.png',tag:'fleboreport-'+n.id});
+ }catch(e){console.warn('No se pudo mostrar el aviso del dispositivo:',e)}
+}
+async function resumeNativeNotificationTarget(){
+ const p=androidNotifications();
+ if(!p||!window.FleboAuth?.user||window.FleboAuth?.membership?.active!==true)return;
+ try{
+  const result=await p.consumeSystemNotificationTarget?.();
+  if(['domicilios','clinical-processing'].includes(result?.view)&&typeof window.navigate==='function'){
+   window.navigate(result.view);
+  }
+ }catch(error){console.warn('[FleboReport Android] Navegación de aviso:',error)}
+}
 function render(){const list=$('frNotifList');if(!list)return;const unread=rows.filter(n=>n.status!=='read').length,count=$('frNotifCount');count.textContent=unread>99?'99+':String(unread);count.style.display=unread?'inline-flex':'none';$('frNotifSummary').textContent=unread?unread+' pendiente'+(unread===1?'':'s'):'Estás al día';if(!rows.length){list.innerHTML='<div class="fr-notif-empty">No tienes notificaciones todavía.<br>Los avisos de tus módulos aparecerán aquí.</div>';return}list.innerHTML=rows.map(n=>'<button type="button" class="fr-notif-item '+(n.status==='read'?'':'unread')+(n.isSla?' sla-'+esc(n.severity):'')+'" data-notif-id="'+esc(n.id)+'"><strong>'+esc(titleOf(n))+(n.isSla?'<span class="fr-notif-tag">'+(n.severity==='overdue'?'VENCIDO':n.severity==='critical'?'CRÍTICO':'AVISO')+'</span>':'')+'</strong><p>'+esc(messageOf(n))+'</p><time>'+esc(dateOf(n.created_at))+'</time></button>').join('');list.querySelectorAll('[data-notif-id]').forEach(b=>b.addEventListener('click',()=>openNotification(b.dataset.notifId)))}
 async function load(){if(!client||!userId||!workspaceId)return;const [normal,primarySla]=await Promise.all([client.from('home_visit_notifications').select('id,home_visit_id,recipient_user_id,channel,status,template_name,message_body,metadata,created_at').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).eq('channel','in_app').order('created_at',{ascending:false}).limit(60),client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).or('resolved_at.is.null,alert_code.in.(coagulation_minimum,coagulation_near_maximum,coagulation_maximum)').order('generated_at',{ascending:false}).limit(60)]);if(normal.error){$('frNotifList').innerHTML='<div class="fr-notif-empty">No se pudieron cargar los avisos. '+esc(normal.error.message)+'</div>';return}let sla=primarySla;if(sla.error){console.warn('Consulta SLA con espacio de trabajo falló; se reintenta por destinatario:',sla.error);sla=await client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).is('resolved_at',null).order('generated_at',{ascending:false}).limit(60)}if(sla.error){console.warn('No se pudieron cargar las alertas SLA:',sla.error);rows=normal.data||[];render();const note=document.createElement('div');note.className='fr-notif-empty';note.textContent='No se pudieron cargar las alertas de seguimiento. Vuelve a abrir las notificaciones.';$('frNotifList').appendChild(note);return}const a=(sla.data||[]).map(x=>({...x,isSla:true,status:x.acknowledged_at?'read':'pending',created_at:x.generated_at,home_visit_id:x.entity==='home_visit'?x.record_id:null}));rows=[...(normal.data||[]),...a].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,100);render()}
 async function mark(id){const n=rows.find(x=>x.id===id);if(!n)return;if(n.isSla){const {error}=await client.from('workflow_sla_alerts').update({acknowledged_at:new Date().toISOString(),acknowledged_by:userId}).eq('id',id).eq('recipient_user_id',userId);if(error)throw error;n.acknowledged_at=new Date().toISOString()}else{const {error}=await client.from('home_visit_notifications').update({status:'read',updated_at:new Date().toISOString()}).eq('id',id).eq('recipient_user_id',userId);if(error)throw error}n.status='read';render()}
@@ -36,10 +134,10 @@ async function readAll(){if(!client||!userId)return;const normalIds=rows.filter(
 function disconnect(){if(channel&&client){client.removeChannel(channel);channel=null}rows=[];userId=null;workspaceId=null;const count=$('frNotifCount');if(count)count.style.display='none';if($('frNotifPanel'))$('frNotifPanel').classList.remove('open')}
 async function connect(){const auth=window.FleboAuth;if(!auth)return;const c=await auth.init(),u=auth.user,m=auth.membership;if(!u||!m?.workspace_id||m.active!==true){disconnect();return}if(userId===u.id&&workspaceId===m.workspace_id&&client===c)return;disconnect();client=c;userId=u.id;workspaceId=m.workspace_id;await load();channel=client.channel('fr-in-app-notifications-'+workspaceId+'-'+userId).on('postgres_changes',{event:'INSERT',schema:'public',table:'home_visit_notifications',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId&&payload.new?.channel==='in_app'){showDeviceNotification(payload.new);load()}}).on('postgres_changes',{event:'INSERT',schema:'public',table:'workflow_sla_alerts',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId){const a={...payload.new,isSla:true};showDeviceNotification({id:a.id,entity:a.entity,record_id:a.record_id,alert_code:a.alert_code,severity:a.severity,metadata:{title:titleOf(a)},message_body:messageOf(a),home_visit_id:a.entity==='home_visit'?a.record_id:null});load()}}).subscribe()}
 function inspectPushDiagnostics(){if(!('serviceWorker'in navigator))return;navigator.serviceWorker.ready.then(reg=>{const worker=reg.active;if(!worker||!window.MessageChannel)return;const channel=new MessageChannel();channel.port1.onmessage=e=>{const result=e.data,box=$('frPushDiag');if(result?.ok){const rows=result.rows||[],latest=rows.slice(-8),received=latest.filter(x=>x.event==='push_received'),shown=latest.filter(x=>x.event==='show_notification_resolved'),failed=latest.filter(x=>x.event==='show_notification_failed');if(box&&rows.length){box.style.display='block';box.textContent=failed.length?'Diagnóstico Push: el Service Worker recibió el aviso, pero falló al mostrarlo.':shown.length?'Diagnóstico Push: el Service Worker recibió el aviso y showNotification terminó correctamente.':received.length?'Diagnóstico Push: el aviso llegó al Service Worker; falta confirmar su presentación.':'Diagnóstico Push: no hay eventos de presentación registrados.'}console.info('[FleboReport][Push diagnóstico] Eventos locales:',rows)}else if(box){box.style.display='block';box.textContent='Diagnóstico Push no disponible en este dispositivo.'}};worker.postMessage({type:'FR_GET_PUSH_DIAGNOSTICS'},[channel.port2])}).catch(e=>console.warn('[FleboReport][Push diagnóstico] No disponible:',e))}
-function init(){style();mount();inspectPushDiagnostics();if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e))}
-window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e))});
+function init(){style();mount();if(!androidNotifications())inspectPushDiagnostics();if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e));setTimeout(()=>{void checkAndroidNotificationPermission(true);void resumeNativeNotificationTarget()},800)}
+window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e));setTimeout(()=>{void checkAndroidNotificationPermission(true);void resumeNativeNotificationTarget()},800)});
 window.addEventListener('online',()=>{if(window.FleboAuth)connect().then(load).catch(e=>console.warn('Centro de notificaciones:',e))});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&userId)load()});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(navigator.onLine&&userId)load();void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()}});window.addEventListener('focus',()=>{void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()});
 document.addEventListener('click',e=>{const p=$('frNotifPanel'),b=$('frNotifBell');if(p?.classList.contains('open')&&!p.contains(e.target)&&!b?.contains(e.target)){p.classList.remove('open');b?.setAttribute('aria-expanded','false')}});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 window.FleboNotifications={refresh:load,close:()=>{$('frNotifPanel')?.classList.remove('open')}};
