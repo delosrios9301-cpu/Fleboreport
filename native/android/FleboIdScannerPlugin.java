@@ -1,6 +1,16 @@
 package com.fleboreport.app;
 
 import android.app.Activity;
+import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -37,6 +47,121 @@ public class FleboIdScannerPlugin extends Plugin {
     private final ExecutorService updatesExecutor = Executors.newSingleThreadExecutor();
     private static final long MAX_APK_BYTES = 125L * 1024L * 1024L;
     private volatile String preparedVersion = "";
+    private static final String CLINICAL_CHANNEL = "flebo_clinical_updates_v1";
+    private static final int NOTIFICATION_REQUEST = 824;
+
+    /** Solamente lee el estado: no se concede ningún permiso automáticamente. */
+    @PluginMethod
+    public void getSystemNotificationStatus(PluginCall call) {
+        JSObject response = new JSObject();
+        boolean allowed = notificationPermissionGranted();
+        response.put("enabled", allowed);
+        response.put("requiresPermission", Build.VERSION.SDK_INT >= 33);
+        call.resolve(response);
+    }
+
+    private boolean notificationPermissionGranted() {
+        boolean androidPermission = Build.VERSION.SDK_INT < 33
+            || ContextCompat.checkSelfPermission(getContext(),
+                Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        return androidPermission && NotificationManagerCompat.from(getContext()).areNotificationsEnabled();
+    }
+
+    /**
+     * Abre el cuadro oficial de Android 13+ cuando el usuario activa los avisos.
+     * El resultado se consulta después mediante getSystemNotificationStatus.
+     */
+    @PluginMethod
+    public void requestSystemNotificationPermission(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= 33
+            && ContextCompat.checkSelfPermission(getContext(), Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(),
+                new String[]{Manifest.permission.POST_NOTIFICATIONS}, NOTIFICATION_REQUEST);
+        }
+        JSObject result = new JSObject();
+        result.put("enabled", notificationPermissionGranted());
+        result.put("requested", true);
+        call.resolve(result);
+    }
+
+    private void ensureNotificationChannel() {
+        if (Build.VERSION.SDK_INT < 26) return;
+        NotificationManager manager =
+            (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager == null) return;
+        if (manager.getNotificationChannel(CLINICAL_CHANNEL) == null) {
+            NotificationChannel channel = new NotificationChannel(
+                CLINICAL_CHANNEL, "Avisos de FleboReport",
+                NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("Asignaciones, domicilios y alertas clínicas. Sin datos personales de pacientes.");
+            manager.createNotificationChannel(channel);
+        }
+    }
+
+    /** Avisos del sistema mientras la app está abierta; no sustituye FCM en segundo plano. */
+    @PluginMethod
+    public void showSystemNotification(PluginCall call) {
+        if (!notificationPermissionGranted()) {
+            call.reject("Autoriza las notificaciones de FleboReport en los ajustes de Android.");
+            return;
+        }
+        String category = call.getString("category", "domicilios");
+        String id = call.getString("eventId", "");
+        if (!"domicilios".equals(category) && !"clinical-processing".equals(category)) {
+            call.reject("Categoría de aviso no válida.");
+            return;
+        }
+        if (id == null || id.isEmpty() || id.length() > 100 ||
+            !id.matches("[A-Za-z0-9:_\\-]+")) {
+            call.reject("Identificador de aviso no válido.");
+            return;
+        }
+        String title = "clinical-processing".equals(category)
+            ? "Nueva alerta clínica · FleboReport"
+            : "Nueva notificación de domicilio · FleboReport";
+        // No incluir nombres, cédulas, direcciones ni diagnósticos en pantalla bloqueada.
+        String message = "Abre FleboReport para revisar el aviso con tu sesión autorizada.";
+        try {
+            ensureNotificationChannel();
+            Intent intent = getContext().getPackageManager()
+                .getLaunchIntentForPackage(getContext().getPackageName());
+            if (intent == null) throw new IllegalStateException("No se pudo abrir la aplicación.");
+            intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("flebo_notification_view", category);
+            int requestId = (category + ":" + id).hashCode() & 0x7fffffff;
+            PendingIntent open = PendingIntent.getActivity(getContext(),
+                requestId, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            Notification notification = new NotificationCompat.Builder(getContext(), CLINICAL_CHANNEL)
+                .setSmallIcon(com.fleboreport.app.R.drawable.ic_stat_fleboreport)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_STATUS)
+                .setAutoCancel(true)
+                .setContentIntent(open)
+                .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
+                .build();
+            NotificationManagerCompat.from(getContext())
+                .notify("flebo:" + category + ":" + id, 1, notification);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("No se pudo mostrar la notificación Android: " + e.getMessage());
+        }
+    }
+
+    /** Solo se devuelve la vista solicitada, nunca datos clínicos del Intent. */
+    @PluginMethod
+    public void consumeSystemNotificationTarget(PluginCall call) {
+        Intent intent = getActivity().getIntent();
+        String view = intent == null ? null : intent.getStringExtra("flebo_notification_view");
+        JSObject response = new JSObject();
+        response.put("view", "domicilios".equals(view) || "clinical-processing".equals(view) ? view : "");
+        if (intent != null) intent.removeExtra("flebo_notification_view");
+        call.resolve(response);
+    }
+
 
 
     @PluginMethod
