@@ -217,6 +217,12 @@ async function recognizeNative(){
 async function readNativeFromModal(target,modal){
  if(processing)return;
  processing=true;
+ // Un nuevo intento nunca debe conservar campos del QR anterior.
+ $('frIdScanFields').hidden=true;
+ $('frIdScanApply').disabled=true;
+ for(const id of ['frIdScanDoc','frIdScanName','frIdScanLast','frIdScanBirth','frIdScanSex']){
+  const field=$(id);if(field)field.value='';
+ }
  try{
   $('frIdScanStatus').textContent='Abriendo escáner Android…';
   const found=await recognizeNative();
