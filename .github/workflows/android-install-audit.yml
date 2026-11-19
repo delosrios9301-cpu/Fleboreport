@@ -1,0 +1,39 @@
+name: Diagnosticar instalación APK Android
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/android-install-audit.yml'
+permissions:
+  contents: read
+jobs:
+  check-releases:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verificar versiones, firmas y alineación sin instalar APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TOOLS_DIR="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          mkdir -p "$RUNNER_TEMP/fleboapk"
+          for ver in 1.2 1.3 1.8 1.9 2.0 2.1 2.2; do
+            asset="FleboReport-$ver.apk"
+            echo "::group::APK $ver"
+            if ! gh release download "android-v$ver" --repo "$GITHUB_REPOSITORY" --pattern "$asset" --dir "$RUNNER_TEMP/fleboapk" >/dev/null 2>&1; then
+              echo "Versión $ver no disponible"; echo "::endgroup::"; continue
+            fi
+            apk="$RUNNER_TEMP/fleboapk/$asset"
+            wc -c "$apk"
+            sha256sum "$apk"
+            "$TOOLS_DIR/aapt" dump badging "$apk" | grep -E '^(package:|sdkVersion:|targetSdkVersion:|native-code:)' | head -8
+            "$TOOLS_DIR/apksigner" verify --verbose --print-certs "$apk" |
+              grep -E 'Verifies using APK Signature Scheme|Signer #1 certificate SHA-256 digest' | head -9
+            if "$TOOLS_DIR/zipalign" -c -P 16 -v 4 "$apk" > "$RUNNER_TEMP/alignment-$ver.log" 2>&1; then
+              echo "16KB ZIP ALIGNMENT: PASS"
+            else
+              echo "16KB ZIP ALIGNMENT: FAIL"
+              grep -E 'lib/.*(BAD|ERROR|Failed)|Verification FAILED' "$RUNNER_TEMP/alignment-$ver.log" | head -24 || true
+            fi
+            echo "::endgroup::"
+          done
