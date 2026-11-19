@@ -80,6 +80,7 @@ public class FleboQrCameraActivity extends AppCompatActivity {
     private static final Pattern DOCUMENT_NUMBER = Pattern.compile(
         "(?i)(?<![A-Za-z0-9])(?:PE|E|N|AV|[0-9]{1,2})\\s*[-–]\\s*[0-9]{1,5}\\s*[-–]\\s*[0-9]{1,6}(?![0-9])");
     private long lastInvalidQrHint = 0L;
+    private long lastOcrHint = 0L;
     private String lastTextDocument = "";
     private int stableTextFrames = 0;
     private final AtomicBoolean analyzing = new AtomicBoolean(false);
@@ -314,27 +315,57 @@ public class FleboQrCameraActivity extends AppCompatActivity {
      * imágenes ni metadatos de documentos en el teléfono o en registros.
      */
     private void textDetected(String raw) {
-        if (raw == null || raw.length() > 16384 || raw.trim().isEmpty()
-            || !textMode || finished.get()) return;
-        Matcher doc = DOCUMENT_NUMBER.matcher(raw);
-        if (!doc.find()) {
-            if (captureRequested.getAndSet(false))
-                runOnUiThread(() -> status.setText("No se distingue una cédula. "
-                    + "Enfoca mejor los datos impresos y pulsa Capturar texto."));
+        if (!textMode || finished.get() || raw == null) return;
+        String text = raw.trim();
+        boolean forced = captureRequested.getAndSet(false);
+        if (text.isEmpty() || text.length() > 16384) {
+            if (forced) runOnUiThread(() ->
+                status.setText("No se reconoció texto. Acerca la licencia, evita reflejos y vuelve a pulsar Capturar texto."));
             return;
         }
-        String normalizedDoc = doc.group().replaceAll("\\s+", "").replace('–','-');
-        String lower = raw.toLowerCase(Locale.ROOT);
-        boolean labels = lower.contains("nombre") || lower.contains("apellido")
-            || lower.contains("surname") || lower.contains("name");
-        if (!labels && !captureRequested.get()) return;
-        if (normalizedDoc.equals(lastTextDocument)) stableTextFrames++;
-        else { lastTextDocument=normalizedDoc; stableTextFrames=1; }
-        if (stableTextFrames < 3 && !captureRequested.getAndSet(false)) return;
+        Matcher match = DOCUMENT_NUMBER.matcher(text);
+        boolean hasDocument = match.find();
+        String normalizedDoc = hasDocument
+            ? match.group().replaceAll("\\s+", "").replace('–','-') : "";
+        String lower = text.toLowerCase(Locale.ROOT);
+        boolean hasNameLabels = lower.contains("nombre") || lower.contains("apellido")
+            || lower.contains("surname") || lower.contains("given name")
+            || lower.contains("first name");
+        boolean hasBirthLabels = lower.contains("nacimiento") || lower.contains("birth")
+            || lower.contains("dob");
+        boolean recognizable = hasNameLabels || hasBirthLabels;
+
+        // ML Kit suele reconocer nombres y cédula en frames diferentes.
+        // No exigir la cédula perfecta para permitir la vista previa al usuario.
+        if (!forced && (!hasDocument || !recognizable)) {
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastOcrHint > 2600L) {
+                lastOcrHint = now;
+                runOnUiThread(() -> {
+                    if (!finished.get() && textMode) status.setText(
+                        "Texto detectado parcialmente. Alinea la cédula y los nombres; "
+                        + "o pulsa Capturar texto para revisar lo que se alcanzó a leer.");
+                });
+            }
+            return;
+        }
+        if (forced && !(hasDocument || hasNameLabels || hasBirthLabels)) {
+            runOnUiThread(() -> status.setText(
+                "Se detectaron letras, pero no datos del documento. "
+                + "Enfoca el área de nombres o cédula y vuelve a pulsar Capturar texto."));
+            return;
+        }
+        if (!forced) {
+            // Estabilidad de dos lecturas consecutivas de la misma cédula:
+            // evita cerrar la cámara con un frame movido.
+            if (normalizedDoc.equals(lastTextDocument)) stableTextFrames++;
+            else { lastTextDocument=normalizedDoc; stableTextFrames=1; }
+            if (stableTextFrames < 2) return;
+        }
         if (!finished.compareAndSet(false, true)) return;
         runOnUiThread(() -> {
             Intent result = new Intent();
-            result.putExtra("ocr", raw);
+            result.putExtra("ocr", text);
             result.putExtra("format", "DOCUMENT_TEXT");
             setResult(Activity.RESULT_OK, result);
             finish();
