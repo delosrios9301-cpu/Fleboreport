@@ -218,7 +218,14 @@ public class FleboIdScannerPlugin extends Plugin {
         }
         scanning = true;
         try {
+            String mode = call.getString("mode", "qr");
+            if (!"qr".equals(mode) && !"text".equals(mode)) {
+                scanning = false;
+                call.reject("Modo de lectura no válido.");
+                return;
+            }
             Intent intent = new Intent(getActivity(), FleboQrCameraActivity.class);
+            intent.putExtra("scan_mode", mode);
             startActivityForResult(call, intent, "onScanResult");
         } catch (Exception error) {
             scanning = false;
@@ -244,14 +251,22 @@ public class FleboIdScannerPlugin extends Plugin {
         }
 
         String value = data == null ? null : data.getStringExtra("qr");
-        if (value == null || value.trim().isEmpty()) {
-            call.reject("La cámara terminó sin recuperar un código QR.");
+        String ocr = data == null ? null : data.getStringExtra("ocr");
+        boolean isText = ocr != null && !ocr.trim().isEmpty();
+        if (isText) value = ocr;
+        if (value == null || value.trim().isEmpty() || value.length() > 16384) {
+            call.reject("La cámara terminó sin recuperar datos de identidad legibles.");
             return;
         }
-        // Solo se transmite al formulario web de la app, nunca a un servidor o log.
+        // La lectura permanece local; jamás escribir el contenido en logs.
         JSObject response = new JSObject();
-        response.put("qr", value);
-        response.put("format", "QR_CODE");
+        if (isText) {
+            response.put("ocr", value);
+            response.put("format", "DOCUMENT_TEXT");
+        } else {
+            response.put("qr", value);
+            response.put("format", "QR_CODE");
+        }
         call.resolve(response);
     }
     /**
