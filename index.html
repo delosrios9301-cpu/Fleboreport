@@ -1152,6 +1152,9 @@ function resetTestForm(){['catalogEditId','testName','testSample','testVessel','
 function startNewCatalogTest(){resetTestForm();navigate('settings','catalog');window.scrollTo({top:0,behavior:'smooth'})}
 async function confirmCatalogCloudSync(message){try{const confirmed=!!(window.FleboCloudSync&&typeof window.FleboCloudSync.syncNow==='function'&&await window.FleboCloudSync.syncNow({verify:true}));toast(confirmed?message+' Guardado y confirmado en la nube.':'Se guardó en este dispositivo, pero no se confirmó en la nube. Revisa la conexión y vuelve a sincronizar.')}catch(error){console.error('[FleboReport] No se pudo confirmar el catálogo en la nube:',error);toast('Se guardó localmente, pero no se pudo sincronizar: '+(error&&error.message?error.message:'error de conexión'))}}
 async function saveTest(){
+ // Aplicar la propuesta inequívoca también cuando el administrador pulsa
+ // Guardar directamente desde el teclado Android, sin evento blur/change.
+ window.FleboAutoConfig?.applyToForm?.();
  const name=$('testName').value.trim(),sample=$('testSample').value.trim(),vessel=$('testVessel').value.trim();
  if(!name){toast('Escribe el nombre de la prueba.');$('testName').focus();return}
  const id=$('catalogEditId').value||('t-'+Date.now()+'-'+Math.random().toString(36).slice(2,7));
