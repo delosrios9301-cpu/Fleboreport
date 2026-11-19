@@ -35,9 +35,6 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions;
 import com.google.mlkit.vision.barcode.ZoomSuggestionOptions;
 import com.google.mlkit.vision.barcode.common.Barcode;
 import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.text.TextRecognition;
-import com.google.mlkit.vision.text.TextRecognizer;
-import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
@@ -49,9 +46,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.Locale;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -71,18 +65,7 @@ public class FleboQrCameraActivity extends AppCompatActivity {
     private Camera camera;
     private ProcessCameraProvider provider;
     private BarcodeScanner detector;
-    private TextRecognizer textRecognizer;
     private ExecutorService analyzerExecutor;
-    private Button modeButton;
-    private Button captureTextButton;
-    private volatile boolean textMode = false;
-    private final AtomicBoolean captureRequested = new AtomicBoolean(false);
-    private static final Pattern DOCUMENT_NUMBER = Pattern.compile(
-        "(?i)(?<![A-Za-z0-9])(?:PE|E|N|AV|[0-9]{1,2})\\s*[-–]\\s*[0-9]{1,5}\\s*[-–]\\s*[0-9]{1,6}(?![0-9])");
-    private long lastInvalidQrHint = 0L;
-    private long lastOcrHint = 0L;
-    private String lastTextDocument = "";
-    private int stableTextFrames = 0;
     private final AtomicBoolean analyzing = new AtomicBoolean(false);
     private final AtomicBoolean finished = new AtomicBoolean(false);
     private long scanStartedAt;
@@ -95,8 +78,6 @@ public class FleboQrCameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         analyzerExecutor = Executors.newSingleThreadExecutor();
-        textMode = "text".equals(getIntent().getStringExtra("scan_mode"));
-        textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
         // ML Kit 17.3 ofrece ampliación automática al detectar un QR distante.
         ZoomSuggestionOptions zoomOptions = new ZoomSuggestionOptions.Builder(ratio -> {
             if (finished.get()) return false;
@@ -124,7 +105,7 @@ public class FleboQrCameraActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.BLACK);
         TextView heading = new TextView(this);
-        heading.setText("Leer cédula o licencia");
+        heading.setText("Leer QR de la cédula");
         heading.setTextColor(Color.WHITE);
         heading.setTextSize(20);
         heading.setGravity(Gravity.CENTER);
@@ -154,9 +135,7 @@ public class FleboQrCameraActivity extends AppCompatActivity {
         });
 
         status = new TextView(this);
-        status.setText(textMode
-            ? "Enfoca el texto impreso de la licencia o cédula. Se analizará sin guardar fotografías."
-            : "Enfoca el QR de datos legibles. Si solo contiene verificación, pulsa Leer texto impreso.");
+        status.setText("Coloca el QR cuadrado dentro de la cámara. La lectura es automática.");
         status.setTextColor(Color.WHITE);
         status.setTextSize(15);
         status.setGravity(Gravity.CENTER);
@@ -197,34 +176,6 @@ public class FleboQrCameraActivity extends AppCompatActivity {
         actions.addView(close, new LinearLayout.LayoutParams(0,
             ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         root.addView(actions);
-        LinearLayout modeActions = new LinearLayout(this);
-        modeActions.setGravity(Gravity.CENTER);
-        modeActions.setPadding(8, 0, 8, 18);
-        modeButton = new Button(this);
-        modeButton.setText(textMode ? "Volver al QR" : "Leer texto impreso");
-        modeButton.setOnClickListener(view -> {
-            textMode = !textMode;
-            captureRequested.set(false);
-            stableTextFrames = 0;
-            lastTextDocument = "";
-            modeButton.setText(textMode ? "Volver al QR" : "Leer texto impreso");
-            captureTextButton.setVisibility(textMode ? View.VISIBLE : View.GONE);
-            status.setText(textMode
-                ? "Apunta a los datos impresos. La lectura es automática si son claros; también puedes pulsar Capturar texto."
-                : "Enfoca el QR de datos legibles. Los códigos de control no completan el paciente.");
-        });
-        modeActions.addView(modeButton,new LinearLayout.LayoutParams(0,
-            ViewGroup.LayoutParams.WRAP_CONTENT,1));
-        captureTextButton = new Button(this);
-        captureTextButton.setText("Capturar texto");
-        captureTextButton.setVisibility(textMode ? View.VISIBLE : View.GONE);
-        captureTextButton.setOnClickListener(view -> {
-            captureRequested.set(true);
-            status.setText("Analizando los datos impresos. Mantén el documento enfocado…");
-        });
-        modeActions.addView(captureTextButton,new LinearLayout.LayoutParams(0,
-            ViewGroup.LayoutParams.WRAP_CONTENT,1));
-        root.addView(modeActions);
         setContentView(root);
     }
 
@@ -276,113 +227,9 @@ public class FleboQrCameraActivity extends AppCompatActivity {
         }, ContextCompat.getMainExecutor(this));
     }
 
-
-    /**
-     * Evita cerrar el lector con el QR de control de la licencia.
-     * Este filtro no descifra QR privados ni intenta adivinar la identidad:
-     * la validación definitiva de los campos ocurre en JavaScript.
-     */
-    private boolean looksLikeIdentityQr(String raw) {
-        if (raw == null || raw.length() > 16384) return false;
-        String value = raw.trim();
-        if (value.isEmpty()) return false;
-        boolean document = DOCUMENT_NUMBER.matcher(value).find();
-        String lower = value.toLowerCase(Locale.ROOT);
-        boolean labelled = lower.contains("cedula") || lower.contains("cédula")
-            || lower.contains("identificacion") || lower.contains("identificación")
-            || lower.contains("documentnumber") || lower.contains("documento de identidad");
-        boolean personal = lower.contains("nombre") || lower.contains("apellido")
-            || lower.contains("surname") || lower.contains("firstnames")
-            || lower.contains("givennames") || lower.contains("firstname");
-        boolean separated = value.matches("(?s)^\\s*(?:PE|E|N|AV|[0-9]{1,2})-\\d{1,5}-\\d{1,6}\\s*[|;\\r\\n].*");
-        // El código público también puede ofrecer nombres y apellidos pero
-        // omitir la cédula. Devuelve esos campos para revisión sin identificar
-        // al paciente por el número de control de la licencia.
-        boolean pairedNames = (lower.contains("nombres") || lower.contains("nombre")
-            || lower.contains("givenname") || lower.contains("firstname"))
-            && (lower.contains("apellido") || lower.contains("surname")
-                || lower.contains("lastname"));
-        return separated || (document && (labelled || personal)) || pairedNames;
-    }
-
-    private void suggestReadableCode() {
-        long now = SystemClock.elapsedRealtime();
-        if (now - lastInvalidQrHint < 2400L) return;
-        lastInvalidQrHint = now;
-        runOnUiThread(() -> {
-            if (!finished.get() && !textMode)
-                status.setText("Código de verificación detectado, sin datos de identidad legibles. "
-                    + "Busca otro QR en la licencia o usa Leer texto impreso.");
-        });
-    }
-
-    /**
-     * OCR local en vivo: se acepta únicamente la lectura que contenga una
-     * cédula plausible y campos de identidad visibles. No se guarda texto,
-     * imágenes ni metadatos de documentos en el teléfono o en registros.
-     */
-    private void textDetected(String raw) {
-        if (!textMode || finished.get() || raw == null) return;
-        String text = raw.trim();
-        boolean forced = captureRequested.getAndSet(false);
-        if (text.isEmpty() || text.length() > 16384) {
-            if (forced) runOnUiThread(() ->
-                status.setText("No se reconoció texto. Acerca la licencia, evita reflejos y vuelve a pulsar Capturar texto."));
-            return;
-        }
-        Matcher match = DOCUMENT_NUMBER.matcher(text);
-        boolean hasDocument = match.find();
-        String normalizedDoc = hasDocument
-            ? match.group().replaceAll("\\s+", "").replace('–','-') : "";
-        String lower = text.toLowerCase(Locale.ROOT);
-        boolean hasNameLabels = lower.contains("nombre") || lower.contains("apellido")
-            || lower.contains("surname") || lower.contains("given name")
-            || lower.contains("first name");
-        boolean hasBirthLabels = lower.contains("nacimiento") || lower.contains("birth")
-            || lower.contains("dob");
-        boolean recognizable = hasNameLabels || hasBirthLabels;
-
-        // ML Kit suele reconocer nombres y cédula en frames diferentes.
-        // No exigir la cédula perfecta para permitir la vista previa al usuario.
-        if (!forced && (!hasDocument || !recognizable)) {
-            long now = SystemClock.elapsedRealtime();
-            if (now - lastOcrHint > 2600L) {
-                lastOcrHint = now;
-                runOnUiThread(() -> {
-                    if (!finished.get() && textMode) status.setText(
-                        "Texto detectado parcialmente. Alinea la cédula y los nombres; "
-                        + "o pulsa Capturar texto para revisar lo que se alcanzó a leer.");
-                });
-            }
-            return;
-        }
-        if (forced && !(hasDocument || hasNameLabels || hasBirthLabels)) {
-            runOnUiThread(() -> status.setText(
-                "Se detectaron letras, pero no datos del documento. "
-                + "Enfoca el área de nombres o cédula y vuelve a pulsar Capturar texto."));
-            return;
-        }
-        if (!forced) {
-            // Estabilidad de dos lecturas consecutivas de la misma cédula:
-            // evita cerrar la cámara con un frame movido.
-            if (normalizedDoc.equals(lastTextDocument)) stableTextFrames++;
-            else { lastTextDocument=normalizedDoc; stableTextFrames=1; }
-            if (stableTextFrames < 2) return;
-        }
-        if (!finished.compareAndSet(false, true)) return;
-        runOnUiThread(() -> {
-            Intent result = new Intent();
-            result.putExtra("ocr", text);
-            result.putExtra("format", "DOCUMENT_TEXT");
-            setResult(Activity.RESULT_OK, result);
-            finish();
-        });
-    }
-
     private void qrDetected(String value) {
-        if (value == null || value.trim().isEmpty() || value.length() > 16384 || textMode) return;
-        if (!looksLikeIdentityQr(value)) { suggestReadableCode(); return; }
-        if (!finished.compareAndSet(false, true)) return;
+        if (value == null || value.trim().isEmpty() || value.length() > 16384
+            || !finished.compareAndSet(false, true)) return;
         runOnUiThread(() -> {
             Intent result = new Intent();
             result.putExtra("qr", value);
@@ -444,26 +291,6 @@ public class FleboQrCameraActivity extends AppCompatActivity {
             return;
         }
         analyzedFrames++;
-        if (textMode) {
-            android.media.Image textMedia = frame.getImage();
-            if (textMedia == null) { analyzing.set(false); frame.close(); return; }
-            try {
-                InputImage textInput = InputImage.fromMediaImage(textMedia,
-                    frame.getImageInfo().getRotationDegrees());
-                textRecognizer.process(textInput)
-                    .addOnSuccessListener(result -> {
-                        if (!finished.get() && textMode) textDetected(result.getText());
-                    })
-                    .addOnCompleteListener(task -> {
-                        analyzing.set(false);
-                        frame.close();
-                    });
-            } catch (Exception ignored) {
-                analyzing.set(false);
-                frame.close();
-            }
-            return;
-        }
         if (analyzedFrames % 3 == 0) {
             String alternative = decodeWithZxing(frame);
             if (alternative != null && !alternative.trim().isEmpty()) {
@@ -531,8 +358,6 @@ public class FleboQrCameraActivity extends AppCompatActivity {
         finished.set(true);
         if (provider != null) provider.unbindAll();
         if (detector != null) detector.close();
-        if (textRecognizer != null) textRecognizer.close();
-        lastTextDocument = "";
         if (analyzerExecutor != null) analyzerExecutor.shutdown();
         super.onDestroy();
     }
