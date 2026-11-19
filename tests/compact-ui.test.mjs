@@ -20,8 +20,8 @@ const targets={
 };
 test('Diseño compacto habilitado después de estilos anteriores',()=>{
  const all=[...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(m=>m[1]);
- assert.match(html,/fleboreport-compact-unified\.css\?v=20261119-density1/);
- assert.match(html,/fleboreport-compact-ui\.js\?v=20261119-density1/);
+ assert.match(html,/fleboreport-compact-unified\.css\?v=20261119-density2/);
+ assert.match(html,/fleboreport-compact-ui\.js\?v=20261119-density2/);
  assert.ok(html.lastIndexOf('fleboreport-compact-unified.css')>html.lastIndexOf('fleboreport-v2.css'));
  assert.ok(html.lastIndexOf('fleboreport-compact-unified.css')>html.lastIndexOf('domicilios-seguimiento-exacto.css'));
  assert.ok(html.lastIndexOf('fleboreport-compact-ui.js')>html.lastIndexOf('domicilios-seguimiento-exacto.js'));
@@ -67,4 +67,16 @@ test('Títulos y paneles originales siguen en el DOM y funcionan con los mismos 
  assert.match(code,/new MutationObserver\(update\)\.observe\(originalCount/);
  assert.match(code,/window\.addEventListener\('flebo:auth-changed'/);
  assert.doesNotThrow(()=>new Function(code));
+});
+
+test('Centro de notificaciones: filtros Todas y No leídas sin marcar avisos leídos',()=>{
+ assert.match(code,/function enhanceNotifications\(\)/);
+ assert.match(code,/panel\.classList\.add\('frc-unread-only'\)/);
+ assert.match(code,/panel\.classList\.remove\('frc-unread-only'\)/);
+ assert.match(code,/all\.textContent='Todas'/);
+ assert.match(code,/unread\.textContent='No leídas'/);
+ assert.match(code,/placeholder\.textContent='No hay avisos sin leer\.'/);
+ assert.match(code,/new MutationObserver\(refresh\)\.observe\(list/);
+ assert.match(css,/#frNotifPanel\.frc-unread-only/);
+ assert.doesNotMatch(code,/\.status\s*=\s*'read'/);
 });
