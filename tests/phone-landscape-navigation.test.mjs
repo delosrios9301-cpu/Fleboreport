@@ -16,8 +16,10 @@ test('Teléfono horizontal utiliza el menú temporal en vez de la barra fija des
   assert.match(css,/#sidebar\.bubble-navigation\.open[\s\S]*?translateX\(0\)!important;/);
   assert.match(css,/#moduleFab\.module-fab[\s\S]*?display:inline-flex!important;/);
   assert.match(css,/#moduleFab\.module-fab[\s\S]*?position:fixed!important;/);
-  assert.match(css,/#moduleFab\.module-fab[\s\S]*?top:max\(9px,env\(safe-area-inset-top,0px\)\)!important;/);
-  assert.match(css,/#moduleFab \.module-fab-label[\s\S]*?display:inline!important;/);
+  assert.match(css,/#moduleFab\.module-fab[\s\S]*?right:max\(18px,env\(safe-area-inset-right,0px\)\)!important;/);
+  assert.match(css,/#moduleFab\.module-fab[\s\S]*?bottom:max\(18px,env\(safe-area-inset-bottom,0px\)\)!important;/);
+  assert.match(css,/#moduleFab\.module-fab[\s\S]*?background:rgba\(34,73,95,\.55\)!important;/);
+  assert.match(css,/#moduleFab \.module-fab-label[\s\S]*?display:none!important;/);
   assert.match(css,/\.app-shell \.topbar \.fr2-menu-toggle[\s\S]*?display:none!important;/);
   assert.match(css,/#view-home>\.fr2-home-hero[\s\S]*?min-height:0!important;/);
   assert.match(css,/\.module-menu-close[\s\S]*?display:grid!important;/);
@@ -39,7 +41,7 @@ test('Rotar cierra la barra y conserva navegación accesible en escritorio',()=>
 });
 
 test('Nueva regla es la última capa CSS y solo modifica presentación del teléfono',()=>{
- const lastCss=html.lastIndexOf('fleboreport-phone-landscape.css?v=20261119-landscape2');
+ const lastCss=html.lastIndexOf('fleboreport-phone-landscape.css?v=20261119-landscape3');
  assert.ok(lastCss>html.lastIndexOf('fleboreport-palette-2026.css'));
  assert.ok(lastCss>html.lastIndexOf('fleboreport-compact-unified.css'));
  assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-landscape2/);
@@ -56,4 +58,22 @@ test('El control flotante original sigue funcionando sin botones nuevos ni depen
  assert.match(shell,/new MutationObserver\(\(\)=>\{/);
  assert.match(shell,/attributeFilter:\['class'\]/);
  assert.doesNotMatch(css,/display:grid!important;place-items:center!important;\s*flex:0 0 44px!important;width:44px!important;height:44px!important;\s*min-width:44px!important;\s*\}\s*html:root body\.fr2-app-authorized \.module-fab/);
+});
+
+test('Cerrar sesión queda después de todos los módulos al desplazar la barra en ambos sentidos',()=>{
+  const landscape=css.slice(css.indexOf('@media screen and (orientation:landscape)'));
+  const portrait=css.slice(css.indexOf('/* En teléfono vertical la salida'));
+  for(const block of [landscape,portrait]){
+    assert.match(block,/#sidebar \.nav-list\s*\{[\s\S]*?flex:0 0 auto!important;[\s\S]*?overflow:visible!important;/);
+    assert.match(block,/#sidebar \.drawer-footer\s*\{[\s\S]*?position:static!important;/);
+    assert.match(block,/#sidebar \.drawer-footer #fleboGlobalSignOut\s*\{[\s\S]*?position:static!important;/);
+    assert.match(block,/#sidebar \.drawer-footer-dot\s*\{display:none!important;/);
+  }
+  assert.match(landscape,/#sidebar\.bubble-navigation[\s\S]*?overflow-x:hidden!important;overflow-y:auto!important;/);
+  assert.match(portrait,/#sidebar\.bubble-navigation\s*\{[\s\S]*?overflow-x:hidden!important;overflow-y:auto!important;/);
+  const navEnd=html.indexOf('</nav>',html.indexOf('id="sidebar"'));
+  const footer=html.indexOf('<div class="drawer-footer">',html.indexOf('id="sidebar"'));
+  assert.ok(navEnd<footer,'El pie con Cerrar sesión debe estar después de los módulos');
+  assert.match(html,/id="moduleFab" onclick="toggleDrawer\(\)"/);
+  assert.doesNotMatch(css,/\b(?:localStorage|indexedDB|supabase)\b/i);
 });
