@@ -142,8 +142,17 @@
  function missingFields(test,proposal){
   if(!proposal)return {};
   const legacy=isLegacyPlaceholder(test),out={};
+  // Una muestra o recipiente YA configurados por un laboratorio prevalecen.
+  // Si difieren de la referencia, no añadir un aditivo/color/volumen
+  // incompatible solo porque el nombre de la prueba coincida.
+  const sampleConflict=!!String(test?.sample||'').trim()&&!!proposal.fields.sample
+   &&normalize(test.sample)!==normalize(proposal.fields.sample);
+  const vesselConflict=!!String(test?.vessel||'').trim()&&!!proposal.fields.vessel
+   &&normalize(test.vessel)!==normalize(proposal.fields.vessel);
   for(const key of editable){
    if(!proposal.fields[key])continue;
+   if(sampleConflict&&key!=='sample')continue;
+   if(vesselConflict&&['vessel','colorName','shape','volume','conditions','instructions'].includes(key))continue;
    if(!test||!String(test[key]||'').trim()||(legacy&&['colorName','shape'].includes(key)))out[key]=proposal.fields[key];
   }
   if(out.colorName&&proposal.fields.color)out.color=proposal.fields.color;
