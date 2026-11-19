@@ -97,11 +97,6 @@ function extractQr(raw){
  const doc=parts[0].replace(/\s+/g,'');
  if(!/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc))throw Error('El QR fue leído, pero no se pudo validar el número de cédula. Revisa el documento.');
  const name=parts[1]||'',last=parts[2]||'';
- // El QR delimitado de cédula contiene nombres sin etiquetas; cualquier
- // «NOMBRES: ...» se procesa con el lector de campos etiquetados.
- const person=value=>/^[\p{L}][\p{L}\p{M}\s.'-]{1,74}$/u.test(value);
- if(!person(name)||!person(last))
-  throw Error('El QR no tiene el formato delimitado de cédula; revisar etiquetas.');
  const sexToken=parts.slice(3,7).find(x=>/^(M|F)$/i.test(x))||'';
  const sex=sexToken.toUpperCase()==='M'?'Masculino':sexToken.toUpperCase()==='F'?'Femenino':'';
  // Fecha de nacimiento: primera fecha posterior al sexo. Las posteriores
@@ -117,264 +112,31 @@ function extractQr(raw){
  }
  return {doc,name,last,birth,sex};
 }
-
-// Acepta datos personales legibles de una licencia física, pero nunca intenta
-// desencriptar un QR reservado a autoridades ni interpreta un número de control
-// de licencia como una cédula. No conserva ni comunica el QR completo.
-function extractIdentityQr(raw){
- const source=String(raw||'').trim();
- if(!source||source.length>16384)throw Error('El código QR está vacío o tiene un tamaño no compatible.');
- try{return extractQr(source);}catch(_){}
- const canonical=key=>String(key||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-  .toLowerCase().replace(/[^a-z0-9]/g,'');
- const fields={};
- const set=(key,value)=>{
-  const k=canonical(key),v=String(value==null?'':value).trim();
-  if(!k||!v||v.length>180||fields[k])return;
-  fields[k]=v;
- };
- const flatten=(record,depth=0)=>{
-  if(!record||typeof record!=='object'||Array.isArray(record)||depth>2)return;
-  for(const [key,value] of Object.entries(record)){
-   if(value&&typeof value==='object')flatten(value,depth+1);
-   else if(typeof value==='string'||typeof value==='number')set(key,value);
-  }
- };
- // JSON legible, campos con etiqueta o parámetros de URL. No abrir enlaces.
- if(source.startsWith('{')){
-  try{flatten(JSON.parse(source));}catch(_){}
- }
- if(/^https?:\/\//i.test(source)){
-  // Se decodifican parámetros de texto sin navegar a ninguna URL.
-  const query=source.includes('?')?source.split('?')[1].split('#')[0]:'';
-  for(const pair of query.split('&')){
-   const pos=pair.indexOf('=');
-   if(pos<0)continue;
-   try{set(decodeURIComponent(pair.slice(0,pos)),decodeURIComponent(pair.slice(pos+1).replace(/\+/g,' ')));}
-   catch(_){}
-  }
- }else{
-  for(const field of source.split(/[\r\n|;&]+/)){
-   const m=field.match(/^\s*([^:=]{2,50})\s*[:=]\s*(.+?)\s*$/);
-   if(m)set(m[1],m[2]);
-  }
- }
- const pick=(names)=>{
-  for(const key of names){const value=fields[canonical(key)];if(value)return value}
-  return '';
- };
- const namedDoc=pick(['cedula','ncedula','numerocedula','numerodecedula',
-  'cedulaidentidad','documentoidentidad','numerodocumentoidentidad',
-  'identificacion','numeroidentificacion','documentnumber','identificationnumber']);
- // Algunos QR mixtos comienzan por la cédula y luego usan etiquetas para
- // los campos restantes. Solo se admite con nombres explícitos etiquetados.
- const firstToken=source.split(/[|;\r\n]/)[0].trim();
- const fallbackDoc=(fields.nombres||fields.apellidos||fields.nombre||fields.apellido)
-  &&/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(firstToken)?firstToken:'';
- const doc=String(namedDoc||fallbackDoc).toUpperCase().replace(/[\u2013\u2014]/g,'-')
-  .replace(/\s*-\s*/g,'-').trim();
- const docValid=/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc);
- const cleanPerson=value=>{
-  const trimmed=String(value||'').replace(/\s+/g,' ').trim();
-  return trimmed.length<=75&&/^[\p{L}][\p{L}\p{M}\s.'-]{1,74}$/u.test(trimmed)
-   ?trimmed.toUpperCase():'';
- };
- const name=cleanPerson(pick(['nombres','nombre','primernombre','givennames','givenname','firstnames','firstname']));
- const last=cleanPerson(pick(['apellidos','apellido','primerapellido','surnames','surname','lastname','lastnames']));
- const sexRaw=canonical(pick(['sexo','sex','genero','gender']));
- const sex=/^(masculino|hombre|male|m)$/.test(sexRaw)?'Masculino'
-  :/^(femenino|mujer|female|f)$/.test(sexRaw)?'Femenino':'';
- const rawBirth=pick(['fechanacimiento','fechadenacimiento','nacimiento','birthdate','dateofbirth','dob']);
- const parseBirth=value=>{
-  const clean=String(value||'').trim(),iso=clean.match(/^((?:19|20)\d{2})[-/.](\d{1,2})[-/.](\d{1,2})$/);
-  const local=clean.match(/^(\d{1,2})[-/.](\d{1,2})[-/.]((?:19|20)\d{2})$/);
-  if(!iso&&!local)return '';
-  const year=Number(iso?iso[1]:local[3]),month=Number(iso?iso[2]:local[2]),day=Number(iso?iso[3]:local[1]);
-  const d=new Date(Date.UTC(year,month-1,day));
-  return year>=1900&&year<=new Date().getUTCFullYear()&&d.getUTCFullYear()===year
-   &&d.getUTCMonth()===month-1&&d.getUTCDate()===day
-   ?year+'-'+String(month).padStart(2,'0')+'-'+String(day).padStart(2,'0'):'';
- };
- const birth=parseBirth(rawBirth);
- if(!docValid){
-  // Algunas licencias exponen nombres pero no una cédula legible.
-  // Permitir revisar esos campos sin hacer pasar el número de licencia
-  // o el código de control por un documento de identidad.
-  if(name&&last)return {doc:'',name,last,birth,sex,_partial:true};
-  throw Error('El QR es de control o no contiene datos personales suficientes. Prueba Leer texto impreso en la licencia.');
- }
- if(!name&&!last&&!birth&&!sex)
-  throw Error('El QR contiene un número de documento, pero no datos personales suficientes para rellenar el paciente. Revisa la licencia o introduce los datos manualmente.');
- return {doc,name,last,birth,sex};
-}
-
-// En las licencias el texto impreso se interpreta por rótulos explícitos.
-// OCR NO sustituye la verificación visual del documento: cualquier valor
-// incompleto o dudoso se deja sin rellenar. No almacenar el texto completo.
-function extractPrintedIdentity(raw){
- const source=String(raw||'').slice(0,16384);
- const base=extract(source);
- const lines=source.split(/[\r\n]+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
- const fold=x=>String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-  .toUpperCase().replace(/\s+/g,' ').trim();
- const person=value=>{
-  const p=String(value||'').trim().replace(/\s+/g,' ');
-  if(p.length<2||p.length>75||!/\p{L}/u.test(p)||
-   !/^[\p{L}][\p{L}\p{M}\s.'-]{1,74}$/u.test(p))return '';
-  const n=fold(p);
-  if(/\b(?:LICENCIA|CONDUCIR|REPUBLICA|PANAMA|AUTORIDAD|SERTRACEN|APELLIDO|NOMBRE|NACIMIENTO|CEDULA|SEXO|CLASE|CATEGORIA|FECHA|EMISION|EXPEDICION|VENCIMIENTO|PASAPORTE|SANGRE|DIRECCION|RESIDENCIA|CONTROL|DATE|BIRTH|SURNAME|GIVEN|NAME|LICENSE|IDENTIDAD)\b/.test(n))return '';
-  return p.toUpperCase();
- };
- const labelled=(keys)=>{
-  for(let i=0;i<lines.length;i++){
-   const line=fold(lines[i]);
-   for(const key of keys){
-    const m=line.match(key);
-    if(!m)continue;
-    const trailing=lines[i].slice(m.index+m[0].length).replace(/^[\s:./–-]+/,'').trim();
-    const direct=person(trailing);
-    if(direct)return direct;
-    if(i+1<lines.length){
-     const next=person(lines[i+1]);
-     if(next)return next;
-    }
-   }
-  }
-  return '';
- };
- const names=labelled([/\bNOMBRES?\b\s*[:./-]?/,/\bGIVEN\s*NAMES?\b\s*[:./-]?/,/\bFIRST\s*NAMES?\b\s*[:./-]?/]);
- const surnames=labelled([/\bAPELLIDOS?\b\s*[:./-]?/,/\bSURNAME[S]?\b\s*[:./-]?/,/\bLAST\s*NAMES?\b\s*[:./-]?/]);
- // Solo se mantiene el nombre cédula existente si no hay una propuesta
- // etiquetada. No se inventa la separación de nombres y apellidos.
- const out={...base,name:names||base.name,last:surnames||base.last};
- const text=fold(source);
- const docMatches=[...text.matchAll(/\b((?:PE|E|N|AV|\d{1,2})\s*[-–]\s*\d{1,5}\s*[-–]\s*\d{1,6})\b/g)];
- if(!out.doc&&docMatches.length===1)out.doc=docMatches[0][1].replace(/\s+/g,'').replace(/–/g,'-');
- // La fecha solo se toma de un campo que diga nacimiento, nunca de
- // expedición o vencimiento (ambos están impresos en las licencias).
- const dateRe=/(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*((?:19|20)\d{2})/;
- const isoRe=/((?:19|20)\d{2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{1,2})/;
- const parse=(year,month,day)=>{
-  const y=+year,m=+month,d=+day,date=new Date(Date.UTC(y,m-1,d));
-  return y>=1900&&y<=new Date().getUTCFullYear()&&m>=1&&m<=12&&
-   date.getUTCFullYear()===y&&date.getUTCMonth()===m-1&&date.getUTCDate()===d
-   ?[String(y),String(m).padStart(2,'0'),String(d).padStart(2,'0')].join('-'):'';
- };
- for(let i=0;i<lines.length;i++){
-  const line=fold(lines[i]);
-  if(!/\b(?:NACIMIENTO|NAC\.?|BIRTH|DOB)\b/.test(line))continue;
-  const candidates=[line,fold(lines[i+1]||'')];
-  for(const value of candidates){
-   let date=value.match(dateRe),iso=value.match(isoRe);
-   if(date){out.birth=parse(date[3],date[2],date[1]);break;}
-   if(iso){out.birth=parse(iso[1],iso[2],iso[3]);break;}
-  }
-  if(out.birth)break;
- }
- const sex=text.match(/\b(?:SEXO|SEX|GENERO)\s*[:./-]?\s*(MASCULINO|FEMENINO|FEMALE|MALE|M|F)\b/);
- if(sex)out.sex=/^(?:M|MALE|MASCULINO)$/.test(sex[1])?'Masculino':'Femenino';
- // El parser general ya reconoce documentos cédula. Si el OCR ve varios
- // números posibles, no elegir arbitrariamente entre identidades.
- if(docMatches.length>1&&new Set(docMatches.map(x=>x[1].replace(/\s+/g,''))).size>1)out.doc='';
- return out;
-}
 // El puente nativo se activa solo cuando la app Android registra el plugin.
-async function recognizeNative(mode='qr'){
+async function recognizeNative(){
  const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
  if(!plugin?.scan)throw Error('El escáner nativo no está instalado en esta versión Android.');
- const response=await plugin.scan({mode});
+ const response=await plugin.scan();
  if(!response||response.cancelled)return null;
- if(response.format==='DOCUMENT_TEXT'){
-  const raw=String(response.ocr||'');
-  if(!raw.trim())throw Error('No se identificó texto visible del documento.');
-  const fields=extractPrintedIdentity(raw);
-  if(!fields.doc&&!fields.name&&!fields.last)
-   throw Error('No se reconocieron datos suficientes. Enfoca los rótulos de cédula, nombres y apellidos.');
-  return {...fields,_fromOcr:true};
- }
  const raw=String(response.qr||'').trim();
  if(!raw)throw Error('El escáner terminó sin devolver información del QR.');
- return extractIdentityQr(raw);
-}
-// Permite reintentar otro QR de la licencia sin cerrar el formulario.
-async function readNativeFromModal(target,modal,mode='qr'){
- if(processing)return;
- processing=true;
- // Un nuevo intento nunca debe conservar campos del QR anterior.
- $('frIdScanFields').hidden=true;
- $('frIdScanApply').disabled=true;
- for(const id of ['frIdScanDoc','frIdScanName','frIdScanLast','frIdScanBirth','frIdScanSex']){
-  const field=$(id);if(field)field.value='';
- }
- try{
-  $('frIdScanStatus').textContent=mode==='text'?'Leyendo los datos impresos…':'Abriendo escáner QR de Android…';
-  const found=await recognizeNative(mode);
-  if(!found){$('frIdScanStatus').textContent='Escaneo cancelado. Puedes volver a intentarlo.';return;}
-  for(const [key,value] of Object.entries(found)){
-   const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));
-   if(input)input.value=value;
-  }
-  $('frIdScanFields').hidden=false;
-  $('frIdScanApply').disabled=![found.doc,found.name,found.last,found.birth,found.sex].some(Boolean);
-  // No se guarda ningún paciente al escanear: solo se trasladan datos
-  // completos si no existe otra cédula ya introducida en el formulario.
-  const existingDoc=$(target.fields.doc)?.value?.trim()||'';
-  const complete=[found.doc,found.name,found.last,found.birth,found.sex].every(Boolean);
-  // En OCR, incluso la lectura completa requiere revisión visual del usuario.
-  if(!found._fromOcr&&complete&&(!existingDoc||existingDoc===found.doc)){
-   $('frIdScanApply').click();
-   if(!modal.hidden)$('frIdScanStatus').textContent='Datos leídos. Revisa los campos que no se pudieron transferir.';
-  }else{
-   $('frIdScanStatus').textContent=existingDoc&&existingDoc!==found.doc
-    ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
-    :found._fromOcr
-     ?'Texto visible detectado. Revisa cada dato; los campos vacíos no fueron reconocidos. Puedes corregirlos antes de rellenar.'
-     :found._partial
-      ?'QR con datos parciales: no se reconoce una cédula válida. Revisa nombres y apellidos; puedes usar Leer texto impreso para completar el número.'
-      :'QR detectado. Revisa los campos reconocidos o usa Leer texto impreso si faltan datos.';
-  }
- }catch(error){
-  $('frIdScanStatus').textContent='No fue posible leer los datos personales: '
-   +(error?.message||'QR no compatible')+' Puedes reintentar otro QR o introducirlos manualmente.';
- }finally{processing=false;}
+ return extractQr(raw);
 }
 function build(){
  if($('frIdScanModal'))return;
  const style=document.createElement('style');style.textContent='.fr-idscan-btn{margin:8px 0 12px!important;min-height:44px!important}.fr-idscan-modal[hidden]{display:none!important}.fr-idscan-modal{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(10,25,36,.66)}.fr-idscan-card{box-sizing:border-box;width:min(100%,520px);max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;color:#17323c;border-radius:17px;padding:18px;box-shadow:0 20px 65px #0005}.fr-idscan-card label{display:block;margin:9px 0 4px;font-weight:700}.fr-idscan-card input{box-sizing:border-box;width:100%;min-height:40px;padding:8px}.fr-idscan-actions{position:sticky;bottom:-18px;background:white;display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}.fr-idscan-actions button{flex:1;min-height:44px}.fr-idscan-card p{line-height:1.45}';document.head.appendChild(style);
  const modal=document.createElement('div');modal.id='frIdScanModal';modal.className='fr-idscan-modal';modal.hidden=true;
- modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula o licencia</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><div class="fr-idscan-actions"><button type="button" id="frIdScanCamera">Abrir cámara</button><button type="button" id="frIdScanGallery">Galería</button><button type="button" id="frIdScanNativeText" hidden>Leer texto impreso</button></div><video id="frIdScanVideo" autoplay playsinline muted hidden style="width:100%;max-height:46dvh;object-fit:contain;background:#111;border-radius:10px"></video><button type="button" id="frIdScanSnap" hidden>Capturar foto</button><input id="frIdScanFile" type="file" accept="image/*" capture="environment" hidden><input id="frIdScanGalleryFile" type="file" accept="image/*" hidden><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
+ modal.innerHTML='<section class="fr-idscan-card" role="dialog" aria-modal="true" aria-labelledby="frIdScanTitle"><h2 id="frIdScanTitle">Escanear cédula</h2><p>La fotografía se analiza en este dispositivo. Revisa los datos antes de completar el formulario; no se guarda automáticamente.</p><div class="fr-idscan-actions"><button type="button" id="frIdScanCamera">Abrir cámara</button><button type="button" id="frIdScanGallery">Galería</button></div><video id="frIdScanVideo" autoplay playsinline muted hidden style="width:100%;max-height:46dvh;object-fit:contain;background:#111;border-radius:10px"></video><button type="button" id="frIdScanSnap" hidden>Capturar foto</button><input id="frIdScanFile" type="file" accept="image/*" capture="environment" hidden><input id="frIdScanGalleryFile" type="file" accept="image/*" hidden><p id="frIdScanStatus" role="status" aria-live="polite">Selecciona una fotografía nítida de la cédula.</p><div id="frIdScanFields" hidden><label>Número de cédula<input id="frIdScanDoc"></label><label>Nombres<input id="frIdScanName"></label><label>Apellidos<input id="frIdScanLast"></label><label>Fecha de nacimiento<input id="frIdScanBirth" type="date"></label><label>Sexo<select id="frIdScanSex"><option value="">Sin reconocer</option><option>Femenino</option><option>Masculino</option></select></label></div><div class="fr-idscan-actions"><button type="button" id="frIdScanCancel">Cancelar</button><button type="button" id="frIdScanApply" disabled>Rellenar formulario</button></div></section>';
  document.body.appendChild(modal);
- if(!window.Capacitor?.isNativePlatform?.())$('frIdScanTitle').textContent='Escanear cédula';
  // En Android el lector nativo usa vídeo continuo; no mostrar opciones de foto/OCR.
  if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){
-  modal.querySelector('p').textContent='Para cédulas usa el QR. Para licencias con QR de control selecciona Leer texto impreso: se reconocerán los campos visibles sin guardar fotografías. Revisa siempre los datos antes de guardarlos.';
-  $('frIdScanGallery').hidden=true;
-  $('frIdScanCamera').textContent='Escanear otro QR';
-  // Mostrar la alternativa incluso si la comprobación de versión tarda.
-  // Un APK antiguo recibe una explicación clara, no una cámara QR falsa.
-  $('frIdScanNativeText').hidden=false;
+  modal.querySelector('p').textContent='Apunta al QR del reverso. La cámara lo lee y se cierra automáticamente, sin guardar fotografías. Comprueba los datos antes de guardar al paciente.';
+  $('frIdScanCamera').parentElement.style.display='none';
   $('frIdScanSnap').hidden=true;
  }
 
  $('frIdScanCancel').onclick=()=>{if(!processing){stopCamera();modal.hidden=true;current=null;$('frIdScanFile').value='';$('frIdScanGalleryFile').value='';}};
- $('frIdScanCamera').onclick=()=>{
-  if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){if(current)void readNativeFromModal(current,modal);}
-  else void startCamera();
- };
- $('frIdScanNativeText').onclick=async()=>{
-  if(!current||processing)return;
-  try{
-   const getVersion=window.Capacitor?.Plugins?.FleboIdScanner?.getAppVersion;
-   const info=typeof getVersion==='function'?await getVersion():null;
-   if(Number(info?.versionCode||0)<11){
-    $('frIdScanStatus').textContent='La lectura de texto requiere FleboReport Android 2.0 o superior. Instala la versión actual encima de la aplicación existente.';
-    return;
-   }
-   await readNativeFromModal(current,modal,'text');
-  }catch(error){
-   $('frIdScanStatus').textContent='No se pudo abrir el reconocimiento de texto: '+(error?.message||'error Android');
-  }
- };
+ $('frIdScanCamera').onclick=()=>startCamera();
  $('frIdScanGallery').onclick=()=>{$('frIdScanGalleryFile').click();};
  $('frIdScanSnap').onclick=async()=>{const video=$('frIdScanVideo');if(!video.videoWidth)return;const canvas=document.createElement('canvas');const scale=Math.min(1,Math.sqrt(2100000/(video.videoWidth*video.videoHeight)));canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);stopCamera();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));canvas.width=0;canvas.height=0;if(blob)await processFile(blob);};
  $('frIdScanFile').onchange=e=>{const file=e.target.files?.[0];if(file)processFile(file);};
@@ -425,10 +187,26 @@ function attach(){
  for(const target of targets){
   const anchor=$(target.anchor);if(!anchor||document.querySelector('[data-idscan-for="'+target.anchor+'"]'))continue;
   const host=anchor.closest('.field')||anchor.parentElement;if(!host)continue;
-  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent=window.Capacitor?.isNativePlatform?.()?'▣ Escanear cédula o licencia':'▣ Escanear cédula';btn.onclick=async()=>{
+  const btn=document.createElement('button');btn.type='button';btn.className='btn fr-idscan-btn';btn.dataset.idscanFor=target.anchor;btn.textContent='▣ Escanear cédula';btn.onclick=async()=>{
    build();current=target;$('frIdScanModal').hidden=false;$('frIdScanFields').hidden=true;$('frIdScanApply').disabled=true;
    if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){
-    await readNativeFromModal(target,$('frIdScanModal'));
+    $('frIdScanStatus').textContent='Abriendo escáner Android…';
+    try{const found=await recognizeNative();if(!found){$('frIdScanStatus').textContent='Escaneo cancelado.';return;}
+     for(const [key,value] of Object.entries(found)){const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));if(input)input.value=value;}
+     $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
+     // Tras una lectura completa, rellenar inmediatamente SIN guardar el registro.
+     // Si faltan campos o hay una cédula diferente, exigir revisión para evitar sobrescribir datos.
+     const existingDoc=$(target.fields.doc)?.value?.trim()||'';
+     const complete=[found.doc,found.name,found.last,found.birth,found.sex].every(Boolean);
+     if(complete&&(!existingDoc||existingDoc===found.doc)){
+      $('frIdScanApply').click();
+      if(!modal.hidden)$('frIdScanStatus').textContent='QR detectado. Revisa los campos que no se pudieron transferir.';
+     }else{
+      $('frIdScanStatus').textContent=existingDoc&&existingDoc!==found.doc
+       ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
+       :'QR detectado automáticamente. Revisa los datos incompletos antes de rellenar el formulario.';
+     }
+    }catch(error){$('frIdScanStatus').textContent='Escaneo de cédula: '+(error.message||'error de lectura')+'. Puedes introducir los datos manualmente.';}
    }else{$('frIdScanStatus').textContent='Abriendo cámara…';startCamera();}
   };host.insertAdjacentElement('afterend',btn);
  }
