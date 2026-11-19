@@ -190,3 +190,69 @@ body.fr2-app-authorized.cm-workspace.vc-compact #settings-catalog #catalogHeader
  .catalog-details-row{grid-template-columns:minmax(0,1fr);gap:3px;padding:8px 0}
  .catalog-details-head h2{font-size:17px}
 }
+
+/* Editor real del catálogo como ventana flotante: conserva el formulario,
+   sus validaciones, controles de permisos y el guardado original. */
+.catalog-auto-editor-overlay{
+ position:fixed;inset:0;z-index:60000;
+ display:flex;align-items:center;justify-content:center;
+ padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));
+ overflow-y:auto;overscroll-behavior:contain;
+ background:rgba(10,28,39,.66);
+}
+.catalog-auto-editor-dialog{
+ box-sizing:border-box;width:min(100%,750px);max-height:calc(100dvh - 24px);
+ display:flex;flex-direction:column;min-height:0;
+ overflow-y:auto;-webkit-overflow-scrolling:touch;
+ border:1px solid #cbdedd;border-radius:18px;
+ background:#fff;color:#20414d;box-shadow:0 24px 75px rgba(6,20,29,.35);
+}
+.catalog-auto-editor-header{
+ position:sticky;top:0;z-index:5;background:#f4f9f8;
+ border-bottom:1px solid #dae8e6;padding:13px 17px;
+ display:flex;align-items:center;justify-content:space-between;gap:14px;
+}
+.catalog-auto-editor-header h2{
+ font-size:17px;font-weight:800;color:#1e4855;line-height:1.25;margin:0;
+}
+.catalog-auto-editor-close{min-height:42px;flex-shrink:0}
+.catalog-auto-editor-dialog>.form-panel{
+ flex:none!important;display:block!important;
+ width:100%!important;max-width:100%!important;
+ margin:0!important;padding:17px!important;
+ border:0!important;box-shadow:none!important;
+ background:#fff!important;color:#254653!important;
+ overflow:visible!important;
+}
+.catalog-auto-editor-dialog .fields{
+ width:100%!important;min-width:0!important;
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+}
+.catalog-auto-editor-dialog .field{min-width:0}
+.catalog-auto-editor-dialog .field.full{grid-column:1/-1}
+.catalog-auto-editor-dialog input,
+.catalog-auto-editor-dialog select,
+.catalog-auto-editor-dialog textarea{
+ width:100%;min-width:0;max-width:100%;writing-mode:horizontal-tb;
+ color:#23434d;background:#fff;
+}
+.catalog-auto-editor-dialog #catalogAutoForm[hidden],
+.catalog-auto-editor-dialog #catalogAutoApply[hidden]{display:none!important}
+.catalog-auto-editor-dialog .catalog-auto-form{
+ margin:12px 0 15px;padding:14px;border:1px solid #cadfdf;
+ border-radius:12px;background:#f1faf8;color:#1b434d;
+}
+.catalog-auto-editor-dialog .form-actions{
+ position:sticky;bottom:0;background:#fff;
+ padding:12px 0 4px;z-index:3;border-top:1px solid #e3e9ea;
+}
+@media(max-width:650px){
+ .catalog-auto-editor-overlay{align-items:stretch;padding:6px 7px max(8px,env(safe-area-inset-bottom))}
+ .catalog-auto-editor-dialog{max-height:calc(100dvh - 16px);border-radius:13px}
+ .catalog-auto-editor-dialog>.form-panel{padding:12px!important}
+ .catalog-auto-editor-dialog .fields{grid-template-columns:minmax(0,1fr)!important;gap:9px}
+ .catalog-auto-editor-header{padding:10px 12px}
+ .catalog-auto-editor-header h2{font-size:15px}
+ .catalog-auto-editor-dialog .form-actions{flex-wrap:wrap}
+}
+@media print{.catalog-auto-editor-overlay{display:none!important}}
