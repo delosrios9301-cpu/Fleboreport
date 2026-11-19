@@ -39,6 +39,8 @@
   padding:max(10px,env(safe-area-inset-top,0px)) 10px
           max(10px,env(safe-area-inset-bottom,0px))!important;
   overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
   border-radius:0 18px 18px 0!important;
   transform:translateX(-104%)!important;
   opacity:0!important;visibility:hidden!important;pointer-events:none!important;
@@ -60,8 +62,32 @@
   padding:0 4px 6px!important;margin-bottom:5px!important;
  }
  html:root body.fr2-app-authorized #sidebar .nav-list {
-  flex:1 1 auto!important;min-height:0!important;
-  overflow-y:auto!important;overscroll-behavior:contain!important;
+  flex:0 0 auto!important;min-height:0!important;
+  overflow:visible!important;overscroll-behavior:auto!important;
+ }
+ /* El botón para cerrar sesión acompaña al último módulo y sólo aparece
+    al desplazarse hasta el final del menú, no anclado a la pantalla. */
+ html:root body.fr2-app-authorized #sidebar .drawer-footer{
+  position:static!important;z-index:auto!important;
+  flex:0 0 auto!important;align-self:stretch!important;
+  width:auto!important;min-height:0!important;
+  margin:8px 4px 12px!important;padding:8px 3px!important;
+  border:0!important;border-top:1px solid rgba(229,241,247,.22)!important;
+  border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;
+  font-size:0!important;line-height:0!important;gap:0!important;
+ }
+ html:root body.fr2-app-authorized #sidebar .drawer-footer-dot{
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar .drawer-footer #fleboGlobalSignOut{
+  position:static!important;display:flex!important;
+  width:100%!important;min-height:46px!important;
+  margin:0!important;padding:8px 14px!important;
+  border:1px solid rgba(219,235,243,.5)!important;border-radius:12px!important;
+  background:rgba(236,245,249,.13)!important;color:#FFFFFF!important;
+  box-shadow:none!important;font-size:14px!important;font-weight:750!important;
+  line-height:1.2!important;
  }
  html:root body.fr2-app-authorized #sidebar .nav-list button[data-nav]:not([hidden]) {
   min-height:44px!important;
@@ -74,16 +100,18 @@
   display:inline-flex!important;align-items:center!important;
   justify-content:center!important;gap:8px!important;
   position:fixed!important;
-  left:max(12px,env(safe-area-inset-left,0px))!important;
-  top:max(9px,env(safe-area-inset-top,0px))!important;
-  right:auto!important;bottom:auto!important;
-  width:auto!important;min-width:106px!important;
-  height:46px!important;min-height:46px!important;
-  max-width:calc(100vw - 24px)!important;
-  margin:0!important;padding:0 12px!important;
-  border:1px solid #B8D0DB!important;border-radius:13px!important;
-  background:#294E63!important;color:#FFFFFF!important;
-  box-shadow:0 3px 12px rgba(17,46,61,.18)!important;
+  left:auto!important;top:auto!important;
+  right:max(18px,env(safe-area-inset-right,0px))!important;
+  bottom:max(18px,env(safe-area-inset-bottom,0px))!important;
+  width:50px!important;min-width:50px!important;
+  height:50px!important;min-height:50px!important;
+  max-width:50px!important;
+  margin:0!important;padding:0!important;
+  border:1px solid rgba(255,255,255,.55)!important;border-radius:50%!important;
+  background:rgba(34,73,95,.55)!important;color:#FFFFFF!important;
+  -webkit-backdrop-filter:blur(10px) saturate(130%)!important;
+  backdrop-filter:blur(10px) saturate(130%)!important;
+  box-shadow:0 4px 12px rgba(17,46,61,.22)!important;
   opacity:1!important;visibility:visible!important;
   transform:none!important;pointer-events:auto!important;
   z-index:104!important;
@@ -94,8 +122,7 @@
   transform:none!important;
  }
  html:root body.fr2-app-authorized #moduleFab .module-fab-label{
-  display:inline!important;font-size:13px!important;font-weight:750!important;
-  color:#FFFFFF!important;white-space:nowrap!important;
+  display:none!important;
  }
  html:root body.fr2-app-authorized #moduleFab:focus-visible{
   outline:3px solid #73B9D8!important;outline-offset:2px!important;
@@ -107,7 +134,7 @@
  }
  html:root body.fr2-app-authorized .app-shell .topbar{
   min-height:56px!important;height:56px!important;
-  padding:0 12px 0 132px!important;
+  padding:0 12px!important;
  }
  html:root body.fr2-app-authorized .app-shell .topbar .fr2-topbar-inner{
   min-height:0!important;gap:9px!important;
