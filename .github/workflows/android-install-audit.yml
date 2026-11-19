@@ -39,5 +39,14 @@ jobs:
               echo "16KB ZIP ALIGNMENT: FAIL"
               grep -E 'lib/.*(BAD|ERROR|Failed)|Verification FAILED' "$RUNNER_TEMP/alignment-$ver.log" | head -24 || true
             fi
+            echo "ARM64 ELF alignment by native library:"
+            while IFS= read -r entry; do
+              tmp="$RUNNER_TEMP/elf-$ver-$(basename "$entry")"
+              unzip -p "$apk" "$entry" > "$tmp" || continue
+              align="$(readelf -W -l "$tmp" | awk '$1=="LOAD"{print $NF}' | sort -u | paste -sd , -)"
+              echo "$entry LOAD segment align=$align"
+              rm -f "$tmp"
+            done < <(unzip -Z1 "$apk" | grep '^lib/arm64-v8a/.*\\.so
+ || true)
             echo "::endgroup::"
           done
