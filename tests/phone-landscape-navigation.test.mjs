@@ -25,7 +25,7 @@ test('Teléfono horizontal utiliza el menú temporal en vez de la barra fija des
 
 test('Rotar cierra la barra y conserva navegación accesible en escritorio',()=>{
   assert.match(shell,/function syncLandscapeNavigation\(\)/);
-  assert.match(shell,/sidebar\.classList\.remove\('open'\)/);
+  assert.match(shell,/sidebar\?\.classList\.remove\('open'\)/);
   assert.match(shell,/document\.body\.classList\.remove\('module-menu-open'\)/);
   assert.match(shell,/sidebar\?\.setAttribute\('aria-hidden',String\(!open\)\)/);
   assert.match(shell,/const open=!!sidebar\?\.classList\.contains\('open'\)/);
