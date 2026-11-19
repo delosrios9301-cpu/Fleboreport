@@ -197,7 +197,11 @@ function extractIdentityQr(raw){
  };
  const birth=parseBirth(rawBirth);
  if(!docValid){
-  throw Error('El QR no proporciona una cédula verificable. Algunas licencias incluyen códigos protegidos o solo un enlace de validación. Utiliza el QR legible del documento o registra los datos manualmente.');
+  // Algunas licencias exponen nombres pero no una cédula legible.
+  // Permitir revisar esos campos sin hacer pasar el número de licencia
+  // o el código de control por un documento de identidad.
+  if(name&&last)return {doc:'',name,last,birth,sex,_partial:true};
+  throw Error('El QR es de control o no contiene datos personales suficientes. Prueba Leer texto impreso en la licencia.');
  }
  if(!name&&!last&&!birth&&!sex)
   throw Error('El QR contiene un número de documento, pero no datos personales suficientes para rellenar el paciente. Revisa la licencia o introduce los datos manualmente.');
@@ -310,7 +314,8 @@ async function readNativeFromModal(target,modal,mode='qr'){
    const input=$('frIdScan'+({doc:'Doc',name:'Name',last:'Last',birth:'Birth',sex:'Sex'}[key]));
    if(input)input.value=value;
   }
-  $('frIdScanFields').hidden=false;$('frIdScanApply').disabled=false;
+  $('frIdScanFields').hidden=false;
+  $('frIdScanApply').disabled=![found.doc,found.name,found.last,found.birth,found.sex].some(Boolean);
   // No se guarda ningún paciente al escanear: solo se trasladan datos
   // completos si no existe otra cédula ya introducida en el formulario.
   const existingDoc=$(target.fields.doc)?.value?.trim()||'';
@@ -323,8 +328,10 @@ async function readNativeFromModal(target,modal,mode='qr'){
    $('frIdScanStatus').textContent=existingDoc&&existingDoc!==found.doc
     ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
     :found._fromOcr
-     ?'Texto visible detectado. Verifica número, nombres, apellidos, fecha y sexo antes de rellenar el formulario.'
-     :'QR detectado. Revisa los campos reconocidos o vuelve a escanear el QR público de la licencia.';
+     ?'Texto visible detectado. Revisa cada dato; los campos vacíos no fueron reconocidos. Puedes corregirlos antes de rellenar.'
+     :found._partial
+      ?'QR con datos parciales: no se reconoce una cédula válida. Revisa nombres y apellidos; puedes usar Leer texto impreso para completar el número.'
+      :'QR detectado. Revisa los campos reconocidos o usa Leer texto impreso si faltan datos.';
   }
  }catch(error){
   $('frIdScanStatus').textContent='No fue posible leer los datos personales: '
@@ -340,14 +347,12 @@ function build(){
  if(!window.Capacitor?.isNativePlatform?.())$('frIdScanTitle').textContent='Escanear cédula';
  // En Android el lector nativo usa vídeo continuo; no mostrar opciones de foto/OCR.
  if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){
-  modal.querySelector('p').textContent='Apunta al QR legible de la cédula o licencia. La cámara se cierra al detectarlo y no guarda fotografías. Los QR protegidos no permiten extraer datos personales. Comprueba los datos antes de guardar.';
+  modal.querySelector('p').textContent='Para cédulas usa el QR. Para licencias con QR de control selecciona Leer texto impreso: se reconocerán los campos visibles sin guardar fotografías. Revisa siempre los datos antes de guardarlos.';
   $('frIdScanGallery').hidden=true;
-  $('frIdScanCamera').textContent='Volver a escanear QR';
-  // El OCR nativo requiere el plugin de Android 2.0 o posterior.
-  Promise.resolve(window.Capacitor.Plugins.FleboIdScanner.getAppVersion?.()).then(info=>{
-   if(Number(info?.versionCode)>=11&&$('frIdScanNativeText'))
-    $('frIdScanNativeText').hidden=false;
-  }).catch(()=>{});
+  $('frIdScanCamera').textContent='Escanear otro QR';
+  // Mostrar la alternativa incluso si la comprobación de versión tarda.
+  // Un APK antiguo recibe una explicación clara, no una cámara QR falsa.
+  $('frIdScanNativeText').hidden=false;
   $('frIdScanSnap').hidden=true;
  }
 
@@ -356,8 +361,19 @@ function build(){
   if(window.Capacitor?.isNativePlatform?.()&&window.Capacitor?.Plugins?.FleboIdScanner?.scan){if(current)void readNativeFromModal(current,modal);}
   else void startCamera();
  };
- $('frIdScanNativeText').onclick=()=>{
-  if(current)void readNativeFromModal(current,modal,'text');
+ $('frIdScanNativeText').onclick=async()=>{
+  if(!current||processing)return;
+  try{
+   const getVersion=window.Capacitor?.Plugins?.FleboIdScanner?.getAppVersion;
+   const info=typeof getVersion==='function'?await getVersion():null;
+   if(Number(info?.versionCode||0)<11){
+    $('frIdScanStatus').textContent='La lectura de texto requiere FleboReport Android 2.0 o superior. Instala la versión actual encima de la aplicación existente.';
+    return;
+   }
+   await readNativeFromModal(current,modal,'text');
+  }catch(error){
+   $('frIdScanStatus').textContent='No se pudo abrir el reconocimiento de texto: '+(error?.message||'error Android');
+  }
  };
  $('frIdScanGallery').onclick=()=>{$('frIdScanGalleryFile').click();};
  $('frIdScanSnap').onclick=async()=>{const video=$('frIdScanVideo');if(!video.videoWidth)return;const canvas=document.createElement('canvas');const scale=Math.min(1,Math.sqrt(2100000/(video.videoWidth*video.videoHeight)));canvas.width=Math.round(video.videoWidth*scale);canvas.height=Math.round(video.videoHeight*scale);canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);stopCamera();const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.9));canvas.width=0;canvas.height=0;if(blob)await processFile(blob);};
