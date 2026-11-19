@@ -388,6 +388,65 @@
    host.append(more);
   }
  }
+ function closeEditor(){
+  if(!editorDialog)return;
+  const overlay=editorDialog,panel=editorPanel,marker=editorMarker,focus=editorFocus;
+  editorDialog=null;editorPanel=null;editorMarker=null;editorFocus=null;
+  if(panel&&marker?.parentNode)marker.parentNode.replaceChild(panel,marker);
+  else marker?.remove();
+  overlay.remove();
+  document.body.style.overflow=editorOverflow;
+  editorOverflow='';
+  if(focus?.isConnected)focus.focus({preventScroll:true});
+ }
+ function openEditor(id){
+  if(!authorized()||typeof window.editTest!=='function')return;
+  if(editorDialog)closeEditor();
+  const existing=catalog().find(item=>String(item.id)===String(id));
+  if(!existing)return;
+  // Reutilizar exactamente los mismos campos y la función saveTest existente;
+  // no crear un segundo formulario ni otra ruta de guardado de datos clínicos.
+  window.editTest(id);
+  const form=$('catalogFormTitle')?.closest('.form-panel');
+  if(!form?.parentNode)return;
+  editorFocus=document.activeElement;
+  editorMarker=document.createComment('catalog-auto-editor-return');
+  form.parentNode.replaceChild(editorMarker,form);
+  editorPanel=form;
+  editorOverflow=document.body.style.overflow;
+  const overlay=el('div','catalog-auto-editor-overlay');
+  overlay.id='catalogAutoEditorOverlay';
+  overlay.setAttribute('role','presentation');
+  const dialog=el('section','catalog-auto-editor-dialog');
+  dialog.setAttribute('role','dialog');
+  dialog.setAttribute('aria-modal','true');
+  dialog.setAttribute('aria-labelledby','catalogAutoEditorHeading');
+  const heading=el('header','catalog-auto-editor-header');
+  heading.append(el('h2','','Ficha de prueba'));
+  heading.querySelector('h2').id='catalogAutoEditorHeading';
+  const close=el('button','btn catalog-auto-editor-close','Cerrar');
+  close.type='button';close.setAttribute('aria-label','Cerrar ficha flotante');
+  close.addEventListener('click',closeEditor);
+  heading.append(close);
+  dialog.append(heading,form);
+  overlay.append(dialog);
+  overlay.addEventListener('click',event=>{if(event.target===overlay)closeEditor();});
+  overlay.addEventListener('keydown',event=>{
+   if(event.key==='Escape'){event.preventDefault();closeEditor();return;}
+   if(event.key!=='Tab')return;
+   const elements=[...overlay.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')]
+    .filter(element=>element.getClientRects().length>0&&!element.hidden);
+   if(!elements.length)return;
+   const first=elements[0],last=elements[elements.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  });
+  editorDialog=overlay;
+  document.body.append(overlay);
+  document.body.style.overflow='hidden';
+  close.focus({preventScroll:true});
+  window.FleboAutoConfig?.updateForm?.();
+ }
  function renderList(){
   const list=$('catalogAutoList'),button=$('catalogAutoOpen');
   if(!list)return;
@@ -481,9 +540,8 @@
     if(!action||!authorized())return;
     const id=action.dataset.catalogAutoId;
     const row=catalog().find(item=>String(item.id)===id);
-    if(!row||typeof window.editTest!=='function')return;
-    window.editTest(id);
-    setTimeout(updateForm,0);
+    if(!row)return;
+    openEditor(id);
    });
    actions.insertAdjacentElement('afterend',list);
   }
@@ -500,9 +558,12 @@
   updateForm();renderList();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});else mount();
- window.addEventListener('flebo:auth-changed',refresh);
+ window.addEventListener('flebo:auth-changed',()=>{
+  if(editorDialog&&!authorized())closeEditor();
+  refresh();void autoCompleteFromCloud();
+ });
  window.addEventListener('flebo:cloud-sync-ready',()=>{refresh();void autoCompleteFromCloud();});
- window.addEventListener('flebo:cloud-state-applied',()=>{refresh();});
+ window.addEventListener('flebo:cloud-state-applied',()=>{refresh();void autoCompleteFromCloud();});
  window.addEventListener('focus',refresh);
- window.FleboAutoConfig={updateForm,refresh,applyToForm,autoCompleteFromCloud};
+ window.FleboAutoConfig={updateForm,refresh,applyToForm,autoCompleteFromCloud,closeEditor,openEditor};
 })();
