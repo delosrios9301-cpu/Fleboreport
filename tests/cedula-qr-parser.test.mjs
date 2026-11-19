@@ -29,6 +29,8 @@ console.log('Pruebas QR: 5 campos, 6 campos, separadores y rechazos correctos');
 const identity={doc:'8-123-456',name:'ANA MARIA',last:'PEREZ LOPEZ',birth:'1998-05-23',sex:'Femenino'};
 assert.deepEqual(extractIdentityQr('8-123-456|ANA MARIA|PEREZ LOPEZ|F|23/05/1998'),identity);
 assert.deepEqual(extractIdentityQr('LICENCIA|CÉDULA: 8-123-456|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ|SEXO: F|FECHA NACIMIENTO: 23/05/1998|NÚMERO LICENCIA: 90001'),identity);
+assert.deepEqual(extractIdentityQr('8-123-456|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ|SEXO: F|FECHA NACIMIENTO: 23/05/1998'),identity);
+assert.throws(()=>extractQr('8-123-456|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ|F|23/05/1998'),/etiquetas/);
 assert.deepEqual(extractIdentityQr(JSON.stringify({
   emisor:'Sertracen',cedula:'8-123-456',nombres:'ANA MARIA',apellidos:'PEREZ LOPEZ',
   fechaNacimiento:'1998-05-23',sexo:'F',numeroLicencia:'ABC123'
