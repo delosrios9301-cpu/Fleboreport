@@ -270,6 +270,41 @@
    ?'Datos identificados sincronizados. Los campos sin protocolo específico permanecen sin definir.'
    :'Cambios guardados localmente; sincronización pendiente. Los campos desconocidos siguen sin definir.';
  }
+ async function clearLegacyPlaceholders(){
+  if(!authorized())return;
+  const api=window.FleboAppState,state=api?.get?.();
+  if(!api||!Array.isArray(state?.catalog))return;
+  const candidates=state.catalog.map((item,index)=>({item,index}))
+   .filter(({item})=>core.isLegacyPlaceholder(item));
+  if(!candidates.length)return;
+  if(!window.confirm('Se corregirán '+candidates.length+' indicadores de tubo verde que NO tienen muestra ni recipiente configurado. No se eliminarán pruebas, pacientes ni registros históricos. Las pruebas seguirán pendientes hasta disponer de una referencia válida. ¿Continuar?'))return;
+  const original=candidates.map(({item,index})=>({item,index}));
+  const now=new Date().toISOString();
+  for(const {item,index} of candidates){
+   state.catalog[index]={...item,colorName:'',color:'#94A3B8',shape:'',updatedAt:now};
+  }
+  if(!api.save()){
+   for(const {item,index} of original)state.catalog[index]=item;
+   window.toast?.('No se pudo guardar la corrección. El catálogo original se conserva.');
+   return;
+  }
+  api.refresh();
+  if(typeof window.auditAdd==='function')
+   window.auditAdd('Catálogo de pruebas','Retiró '+candidates.length+' colores verdes de importación sin muestra ni recipiente, conservando las pruebas');
+  const status=$('catalogAutoBatchStatus');
+  if(status)status.textContent='Corrección local aplicada a '+candidates.length+' fichas. Confirmando sincronización…';
+  let synced=false;
+  try{
+   synced=!!(window.FleboCloudSync?.syncNow&&await window.FleboCloudSync.syncNow({verify:true}));
+   if(synced&&typeof window.FleboHomeCatalogRefresh==='function')
+    void window.FleboHomeCatalogRefresh().catch(error=>console.warn('[Catálogo] Servicios pendientes:',error));
+  }catch(error){console.warn('[Catálogo] Corrección pendiente de sincronización:',error);}
+  renderList();
+  const updatedStatus=$('catalogAutoBatchStatus');
+  if(updatedStatus)updatedStatus.textContent=synced
+   ?'Colores heredados corregidos y sincronizados; las configuraciones clínicas desconocidas siguen pendientes.'
+   :'Colores heredados corregidos localmente. Sincronización con la nube pendiente.';
+ }
  let autoCompleting=false;
  async function autoCompleteFromCloud(){
   // Solo tras recibir la versión actual de la nube y con permisos administrativos.
@@ -337,7 +372,18 @@
   batch.type='button';batch.disabled=!candidates.length;
   batch.addEventListener('click',()=>{void applyReviewedBatch();});
   const status=el('p','catalog-auto-help');status.id='catalogAutoBatchStatus';status.setAttribute('role','status');
-  controls.append(batch,status);list.append(controls);
+  controls.append(batch,status);
+  const legacyCount=catalog().filter(item=>core.isLegacyPlaceholder(item)).length;
+  if(legacyCount){
+   const warning=el('p','catalog-auto-help',
+    legacyCount+' pruebas todavía tienen un color verde heredado sin muestra ni recipiente: no es una configuración válida.');
+   const clear=el('button','btn catalog-auto-batch',
+    'Corregir '+legacyCount+' colores verdes sin respaldo');
+   clear.type='button';
+   clear.addEventListener('click',()=>{void clearLegacyPlaceholders();});
+   controls.append(warning,clear);
+  }
+  list.append(controls);
   const search=el('input','catalog-auto-review-search');
   search.type='search';search.placeholder='Buscar prueba o condición…';search.value=reviewQuery;
   search.setAttribute('aria-label','Buscar fichas de pruebas');
