@@ -183,3 +183,36 @@
        and (max-height:700px) and (max-width:1400px) and (pointer:coarse) {
  html:root body.fr2-app-authorized #sidebar {transition:none!important;}
 }
+
+/* En teléfono vertical la salida también debe estar DESPUÉS de los módulos.
+   El menú completo se desplaza en un solo contenedor sin pie fijo. */
+@media screen and (orientation:portrait) and (max-width:760px) and (pointer:coarse) {
+ html:root body.fr2-app-authorized #sidebar,
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation{
+  overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior:contain!important;touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;
+ }
+ html:root body.fr2-app-authorized #sidebar .nav-list{
+  flex:0 0 auto!important;overflow:visible!important;
+ }
+ html:root body.fr2-app-authorized #sidebar .drawer-footer{
+  position:static!important;z-index:auto!important;
+  flex:0 0 auto!important;align-self:stretch!important;
+  min-height:0!important;margin:8px 4px 12px!important;
+  padding:8px 3px!important;border:0!important;
+  border-top:1px solid rgba(229,241,247,.22)!important;
+  border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;font-size:0!important;line-height:0!important;gap:0!important;
+ }
+ html:root body.fr2-app-authorized #sidebar .drawer-footer-dot{display:none!important;}
+ html:root body.fr2-app-authorized #sidebar .drawer-footer #fleboGlobalSignOut{
+  position:static!important;display:flex!important;
+  width:100%!important;min-height:46px!important;
+  margin:0!important;padding:8px 14px!important;
+  border:1px solid rgba(219,235,243,.5)!important;border-radius:12px!important;
+  background:rgba(236,245,249,.13)!important;color:#FFFFFF!important;
+  box-shadow:none!important;font-size:14px!important;font-weight:750!important;
+  line-height:1.2!important;
+ }
+}
