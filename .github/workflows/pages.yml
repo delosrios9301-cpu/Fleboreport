@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -55,6 +56,27 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: www
+      - name: Verificar paquete Pages antes de publicar
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # El API de artefactos puede tardar en ver una carga recién terminada.
+          # El despliegue exige exactamente un paquete "github-pages".
+          for intento in $(seq 1 12); do
+            CANTIDAD="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts?per_page=100" --jq '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | length')"
+            if [ "$CANTIDAD" = "1" ]; then
+              sleep 8
+              exit 0
+            fi
+            if [ "$CANTIDAD" -gt 1 ]; then
+              echo "::error::Hay más de un artefacto Pages en esta ejecución. Se requiere una nueva ejecución limpia."
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "::error::GitHub todavía no reconoce el paquete del sitio."
+          exit 1
       - name: Publicar sitio
         id: deployment
         uses: actions/deploy-pages@v4
