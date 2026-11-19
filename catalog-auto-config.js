@@ -149,9 +149,12 @@
    &&normalize(test.sample)!==normalize(proposal.fields.sample);
   const vesselConflict=!!String(test?.vessel||'').trim()&&!!proposal.fields.vessel
    &&normalize(test.vessel)!==normalize(proposal.fields.vessel);
+  const colorConflict=!legacy&&!!String(test?.colorName||'').trim()
+   &&!!proposal.fields.colorName&&normalize(test.colorName)!==normalize(proposal.fields.colorName);
   for(const key of editable){
    if(!proposal.fields[key])continue;
    if(sampleConflict&&key!=='sample')continue;
+   if(colorConflict&&['vessel','shape','colorName','volume','conditions','instructions'].includes(key))continue;
    if(vesselConflict&&['vessel','colorName','shape','volume','conditions','instructions'].includes(key))continue;
    if(!test||!String(test[key]||'').trim()||(legacy&&['colorName','shape'].includes(key)))out[key]=proposal.fields[key];
   }
