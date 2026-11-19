@@ -27,8 +27,12 @@ jobs:
             wc -c "$apk"
             sha256sum "$apk"
             "$TOOLS_DIR/aapt" dump badging "$apk" | grep -E '^(package:|sdkVersion:|targetSdkVersion:|native-code:)' | head -8
-            "$TOOLS_DIR/apksigner" verify --verbose --print-certs "$apk" |
-              grep -E 'Verifies using APK Signature Scheme|Signer #1 certificate SHA-256 digest' | head -9
+            if "$TOOLS_DIR/apksigner" verify --verbose --print-certs "$apk" > "$RUNNER_TEMP/signer-$ver.log" 2>&1; then
+              echo "APK SIGNATURE: VALID"
+            else
+              echo "APK SIGNATURE: REJECTED by apksigner (see details)"
+            fi
+            grep -Ei 'certificate.*sha.?256|Verified using|Verifies using|^Verifies|V2.*true|V3.*true' "$RUNNER_TEMP/signer-$ver.log" | head -12 || true
             if "$TOOLS_DIR/zipalign" -c -P 16 -v 4 "$apk" > "$RUNNER_TEMP/alignment-$ver.log" 2>&1; then
               echo "16KB ZIP ALIGNMENT: PASS"
             else
