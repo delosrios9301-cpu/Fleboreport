@@ -1,8 +1,8 @@
 {
-  "versionCode": 10,
-  "versionName": "1.9",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v1.9",
-  "notes": "Actualizador Android corregido: instala mediante el instalador oficial, reanuda al volver de permisos de fuentes desconocidas, conserva APK validado y mantiene enlace de descarga alternativa. Requiere confirmación de Android. Conserva datos, lector QR y notificaciones.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v1.9/FleboReport-1.9.apk",
-  "sha256": "1404c92c7a1c9a9b5e5ab84a1ce3a7377125d2fecf7b457eed042efb02a93f52"
+  "versionCode": 11,
+  "versionName": "2.0",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.0",
+  "notes": "Lectura de licencias y cédulas reforzada: el QR de control no cierra la cámara; opción Leer texto impreso con ML Kit OCR local para completar datos verificables del paciente. No guarda fotografías. Requiere revisión visual de los datos antes de guardar, mantiene cédula QR, notificaciones, firma y registros existentes.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.0/FleboReport-2.0.apk",
+  "sha256": "3c4add337cfb66ac8f14825cc5a9f59c4c534aa3e63ac67d64569acffadb1bd3"
 }
