@@ -47,9 +47,16 @@ test('Propuestas preservan datos existentes y no alteran protocolos confirmados'
  assert.equal(changes.sample,undefined);
  assert.equal(changes.vessel,undefined);
  assert.equal(changes.colorName,undefined);
- assert.equal(changes.shape,'tube');
+ assert.equal(changes.shape,undefined,'No inferir forma por nombre cuando el recipiente ya es distinto');
  assert.equal(JSON.stringify(existing),before);
- assert.equal(core.missingFields({...existing,validated:true},p).shape,'tube');
+ assert.equal(core.missingFields({...existing,validated:true},p).shape,undefined);
+ const unknown={name:'Hemograma',sample:'',vessel:''};
+ assert.equal(core.missingFields(unknown,p).shape,'tube');
+ const conflictingSample={name:'Hemograma',sample:'Suero',vessel:''};
+ const safe=core.missingFields(conflictingSample,p);
+ assert.equal(safe.vessel,undefined,'No recomendar tubo EDTA si el laboratorio configuró Suero');
+ assert.equal(safe.colorName,undefined);
+ assert.equal(safe.volume,undefined);
 });
 
 test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
