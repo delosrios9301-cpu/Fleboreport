@@ -175,7 +175,8 @@
  const core=window.FleboAutoConfigCore;
  if(!core)return;
  const $=id=>document.getElementById(id);
- let listOpen=false,initialized=false;
+ let listOpen=false,initialized=false,catalogBatchBusy=false;
+ let editorDialog=null,editorMarker=null,editorPanel=null,editorFocus=null,editorOverflow='';
  const formFields={sample:'testSample',vessel:'testVessel',colorName:'testColorName',
   color:'testColor',shape:'testShape',volume:'testVolume',method:'testMethod',fasting:'testFasting',conditions:'testConditions',instructions:'testInstructions'};
  const member=()=>window.FleboAuth?.membership;
@@ -239,36 +240,74 @@
   const apply=$('catalogAutoApply');if(apply)apply.hidden=true;
  }
  async function applyReviewedBatch(){
-  if(!authorized())return;
+  if(!authorized()||catalogBatchBusy)return;
   const api=window.FleboAppState,state=api?.get?.();
-  if(!api||!state||!Array.isArray(state.catalog))return;
+  if(!api||!Array.isArray(state?.catalog))return;
   const candidates=state.catalog.map((item,index)=>({item,index,match:eligible(item)})).filter(x=>x.match);
-  if(!candidates.length)return;
-  const old=candidates.map(x=>({index:x.index,original:x.item}));
-  const now=new Date().toISOString();
-  for(const {item,index,match} of candidates){
-   state.catalog[index]={...item,...match.fields,updatedAt:now,autoConfigSource:match.proposal.source,autoConfigUrl:match.proposal.url};
+  const placeholders=state.catalog.map((item,index)=>({item,index}))
+   .filter(({item})=>core.isLegacyPlaceholder(item));
+  if(!candidates.length&&!placeholders.length){
+   const status=$('catalogAutoBatchStatus');
+   if(status)status.textContent='Las configuraciones identificables ya se aplicaron. Las demás requieren una referencia del laboratorio; no se asignan tubos ni colores sin respaldo.';
+   return;
   }
-  if(!api.save()){
-   for(const {index,original} of old)state.catalog[index]=original;
-   window.toast?.('No se pudo guardar la configuración. No se modificó el catálogo en la nube.');
+  catalogBatchBusy=true;
+  // Guardado único y reversible: conservar objetos originales para no perder
+  // registros, configuraciones aprobadas, ni los datos de otras secciones.
+  const originals=new Map();
+  const now=new Date().toISOString();
+  let completed=0,cleared=0;
+  try{
+   for(const {item,index,match} of candidates){
+    if(!originals.has(index))originals.set(index,item);
+    const updated={...item,...match.fields,updatedAt:now,
+     autoConfigSource:match.proposal.source,autoConfigUrl:match.proposal.url};
+    state.catalog[index]=updated;
+    completed++;
+   }
+   // Un color «Verde» sin muestra ni recipiente proveniente de la importación
+   // histórica NO es una configuración clínica. Retirarlo automáticamente es
+   // más seguro que dejarlo aparentar una indicación válida.
+   for(const {index} of placeholders){
+    const row=state.catalog[index];
+    if(!core.isLegacyPlaceholder(row))continue; // La referencia ya lo configuró.
+    if(!originals.has(index))originals.set(index,row);
+    state.catalog[index]={...row,colorName:'',color:'#94A3B8',shape:'',updatedAt:now};
+    cleared++;
+   }
+   if(!api.save())throw Error('El catálogo no pudo guardarse en este dispositivo.');
+  }catch(error){
+   for(const [index,old] of originals)state.catalog[index]=old;
+   window.toast?.('No se modificó el catálogo: '+(error?.message||'error local'));
+   catalogBatchBusy=false;
    return;
   }
   api.refresh();
-  if(typeof window.auditAdd==='function'){
-   window.auditAdd('Catálogo de pruebas','Completó automáticamente '+candidates.length+' fichas con datos respaldados o muestra explícita, sin inventar colores ni volúmenes');
-  }
+  if(typeof window.auditAdd==='function')
+   window.auditAdd('Catálogo de pruebas','Aplicación automática de '+completed
+    +' configuraciones respaldadas y retiro de '+cleared+' colores verdes históricos sin recipiente');
   renderList();
-  const status=$('catalogAutoBatchStatus');
-  if(status)status.textContent=candidates.length+' propuesta(s) guardadas localmente. Confirmando sincronización…';
-  let synced=false;
+  let status=$('catalogAutoBatchStatus');
+  if(status)status.textContent='Se completaron '+completed+' pruebas identificables y se corrigieron '
+   +cleared+' colores verdes sin respaldo. Sincronizando con la nube…';
   try{
-   synced=!!(window.FleboCloudSync?.syncNow&&await window.FleboCloudSync.syncNow({verify:true}));
-   if(synced&&typeof window.FleboHomeCatalogRefresh==='function')void window.FleboHomeCatalogRefresh();
-  }catch(error){console.warn('[Catálogo] Propuestas pendientes de sincronización:',error);}
-  if(status)status.textContent=synced
-   ?'Datos identificados sincronizados. Los campos sin protocolo específico permanecen sin definir.'
-   :'Cambios guardados localmente; sincronización pendiente. Los campos desconocidos siguen sin definir.';
+   const synced=!!(window.FleboCloudSync?.syncNow
+    &&await window.FleboCloudSync.syncNow({verify:true}));
+   if(synced&&typeof window.FleboHomeCatalogRefresh==='function')
+    void Promise.resolve().then(()=>window.FleboHomeCatalogRefresh())
+     .catch(error=>console.warn('[Catálogo] Actualización de Domicilios pendiente:',error));
+   status=$('catalogAutoBatchStatus');
+   if(status)status.textContent=synced
+    ?'Configuraciones identificadas sincronizadas. '+completed+' pruebas completadas; '
+      +cleared+' colores incorrectos retirados. Sin referencia clínica, los campos permanecen pendientes.'
+    :'Cambios guardados localmente; sincronización pendiente. No se descartaron registros.';
+  }catch(error){
+   console.warn('[Catálogo] Sincronización pendiente:',error);
+   status=$('catalogAutoBatchStatus');
+   if(status)status.textContent='Corrección local guardada. La nube todavía no confirmó el cambio; se reintentará al sincronizar.';
+  }finally{
+   catalogBatchBusy=false;
+  }
  }
  async function clearLegacyPlaceholders(){
   if(!authorized())return;
@@ -307,10 +346,10 @@
  }
  let autoCompleting=false;
  async function autoCompleteFromCloud(){
-  // Solo tras recibir la versión actual de la nube y con permisos administrativos.
-  // Sin aprobaciones ni cambios en la disponibilidad (activa/inactiva).
-  if(autoCompleting||!authorized()||!window.FleboCloudSync?.status?.ready)return;
-  if(!catalog().some(item=>eligible(item)))return;
+  // Se ejecuta automáticamente al recibir la nube, sin exigir aprobar una
+  // ficha por ficha. Solo el administrador puede modificar el catálogo.
+  if(autoCompleting||catalogBatchBusy||!authorized()||!window.FleboCloudSync?.status?.ready)return;
+  if(!catalog().some(item=>!!eligible(item)||core.isLegacyPlaceholder(item)))return;
   autoCompleting=true;
   try{await applyReviewedBatch();}
   finally{autoCompleting=false;}
@@ -364,12 +403,12 @@
   const candidates=catalog().filter(item=>eligible(item));
   list.replaceChildren();
   list.append(el('h3','','Configuración de muestras y recipientes'));
-  list.append(el('p','catalog-auto-help','La aplicación completa automáticamente solo los datos identificables. Si falta una referencia del laboratorio, el tubo, color, volumen o condición se muestran sin definir; no se inventan.'));
+  list.append(el('p','catalog-auto-help','Los datos reconocidos se completan automáticamente cuando el administrador sincroniza. Este botón permite reintentar ahora: ninguna configuración clínica desconocida se inventa.'));
   const summary=el('p','catalog-auto-help');summary.id='catalogAutoReviewSummary';summary.setAttribute('role','status');
   list.append(summary);
   const controls=el('div','catalog-auto-batch-controls');
-  const batch=el('button','btn catalog-auto-batch','Completar '+candidates.length+' prueba(s) identificables');
-  batch.type='button';batch.disabled=!candidates.length;
+  const batch=el('button','btn catalog-auto-batch','Completar ahora '+candidates.length+' prueba(s) con referencia');
+  batch.type='button';batch.disabled=!!catalogBatchBusy||(!candidates.length&&!catalog().some(item=>core.isLegacyPlaceholder(item)));
   batch.addEventListener('click',()=>{void applyReviewedBatch();});
   const status=el('p','catalog-auto-help');status.id='catalogAutoBatchStatus';status.setAttribute('role','status');
   controls.append(batch,status);
