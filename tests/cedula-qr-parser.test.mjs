@@ -87,7 +87,7 @@ assert.match(nativeScanner,/Leer texto impreso/);
 assert.match(nativePlugin,/intent\.putExtra\("scan_mode", mode\)/);
 assert.match(nativePlugin,/response\.put\("ocr", value\)/);
 assert.match(nativeBuild,/com\.google\.mlkit:text-recognition:16\.0\.1/);
-assert.match(nativeBuild,/versionCode (?:11|12)/);
+assert.match(nativeBuild,/versionCode 13/);
 assert.match(source,/Leer texto impreso/);
 assert.match(source,/response\.format==='DOCUMENT_TEXT'/);
 assert.match(source,/versionCode\|\|0\)<11/);
@@ -96,3 +96,9 @@ assert.match(nativeScanner,/boolean forced = captureRequested\.getAndSet\(false\
 assert.match(nativeScanner,/Texto detectado parcialmente/);
 assert.match(nativeScanner,/boolean pairedNames/);
 console.log('Lector QR y OCR local de licencia: formatos públicos y salvaguardas verificados');
+
+
+const releaseWorkflow=readFileSync(new URL('../.github/workflows/android-signed-release.yml',import.meta.url),'utf8');
+assert.match(releaseWorkflow,/"\$ZIPALIGN" -P 16 -f -v 4 "\$APK"/);
+assert.match(releaseWorkflow,/"\$ZIPALIGN" -c -P 16 -v 4 "FleboReport-\$VERSION\.apk"/);
+console.log('APK firmado: bibliotecas alineadas a 16 KiB para Android 15/16');
