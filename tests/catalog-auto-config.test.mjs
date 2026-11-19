@@ -71,8 +71,8 @@ test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
  assert.match(auto,/Configuración automática/);
  assert.match(auto,/auditAdd/);
  assert.doesNotMatch(auto,/\.upsert\(|\.delete\(|\.insert\(|\.from\('services'\)/);
- assert.ok(html.includes('./catalog-auto-config.js?v=20261115-autoconfig1'));
- assert.ok(html.includes('./catalog-auto-config.css?v=20261115-autoconfig1'));
+ assert.ok(html.includes('./catalog-auto-config.js?v=20261119-autoconfig-modal2'));
+ assert.ok(html.includes('./catalog-auto-config.css?v=20261119-autoconfig-modal2'));
  assert.ok(sw.includes("'./catalog-auto-config.js'"));
  assert.ok(sw.includes("'./catalog-auto-config.css'"));
  assert.match(css,/@media\(max-width:760px\)/);
@@ -140,7 +140,11 @@ test('Preparación agrupada requiere autorización y confirmación y conserva pe
  assert.match(auto,/async function applyReviewedBatch\(\)/);
  assert.match(auto,/if\(!authorized\(\)\)return/);
  assert.doesNotMatch(auto,/window\.confirm\('Se prepararán '/);
- assert.match(auto,/state\.catalog\[index\]=\{\.\.\.item,\.\.\.match\.fields,updatedAt:now/);
+ assert.match(auto,/const updated=\{\.\.\.item,\.\.\.match\.fields,updatedAt:now/);
+ assert.match(auto,/state\.catalog\[index\]=updated/);
+ assert.match(auto,/const placeholders=state\.catalog\.map/);
+ assert.match(auto,/if\(!core\.isLegacyPlaceholder\(row\)\)continue/);
+ assert.match(auto,/window\.addEventListener\('flebo:cloud-state-applied'/);
  assert.match(auto,/if\(!api\.save\(\)\)/);
  assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
  assert.match(auto,/name\.addEventListener\('change',\(\)=>\{applyToForm\(\);updateForm\(\);\}\)/);
@@ -320,4 +324,28 @@ test('La limpieza de colores heredados requiere confirmación administrativa y n
  assert.match(auto,/colorName:'',color:'#94A3B8',shape:''/);
  assert.match(auto,/Corregir '\+legacyCount\+' colores verdes sin respaldo/);
  assert.doesNotMatch(auto,/\.splice\(.*catalog/);
+});
+
+test('Abrir ficha abre una ventana flotante, mantiene el editor original y cierra al guardar',()=>{
+ assert.match(auto,/function openEditor\(id\)/);
+ assert.match(auto,/function closeEditor\(\)/);
+ assert.match(auto,/window\.editTest\(id\)/);
+ assert.match(auto,/form\.parentNode\.replaceChild\(editorMarker,form\)/);
+ assert.match(auto,/dialog\.setAttribute\('role','dialog'\)/);
+ assert.match(auto,/dialog\.setAttribute\('aria-modal','true'\)/);
+ assert.match(auto,/dialog\.append\(heading,form\)/);
+ assert.match(auto,/openEditor\(id\)/);
+ assert.match(html,/window\.FleboAutoConfig\?\.closeEditor\?\.\(\)/);
+ assert.match(css,/\.catalog-auto-editor-overlay/);
+ assert.match(css,/\.catalog-auto-editor-dialog/);
+ assert.match(css,/overflow-y:auto/);
+});
+
+test('Configuración identificable y color heredado se corrigen sin pedir aprobación por ficha',()=>{
+ assert.match(auto,/async function autoCompleteFromCloud\(\)/);
+ assert.match(auto,/async function applyReviewedBatch\(\)/);
+ assert.match(auto,/if\(!catalog\(\)\.some\(item=>!!eligible\(item\)\|\|core\.isLegacyPlaceholder\(item\)\)\)return/);
+ assert.match(auto,/state\.catalog\[index\]=\{\.\.\.row,colorName:'',color:'#94A3B8',shape:'',updatedAt:now\}/);
+ assert.match(auto,/catalogBatchBusy=true/);
+ assert.match(auto,/await window\.FleboCloudSync\.syncNow\(\{verify:true\}\)/);
 });
