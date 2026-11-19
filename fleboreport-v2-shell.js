@@ -14,13 +14,18 @@
  function syncLandscapeNavigation(){
   const sidebar=$('sidebar'),landscape=inPhoneLandscape();
   if(landscape){
-   // Cambiar de orientación cierra el menú que estuviese abierto y devuelve
-   // el ancho íntegro al módulo. La navegación puede reabrirse con el botón.
-   if(sidebar?.classList.contains('open'))sidebar.classList.remove('open');
-   document.body.classList.remove('module-menu-open');
-   sidebar?.setAttribute('aria-hidden','true');
-   $('moduleFab')?.setAttribute('aria-expanded','false');
-   $('fr2MenuToggle')?.setAttribute('aria-expanded','false');
+   // Sólo cerrar al entrar en horizontal, no en cada resize:
+   // Chrome y Android cambian la altura disponible al mostrar el teclado
+   // o las barras y antes re-cerraban el menú inmediatamente tras abrirlo.
+   if(!previousPhoneLandscape){
+    sidebar?.classList.remove('open');
+    document.body.classList.remove('module-menu-open');
+   }
+   const open=!!sidebar?.classList.contains('open');
+   sidebar?.setAttribute('aria-hidden',String(!open));
+   $('moduleFab')?.setAttribute('aria-expanded',String(open));
+   $('moduleFab')?.setAttribute('aria-label',open?'Cerrar menú de módulos':'Abrir menú de módulos');
+   $('fr2MenuToggle')?.setAttribute('aria-expanded',String(open));
   }else if(previousPhoneLandscape&&window.innerWidth>760
    &&document.body.classList.contains('fr2-app-authorized')){
    // El escritorio recupera su menú persistente y semántica accesible.
@@ -87,6 +92,17 @@
   if(gate)new MutationObserver(updateAuthLayout).observe(gate,{attributes:true,attributeFilter:['hidden']});
   const shell=$('.app-shell');
   if(shell)new MutationObserver(records=>{if(records.some(r=>r.target.classList?.contains('view')))labelCurrentView()}).observe(shell,{subtree:true,attributes:true,attributeFilter:['class']});
+  // Abrir, cerrar, cerrar al navegar o girar: conservar siempre la semántica
+  // de los botones sin crear nuevos menús ni alterar permisos.
+  const drawer=$('sidebar');
+  if(drawer)new MutationObserver(()=>{
+   if(!inPhoneLandscape())return;
+   const open=drawer.classList.contains('open');
+   drawer.setAttribute('aria-hidden',String(!open));
+   $('moduleFab')?.setAttribute('aria-expanded',String(open));
+   $('moduleFab')?.setAttribute('aria-label',open?'Cerrar menú de módulos':'Abrir menú de módulos');
+   $('fr2MenuToggle')?.setAttribute('aria-expanded',String(open));
+  }).observe(drawer,{attributes:true,attributeFilter:['class']});
   document.addEventListener('click',e=>{if(e.target.closest('#sidebar [data-nav]'))setTimeout(labelCurrentView,0)});
   window.addEventListener('resize',()=>{syncLandscapeNavigation();if(window.innerWidth>760&&!inPhoneLandscape()){$('fr2MenuToggle')?.setAttribute('aria-expanded','false')}});
   phoneLandscape.addEventListener?.('change',syncLandscapeNavigation);
