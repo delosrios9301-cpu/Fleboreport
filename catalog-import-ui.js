@@ -166,8 +166,26 @@
   notice('Guardando '+valid.length+' pruebas en el catálogo…');
   const before=state.catalog.slice(),now=new Date().toISOString();
   try{
-   const imported=valid.map((r,i)=>core.makeCatalogRecord(r.item,
-     't-import-'+Date.now().toString(36)+'-'+i.toString(36)+'-'+Math.random().toString(36).slice(2,8),now));
+   const autoCore=window.FleboAutoConfigCore;
+   let autoConfigured=0,onlySample=0,pendingConfiguration=0;
+   const imported=valid.map((r,i)=>{
+    const record=core.makeCatalogRecord(r.item,
+     't-import-'+Date.now().toString(36)+'-'+i.toString(36)+'-'+Math.random().toString(36).slice(2,8),now);
+    // Completar aquí, ANTES del único guardado, no esperar al próximo inicio
+    // de sesión. Respetar siempre los datos suministrados por el laboratorio.
+    const proposed=autoCore?.suggest?.(record.name);
+    const missing=autoCore?.missingFields?.(record,proposed)||{};
+    if(Object.keys(missing).some(key=>key!=='color')){
+     Object.assign(record,missing,{
+      autoConfigSource:proposed.source,
+      autoConfigUrl:proposed.url||''
+     });
+     if(proposed.level==='specific')autoConfigured++;
+     else onlySample++;
+    }
+    if(!record.sample||!record.vessel)pendingConfiguration++;
+    return record;
+   });
    state.catalog.push(...imported);
    if(!api.save()){state.catalog=before;throw Error('No se pudo guardar localmente. No se agregaron las pruebas.');}
    api.refresh();
@@ -180,9 +198,11 @@
    }catch(error){console.warn('[FleboReport] Importación local pendiente de nube',error);}
    loading=false;modal.querySelector('.catalog-import-cancel').disabled=false;
    close();
+   const configurationNotice=autoConfigured+' configuradas por referencia, '+onlySample
+    +' con tipo de muestra identificado y '+pendingConfiguration+' con datos pendientes.';
    toast(cloudConfirmed
-    ?saved+' pruebas importadas y sincronizadas. Disponibles en Catálogo y Jornada.'
-    :saved+' pruebas guardadas en este dispositivo. Sincronización con la nube sin confirmar; revisa tu conexión.');
+    ?saved+' pruebas importadas y sincronizadas. '+configurationNotice
+    :saved+' pruebas guardadas en este dispositivo; sincronización con la nube sin confirmar. '+configurationNotice);
    // Domicilios usa servicios con UUID (no IDs locales). Refrescar su lista
    // después del guardado en nube y solo con un administrador conectado.
    // No bloquear la interfaz mientras se actualizan los servicios.
