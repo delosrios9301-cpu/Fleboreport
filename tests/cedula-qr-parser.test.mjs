@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 
 const source = readFileSync(new URL('../cedula-ocr.js', import.meta.url), 'utf8');
-const start = source.indexOf('function extractQr(raw){');
+const start = source.indexOf('function extract(raw){');
 const end = source.indexOf('// El puente nativo se activa', start);
-assert.ok(start >= 0 && end > start, 'No se encontró extractQr');
+assert.ok(start >= 0 && end > start, 'No se encontraron los lectores QR y OCR');
 const {extractQr,extractIdentityQr,extractPrintedIdentity} = new Function(
   source.slice(start,end) + '\nreturn {extractQr,extractIdentityQr,extractPrintedIdentity};'
 )();
