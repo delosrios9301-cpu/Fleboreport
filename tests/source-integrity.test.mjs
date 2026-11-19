@@ -708,7 +708,9 @@ test('el catálogo maestro identifica por origen y no desactiva pruebas por carg
   assert.match(domicilios, /if\(row\.catalog_source_id\)return String\(row\.catalog_source_id\)===sourceId/);
   assert.match(domicilios, /saved\.error\.code==='23505'/);
   assert.match(domicilios, /\.insert\(row\)\.select\(selectColumns\)/);
-  assert.match(domicilios, /\.update\(payload\)/);
+  assert.match(domicilios, /\.update\(item\.payload\)/);
+  assert.match(domicilios, /pendingUpdates\.push\(\{id:matched\.id,payload\}\)/);
+  assert.match(domicilios, /Math\.min\(6,pendingUpdates\.length\)/);
   assert.match(domicilios, /active:item\.active!==false/);
   assert.doesNotMatch(domicilios, /const obsolete=existingRows\.filter/);
 });
@@ -844,7 +846,9 @@ test('el catálogo de domicilios aplica archivados explícitos y actualiza servi
   assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name\)/);
   assert.match(domicilios, /const payload=\{/);
   assert.match(domicilios, /catalog_source_id:String\(item\.id\)/);
-  assert.match(domicilios, /\.update\(payload\)/);
+  assert.match(domicilios, /\.update\(item\.payload\)/);
+  assert.match(domicilios, /pendingUpdates\.push\(\{id:matched\.id,payload\}\)/);
+  assert.match(domicilios, /Math\.min\(6,pendingUpdates\.length\)/);
   assert.match(domicilios, /active:item\.active!==false/);
   assert.match(domicilios, /if\(!payload\.active\)continue/);
   assert.match(domicilios, /\.eq\('active',true\)/);
@@ -1531,4 +1535,12 @@ test('privacy v285 hides sensitive invitation fields at API and client',async()=
  assert.match(client,/if\(cloud\.role==='technician'\)visits=visits\.filter/);
  assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
  assert.match(serviceWorker,/fleboreport-shell-v322/);
+});
+
+test('La sincronización del catálogo se reintenta tras modificaciones concurrentes sin duplicar servicios',()=>{
+ assert.match(domicilios,/catalogRefreshPending=true;return false/);
+ assert.match(domicilios,/if\(catalogRefreshPending\)/);
+ assert.match(domicilios,/catalogRefreshPending=false/);
+ assert.match(domicilios,/claimedServices\.add\(matched\.id\)/);
+ assert.match(domicilios,/if\(!payload\.active\)continue/);
 });
