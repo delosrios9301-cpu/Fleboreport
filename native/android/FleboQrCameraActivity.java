@@ -295,7 +295,14 @@ public class FleboQrCameraActivity extends AppCompatActivity {
             || lower.contains("surname") || lower.contains("firstnames")
             || lower.contains("givennames") || lower.contains("firstname");
         boolean separated = value.matches("(?s)^\\s*(?:PE|E|N|AV|[0-9]{1,2})-\\d{1,5}-\\d{1,6}\\s*[|;\\r\\n].*");
-        return separated || (document && (labelled || personal));
+        // El código público también puede ofrecer nombres y apellidos pero
+        // omitir la cédula. Devuelve esos campos para revisión sin identificar
+        // al paciente por el número de control de la licencia.
+        boolean pairedNames = (lower.contains("nombres") || lower.contains("nombre")
+            || lower.contains("givenname") || lower.contains("firstname"))
+            && (lower.contains("apellido") || lower.contains("surname")
+                || lower.contains("lastname"));
+        return separated || (document && (labelled || personal)) || pairedNames;
     }
 
     private void suggestReadableCode() {
