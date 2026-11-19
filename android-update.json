@@ -1,8 +1,8 @@
 {
-  "versionCode": 11,
-  "versionName": "2.0",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.0",
-  "notes": "Lectura de licencias y cédulas reforzada: el QR de control no cierra la cámara; opción Leer texto impreso con ML Kit OCR local para completar datos verificables del paciente. No guarda fotografías. Requiere revisión visual de los datos antes de guardar, mantiene cédula QR, notificaciones, firma y registros existentes.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.0/FleboReport-2.0.apk",
-  "sha256": "3c4add337cfb66ac8f14825cc5a9f59c4c534aa3e63ac67d64569acffadb1bd3"
+  "versionCode": 12,
+  "versionName": "2.1",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.1",
+  "notes": "Lector de licencias mejorado: muestra la opción Leer texto impreso, admite la revisión de nombres parciales aun cuando no identifica la cédula, permite capturar texto desde ML Kit aunque el número salga incompleto y mantiene la lectura QR de cédulas. No guarda fotografías ni inventa números de documento. Instala encima de la versión anterior sin desinstalar.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.1/FleboReport-2.1.apk",
+  "sha256": "cfaf6e0ed98605d392f5672b76d95865ca57d2530b653e1dd2c9a9938ddc2d83"
 }
