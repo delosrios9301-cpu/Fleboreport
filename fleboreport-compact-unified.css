@@ -491,6 +491,29 @@
  :is(.fr-notif-head button,#frAndroidNotifyEnable,#frAndroidNotifyTest){
   min-height:44px!important;font-size:12px!important;
  }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .frc-notif-filters{
+  display:flex!important;gap:7px!important;padding:7px 12px!important;
+  border-bottom:1px solid #e1ebea!important;background:#f5f9f8!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .frc-notif-filters button{
+  flex:1 1 0!important;min-height:44px!important;padding:8px 10px!important;
+  border-radius:10px!important;border:1px solid #bfd5d1!important;
+  background:#fff!important;color:#24504e!important;
+  font-size:13px!important;font-weight:700!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel
+ .frc-notif-filters button[aria-pressed=true]{
+  background:#174f47!important;color:#fff!important;border-color:#174f47!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel.frc-unread-only
+ #frNotifList .fr-notif-item:not(.unread){display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .frc-unread-empty{
+  padding:14px!important;margin:0!important;font-size:13px!important;
+  color:#53706f!important;text-align:center!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .frc-unread-empty[hidden]{
+  display:none!important;
+ }
 }
 @media screen and (max-width:760px){
  html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen{
