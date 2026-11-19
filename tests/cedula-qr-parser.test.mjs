@@ -37,13 +37,16 @@ assert.deepEqual(extractIdentityQr(JSON.stringify({
 })),identity);
 assert.deepEqual(extractIdentityQr('https://example.org/validar?cedula=8-123-456&nombres=ANA%20MARIA&apellidos=PEREZ%20LOPEZ&sexo=F&fechaNacimiento=23%2F05%2F1998'),identity);
 assert.throws(()=>extractIdentityQr('https://example.org/validar?folio=90001'),/no proporciona una cédula/);
-assert.throws(()=>extractIdentityQr('LICENCIA|NÚMERO LICENCIA: 90001|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ'),/no proporciona una cédula/);
+assert.deepEqual(extractIdentityQr('LICENCIA|NÚMERO LICENCIA: 90001|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ'),{
+  doc:'',name:'ANA MARIA',last:'PEREZ LOPEZ',birth:'',sex:'',_partial:true
+});
+assert.throws(()=>extractIdentityQr('LICENCIA|NÚMERO LICENCIA: 90001|CÓDIGO DE CONTROL: ABC123'),/QR es de control/);
 assert.throws(()=>extractIdentityQr('LICENCIA|CÉDULA: 8-123-456|CÓDIGO DE CONTROL: ABC123'),/datos personales suficientes/);
 assert.throws(()=>extractIdentityQr(''),/vacío/);
 assert.deepEqual(extractIdentityQr('LICENCIA|CEDULA: 8-123-456|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ'),{
   doc:'8-123-456',name:'ANA MARIA',last:'PEREZ LOPEZ',birth:'',sex:''
 });
-assert.match(source,/Volver a escanear QR/);
+assert.match(source,/Escanear otro QR/);
 assert.match(source,/Escanear cédula o licencia/);
 console.log('Licencias: campos legibles, JSON, URL local, datos parciales y QR restringidos correctamente diferenciados');
 
@@ -84,7 +87,12 @@ assert.match(nativeScanner,/Leer texto impreso/);
 assert.match(nativePlugin,/intent\.putExtra\("scan_mode", mode\)/);
 assert.match(nativePlugin,/response\.put\("ocr", value\)/);
 assert.match(nativeBuild,/com\.google\.mlkit:text-recognition:16\.0\.1/);
-assert.match(nativeBuild,/versionCode 11/);
+assert.match(nativeBuild,/versionCode (?:11|12)/);
 assert.match(source,/Leer texto impreso/);
 assert.match(source,/response\.format==='DOCUMENT_TEXT'/);
+assert.match(source,/versionCode\|\|0\)<11/);
+assert.match(source,/Leer texto impreso/);
+assert.match(nativeScanner,/boolean forced = captureRequested\.getAndSet\(false\)/);
+assert.match(nativeScanner,/Texto detectado parcialmente/);
+assert.match(nativeScanner,/boolean pairedNames/);
 console.log('Lector QR y OCR local de licencia: formatos públicos y salvaguardas verificados');
