@@ -36,7 +36,7 @@ assert.deepEqual(extractIdentityQr(JSON.stringify({
   fechaNacimiento:'1998-05-23',sexo:'F',numeroLicencia:'ABC123'
 })),identity);
 assert.deepEqual(extractIdentityQr('https://example.org/validar?cedula=8-123-456&nombres=ANA%20MARIA&apellidos=PEREZ%20LOPEZ&sexo=F&fechaNacimiento=23%2F05%2F1998'),identity);
-assert.throws(()=>extractIdentityQr('https://example.org/validar?folio=90001'),/no proporciona una cédula/);
+assert.throws(()=>extractIdentityQr('https://example.org/validar?folio=90001'),/QR es de control/);
 assert.deepEqual(extractIdentityQr('LICENCIA|NÚMERO LICENCIA: 90001|NOMBRES: ANA MARIA|APELLIDOS: PEREZ LOPEZ'),{
   doc:'',name:'ANA MARIA',last:'PEREZ LOPEZ',birth:'',sex:'',_partial:true
 });
