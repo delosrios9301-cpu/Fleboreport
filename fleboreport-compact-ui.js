@@ -111,9 +111,42 @@
   details.appendChild(panel);
   return true;
  }
+ function enhanceNotifications(){
+  const panel=byId('frNotifPanel');
+  const list=byId('frNotifList');
+  if(!panel||!list||panel.querySelector('.frc-notif-filters'))return false;
+  const filters=document.createElement('div');
+  filters.className='frc-notif-filters';
+  filters.setAttribute('role','group');
+  filters.setAttribute('aria-label','Mostrar notificaciones');
+  const all=document.createElement('button'),unread=document.createElement('button');
+  all.type='button';unread.type='button';
+  all.textContent='Todas';unread.textContent='No leídas';
+  const placeholder=document.createElement('p');
+  placeholder.className='frc-unread-empty';
+  placeholder.textContent='No hay avisos sin leer.';
+  placeholder.hidden=true;
+  const refresh=()=>{
+   const selected=panel.classList.contains('frc-unread-only');
+   all.setAttribute('aria-pressed',String(!selected));
+   unread.setAttribute('aria-pressed',String(selected));
+   const notices=list.querySelectorAll('.fr-notif-item');
+   // No sustituir mensajes originales de error ni estados vacíos del servidor.
+   placeholder.hidden=!selected||!notices.length||!!list.querySelector('.fr-notif-item.unread');
+  };
+  all.addEventListener('click',()=>{panel.classList.remove('frc-unread-only');refresh();});
+  unread.addEventListener('click',()=>{panel.classList.add('frc-unread-only');refresh();});
+  filters.append(unread,all);
+  panel.insertBefore(filters,list);
+  list.insertAdjacentElement('afterend',placeholder);
+  new MutationObserver(refresh).observe(list,{childList:true});
+  refresh();
+  return true;
+ }
  function install(){
   enhanceProcessing();
   enhanceJourney();
+  enhanceNotifications();
   if(enhanceHome())return;
   // Inicio premium se monta tras restaurar autenticación y layout.
   // Reintentos acotados; no observar cada actualización clínica.
@@ -122,6 +155,11 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
  else install();
  window.addEventListener('flebo:auth-changed',()=>{
-  enhanceProcessing();enhanceJourney();enhanceHome();
+  enhanceProcessing();enhanceJourney();enhanceHome();enhanceNotifications();
  });
+ // El centro de notificaciones se crea solo al autenticarse; inicializar
+ // sus pestañas cuando se abre por primera vez.
+ document.addEventListener('click',event=>{
+  if(event.target.closest('#frNotifBell'))window.setTimeout(enhanceNotifications,0);
+ },true);
 })();
