@@ -139,15 +139,20 @@ function extractIdentityQr(raw){
  if(source.startsWith('{')){
   try{flatten(JSON.parse(source));}catch(_){}
  }
- for(const field of source.split(/[\r\n|;&]+/)){
-  const m=field.match(/^\s*([^:=]{2,50})\s*[:=]\s*(.+?)\s*$/);
-  if(m)set(m[1],m[2]);
- }
  if(/^https?:\/\//i.test(source)){
-  try{
-   const url=new URL(source);
-   for(const [key,value] of url.searchParams)set(key,value);
-  }catch(_){}
+  // Se decodifican parámetros de texto sin navegar a ninguna URL.
+  const query=source.includes('?')?source.split('?')[1].split('#')[0]:'';
+  for(const pair of query.split('&')){
+   const pos=pair.indexOf('=');
+   if(pos<0)continue;
+   try{set(decodeURIComponent(pair.slice(0,pos)),decodeURIComponent(pair.slice(pos+1).replace(/\+/g,' ')));}
+   catch(_){}
+  }
+ }else{
+  for(const field of source.split(/[\r\n|;&]+/)){
+   const m=field.match(/^\s*([^:=]{2,50})\s*[:=]\s*(.+?)\s*$/);
+   if(m)set(m[1],m[2]);
+  }
  }
  const pick=(names)=>{
   for(const key of names){const value=fields[canonical(key)];if(value)return value}
