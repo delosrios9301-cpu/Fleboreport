@@ -311,3 +311,13 @@ test('Un recipiente registrado conserva su icono aun sin color, sin mostrar inte
  assert.match(html,/Color de tapa pendiente/);
  assert.match(html,/Color de tapa \(si aplica\)/);
 });
+
+
+test('La limpieza de colores heredados requiere confirmación administrativa y no elimina pruebas',()=>{
+ assert.match(auto,/async function clearLegacyPlaceholders\(\)/);
+ assert.match(auto,/core\.isLegacyPlaceholder\(item\)/);
+ assert.match(auto,/window\.confirm\('Se corregirán '/);
+ assert.match(auto,/colorName:'',color:'#94A3B8',shape:''/);
+ assert.match(auto,/Corregir '\+legacyCount\+' colores verdes sin respaldo/);
+ assert.doesNotMatch(auto,/\.splice\(.*catalog/);
+});
