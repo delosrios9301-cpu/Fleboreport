@@ -50,7 +50,7 @@ test('No se ocultan controles de seguridad ni se alteran datos o permisos desde 
  assert.doesNotMatch(css,/\.hv-ref-actions\{[^}]*display:none/);
  assert.doesNotMatch(css,/#clinicalQueueRows>tr>td\{[^}]*display:none/);
  assert.doesNotMatch(css,/#frNotifPanel\{[^}]*display:none/);
- assert.doesNotMatch(code,/(?:localStorage|sessionStorage|supabase|\.from\(|\.insert\(|\.delete\(|\.update\()/i);
+ assert.doesNotMatch(code.replace(/\/\*[\s\S]*?\*\//g,''),/(?:localStorage|sessionStorage|supabase|\.from\(|\.insert\(|\.delete\(|\.update\()/i);
  assert.doesNotMatch(code,/\.innerHTML\s*=/);
  assert.doesNotMatch(code,/window\.(?:save|reset|delete|approve|changeStatus)\s*=/);
 });
