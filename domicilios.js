@@ -225,13 +225,15 @@ async function loadServiceCatalog(){
   if(cloud.role==='admin'){
    // El catálogo del administrador es la fuente maestra. Los elementos archivados se sincronizan como inactivos de forma explícita.
    const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name);
+   const claimedServices=new Set(),pendingUpdates=[];
    const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
     if(row.catalog_source_id)return String(row.catalog_source_id)===sourceId;
     return code?normalize(row.code)===code&&normalize(row.name)===name:normalize(row.name)===name;
    };
    for(const item of masterCatalog){
-    const matched=existingRows.find(x=>matchesMaster(x,item)),fields=serviceFields(item);
+    const matched=existingRows.find(x=>!claimedServices.has(x.id)&&matchesMaster(x,item)),fields=serviceFields(item);
+    if(matched)claimedServices.add(matched.id);
     const payload={
      catalog_source_id:String(item.id),
      code:item.code||item.codigo||(matched&&matched.code)||null,
@@ -249,11 +251,7 @@ async function loadServiceCatalog(){
       ||String(matched.description||'')!==String(payload.description||'')
       ||matched.active!==payload.active
       ||JSON.stringify(matched.fields||{})!==JSON.stringify(fields||{});
-     if(changed){
-      const updated=await cloud.client.from('services').update(payload).eq('workspace_id',cloud.workspaceId).eq('id',matched.id).select(selectColumns).maybeSingle();
-      if(updated.error)throw updated.error;
-      if(updated.data){const at=existingRows.findIndex(x=>x.id===matched.id);if(at>=0)existingRows[at]=updated.data}
-     }
+     if(changed)pendingUpdates.push({id:matched.id,payload});
      continue;
     }
     // No crear servicios desde elementos archivados.
@@ -265,6 +263,30 @@ async function loadServiceCatalog(){
      throw saved.error;
     }
     if(saved.data)existingRows.push(saved.data);
+   }
+   // Los catálogos grandes pueden requerir cientos de cambios de recipientes.
+   // Actualizarlos de uno en uno bloqueaba la sincronización durante minutos.
+   // Se limita la concurrencia sin usar claves privilegiadas ni sobrescribir
+   // precios, auditorías o campos no incluidos en la actualización.
+   if(pendingUpdates.length){
+    let cursor=0,firstError=null;
+    const worker=async()=>{
+     while(!firstError&&cursor<pendingUpdates.length){
+      const item=pendingUpdates[cursor++];
+      try{
+       const result=await cloud.client.from('services').update(item.payload)
+        .eq('workspace_id',cloud.workspaceId).eq('id',item.id)
+        .select(selectColumns).maybeSingle();
+       if(result.error)throw result.error;
+       if(result.data){
+        const at=existingRows.findIndex(row=>row.id===item.id);
+        if(at>=0)existingRows[at]=result.data;
+       }
+      }catch(error){firstError=error;}
+     }
+    };
+    await Promise.all(Array.from({length:Math.min(6,pendingUpdates.length)},()=>worker()));
+    if(firstError)throw firstError;
    }
   }
   const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).eq('active',true).order('name').limit(2000);
