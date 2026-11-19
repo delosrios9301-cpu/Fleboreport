@@ -2,7 +2,7 @@
 'use strict';
 const KEY='fleboreport.homeVisits.v1', $=id=>document.getElementById(id);
 let hvSwipeGesture=null,hvOpenedSwipe=null,hvIgnoreCardClickUntil=0;
-let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
+let referenceQuickStatus='',activeTab='agenda',detailOpen=false,visits=[],selected='',dismissedInvitationId='',calendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),calendarSelectedDate='',newTestSelection=[],moreTestSelection=[],selectedProfessional=null,professionalSearchTimer=null,professionalSearchSeq=0,remoteCatalog=[],catalogLoading=false,catalogRefreshPending=false,createBusy=false,serviceSearchTimer=null,serviceSearchSeq=0,additionalFormOpenFor='';
 const cloud={client:null,user:null,workspaceId:null,role:null,ready:false,loading:false,channel:null};
 let cloudReconnectPending=false,cloudDataVerified=false;
 const persistedEventIds=new Set();
@@ -210,7 +210,8 @@ async function ensureVisitAssignment(v){
 }
 function serviceFields(item){const f=item.fields&&typeof item.fields==='object'?item.fields:{};return{sample:item.sample||f.sample||'',vessel:item.vessel||f.vessel||'',colorName:item.colorName||f.colorName||'',fasting:item.fasting||f.fasting||'',conditions:item.conditions||f.conditions||'',instructions:item.instructions||f.instructions||'',volume:item.volume||f.volume||'',method:item.method||f.method||'',color:item.color||f.color||'',shape:item.shape||f.shape||''}}
 async function loadServiceCatalog(){
- if(!cloud.client||!cloud.workspaceId||catalogLoading)return false;
+ if(!cloud.client||!cloud.workspaceId)return false;
+ if(catalogLoading){catalogRefreshPending=true;return false;}
  catalogLoading=true;
  try{
   let existingRows=[];
@@ -302,7 +303,15 @@ async function loadServiceCatalog(){
   console.error('[Domicilios] Catálogo compartido:',e);
   cloudNotice('No se pudo cargar el catálogo central de pruebas: '+(e.message||'Error desconocido'),true);
   return false;
- }finally{catalogLoading=false}
+ }finally{
+  catalogLoading=false;
+  // Reintentar una vez si una edición del catálogo se confirmó mientras otra
+  // sincronización estaba ocupada. Evita que Domicilios quede desactualizado.
+  if(catalogRefreshPending){
+   catalogRefreshPending=false;
+   setTimeout(()=>{void loadServiceCatalog()},0);
+  }
+ }
 }
 // La importación desde Catálogo reutiliza el mismo catálogo de servicios,
 // con UUID reales, sin generar identidades incompatibles con home_visit_tests.
