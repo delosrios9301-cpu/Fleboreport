@@ -57,6 +57,11 @@ test('Propuestas preservan datos existentes y no alteran protocolos confirmados'
  assert.equal(safe.vessel,undefined,'No recomendar tubo EDTA si el laboratorio configuró Suero');
  assert.equal(safe.colorName,undefined);
  assert.equal(safe.volume,undefined);
+ const conflictingColor={name:'Hemograma',sample:'',vessel:'',colorName:'Rojo',color:'#cf4352'};
+ const safeColor=core.missingFields(conflictingColor,p);
+ assert.equal(safeColor.sample,'Sangre total con EDTA');
+ assert.equal(safeColor.vessel,undefined,'No se combina una tapa roja preexistente con EDTA lila');
+ assert.equal(safeColor.shape,undefined);
 });
 
 test('Interfaz segura, revisión de administrador y recurso PWA',()=>{
