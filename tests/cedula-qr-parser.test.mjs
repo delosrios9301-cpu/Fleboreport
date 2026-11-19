@@ -5,8 +5,8 @@ const source = readFileSync(new URL('../cedula-ocr.js', import.meta.url), 'utf8'
 const start = source.indexOf('function extractQr(raw){');
 const end = source.indexOf('// El puente nativo se activa', start);
 assert.ok(start >= 0 && end > start, 'No se encontró extractQr');
-const {extractQr,extractIdentityQr} = new Function(
-  source.slice(start,end) + '\nreturn {extractQr,extractIdentityQr};'
+const {extractQr,extractIdentityQr,extractPrintedIdentity} = new Function(
+  source.slice(start,end) + '\nreturn {extractQr,extractIdentityQr,extractPrintedIdentity};'
 )();
 
 for (const separator of ['|', ';', '\n']) {
@@ -46,3 +46,45 @@ assert.deepEqual(extractIdentityQr('LICENCIA|CEDULA: 8-123-456|NOMBRES: ANA MARI
 assert.match(source,/Volver a escanear QR/);
 assert.match(source,/Escanear cédula o licencia/);
 console.log('Licencias: campos legibles, JSON, URL local, datos parciales y QR restringidos correctamente diferenciados');
+
+
+// La nueva alternativa OCR de Android usa únicamente el texto visible, sin
+// transmitir fotografías ni registrar el contenido bruto de la licencia.
+const printedLicense=[
+  'REPÚBLICA DE PANAMÁ','LICENCIA DE CONDUCIR','CÉDULA 8-123-456',
+  'NOMBRES','ANA MARIA','APELLIDOS','PÉREZ LÓPEZ',
+  'FECHA DE NACIMIENTO 23/05/1998','SEXO F','FECHA VENCIMIENTO 23/05/2030'
+].join('\n');
+assert.deepEqual(extractPrintedIdentity(printedLicense),{
+ doc:'8-123-456',name:'ANA MARIA',last:'PÉREZ LÓPEZ',
+ birth:'1998-05-23',sex:'Femenino'
+});
+assert.deepEqual(extractPrintedIdentity([
+ 'SERTRACEN PANAMA','CEDULA: 8-123-456','NOMBRE: ANA MARIA',
+ 'APELLIDOS: PEREZ LOPEZ','BIRTH DATE: 1998-05-23','SEX F'
+].join('\n')),identity);
+const withoutBirth=extractPrintedIdentity([
+ 'LICENCIA DE CONDUCIR','CÉDULA 8-123-456','NOMBRES: ANA MARIA',
+ 'APELLIDOS: PEREZ LOPEZ','VENCE 23/05/2035'
+].join('\n'));
+assert.equal(withoutBirth.birth,'','La fecha de vencimiento no debe tomarse como nacimiento');
+assert.equal(withoutBirth.doc,'8-123-456');
+assert.equal(withoutBirth.name,'ANA MARIA');
+assert.equal(withoutBirth.last,'PEREZ LOPEZ');
+
+const nativeScanner=readFileSync(new URL('../native/android/FleboQrCameraActivity.java',import.meta.url),'utf8');
+const nativePlugin=readFileSync(new URL('../native/android/FleboIdScannerPlugin.java',import.meta.url),'utf8');
+const nativeBuild=readFileSync(new URL('../native/android/configure_android.py',import.meta.url),'utf8');
+assert.match(nativeScanner,/looksLikeIdentityQr\(value\)/);
+assert.match(nativeScanner,/if \(!looksLikeIdentityQr\(value\)\)/);
+assert.match(nativeScanner,/Código de verificación detectado/);
+assert.match(nativeScanner,/TextRecognition\.getClient\(TextRecognizerOptions\.DEFAULT_OPTIONS\)/);
+assert.match(nativeScanner,/result\.putExtra\("ocr", raw\)/);
+assert.match(nativeScanner,/Leer texto impreso/);
+assert.match(nativePlugin,/intent\.putExtra\("scan_mode", mode\)/);
+assert.match(nativePlugin,/response\.put\("ocr", value\)/);
+assert.match(nativeBuild,/com\.google\.mlkit:text-recognition:16\.0\.1/);
+assert.match(nativeBuild,/versionCode 11/);
+assert.match(source,/Leer texto impreso/);
+assert.match(source,/response\.format==='DOCUMENT_TEXT'/);
+console.log('Lector QR y OCR local de licencia: formatos públicos y salvaguardas verificados');
