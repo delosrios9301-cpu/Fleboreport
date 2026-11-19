@@ -4,6 +4,31 @@
  const $=id=>document.getElementById(id);
  const roleNames={admin:'Administrador',coordinator:'Coordinador',office:'Coordinador',clinician:'Profesional clínico',technician:'Flebotomista',reception:'Recepción'};
  const labels={home:'Inicio',journey:'Jornadas',companies:'Empresas',patients:'Pacientes',domicilios:'Domicilios',catalog:'Catálogo de pruebas','clinical-studies':'Estudios clínicos','clinical-processing':'Procesamiento',reports:'Reportes',audit:'Historial general',settings:'Configuración'};
+ // Coincide exactamente con la media query del menú en teléfono apaisado.
+ // Un teléfono horizontal supera 760px, pero no debe adquirir el panel fijo
+ // reservado a escritorio o tablet. No inspeccionar marca/modelo ni datos.
+ const phoneLandscapeQuery='(orientation:landscape) and (max-height:700px) and (max-width:1400px) and (pointer:coarse)';
+ const phoneLandscape=window.matchMedia(phoneLandscapeQuery);
+ const inPhoneLandscape=()=>phoneLandscape.matches;
+ let previousPhoneLandscape=inPhoneLandscape();
+ function syncLandscapeNavigation(){
+  const sidebar=$('sidebar'),landscape=inPhoneLandscape();
+  if(landscape){
+   // Cambiar de orientación cierra el menú que estuviese abierto y devuelve
+   // el ancho íntegro al módulo. La navegación puede reabrirse con el botón.
+   if(sidebar?.classList.contains('open'))sidebar.classList.remove('open');
+   document.body.classList.remove('module-menu-open');
+   sidebar?.setAttribute('aria-hidden','true');
+   $('moduleFab')?.setAttribute('aria-expanded','false');
+   $('fr2MenuToggle')?.setAttribute('aria-expanded','false');
+  }else if(previousPhoneLandscape&&window.innerWidth>760
+   &&document.body.classList.contains('fr2-app-authorized')){
+   // El escritorio recupera su menú persistente y semántica accesible.
+   sidebar?.setAttribute('aria-hidden','false');
+  }
+  previousPhoneLandscape=landscape;
+ }
+
  function mountHeader(){
   const header=document.querySelector('.app-shell .topbar');if(!header||header.dataset.fr2Mounted)return;
   const status=$('fleboSyncStatus');
@@ -42,7 +67,9 @@
  function updateAuthLayout(){
   const auth=window.FleboAuth||{};
   const ok=!!(auth.user&&auth.membership&&auth.membership.active===true);
-  document.body.classList.toggle('fr2-app-authorized',ok); const sidebar=$('sidebar'); if(sidebar&&ok&&window.innerWidth>760)sidebar.setAttribute('aria-hidden','false');
+  document.body.classList.toggle('fr2-app-authorized',ok); const sidebar=$('sidebar');
+  if(sidebar&&ok&&window.innerWidth>760&&!inPhoneLandscape())sidebar.setAttribute('aria-hidden','false');
+  if(sidebar&&inPhoneLandscape()&&!sidebar.classList.contains('open'))sidebar.setAttribute('aria-hidden','true');
   const role=document.querySelector('.fr2-brand-copy small');
   if(role&&ok){const roleName=roleNames[auth.membership.role]||'Espacio de trabajo';role.textContent='GESTIÓN CLÍNICA · '+roleName.toUpperCase();}
   const signout=$('fleboGlobalSignOut');
@@ -54,13 +81,15 @@
  }
  function start(){
   mountHeader();addHistoryNavigation();renameNavigation();updateAuthLayout();labelCurrentView();
-  window.addEventListener('flebo:auth-changed',()=>{updateAuthLayout();mountHeader();});
+  syncLandscapeNavigation();
+  window.addEventListener('flebo:auth-changed',()=>{updateAuthLayout();mountHeader();syncLandscapeNavigation();});
   const gate=$('fleboAuthGate');
   if(gate)new MutationObserver(updateAuthLayout).observe(gate,{attributes:true,attributeFilter:['hidden']});
   const shell=$('.app-shell');
   if(shell)new MutationObserver(records=>{if(records.some(r=>r.target.classList?.contains('view')))labelCurrentView()}).observe(shell,{subtree:true,attributes:true,attributeFilter:['class']});
   document.addEventListener('click',e=>{if(e.target.closest('#sidebar [data-nav]'))setTimeout(labelCurrentView,0)});
-  window.addEventListener('resize',()=>{if(window.innerWidth>760){const btn=$('fr2MenuToggle');btn?.setAttribute('aria-expanded','false')}});
+  window.addEventListener('resize',()=>{syncLandscapeNavigation();if(window.innerWidth>760&&!inPhoneLandscape()){$('fr2MenuToggle')?.setAttribute('aria-expanded','false')}});
+  phoneLandscape.addEventListener?.('change',syncLandscapeNavigation);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
