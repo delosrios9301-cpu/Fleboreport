@@ -1,0 +1,658 @@
+/* FleboReport · Densidad visual unificada 2026-11-19
+   Capa final, posterior a los estilos históricos. Sólo presentación.
+   No altera permisos, visibilidad según rol, estados, gestos ni escrituras.
+   Áreas táctiles de 44px o más; textos legibles; datos clínicos visibles. */
+@media screen {
+ html:root body.fr2-app-authorized.cm-workspace {
+  --frc-gap:9px;--frc-pad:11px;--frc-radius:14px;
+  --frc-ink:#1e3e49;--frc-muted:#536977;--frc-line:#d7e3e4;
+  --frc-surface:#fff;--frc-surface-soft:#f3f8f7;
+  --frc-shadow:0 3px 12px rgba(19,51,62,.065);
+ }
+ /* Proporciones, tipografía, scroll y accesibilidad compartidos */
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen{
+  box-sizing:border-box!important;min-width:0!important;max-width:100%!important;
+  overflow-wrap:break-word;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.page-heading,.panel-head,.journey-panel-heading){
+  min-height:0!important;gap:9px!important;
+  margin-block:0 9px!important;padding:8px 10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading :is(h1,h2){
+  margin:0!important;font-size:clamp(19px,2.5vw,25px)!important;
+  line-height:1.2!important;letter-spacing:-.3px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.panel-head,.journey-panel-heading) :is(h2,h3){
+  font-size:clamp(15px,1.6vw,19px)!important;line-height:1.25!important;
+  margin:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.page-heading,.panel-head,.journey-panel-heading)>div>p{
+  margin:3px 0 0!important;line-height:1.35!important;
+  font-size:12px!important;color:var(--frc-muted)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.panel,.form-panel,.stat-card){
+  box-sizing:border-box!important;min-width:0!important;
+  border-radius:var(--frc-radius)!important;
+  box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .panel>.panel-body{padding:10px 12px!important;min-width:0!important;}
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.field input:not([type=checkbox]):not([type=radio]),.field select,.field textarea){
+  box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
+  min-height:44px!important;font-size:14px!important;line-height:1.35!important;
+  writing-mode:horizontal-tb!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ :is(.field label,.field-help,.muted,.section-description){
+  writing-mode:horizontal-tb!important;overflow-wrap:anywhere;
+ }
+ html:root body.fr2-app-authorized.cm-workspace :is(
+  .fra-action-dialog,.catalog-auto-editor-dialog,.crx-review-dialog,.crx-detail-dialog,
+  .crx-admin-card,.hv-detail-dialog,.hv-field-screen
+ ) button{min-height:44px!important;touch-action:manipulation!important;}
+ html:root body.fr2-app-authorized.cm-workspace :is(
+  .fra-action-dialog,.catalog-auto-editor-dialog,.crx-review-dialog,.crx-detail-dialog
+ ){max-height:calc(100dvh - 20px)!important;max-width:calc(100vw - 20px)!important;overflow-y:auto!important;}
+ html:root body.fr2-app-authorized.cm-workspace :is(
+  .fra-action-dialog .form-actions,.catalog-auto-editor-dialog .form-actions,
+  .crx-review-dialog .crx-review-footer
+ ){position:sticky!important;bottom:0!important;background:#fff!important;z-index:4!important;}
+ /* Inicio: indicadores en una sola franja y paneles de gráfica únicos por pestaña */
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-dashboard-flow{
+  gap:8px!important;padding:4px 1px calc(88px + env(safe-area-inset-bottom,0px))!important;
+  width:100%!important;max-width:1360px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-home-heading{
+  min-height:0!important;margin:0 0 3px!important;padding:3px 4px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-home-title h1{
+  font-size:clamp(20px,2.7vw,27px)!important;line-height:1.15!important;margin:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-reference-subtitle{
+  font-size:12px!important;line-height:1.35!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-dashboard-flow
+ :is(.op-panel,.clinical-dash-panel){
+  border-radius:14px!important;box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-dashboard-flow
+ :is(.op-panel,.clinical-dash-panel)>.panel-head{
+  min-height:0!important;padding:9px 11px 5px!important;gap:6px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .hp-dashboard-flow
+ :is(.op-panel,.clinical-dash-panel)>.panel-body{
+  padding:5px 10px 11px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home
+ :is(.hp-trend-group,.hp-donuts-group,.hp-performance-group,.hp-alerts-group,.hp-final-group){
+  gap:8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home
+ .frc-home-tabs{
+  display:flex!important;gap:7px!important;margin:1px 0 3px!important;
+  padding:3px 1px 6px!important;overflow-x:auto!important;scrollbar-width:none;
+  overscroll-behavior-x:contain;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home
+ .frc-home-tabs button{
+  flex:0 0 auto!important;min-height:44px!important;padding:8px 14px!important;
+  border-radius:999px!important;border:1px solid #c7dcd8!important;
+  background:#fff!important;color:#315766!important;
+  font-size:13px!important;font-weight:750!important;white-space:nowrap!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home
+ .frc-home-tabs button[aria-selected=true]{
+  background:#174f47!important;border-color:#174f47!important;color:#fff!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.hp-dashboard #view-home .frc-hidden{
+  display:none!important;
+ }
+ /* Jornada: contadores compactos, menos cabeceras, formularios y acciones accesibles */
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:7px!important;margin:0 0 9px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi{
+  box-sizing:border-box!important;min-height:65px!important;padding:8px 6px!important;
+  gap:4px!important;border-radius:13px!important;overflow:hidden!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi-icon{
+  flex:0 0 27px!important;width:27px!important;height:27px!important;
+  font-size:17px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi-copy strong{
+  font-size:clamp(18px,2.6vw,25px)!important;line-height:1.05!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi-copy small{
+  font-size:11px!important;line-height:1.18!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ :is(.journey-entry-panel,.journey-list-panel,.journey-tests-panel,.journey-report-footer){
+  padding:10px!important;margin-block:0 9px!important;border-radius:14px!important;
+  min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-panel-heading{
+  padding:4px 2px 8px!important;gap:8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ .journey-patient-fields{gap:9px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ :is(.journey-step-number,.journey-kpi-copy em){display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ :is(.journey-patient-card,.jp-patient-card){min-height:0!important;padding:9px!important;gap:6px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ .journey-register-button{min-height:48px!important;padding:10px 12px!important;font-size:14px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ .frc-journey-summary>summary{
+  min-height:44px!important;display:flex!important;align-items:center!important;
+  padding:10px 11px!important;font-weight:750!important;color:#264e59!important;
+  cursor:pointer!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey
+ .frc-journey-summary>.journey-tests-panel{margin:0!important;}
+ /* Domicilios: fichas alargadas, menos altura, sin sacrificar ruta ni seguimiento */
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-heading{
+  min-height:52px!important;padding:4px 3px 7px!important;gap:8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-heading-title h1{
+  font-size:clamp(21px,3vw,26px)!important;line-height:1.15!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-heading-title p{
+  font-size:11px!important;margin:2px 0 0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-quick{
+  gap:6px!important;margin:1px 0 7px!important;padding:2px 0 5px!important;
+  overflow-x:auto!important;flex-wrap:nowrap!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-quick button{
+  min-height:43px!important;padding:7px 12px!important;white-space:nowrap!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-visit{
+  min-height:0!important;max-height:none!important;
+  padding:9px 10px 10px 12px!important;gap:5px!important;
+  border-radius:14px!important;box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-visit .hv-ref-top{
+  grid-template-columns:35px minmax(0,1fr) auto!important;gap:7px!important;
+  align-items:center!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-avatar{
+  flex-basis:35px!important;width:35px!important;height:35px!important;
+  font-size:16px!important;border-radius:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-head{
+  min-width:0!important;gap:2px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-head strong{
+  font-size:13px!important;line-height:1.25!important;overflow-wrap:anywhere;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-head :is(span,small){
+  font-size:11px!important;line-height:1.23!important;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-state{
+  min-height:27px!important;max-width:110px!important;padding:4px 7px!important;
+  font-size:11px!important;line-height:1.15!important;white-space:normal!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-meta{
+  gap:6px!important;padding:0 1px!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-meta>span{
+  font-size:11px!important;gap:4px!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-location{
+  display:block!important;overflow:hidden!important;text-overflow:ellipsis!important;
+  white-space:nowrap!important;max-width:100%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-priority{
+  min-height:22px!important;padding:3px 7px!important;font-size:10px!important;
+  width:max-content;max-width:100%;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-actions{
+  gap:6px!important;padding:0!important;margin-top:2px!important;
+  grid-template-columns:1fr 1fr!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios .hv-ref-actions button{
+  min-height:44px!important;padding:8px 9px!important;font-size:12px!important;
+  border-radius:11px!important;white-space:normal!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ :is(.hv-field-banner,.hv-detail-head){min-height:0!important;padding:10px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ :is(.hv-field-card,.hv-field-test){padding:10px!important;border-radius:12px!important;gap:7px!important;}
+ /* Pacientes: conservar ficha alargada existente; compactar marcos y filtros */
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .pp-home-kpis,
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .stats-grid{
+  gap:6px!important;margin:0 0 8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .stat-card{
+  min-height:64px!important;padding:9px!important;gap:6px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .stat-icon{
+  width:32px!important;height:32px!important;flex-basis:32px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-patients
+ :is(.pp-directory,.pp-advanced,.pp-patient-cards){margin-block:0 8px!important;gap:7px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-patients
+ :is(.pp-patient-card,.pp-patient-row){
+  min-height:69px!important;padding:9px!important;gap:8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-patients
+ .pp-search-fields{margin-bottom:7px!important;gap:6px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-patients
+ .pp-list-chips{gap:6px!important;padding:3px 0!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .pp-list-chips .pp-chip{
+  min-height:43px!important;padding:8px 12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-patients .pp-advanced>summary{
+  min-height:44px!important;padding:10px!important;font-size:13px!important;
+ }
+ /* Catálogo: filas horizontales de 65-80px; editar sin sacrificar táctil */
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-hero{
+  min-height:0!important;margin:0 0 8px!important;padding:9px 10px!important;
+  border-radius:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-intro h1{
+  font-size:clamp(20px,2.6vw,25px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stats{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;margin:0 0 8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat{
+  min-height:61px!important;padding:8px!important;gap:5px!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat-icon{
+  width:28px!important;height:28px!important;flex-basis:28px!important;font-size:17px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat strong{
+  font-size:20px!important;line-height:1.1!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat small{
+  font-size:10.5px!important;line-height:1.2!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-toolbar{
+  margin:0 0 8px!important;padding:8px!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-search input{
+  min-height:44px!important;font-size:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-list-panel{
+  padding:9px!important;border-radius:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-list-panel>.panel-head{
+  min-height:0!important;padding:4px 3px 7px!important;margin:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-list{
+  display:grid!important;gap:6px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-item.cpr-row{
+  min-height:70px!important;max-height:none!important;
+  display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;
+  gap:7px!important;padding:8px 9px!important;border-radius:12px!important;
+  box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .cpr-row .cpr-icon,
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .cpr-row .fr2-catalog-item-icon{
+  flex:0 0 34px!important;width:34px!important;height:34px!important;
+  border-radius:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .cpr-row
+ :is(.fr2-catalog-item-name,.cpr-name,strong){
+  font-size:13px!important;line-height:1.25!important;overflow-wrap:break-word!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .cpr-row
+ .list-actions .cpr-edit-action{
+  min-width:65px!important;min-height:44px!important;padding:7px 9px!important;
+  font-size:12px!important;border-radius:10px!important;
+ }
+ /* Estudios y Procesamiento: datos en fichas, acciones y estado distinguibles */
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:6px!important;margin:0 0 8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-kpi{
+  min-height:66px!important;padding:8px!important;gap:3px!important;
+  border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-kpi small{
+  font-size:11px!important;line-height:1.2!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-kpi strong{
+  font-size:clamp(18px,2.5vw,24px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-studies
+ :is(.crx-card.crx-review-card,.crx-study-card){
+  min-height:78px!important;max-height:none!important;
+  padding:9px!important;gap:7px!important;border-radius:13px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-studies
+ :is(.crx-card-title,.crx-page-title){font-size:clamp(15px,2vw,20px)!important;line-height:1.2!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-studies .crx-review-actions button{
+  min-height:44px!important;padding:9px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-filter{
+  gap:7px!important;padding:8px!important;margin:0 0 8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .frc-processing-search{
+  min-width:0!important;width:100%!important;margin:0 0 7px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .frc-processing-filters{
+  margin:0 0 8px!important;border:1px solid #d8e6e5!important;
+  border-radius:12px!important;background:#fff!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .frc-processing-filters>summary{
+  display:flex!important;align-items:center!important;
+  min-height:44px!important;padding:9px 12px!important;
+  color:#2a5360!important;font-size:13px!important;font-weight:750!important;
+  cursor:pointer!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .frc-processing-filters>.clinical-filter{margin:0!important;}
+ /* Reportes: eliminar arte grande SOLO de la UI, nunca del PDF/PNG */
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-banner{
+  min-height:64px!important;grid-template-columns:minmax(0,1fr) 36px!important;
+  gap:9px!important;margin:0 0 9px!important;padding:9px 12px!important;
+  border-radius:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-banner>.rhr-report-art{display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-banner :is(h2,p){margin:0!important;line-height:1.25!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-banner h2{font-size:16px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-export-actions{gap:7px!important;margin:4px 0 0!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-export-actions button{min-height:44px!important;padding:8px 12px!important;font-size:13px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-kpis{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:6px!important;margin:0 0 9px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-kpi{
+  min-height:66px!important;padding:8px!important;gap:4px!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-kpi-symbol svg{
+  width:24px!important;height:24px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-kpi-number{
+  font-size:21px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-archive-card{
+  min-height:66px!important;padding:9px!important;gap:6px!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-reports
+ .rhr-archive-actions button{min-height:44px!important;font-size:12px!important;}
+ /* Historial: movimiento compacto, filtros disponibles mediante disclosure */
+ html:root body.fr2-app-authorized.cm-workspace #view-audit .rhr-history-card{
+  min-height:73px!important;max-height:none!important;
+  padding:9px 11px!important;gap:7px!important;border-radius:12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-audit .rhr-history-symbol{
+  width:38px!important;height:38px!important;flex-basis:38px!important;border-radius:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-audit .rhr-history-symbol svg{
+  width:23px!important;height:23px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-audit
+ .rhr-history-advanced>summary{min-height:44px!important;padding:10px 12px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-audit
+ .rhr-history-advanced>.audit-filters{gap:7px!important;padding:9px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-audit
+ :is(.rhr-history-search,.rhr-history-chip){min-height:44px!important;}
+ /* Configuración: tarjetas 65-75px y editor interno */
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-settings-heading{min-height:0!important;margin:0 0 10px!important;padding:4px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-settings-cards{gap:8px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-setting-card:not([hidden]){
+  min-height:70px!important;max-height:none!important;
+  padding:9px 12px!important;gap:9px!important;border-radius:14px!important;
+  box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-card-icon{
+  flex:0 0 38px!important;width:38px!important;min-width:38px!important;
+  height:38px!important;border-radius:11px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-card-icon svg{width:25px!important;height:25px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-card-caption strong{font-size:clamp(14px,1.7vw,18px)!important;line-height:1.22!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-card-caption small{font-size:12px!important;line-height:1.25!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ :is(.fr-config-card,.fr-na-card,.settings-section .form-panel){
+  padding:11px!important;margin:0 0 9px!important;border-radius:13px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-detail-menu{gap:6px!important;padding-bottom:5px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-detail-tab{min-height:44px!important;padding:9px 12px!important;}
+ /* Menú lateral: burbujas reducidas manteniendo los iconos y permisos */
+ html:root body.fr2-app-authorized.cm-workspace #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]){
+  min-height:50px!important;padding:2px 4px!important;gap:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]) .nav-icon{
+  flex:0 0 38px!important;min-width:38px!important;width:38px!important;
+  height:38px!important;border-radius:50%!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]) .nav-icon svg{
+  width:22px!important;height:22px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #sidebar.bubble-navigation
+ .nav-list button[data-nav]:not([hidden]):not([disabled]) .nav-copy{
+  min-width:0!important;max-width:calc(100% - 22px)!important;
+  min-height:40px!important;padding:10px 13px 10px 15px!important;
+  font-size:13px!important;line-height:1.22!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #sidebar.bubble-navigation
+ .nav-group-items{gap:3px!important;padding:2px 3px 5px!important;}
+ /* Notificaciones: compactas, pero textos no inferiores a 12px */
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel{
+  width:min(390px,calc(100vw - 16px))!important;
+  max-height:calc(100dvh - 75px)!important;border-radius:15px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .fr-notif-head{
+  padding:10px 12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .fr-notif-item{
+  min-height:58px!important;padding:10px 12px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .fr-notif-item strong{
+  font-size:13px!important;line-height:1.25!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .fr-notif-item p{
+  font-size:12px!important;line-height:1.35!important;margin:3px 0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel .fr-notif-item time{
+  font-size:11px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel
+ :is(.fr-notif-head button,#frAndroidNotifyEnable,#frAndroidNotifyTest){
+  min-height:44px!important;font-size:12px!important;
+ }
+}
+@media screen and (max-width:760px){
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen{
+  padding-inline:max(8px,env(safe-area-inset-left,0px))!important;
+  padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading{padding:5px 3px 7px!important;margin:0 0 5px!important;}
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading .eyebrow{display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading>div>p{display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading .heading-actions{gap:6px!important;flex-wrap:wrap!important;}
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen
+ .page-heading .heading-actions button{min-height:44px!important;padding:8px 11px!important;font-size:12px!important;}
+ /* Mantener 4 KPIs de Jornada/Procesamiento en 2 columnas en pantallas angostas */
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpis,
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-studies,#view-clinical-processing) .clinical-kpis,
+ html:root body.fr2-app-authorized.cm-workspace #view-reports .rhr-kpis{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-kpi{
+  min-height:61px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stats{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat{
+  min-height:59px!important;padding:6px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog
+ .fr2-catalog-toolbar-note{display:none!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog
+ .fr2-catalog-item.cpr-row{
+  grid-template-columns:32px minmax(0,1fr) auto!important;
+  gap:6px!important;padding:8px 7px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ .hv-ref-visit .hv-ref-top{grid-template-columns:32px minmax(0,1fr) auto!important;gap:6px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ .hv-ref-state{font-size:10px!important;max-width:91px!important;}
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(#view-clinical-processing,#view-clinical-studies) .clinical-layout{
+  min-width:0!important;max-width:100%!important;
+ }
+ /* Tabla operativa convertida a fichas sin ocultar ningún campo clínico */
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .clinical-table-wrap{max-width:100%!important;overflow:visible!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .clinical-table-wrap table:has(#clinicalQueueRows){
+  width:100%!important;display:block!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ .clinical-table-wrap table:has(#clinicalQueueRows)>thead{
+  position:absolute!important;width:1px!important;height:1px!important;
+  overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;width:100%!important;min-width:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:7px 10px!important;padding:10px!important;
+  min-width:0!important;border-radius:13px!important;
+  border:1px solid var(--frc-line)!important;
+  background:var(--frc-surface)!important;box-shadow:var(--frc-shadow)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td{
+  display:block!important;width:auto!important;min-width:0!important;
+  max-width:100%!important;padding:3px 0!important;margin:0!important;
+  border:0!important;font-size:12px!important;overflow-wrap:anywhere!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td::before{
+  display:block!important;font-size:10px!important;font-weight:800!important;
+  color:var(--frc-muted)!important;line-height:1.2!important;margin-bottom:2px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(1){grid-column:1/-1!important;font-size:14px!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(1)::before{content:"Estudio / sujeto";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(2)::before{content:"Visita y muestra";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(3)::before{content:"Toma y recepción";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(4)::before{content:"Recipientes";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(5)::before{content:"Alícuotas";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(6)::before{content:"Estado actual";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(7)::before{content:"Responsable";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(8){grid-column:1/-1!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows>tr>td:nth-child(8)::before{content:"Siguiente acción";}
+ html:root body.fr2-app-authorized.cm-workspace #view-clinical-processing
+ #clinicalQueueRows .clinical-actions button{
+  min-height:44px!important;padding:8px!important;font-size:12px!important;
+ }
+ /* Dialogs en Android: no esconder Guardar detrás del teclado */
+ html:root body.fr2-app-authorized.cm-workspace :is(
+  .fra-action-dialog,.catalog-auto-editor-dialog,.crx-review-dialog,
+  .crx-detail-dialog,.hv-detail-dialog
+ ){
+  width:calc(100vw - 16px)!important;
+  max-width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;
+  min-height:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .fra-action-dialog .fra-modal-scroll{
+  overflow-y:auto!important;-webkit-overflow-scrolling:touch;
+  max-height:calc(100dvh - 75px)!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace .catalog-auto-editor-dialog .fields,
+ html:root body.fr2-app-authorized.cm-workspace .fra-action-dialog .fields{
+  grid-template-columns:minmax(0,1fr)!important;gap:9px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #frNotifPanel{
+  right:8px!important;top:60px!important;
+  max-height:calc(100dvh - 75px)!important;
+ }
+}
+@media screen and (min-width:761px){
+ html:root body.fr2-app-authorized.cm-workspace .app-shell .content>.view.fr5-screen{
+  width:100%!important;max-width:1480px!important;
+  margin-inline:auto!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-settings
+ .sr-settings-cards{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;max-width:1120px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog
+ .fr2-catalog-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ .hv-ref-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+ html:root body.fr2-app-authorized.cm-workspace #view-journey .journey-layout{
+  gap:11px!important;
+ }
+}
+@media screen and (max-width:360px){
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat-icon{
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-catalog .fr2-catalog-stat strong{
+  font-size:17px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace #view-domicilios
+ .hv-ref-meta{flex-wrap:wrap!important;}
+}
+@media screen and (prefers-reduced-motion:reduce){
+ html:root body.fr2-app-authorized.cm-workspace
+ :is(.hv-ref-visit,.cpr-row,.sr-setting-card,.pp-patient-card){transition:none!important;}
+}
+@media print{
+ /* El documento exportable conserva exactamente su diseño de impresión. */
+ .frc-home-tabs,.frc-processing-filters,.frc-journey-summary>summary{display:none!important;}
+}
