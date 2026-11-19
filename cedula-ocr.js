@@ -200,7 +200,7 @@ function attach(){
      const complete=[found.doc,found.name,found.last,found.birth,found.sex].every(Boolean);
      if(complete&&(!existingDoc||existingDoc===found.doc)){
       $('frIdScanApply').click();
-      if(!modal.hidden)$('frIdScanStatus').textContent='QR detectado. Revisa los campos que no se pudieron transferir.';
+      if(!$('frIdScanModal')?.hidden)$('frIdScanStatus').textContent='QR detectado. Revisa los campos que no se pudieron transferir.';
      }else{
       $('frIdScanStatus').textContent=existingDoc&&existingDoc!==found.doc
        ?'El formulario contiene otra cédula. Revisa antes de reemplazar sus datos.'
