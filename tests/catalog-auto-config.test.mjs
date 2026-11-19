@@ -138,7 +138,7 @@ test('Buscar prueba funciona sin acentos y con listado limitado a 70 tarjetas',(
 
 test('Preparación agrupada requiere autorización y confirmación y conserva pendientes clínicos',()=>{
  assert.match(auto,/async function applyReviewedBatch\(\)/);
- assert.match(auto,/if\(!authorized\(\)\)return/);
+ assert.match(auto,/if\(!authorized\(\)\|\|catalogBatchBusy\)return/);
  assert.doesNotMatch(auto,/window\.confirm\('Se prepararán '/);
  assert.match(auto,/const updated=\{\.\.\.item,\.\.\.match\.fields,updatedAt:now/);
  assert.match(auto,/state\.catalog\[index\]=updated/);
@@ -317,12 +317,13 @@ test('Un recipiente registrado conserva su icono aun sin color, sin mostrar inte
 });
 
 
-test('La limpieza de colores heredados requiere confirmación administrativa y no elimina pruebas',()=>{
- assert.match(auto,/async function clearLegacyPlaceholders\(\)/);
- assert.match(auto,/core\.isLegacyPlaceholder\(item\)/);
- assert.match(auto,/window\.confirm\('Se corregirán '/);
+test('Colores verdes ficticios se limpian junto con configuraciones respaldadas sin interacción extra',()=>{
+ assert.match(auto,/const placeholders=state\.catalog\.map/);
+ assert.match(auto,/core\.isLegacyPlaceholder\(row\)/);
  assert.match(auto,/colorName:'',color:'#94A3B8',shape:''/);
- assert.match(auto,/Corregir '\+legacyCount\+' colores verdes sin respaldo/);
+ assert.match(auto,/catalogBatchBusy=true/);
+ assert.doesNotMatch(auto,/clearLegacyPlaceholders/);
+ assert.doesNotMatch(auto,/window\.confirm\('Se corregirán '/);
  assert.doesNotMatch(auto,/\.splice\(.*catalog/);
 });
 
