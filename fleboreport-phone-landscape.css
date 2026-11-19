@@ -66,14 +66,82 @@
  html:root body.fr2-app-authorized #sidebar .nav-list button[data-nav]:not([hidden]) {
   min-height:44px!important;
  }
- /* Botón existente de cabecera: no se crea una navegación duplicada. */
- html:root body.fr2-app-authorized .app-shell .topbar .fr2-menu-toggle {
-  display:grid!important;place-items:center!important;
-  flex:0 0 44px!important;width:44px!important;height:44px!important;
-  min-width:44px!important;
+ /* Respaldo permanente: botón flotante REAL del sistema (#moduleFab).
+    En varias versiones del APK la cabecera oculta .fr2-menu-toggle; no confiar
+    en ese botón para recuperar el menú una vez que #sidebar está escondido. */
+ html:root body.fr2-app-authorized #moduleFab.module-fab,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact #moduleFab.module-fab {
+  display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;gap:8px!important;
+  position:fixed!important;
+  left:max(12px,env(safe-area-inset-left,0px))!important;
+  top:max(9px,env(safe-area-inset-top,0px))!important;
+  right:auto!important;bottom:auto!important;
+  width:auto!important;min-width:106px!important;
+  height:46px!important;min-height:46px!important;
+  max-width:calc(100vw - 24px)!important;
+  margin:0!important;padding:0 12px!important;
+  border:1px solid #B8D0DB!important;border-radius:13px!important;
+  background:#294E63!important;color:#FFFFFF!important;
+  box-shadow:0 3px 12px rgba(17,46,61,.18)!important;
+  opacity:1!important;visibility:visible!important;
+  transform:none!important;pointer-events:auto!important;
+  z-index:104!important;
  }
- html:root body.fr2-app-authorized .module-fab {
+ html:root body.fr2-app-authorized #moduleFab .fab-grid-icon{
+  font-size:21px!important;line-height:1!important;
+  color:#FFFFFF!important;text-shadow:none!important;
+  transform:none!important;
+ }
+ html:root body.fr2-app-authorized #moduleFab .module-fab-label{
+  display:inline!important;font-size:13px!important;font-weight:750!important;
+  color:#FFFFFF!important;white-space:nowrap!important;
+ }
+ html:root body.fr2-app-authorized #moduleFab:focus-visible{
+  outline:3px solid #73B9D8!important;outline-offset:2px!important;
+ }
+ /* Un solo control de menú en horizontal: el flotante sobrevive aunque la
+    cabecera sea reemplazada por actualizaciones parciales de la PWA. */
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-menu-toggle{
   display:none!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .topbar{
+  min-height:56px!important;height:56px!important;
+  padding:0 12px 0 132px!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-topbar-inner{
+  min-height:0!important;gap:9px!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-brand-mark{
+  width:34px!important;height:34px!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-brand-copy small,
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-current-area{
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .topbar .fr2-catalog-shortcut span{
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized .app-shell .content{
+  padding-top:10px!important;
+  padding-bottom:25px!important;
+ }
+ html:root body.fr2-app-authorized #view-home>.fr2-home-hero{
+  min-height:0!important;gap:12px!important;
+  padding:13px 16px!important;margin-bottom:10px!important;
+  grid-template-columns:minmax(0,1fr) minmax(135px,185px)!important;
+ }
+ html:root body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy h1{
+  font-size:20px!important;margin:3px 0!important;
+ }
+ html:root body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-copy>p{
+  font-size:11px!important;line-height:1.3!important;
+ }
+ html:root body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-date{
+  padding:9px 12px!important;
+ }
+ html:root body.fr2-app-authorized #view-home>.fr2-home-hero .fr2-home-actions{
+  margin-top:8px!important;gap:6px!important;
  }
  html:root body.fr2-app-authorized.module-menu-open::after{
   content:""!important;position:fixed!important;inset:0!important;
