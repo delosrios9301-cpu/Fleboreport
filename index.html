@@ -1182,7 +1182,7 @@ async function saveTest(){
  const item={id,name,code:previous&&previous.code||'',sample,vessel,color:colorFromName($('testColorName').value)||$('testColor').value,volume:$('testVolume').value.trim(),method:$('testMethod').value.trim(),instructions:$('testInstructions').value.trim(),colorName:$('testColorName').value.trim()||'',fasting:$('testFasting').value.trim(),conditions:$('testConditions').value.trim(),validated:previous?.validated===true,shape:$('testShape').value,autoConfigSource:previous?.autoConfigSource||'',autoConfigUrl:previous?.autoConfigUrl||'',validatedAt:previous?.validatedAt||'',createdAt:previous&&previous.createdAt||now,updatedAt:now,active:$('testActive').value==='active'};
  if(index>=0)state.catalog[index]=item;else state.catalog.push(item);
  if(!save()){if(previous)state.catalog[index]=previous;else state.catalog=state.catalog.filter(function(t){return t.id!==id});return}
- renderAll();resetTestForm();toast('Prueba guardada. Verificando sincronización…');await confirmCatalogCloudSync('Prueba "'+name+'".');
+ resetTestForm();window.FleboAutoConfig?.closeEditor?.();renderAll();toast('Prueba guardada. Verificando sincronización…');await confirmCatalogCloudSync('Prueba "'+name+'".');
 }
 function editTest(id){const t=state.catalog.find(function(x){return x.id===id});if(!t)return;$('catalogEditId').value=t.id;$('testName').value=t.name;$('testSample').value=t.sample||'';$('testVessel').value=t.vessel||'';$('testColor').value=t.color||'#94a3b8';$('testColorName').value=t.colorName||'';$('testShape').value=t.shape||'';$('testVolume').value=t.volume||'';$('testFasting').value=t.fasting||'';$('testConditions').value=t.conditions||'';$('testMethod').value=t.method||'';$('testInstructions').value=t.instructions||'';$('testActive').value=t.active===false?'inactive':'active';$('catalogFormTitle').textContent='Editar prueba';window.FleboAutoConfig?.applyToForm?.();window.FleboAutoConfig?.updateForm?.();navigate('settings','catalog');window.scrollTo({top:0,behavior:'smooth'})}
 async function deleteTest(id){
@@ -3889,8 +3889,8 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <script defer src="./catalog-import-core.js?v=20261115-import1"></script>
 <script defer src="./catalog-import-ui.js?v=20261115-import1"></script>
 <!-- Sugerencias de configuración clínica: coincidencias exactas y revisión humana. -->
-<link rel="stylesheet" href="./catalog-auto-config.css?v=20261115-autoconfig1" media="screen">
-<script defer src="./catalog-auto-config.js?v=20261115-autoconfig1"></script>
+<link rel="stylesheet" href="./catalog-auto-config.css?v=20261119-autoconfig-modal2" media="screen">
+<script defer src="./catalog-auto-config.js?v=20261119-autoconfig-modal2"></script>
 <!-- Orden médica PDF al crear un domicilio: reconocimiento local y almacenamiento privado. -->
 <link rel="stylesheet" href="./home-visit-order-pdf.css?v=20261116-full1" media="screen">
 <!-- Recuperación de Historial: lectura directa de nube y consulta de archivados solo administrador. -->
