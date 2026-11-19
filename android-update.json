@@ -1,8 +1,8 @@
 {
-  "versionCode": 12,
-  "versionName": "2.1",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.1",
-  "notes": "Lector de licencias mejorado: muestra la opción Leer texto impreso, admite la revisión de nombres parciales aun cuando no identifica la cédula, permite capturar texto desde ML Kit aunque el número salga incompleto y mantiene la lectura QR de cédulas. No guarda fotografías ni inventa números de documento. Instala encima de la versión anterior sin desinstalar.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.1/FleboReport-2.1.apk",
-  "sha256": "cfaf6e0ed98605d392f5672b76d95865ca57d2530b653e1dd2c9a9938ddc2d83"
+  "versionCode": 14,
+  "versionName": "2.3",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.3",
+  "notes": "Restaurado el lector QR de cédula que funcionaba, con relleno automático en Jornada y revisión antes de guardar. Retirada la lectura de licencia y OCR de texto impreso para evitar fallos. Mantiene notificaciones, instalación firmada y datos existentes.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.3/FleboReport-2.3.apk",
+  "sha256": "197782ebe88426d6e7bb496ef0925f39eb318636258ab63353d310dc1e7361e3"
 }
