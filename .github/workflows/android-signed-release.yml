@@ -128,9 +128,14 @@ jobs:
           ZIPALIGN="$BUILD_TOOLS/zipalign"
           APKSIGNER="$BUILD_TOOLS/apksigner"
           test -x "$ZIPALIGN" && test -x "$APKSIGNER"
-          "$ZIPALIGN" -f -p 4 "$APK" "$RUNNER_TEMP/aligned.apk"
+          # Android 15/16 puede utilizar páginas de memoria de 16 KiB.
+          # ML Kit incluye bibliotecas nativas; la alineación de 4 KiB
+          # de los APK anteriores puede impedir su instalación.
+          "$ZIPALIGN" -P 16 -f -v 4 "$APK" "$RUNNER_TEMP/aligned.apk"
+          "$ZIPALIGN" -c -P 16 -v 4 "$RUNNER_TEMP/aligned.apk"
           "$APKSIGNER" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias fleboreport --ks-pass env:STORE_PASS --key-pass env:STORE_PASS --out "FleboReport-$VERSION.apk" "$RUNNER_TEMP/aligned.apk"
           "$APKSIGNER" verify --verbose --print-certs "FleboReport-$VERSION.apk" > "$RUNNER_TEMP/new-signature.txt"
+          "$ZIPALIGN" -c -P 16 -v 4 "FleboReport-$VERSION.apk"
           "$BUILD_TOOLS/aapt" dump badging "FleboReport-$VERSION.apk" > "$RUNNER_TEMP/package.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/package.txt"
           grep -F "versionCode='$CODE'" "$RUNNER_TEMP/package.txt"
@@ -178,6 +183,7 @@ jobs:
             printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/production.jks"
             "$APKSIGNER" sign --ks "$RUNNER_TEMP/production.jks" --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD --out "FleboReport-$VERSION.apk" "$RUNNER_TEMP/aligned.apk"
             "$APKSIGNER" verify --verbose --print-certs "FleboReport-$VERSION.apk" > "$RUNNER_TEMP/new-signature.txt"
+          "$ZIPALIGN" -c -P 16 -v 4 "FleboReport-$VERSION.apk"
             NEW_CERT="$(extract_sha256_cert "$RUNNER_TEMP/new-signature.txt")"
             rm -f "$RUNNER_TEMP/production.jks"
           fi
