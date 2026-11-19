@@ -82,7 +82,7 @@ assert.match(nativeScanner,/looksLikeIdentityQr\(value\)/);
 assert.match(nativeScanner,/if \(!looksLikeIdentityQr\(value\)\)/);
 assert.match(nativeScanner,/Código de verificación detectado/);
 assert.match(nativeScanner,/TextRecognition\.getClient\(TextRecognizerOptions\.DEFAULT_OPTIONS\)/);
-assert.match(nativeScanner,/result\.putExtra\("ocr", raw\)/);
+assert.match(nativeScanner,/result\.putExtra\("ocr", text\)/);
 assert.match(nativeScanner,/Leer texto impreso/);
 assert.match(nativePlugin,/intent\.putExtra\("scan_mode", mode\)/);
 assert.match(nativePlugin,/response\.put\("ocr", value\)/);
