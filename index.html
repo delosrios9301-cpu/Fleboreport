@@ -1150,7 +1150,24 @@ function removeLogo(){state.company.logo='';$('companyLogo').value='';$('logoSta
 function colorFromName(name){const map={Rojo:'#cf4352',Azul:'#3986cf',Celeste:'#58afd0',Morado:'#8258bf',Verde:'#24946a',Amarillo:'#d5a52d',Gris:'#81909a',Negro:'#30383d'};return map[name]||''}
 function resetTestForm(){['catalogEditId','testName','testSample','testVessel','testVolume','testFasting','testConditions','testMethod','testInstructions'].forEach(function(id){$(id).value=''});$('testColorName').value='';$('testColor').value='#94a3b8';$('testShape').value='';$('testActive').value='active';$('catalogFormTitle').textContent='Agregar prueba al catálogo'}
 function startNewCatalogTest(){resetTestForm();navigate('settings','catalog');window.scrollTo({top:0,behavior:'smooth'})}
-async function confirmCatalogCloudSync(message){try{const confirmed=!!(window.FleboCloudSync&&typeof window.FleboCloudSync.syncNow==='function'&&await window.FleboCloudSync.syncNow({verify:true}));toast(confirmed?message+' Guardado y confirmado en la nube.':'Se guardó en este dispositivo, pero no se confirmó en la nube. Revisa la conexión y vuelve a sincronizar.')}catch(error){console.error('[FleboReport] No se pudo confirmar el catálogo en la nube:',error);toast('Se guardó localmente, pero no se pudo sincronizar: '+(error&&error.message?error.message:'error de conexión'))}}
+async function confirmCatalogCloudSync(message){
+ try{
+  const confirmed=!!(window.FleboCloudSync&&typeof window.FleboCloudSync.syncNow==='function'
+   &&await window.FleboCloudSync.syncNow({verify:true}));
+  toast(confirmed?message+' Guardado y confirmado en la nube.'
+   :'Se guardó en este dispositivo, pero no se confirmó en la nube. Revisa la conexión y vuelve a sincronizar.');
+  // Las visitas usan el catálogo de servicios normalizado de Supabase.
+  // Refrescarlo solo tras confirmar la configuración, sin retrasar la interfaz.
+  if(confirmed&&window.FleboAuth?.membership?.role==='admin'
+   &&typeof window.FleboHomeCatalogRefresh==='function')
+   void Promise.resolve().then(()=>window.FleboHomeCatalogRefresh()).catch(error=>{
+    console.warn('[FleboReport] Configuración de Domicilios pendiente de sincronización:',error);
+   });
+ }catch(error){
+  console.error('[FleboReport] No se pudo confirmar el catálogo en la nube:',error);
+  toast('Se guardó localmente, pero no se pudo sincronizar: '+(error&&error.message?error.message:'error de conexión'));
+ }
+}
 async function saveTest(){
  // Aplicar la propuesta inequívoca también cuando el administrador pulsa
  // Guardar directamente desde el teclado Android, sin evento blur/change.
