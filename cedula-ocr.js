@@ -97,6 +97,11 @@ function extractQr(raw){
  const doc=parts[0].replace(/\s+/g,'');
  if(!/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc))throw Error('El QR fue leído, pero no se pudo validar el número de cédula. Revisa el documento.');
  const name=parts[1]||'',last=parts[2]||'';
+ // El QR delimitado de cédula contiene nombres sin etiquetas; cualquier
+ // «NOMBRES: ...» se procesa con el lector de campos etiquetados.
+ const person=value=>/^[\p{L}][\p{L}\p{M}\s.'-]{1,74}$/u.test(value);
+ if(!person(name)||!person(last))
+  throw Error('El QR no tiene el formato delimitado de cédula; revisar etiquetas.');
  const sexToken=parts.slice(3,7).find(x=>/^(M|F)$/i.test(x))||'';
  const sex=sexToken.toUpperCase()==='M'?'Masculino':sexToken.toUpperCase()==='F'?'Femenino':'';
  // Fecha de nacimiento: primera fecha posterior al sexo. Las posteriores
@@ -158,10 +163,16 @@ function extractIdentityQr(raw){
   for(const key of names){const value=fields[canonical(key)];if(value)return value}
   return '';
  };
- const doc=pick(['cedula','ncedula','numerocedula','numerodecedula',
+ const namedDoc=pick(['cedula','ncedula','numerocedula','numerodecedula',
   'cedulaidentidad','documentoidentidad','numerodocumentoidentidad',
-  'identificacion','numeroidentificacion','documentnumber','identificationnumber'])
-  .toUpperCase().replace(/[\u2013\u2014]/g,'-').replace(/\s*-\s*/g,'-').trim();
+  'identificacion','numeroidentificacion','documentnumber','identificationnumber']);
+ // Algunos QR mixtos comienzan por la cédula y luego usan etiquetas para
+ // los campos restantes. Solo se admite con nombres explícitos etiquetados.
+ const firstToken=source.split(/[|;\r\n]/)[0].trim();
+ const fallbackDoc=(fields.nombres||fields.apellidos||fields.nombre||fields.apellido)
+  &&/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(firstToken)?firstToken:'';
+ const doc=String(namedDoc||fallbackDoc).toUpperCase().replace(/[\u2013\u2014]/g,'-')
+  .replace(/\s*-\s*/g,'-').trim();
  const docValid=/^(?:PE|E|N|AV|\d{1,2})-\d{1,5}-\d{1,6}$/i.test(doc);
  const cleanPerson=value=>{
   const trimmed=String(value||'').replace(/\s+/g,' ').trim();
