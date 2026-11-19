@@ -42,7 +42,7 @@ const screenModels = await readFile(new URL('../clinical-premium-screen-models.c
 test('el nuevo shell FleboReport 2.0 y sus estilos cargan como archivos separados', () => {
   assert.doesNotThrow(() => new Function(redesignShell));
   assert.match(html, /fleboreport-v2\.css\?v=20261112-clinical-premium7/);
-  assert.match(html, /fleboreport-v2-shell\.js\?v=20261119-landscape1/);
+  assert.match(html, /fleboreport-v2-shell\.js\?v=20261119-landscape2/);
   assert.match(serviceWorker, /fleboreport-v2\.css/);
   assert.match(serviceWorker, /fleboreport-v2-shell\.js/);
   assert.match(redesignShell, /const notificationBell=\$\('frNotifBell'\)/);
