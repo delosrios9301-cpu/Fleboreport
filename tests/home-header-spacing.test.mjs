@@ -28,7 +28,8 @@ test('Separaciones específicas en teléfono vertical y horizontal, sin alterar 
  assert.match(css,/padding-top:5px!important/);
  assert.match(css,/padding-top:4px!important/);
  assert.doesNotMatch(css,/#view-journey|#view-domicilios|#view-patients|#view-settings/);
- assert.doesNotMatch(css,/(?:\.delete\(|\.insert\(|localStorage|supabase|indexedDB|display:none)/i);
+ assert.doesNotMatch(css,/(?:\.delete\(|\.insert\(|localStorage|supabase|indexedDB)/i);
+ assert.match(css,/#view-home\.hp-layout-ready > \.op-grid:not\(:has\(> \*\)\)[\s\S]*?display:none!important/);
 });
 
 test('La barra superior de Inicio deja de reservar 80px en el teléfono y mantiene la campana',()=>{
