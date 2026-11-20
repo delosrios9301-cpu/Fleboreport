@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "FleboReport",
-  "short_name": "FleboReport",
-  "description": "Reportes de jornada para pruebas de laboratorio",
+  "name": "TALCSYS Lab",
+  "short_name": "TALCSYS Lab",
+  "description": "Sistema personal de gestión clínica y trazabilidad de muestras",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
