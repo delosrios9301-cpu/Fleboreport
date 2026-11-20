@@ -44,7 +44,7 @@ test('Nueva regla es la última capa CSS y solo modifica presentación del telé
  const lastCss=html.lastIndexOf('fleboreport-phone-landscape.css?v=20261119-landscape4');
  assert.ok(lastCss>html.lastIndexOf('fleboreport-palette-2026.css'));
  assert.ok(lastCss>html.lastIndexOf('fleboreport-compact-unified.css'));
- assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-landscape4/);
+ assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-startup5/);
  assert.doesNotMatch(css,/@media\s+print/);
  assert.doesNotMatch(css,/\.delete\(|\.update\(|\.insert\(|localStorage|supabase|IndexedDB/i);
  assert.match(css,/body\.fr2-app-authorized/);
@@ -68,13 +68,13 @@ test('Cerrar sesión se inserta inmediatamente después del botón Configuració
  assert.match(shell,/settings\.insertAdjacentElement\('afterend',signout\)/);
  assert.match(shell,/signout\.classList\.add\('fr2-nav-signout'\)/);
  assert.match(shell,/if\(footer\)footer\.hidden=true/);
- assert.match(shell,/new MutationObserver\(placeSignOutAfterSettings\)\.observe\(drawer,\{childList:true,subtree:true\}\)/);
+ assert.doesNotMatch(shell,/new MutationObserver\(placeSignOutAfterSettings\)/);
  assert.ok(html.indexOf('data-nav="settings"')<html.indexOf('<div class="drawer-footer">'));
  assert.match(css,/#sidebar\.bubble-navigation \.drawer-footer\[hidden\][\s\S]*?display:none!important;/);
  assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout/);
  assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout \.nav-copy/);
  assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout \.nav-icon/);
- assert.match(shell,/signout\.setAttribute\('aria-label','Cerrar sesión'\)/);
+ assert.match(shell,/signout\.getAttribute\('aria-label'\)!=='Cerrar sesión'/);
 });
 
 test('El cierre de sesión no duplica botones ni altera autenticación o permisos',()=>{
