@@ -78,14 +78,39 @@
   const role=document.querySelector('.fr2-brand-copy small');
   if(role&&ok){const roleName=roleNames[auth.membership.role]||'Espacio de trabajo';role.textContent='GESTIÓN CLÍNICA · '+roleName.toUpperCase();}
   const signout=$('fleboGlobalSignOut');
-  if(signout)signout.textContent='Cerrar sesión';
+  if(signout){
+   const label=signout.querySelector('.nav-copy');
+   if(label)label.textContent='Cerrar sesión';
+   else signout.textContent='Cerrar sesión';
+  }
+  placeSignOutAfterSettings();
+ }
+ function placeSignOutAfterSettings(){
+  const sidebar=$('sidebar');
+  const settings=sidebar?.querySelector('.nav-list [data-nav="settings"]');
+  const signout=$('fleboGlobalSignOut');
+  if(!sidebar||!settings||!signout)return;
+  // Mover el botón REAL (con su evento de cierre de sesión), no copiarlo.
+  // El pie fijo anterior se elimina visualmente: Cerrar sesión aparece
+  // inmediatamente debajo de Configuración dentro del mismo grupo.
+  if(signout.parentElement!==settings.parentElement
+   ||signout.previousElementSibling!==settings){
+   settings.insertAdjacentElement('afterend',signout);
+  }
+  signout.classList.add('fr2-nav-signout');
+  if(!signout.querySelector('.nav-copy')){
+   signout.innerHTML='<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 8l4 4-4 4M9 12h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-copy">Cerrar sesión</span>';
+  }
+  signout.setAttribute('aria-label','Cerrar sesión');
+  const footer=sidebar.querySelector('.drawer-footer');
+  if(footer)footer.hidden=true;
  }
  function renameNavigation(){
   const names={'clinical-studies':'Estudios clínicos','clinical-processing':'Procesamiento','catalog':'Catálogo de pruebas'};
   Object.entries(names).forEach(([key,value])=>{const host=document.querySelector('#sidebar [data-nav="'+key+'"] .nav-copy');if(host)host.textContent=value;});
  }
  function start(){
-  mountHeader();addHistoryNavigation();renameNavigation();updateAuthLayout();labelCurrentView();
+  mountHeader();addHistoryNavigation();renameNavigation();updateAuthLayout();placeSignOutAfterSettings();labelCurrentView();
   syncLandscapeNavigation();
   window.addEventListener('flebo:auth-changed',()=>{updateAuthLayout();mountHeader();syncLandscapeNavigation();});
   const gate=$('fleboAuthGate');
@@ -95,6 +120,9 @@
   // Abrir, cerrar, cerrar al navegar o girar: conservar siempre la semántica
   // de los botones sin crear nuevos menús ni alterar permisos.
   const drawer=$('sidebar');
+  // Autenticación puede agregar el botón tras iniciar la app. Observar
+  // nuevas filas permite recolocarlo sin duplicar listeners ni controles.
+  if(drawer)new MutationObserver(placeSignOutAfterSettings).observe(drawer,{childList:true,subtree:true});
   if(drawer)new MutationObserver(()=>{
    if(!inPhoneLandscape())return;
    const open=drawer.classList.contains('open');
