@@ -23,9 +23,28 @@
   if(subtitle){const p=document.createElement('p');p.textContent=subtitle;heading.appendChild(p);}
   return heading;
  }
+ // La versión anterior insertaba el panel rediseñado al FINAL de Inicio.
+ // Quedaban delante cinco .op-grid vacíos, pero sus márgenes seguían
+ // consumiendo altura y separaban FleboReport de «Panel principal».
+ // Eliminar solamente los contenedores vacíos, nunca gráficos ni datos.
+ function collapseLegacyHomeGap(root){
+  const flow=root?.querySelector(':scope > .hp-dashboard-flow');
+  if(!root||!flow)return;
+  for(const child of Array.from(root.children)){
+   if(child.classList.contains('op-grid') && child.childElementCount===0)
+    child.remove();
+  }
+  // El encabezado debe ser el primer contenido REAL de Inicio;
+  // el antiguo hero queda oculto pero disponible para las rutinas previas.
+  if(root.firstElementChild!==flow)root.insertBefore(flow,root.firstElementChild);
+ }
  function buildLayout(){
   const root=home();
-  if(!root||root.classList.contains('hp-layout-ready'))return true;
+  if(!root)return false;
+  if(root.classList.contains('hp-layout-ready')){
+   collapseLegacyHomeGap(root);
+   return true;
+  }
   const hero=$(':scope > .fr2-home-hero',root);
   const stage=$('.vc-kpi-stage',root);
   const launch=$('.cm-launchpad',root);
@@ -64,9 +83,10 @@
   }
   const footer=area('dashboard-footer');
   if(footer){footer.setAttribute('aria-hidden','true');flow.appendChild(footer);}
-  root.appendChild(flow);
+  root.insertBefore(flow,root.firstElementChild);
   root.classList.add('hp-layout-ready');
   document.body.classList.add('hp-dashboard');
+  collapseLegacyHomeGap(root);
   const launchHeading=$('.cm-launchpad-head h2',launch);
   if(launchHeading)launchHeading.textContent='Acceso rápido';
   return true;
