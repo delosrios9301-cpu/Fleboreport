@@ -101,9 +101,10 @@
   if(!signout.querySelector('.nav-copy')){
    signout.innerHTML='<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 8l4 4-4 4M9 12h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nav-copy">Cerrar sesión</span>';
   }
-  signout.setAttribute('aria-label','Cerrar sesión');
+  if(signout.getAttribute('aria-label')!=='Cerrar sesión')
+   signout.setAttribute('aria-label','Cerrar sesión');
   const footer=sidebar.querySelector('.drawer-footer');
-  if(footer)footer.hidden=true;
+  if(footer&&!footer.hidden)footer.hidden=true;
  }
  function renameNavigation(){
   const names={'clinical-studies':'Estudios clínicos','clinical-processing':'Procesamiento','catalog':'Catálogo de pruebas'};
@@ -120,9 +121,9 @@
   // Abrir, cerrar, cerrar al navegar o girar: conservar siempre la semántica
   // de los botones sin crear nuevos menús ni alterar permisos.
   const drawer=$('sidebar');
-  // Autenticación puede agregar el botón tras iniciar la app. Observar
-  // nuevas filas permite recolocarlo sin duplicar listeners ni controles.
-  if(drawer)new MutationObserver(placeSignOutAfterSettings).observe(drawer,{childList:true,subtree:true});
+  // El módulo de autenticación ubica el botón después de Configuración.
+  // No observar todos los cambios del menú: antes provocaba un bucle de
+  // movimientos con el pie de sesión y retrasaba la apertura del APK.
   if(drawer)new MutationObserver(()=>{
    if(!inPhoneLandscape())return;
    const open=drawer.classList.contains('open');
