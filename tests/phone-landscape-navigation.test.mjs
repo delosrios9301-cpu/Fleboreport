@@ -67,7 +67,7 @@ test('Cerrar sesión se inserta inmediatamente después del botón Configuració
  assert.match(shell,/const signout=\$\('fleboGlobalSignOut'\)/);
  assert.match(shell,/settings\.insertAdjacentElement\('afterend',signout\)/);
  assert.match(shell,/signout\.classList\.add\('fr2-nav-signout'\)/);
- assert.match(shell,/if\(footer\)footer\.hidden=true/);
+ assert.match(shell,/if\(footer&&!footer\.hidden\)footer\.hidden=true/);
  assert.doesNotMatch(shell,/new MutationObserver\(placeSignOutAfterSettings\)/);
  assert.ok(html.indexOf('data-nav="settings"')<html.indexOf('<div class="drawer-footer">'));
  assert.match(css,/#sidebar\.bubble-navigation \.drawer-footer\[hidden\][\s\S]*?display:none!important;/);
