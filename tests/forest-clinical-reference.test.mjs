@@ -31,10 +31,10 @@ test('La referencia verde y marfil mantiene un contraste legible AA',()=>{
  ])assert.ok(contrast(ink,surface)>=4.5,ink+' frente a '+surface);
  for(const color of ['#123D30','#236648','#F7F6F1','#FFFEFC','#E5F3E4'])
   assert.ok(forest.includes(color),color);
- assert.equal(JSON.parse(manifest).theme_color,'#123D30');
- assert.equal(JSON.parse(manifest).background_color,'#F7F6F1');
+ assert.equal(JSON.parse(manifest).theme_color,'#0C3448');
+ assert.equal(JSON.parse(manifest).background_color,'#FFFFFF');
  assert.equal(JSON.parse(manifest).orientation,'any');
- assert.match(html,/<meta name="theme-color" content="#123D30">/);
+ assert.match(html,/<meta name="theme-color" content="#0C3448">/);
 });
 
 test('El menú del bosque mantiene navegación real, permisos y estados visibles',()=>{

@@ -84,10 +84,10 @@ test('Capa nueva al final de CSS, cacheada y versionada en Windows, PC y PWA',()
  assert.ok(current>preceding&&preceding>0,'La paleta nueva debe ir después de los parches anteriores');
  assert.match(index,/<link rel="stylesheet" href="\.\/fleboreport-graphite-petrol-contrast\.css\?v=20261114-graphite1" media="screen">/);
  assert.ok(worker.includes("'./fleboreport-graphite-petrol-contrast.css'"));
- assert.match(index,/<meta name="theme-color" content="#123D30">/);
+ assert.match(index,/<meta name="theme-color" content="#0C3448">/);
  const pwa=JSON.parse(manifest);
- assert.equal(pwa.theme_color,'#123D30');
- assert.equal(pwa.background_color,'#F7F6F1');
+ assert.equal(pwa.theme_color,'#0C3448');
+ assert.equal(pwa.background_color,'#FFFFFF');
 });
 
 test('La hoja CSS está equilibrada',()=>{

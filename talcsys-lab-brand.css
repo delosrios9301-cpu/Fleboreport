@@ -22,3 +22,110 @@
   width: min(205px, 100%);
   margin-inline: auto;
 }
+
+@media screen {
+  #talcsys-app {
+    --talcsys-action: #006D70;
+    --talcsys-accent: #00BCB2;
+    --talcsys-tint: #E3F6F4;
+    --talcsys-border: #BEDAD9;
+    --talcsys-canvas: #F4F9FA;
+    --talcsys-header: linear-gradient(110deg, #0C3448, #07575F);
+    --navy: var(--talcsys-petrol) !important;
+    --teal: var(--talcsys-action) !important;
+    --mint: var(--talcsys-tint) !important;
+    --bg: var(--talcsys-canvas) !important;
+  }
+  #talcsys-app #fleboAuthGate {
+    background: linear-gradient(145deg, #0C3448, #07575F 72%, #087B7D) !important;
+  }
+  #talcsys-app #fleboAuthGate .flebo-login-card {
+    background: white !important;
+    border-color: var(--talcsys-border) !important;
+    color: var(--talcsys-ink) !important;
+  }
+  #talcsys-app #fleboAuthPanel :is(.flebo-avatar, #fleboAuthSignIn) {
+    background: var(--talcsys-header) !important;
+    color: white !important;
+    border-color: var(--talcsys-action) !important;
+  }
+  #talcsys-app #fleboAuthPanel .flebo-input-row {
+    background: var(--talcsys-canvas) !important;
+    border-color: var(--talcsys-border) !important;
+  }
+  #talcsys-app #fleboAuthPanel .flebo-input-row:focus-within {
+    border-color: var(--talcsys-action) !important;
+    box-shadow: 0 0 0 3px var(--talcsys-tint) !important;
+  }
+  #talcsys-app #fleboAuthPanel :is(.flebo-login-heading > span, .flebo-field-icon, .flebo-password-toggle) {
+    color: var(--talcsys-action) !important;
+  }
+  #talcsys-app #fleboAuthPanel .flebo-login-options input:checked {
+    background: var(--talcsys-action) !important;
+  }
+  #talcsys-app body.fr2-app-authorized :is(.app-shell, .main, .content) {
+    background: var(--talcsys-canvas) !important;
+  }
+  #talcsys-app .app-shell .topbar, #talcsys-app #sidebar.bubble-navigation {
+    background: var(--talcsys-header) !important;
+    color: white !important;
+    border-color: var(--talcsys-action) !important;
+  }
+  #talcsys-app .app-shell .topbar {
+    border-bottom-color: var(--talcsys-accent) !important;
+  }
+  #talcsys-app .topbar :is(.fr2-brand-copy small, .fr2-current-area, .topbar-title) {
+    color: white !important;
+  }
+  #talcsys-app #sidebar.bubble-navigation::before, #talcsys-app #sidebar.bubble-navigation::after {
+    background: linear-gradient(135deg, #00BCB233, #00BCB209) !important;
+  }
+  #talcsys-app #sidebar .nav-list button[data-nav] .nav-icon,
+  #talcsys-app .app-shell .topbar :is(#frNotifBell, .fr2-menu-toggle, .fr2-catalog-shortcut) {
+    background: var(--talcsys-tint) !important;
+    color: var(--talcsys-petrol) !important;
+  }
+  #talcsys-app #sidebar .nav-list button[data-nav].active .nav-icon,
+  #talcsys-app #cmMobileDock .cm-dock-button.is-active {
+    background: var(--talcsys-action) !important;
+    border-color: var(--talcsys-action) !important;
+    color: white !important;
+  }
+  #talcsys-app #view-home :is(.hp-home-glyph, .op-bar-fill, .hp-column-fill) {
+    background: linear-gradient(165deg, #008E90, #0C3448) !important;
+  }
+  #talcsys-app #view-home .hp-chart-column.selected .hp-column-fill {
+    background: var(--talcsys-action) !important;
+  }
+  #talcsys-app #view-home #operationalKpis > .op-kpi {
+    background: linear-gradient(145deg, white, var(--talcsys-tint)) !important;
+    border-color: var(--talcsys-border) !important;
+  }
+  #talcsys-app #view-home .vc-shortcut {
+    background: white !important;
+    border-color: var(--talcsys-border) !important;
+  }
+  #talcsys-app #view-home .vc-shortcut:hover {
+    background: var(--talcsys-tint) !important;
+  }
+  #talcsys-app #view-home :is(.vc-shortcut-icon, .vc-shortcut-icon svg, .fr2-home-date-mark) {
+    color: var(--talcsys-action) !important;
+  }
+  #talcsys-app :is(#view-home, #view-journey, #view-domicilios, #view-patients, #view-catalog,
+    #view-clinical-studies, #view-clinical-processing, #view-reports, #view-audit, #view-settings)
+    :is(.pp-heading-icon, .pp-directory-avatar, .jp-heading-icon, .journey-kpi-icon,
+    .hv-ref-house, .hv-ref-avatar, .crx-heading-symbol, .crx-card-emblem, .catalog-icon, .sr-icon) {
+    background: var(--talcsys-tint) !important;
+    color: var(--talcsys-action) !important;
+    border-color: var(--talcsys-border) !important;
+  }
+  #talcsys-app :is(#view-home, #view-journey, #view-domicilios, #view-patients, #view-catalog,
+    #view-clinical-studies, #view-clinical-processing, #view-reports, #view-audit, #view-settings) :is(.btn.primary, .btn.blue, .btn-primary, .pp-open-patient,
+    .pp-primary-action, .hv-ref-new, .journey-register-button, .journey-report-button,
+    .fr2-catalog-new, .cpr-edit-action, .rhr-pdf, .rhr-archive-open, .crx-quick-filter.active,
+    .sr-detail-tab.is-current):not(.danger):not(.warning):not(.success) {
+    background: var(--talcsys-action) !important;
+    color: white !important;
+    border-color: var(--talcsys-action) !important;
+  }
+}
