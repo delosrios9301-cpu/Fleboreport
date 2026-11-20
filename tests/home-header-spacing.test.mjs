@@ -7,7 +7,7 @@ const css=read('fleboreport-home-header-gap.css');
 const legacy=read('fleboreport-forest-dashboard.css');
 
 test('La corrección de Inicio se carga después de los temas anteriores y en el APK PWA',()=>{
- const suffix='fleboreport-home-header-gap.css?v=20261119-homegap2';
+ const suffix='fleboreport-home-header-gap.css?v=20261119-nogap3';
  assert.ok(html.includes(suffix));
  assert.ok(html.lastIndexOf(suffix)>html.lastIndexOf('fleboreport-menu-minimal.css'));
  assert.ok(html.lastIndexOf(suffix)>html.lastIndexOf('fleboreport-forest-dashboard.css'));
