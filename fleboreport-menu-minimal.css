@@ -167,3 +167,47 @@
     transition:none!important;
   }
 }
+
+
+/* Corregido con captura Android real: la capa anterior de paleta contenía
+   :not(.active), que ganaba por especificidad frente al estilo minimalista.
+   Exigir también .nav-group-items y estado garantiza que ningún nombre
+   muestre la placa azul sólida, incluso al volver a entrar a un módulo.
+   El destacado se conserva en la FILA completa, no detrás del texto. */
+@media screen {
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items button[data-nav]:not([hidden]):not(.active) .nav-copy,
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items button[data-nav]:not([hidden]).active .nav-copy,
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items button[data-nav]:not([hidden])[aria-current="page"] .nav-copy {
+    background:none!important;
+    background-color:transparent!important;
+    background-image:none!important;
+    border:0!important;
+    border-width:0!important;
+    border-color:transparent!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    outline:0!important;
+    text-shadow:none!important;
+    color:#F4F9FC!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items button[data-nav].active:not([hidden]) .nav-copy,
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items button[data-nav][aria-current="page"]:not([hidden]) .nav-copy {
+    color:#FFFFFF!important;
+    font-weight:740!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout:not([hidden]) .nav-copy {
+    background:none!important;
+    background-color:transparent!important;
+    background-image:none!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    text-shadow:none!important;
+  }
+}
