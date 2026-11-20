@@ -41,10 +41,10 @@ test('Rotar cierra la barra y conserva navegación accesible en escritorio',()=>
 });
 
 test('Nueva regla es la última capa CSS y solo modifica presentación del teléfono',()=>{
- const lastCss=html.lastIndexOf('fleboreport-phone-landscape.css?v=20261119-landscape3');
+ const lastCss=html.lastIndexOf('fleboreport-phone-landscape.css?v=20261119-landscape4');
  assert.ok(lastCss>html.lastIndexOf('fleboreport-palette-2026.css'));
  assert.ok(lastCss>html.lastIndexOf('fleboreport-compact-unified.css'));
- assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-landscape2/);
+ assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-landscape4/);
  assert.doesNotMatch(css,/@media\s+print/);
  assert.doesNotMatch(css,/\.delete\(|\.update\(|\.insert\(|localStorage|supabase|IndexedDB/i);
  assert.match(css,/body\.fr2-app-authorized/);
@@ -60,20 +60,28 @@ test('El control flotante original sigue funcionando sin botones nuevos ni depen
  assert.doesNotMatch(css,/display:grid!important;place-items:center!important;\s*flex:0 0 44px!important;width:44px!important;height:44px!important;\s*min-width:44px!important;\s*\}\s*html:root body\.fr2-app-authorized \.module-fab/);
 });
 
-test('Cerrar sesión queda después de todos los módulos al desplazar la barra en ambos sentidos',()=>{
-  const landscape=css.slice(css.indexOf('@media screen and (orientation:landscape)'));
-  const portrait=css.slice(css.indexOf('/* En teléfono vertical la salida'));
-  for(const block of [landscape,portrait]){
-    assert.match(block,/#sidebar \.nav-list\s*\{[\s\S]*?flex:0 0 auto!important;[\s\S]*?overflow:visible!important;/);
-    assert.match(block,/#sidebar \.drawer-footer\s*\{[\s\S]*?position:static!important;/);
-    assert.match(block,/#sidebar \.drawer-footer #fleboGlobalSignOut\s*\{[\s\S]*?position:static!important;/);
-    assert.match(block,/#sidebar \.drawer-footer-dot\s*\{display:none!important;/);
-  }
-  assert.match(landscape,/#sidebar\.bubble-navigation[\s\S]*?overflow-x:hidden!important;overflow-y:auto!important;/);
-  assert.match(portrait,/#sidebar\.bubble-navigation\s*\{[\s\S]*?overflow-x:hidden!important;overflow-y:auto!important;/);
-  const navEnd=html.indexOf('</nav>',html.indexOf('id="sidebar"'));
-  const footer=html.indexOf('<div class="drawer-footer">',html.indexOf('id="sidebar"'));
-  assert.ok(navEnd<footer,'El pie con Cerrar sesión debe estar después de los módulos');
-  assert.match(html,/id="moduleFab" onclick="toggleDrawer\(\)"/);
-  assert.doesNotMatch(css,/\b(?:localStorage|indexedDB|supabase)\b/i);
+
+test('Cerrar sesión se inserta inmediatamente después del botón Configuración, no en el pie',()=>{
+ assert.match(shell,/function placeSignOutAfterSettings\(\)/);
+ assert.match(shell,/querySelector\('\.nav-list \[data-nav="settings"\]'\)/);
+ assert.match(shell,/const signout=\$\('fleboGlobalSignOut'\)/);
+ assert.match(shell,/settings\.insertAdjacentElement\('afterend',signout\)/);
+ assert.match(shell,/signout\.classList\.add\('fr2-nav-signout'\)/);
+ assert.match(shell,/if\(footer\)footer\.hidden=true/);
+ assert.match(shell,/new MutationObserver\(placeSignOutAfterSettings\)\.observe\(drawer,\{childList:true,subtree:true\}\)/);
+ assert.ok(html.indexOf('data-nav="settings"')<html.indexOf('<div class="drawer-footer">'));
+ assert.match(css,/#sidebar\.bubble-navigation \.drawer-footer\[hidden\][\s\S]*?display:none!important;/);
+ assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout/);
+ assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout \.nav-copy/);
+ assert.match(css,/#fleboGlobalSignOut\.fr2-nav-signout \.nav-icon/);
+ assert.match(shell,/signout\.setAttribute\('aria-label','Cerrar sesión'\)/);
+});
+
+test('El cierre de sesión no duplica botones ni altera autenticación o permisos',()=>{
+ assert.match(shell,/signout\.parentElement!==settings\.parentElement/);
+ assert.match(shell,/signout\.previousElementSibling!==settings/);
+ assert.doesNotMatch(shell,/cloneNode\(/);
+ assert.doesNotMatch(shell,/signout\.addEventListener\('click'/);
+ assert.ok(css.includes('bottom:max(18px,env(safe-area-inset-bottom,0px))!important'));
+ assert.doesNotMatch(css,/localStorage|indexedDB|supabase/i);
 });
