@@ -216,3 +216,55 @@
   line-height:1.2!important;
  }
 }
+
+/* La salida NO tiene pie propio: el botón real está inmediatamente después
+   de Configuración dentro del grupo Administración, con la misma densidad
+   de las demás fichas. Regla válida en teléfono vertical y horizontal. */
+@media screen and (pointer:coarse) and (max-width:1400px) {
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation .drawer-footer[hidden] {
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout {
+  position:relative!important;display:flex!important;align-items:center!important;
+  justify-content:flex-start!important;
+  flex:0 0 auto!important;min-width:0!important;width:100%!important;
+  min-height:52px!important;height:auto!important;
+  gap:0!important;margin:3px 0 0!important;padding:2px 4px!important;
+  border:0!important;border-radius:999px!important;
+  background:transparent!important;color:#FFFFFF!important;
+  box-shadow:none!important;text-align:left!important;cursor:pointer!important;
+  font-size:14px!important;line-height:1.3!important;text-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-icon {
+  position:relative!important;z-index:2!important;display:grid!important;
+  place-items:center!important;flex:0 0 48px!important;
+  min-width:48px!important;width:48px!important;height:48px!important;
+  margin:0 -7px 0 0!important;padding:0!important;
+  background:#DDECF1!important;color:#294E63!important;
+  border:1px solid #BBD4DE!important;border-radius:50%!important;
+  box-shadow:none!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-icon svg{
+  width:23px!important;height:23px!important;stroke:currentColor!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-copy{
+  position:relative!important;display:flex!important;align-items:center!important;
+  flex:1 1 auto!important;min-width:0!important;
+  min-height:43px!important;width:100%!important;
+  margin:0!important;padding:7px 14px 7px 21px!important;
+  background:rgba(225,239,245,.13)!important;
+  border:1px solid rgba(225,239,245,.45)!important;
+  border-radius:999px!important;color:#FFFFFF!important;
+  font-size:14px!important;font-weight:750!important;
+  box-shadow:none!important;text-shadow:none!important;
+  white-space:normal!important;writing-mode:horizontal-tb!important;
+ }
+ html:root body.fr2-app-authorized #sidebar.bubble-navigation
+ .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout:focus-visible {
+  outline:3px solid #85D2EC!important;outline-offset:2px!important;
+ }
+}
