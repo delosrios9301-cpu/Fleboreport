@@ -601,7 +601,7 @@ test('la recepción y cada etapa clínica quedan atribuidas al usuario autentica
 test('la sincronización de fondo evita el repintado global y protege formularios y selecciones', () => {
   assert.match(html, /refresh:function\(\)[\s\S]*?replace:function\(next,options\)[\s\S]*?if\(!options\.deferRender\)this\.refresh\(\)/);
   assert.match(html, /if\(view==='patients'\)renderPatients\(\)/);
-  assert.match(html, /if\(view==='journey'\)\{syncJourneyFormFromState\(\);renderJourneyPatients\(\)\}/);
+  assert.match(html, /if\(view==='journey'\)\{syncJourneyFormFromState\(\);renderJourneyPatientChoices\(\);renderJourneyPatients\(\);renderJourney\(\)\}/);
   assert.doesNotMatch(html, /refreshSamples\(\)\.then\(renderClinicalStudies\)/);
   assert.match(cloudSync, /replace\(safe,\{silent:true,deferRender:true\}\)/);
   assert.doesNotMatch(cloudSync, /FleboAppState\.refresh\(\)/);
