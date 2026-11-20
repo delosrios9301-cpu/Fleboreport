@@ -362,7 +362,19 @@ function renderState(){const badge=document.getElementById('fleboAuthBadge'),for
  }
 }
 let bootPromise=null;function boot(){if(bootPromise)return bootPromise;bootPromise=(async()=>{installGlobalControls();mountPanel();try{await init();await refreshRegistrationMode();const {data,error}=await client.auth.getSession();if(error)throw error;await refreshSession(data.session&&data.session.user)}catch(e){setStatus(e.message,true)}finally{authBootComplete=true;renderState()}})();return bootPromise}
-window.addEventListener('flebo:domicilios-mounted',()=>{mountPanel();if(!window.fleboSupabase)boot();else renderState();});const observer=new MutationObserver(()=>{if(document.getElementById('view-domicilios')){mountPanel();if(!window.fleboSupabase)boot()}});observer.observe(document.documentElement,{childList:true,subtree:true});
+window.addEventListener('flebo:domicilios-mounted',()=>{mountPanel();if(!window.fleboSupabase)boot();else renderState();});
+// El montaje del acceso es un evento único. Antes se observaba TODO el DOM
+// permanentemente; cada tarjeta clínica y gráfico generaba callbacks incluso
+// después de que el panel ya estuviese presente, ralentizando Android.
+if(!document.getElementById('view-domicilios')){
+ const authMountObserver=new MutationObserver(()=>{
+  if(!document.getElementById('view-domicilios'))return;
+  authMountObserver.disconnect();
+  mountPanel();
+  if(!window.fleboSupabase)void boot();
+ });
+ authMountObserver.observe(document.documentElement,{childList:true,subtree:true});
+}
 // Verificar únicamente controles afectados por cambios de DOM, no todos los
 // botones del sistema cada vez que una gráfica actualiza una cifra.
 const permissionControlSelector='button,a.btn,input[type="button"],input[type="submit"],[role="button"],[data-action],[data-permission-action]';
