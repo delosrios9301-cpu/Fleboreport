@@ -14,7 +14,7 @@ const readBlock=(token)=>{
 };
 
 test('El menú minimalista se carga después de todos los estilos anteriores',()=>{
-  const ref='fleboreport-menu-minimal.css?v=20261119-menu-clean1';
+  const ref='fleboreport-menu-minimal.css?v=20261119-menu-clean2';
   const position=html.lastIndexOf(ref);
   assert.ok(position>0);
   for(const prior of ['bubble-navigation-catalog.css',
@@ -67,4 +67,25 @@ test('No se cambian permisos ni se fuerza a mostrar módulos ocultos',()=>{
   assert.doesNotMatch(css,/\bdisplay\s*:\s*grid\s*!important/);
   assert.doesNotMatch(css,/\bdisplay\s*:\s*block\s*!important/);
   assert.doesNotMatch(css,/@media\s+print/);
+});
+
+
+test('Regresión captura Android: la regla de color para módulos NO activos queda neutralizada por mayor especificidad',()=>{
+ const previous=readFileSync(new URL('../fleboreport-palette-2026.css',import.meta.url),'utf8');
+ const olderSelector='.nav-list button[data-nav]:not([hidden]):not(.active) .nav-copy';
+ assert.ok(previous.includes(olderSelector),'Identifica la regla que originó el rectángulo azul');
+ const overriding='.nav-list .nav-group-items button[data-nav]:not([hidden]):not(.active) .nav-copy';
+ const index=css.lastIndexOf(overriding);
+ assert.ok(index>0,'Debe añadir una regla específica para etiquetas no activas');
+ const block=css.slice(css.indexOf('{',index)+1,css.indexOf('}',index));
+ assert.match(block,/background:none!important/);
+ assert.match(block,/background-color:transparent!important/);
+ assert.match(block,/background-image:none!important/);
+ assert.match(block,/border:0!important/);
+ assert.match(block,/box-shadow:none!important/);
+ assert.match(block,/border-radius:0!important/);
+ // La capa antigua y la nueva son ambas !important, pero esta última
+ // añade .nav-group-items y se carga después: evita el regreso del cuadro.
+ assert.ok(html.lastIndexOf('fleboreport-menu-minimal.css?v=20261119-menu-clean2')>
+   html.lastIndexOf('fleboreport-palette-2026.css'));
 });
