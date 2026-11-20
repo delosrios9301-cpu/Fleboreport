@@ -629,7 +629,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v322'/);
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
-  assert.match(serviceWorker, /showNotification\(data\.title\|\|'FleboReport',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
+  assert.match(serviceWorker, /showNotification\(data\.title\|\|'TALCSYS Lab',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
   assert.match(serviceWorker, /No se pudo guardar el diagnóstico; la presentación del aviso no se bloqueó/);
   assert.match(serviceWorker, /keys\.filter\(key=>key!==CACHE_NAME\)/);
 });

@@ -22,7 +22,7 @@
   if(head&&close&&!head.querySelector('.bubble-notification')){
    const bell=document.createElement('button');
    bell.type='button';bell.className='bubble-notification';
-   bell.setAttribute('aria-label','Abrir notificaciones de FleboReport');
+   bell.setAttribute('aria-label','Abrir notificaciones de TALCSYS Lab');
    bell.title='Notificaciones';
    bell.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 8-3 10h18c-1-2-3-3-3-10"/><path d="M10 21h4"/></svg>';
    bell.addEventListener('click',()=>{

@@ -29,7 +29,7 @@ assert.doesNotMatch(nativeScanner,/TextRecognizer|Leer texto impreso|licencia/i)
 assert.doesNotMatch(nativePlugin,/scan_mode|DOCUMENT_TEXT/);
 assert.match(source,/Escanear cédula/);
 assert.doesNotMatch(source,/extractIdentityQr|extractPrintedIdentity|Escanear cédula o licencia/);
-assert.match(androidConfig,/versionCode 14/);
-assert.match(androidConfig,/versionName "2\.3"/);
+assert.match(androidConfig,/versionCode 15/);
+assert.match(androidConfig,/versionName "2\.4"/);
 assert.doesNotMatch(androidConfig,/text-recognition:16/);
 console.log('Restauración del lector QR de cédula comprobada sin soporte de licencia');

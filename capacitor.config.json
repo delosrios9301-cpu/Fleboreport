@@ -1,6 +1,6 @@
 {
   "appId": "com.fleboreport.app",
-  "appName": "FleboReport",
+  "appName": "TALCSYS Lab",
   "webDir": "www",
   "bundledWebRuntime": false,
   "android": {

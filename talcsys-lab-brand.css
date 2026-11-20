@@ -10,3 +10,15 @@
 @media(max-width:600px){.topbar .topbar-title{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.drawer-brand-copy strong{font-size:16px}}
 @media(min-width:601px) and (max-width:1024px){.topbar .topbar-title{font-size:13px}}
 @media(min-width:1025px){.topbar .topbar-title{font-size:14px}}
+
+.talcsys-wordmark {
+  display: block;
+  width: clamp(96px, 25vw, 142px);
+  max-width: 100%;
+  height: auto;
+  border-radius: 3px;
+}
+#fleboAuthPanel h1 .talcsys-wordmark {
+  width: min(205px, 100%);
+  margin-inline: auto;
+}
