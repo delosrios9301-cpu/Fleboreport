@@ -112,3 +112,23 @@
   padding-top:2px!important;
  }
 }
+
+/* Respaldo para despliegues Android con partes de JS en caché.
+   Sólo colapsa envoltorios de antiguas gráficas cuando están VACÍOS:
+   el HTML original los dejaba antes del nuevo flujo y conservaban
+   márgenes verticales acumulativos, aunque no tuvieran contenido. */
+@media screen {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready > .op-grid:empty,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready > .op-grid:not(:has(> *)) {
+  display:none!important;
+  height:0!important;min-height:0!important;
+  margin:0!important;padding:0!important;
+  border:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready > .hp-dashboard-flow {
+  margin-top:0!important;
+ }
+}
