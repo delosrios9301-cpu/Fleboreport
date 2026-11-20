@@ -114,7 +114,7 @@ test('Temas y nueva búsqueda se cargan después de las capas heredadas y offlin
   'fleboreport-forest-dashboard.css','fleboreport-forest-modules.css','fleboreport-forest-search.css'];
  let prev=0;
  for(const asset of ordered){
-  const next=html.indexOf(asset+'?v=20261114-',prev);
+  const next=html.indexOf(asset+(asset==='fleboreport-forest-dashboard.css'?'?v=20261119-homegap2':'?v=20261114-'),prev);
   assert.ok(next>prev,'Orden de CSS '+asset);
   prev=next;
  }
