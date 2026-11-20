@@ -1,0 +1,7 @@
+/* TALCSYS Lab: estilos aislados. No se cargan en producción. */
+.talcsys-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.talcsys-brand__logo{display:block;max-width:min(100%,280px);height:auto;object-fit:contain}
+.talcsys-brand__symbol{display:block;width:42px;height:42px;object-fit:contain;flex:none}
+.talcsys-brand__label{font:700 16px/1.2 system-ui,sans-serif;color:#0e2a47}
+.talcsys-brand__label small{display:block;color:#0b807f;font-size:11px;font-weight:600}
+@media(max-width:480px){.talcsys-brand{gap:8px}.talcsys-brand__logo{max-width:180px}.talcsys-brand__symbol{width:34px;height:34px}}
