@@ -1,0 +1,169 @@
+/* FleboReport · Menú premium minimalista, 2026-11.
+ * Sólo presentación. Última capa CSS para neutralizar las cápsulas 3D
+ * de los nombres y conservar la navegación, permisos y tamaños táctiles.
+ * No modifica el resto de pantallas ni afecta los estados clínicos. */
+@media screen {
+  /* Una fila, sin cajas superpuestas por cada nombre. */
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav]:not([hidden]):not([disabled]):not([aria-hidden="true"]) {
+    min-height:50px!important;
+    padding:4px 8px!important;
+    gap:10px!important;
+    border:0!important;
+    border-radius:12px!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    filter:none!important;
+    transform:none!important;
+    text-shadow:none!important;
+    transition:background-color .12s ease!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav]:not([hidden]) .nav-icon {
+    z-index:1!important;
+    flex:0 0 40px!important;
+    width:40px!important;min-width:40px!important;height:40px!important;
+    margin:0!important;padding:0!important;
+    border:0!important;border-radius:50%!important;
+    background:#DCEBF0!important;
+    color:#234B60!important;
+    box-shadow:none!important;
+    filter:none!important;
+    transform:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav]:not([hidden]) .nav-icon svg {
+    width:22px!important;height:22px!important;
+    color:inherit!important;
+    stroke:currentColor!important;
+    opacity:1!important;
+    filter:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav]:not([hidden]) .nav-copy {
+    z-index:1!important;
+    flex:1 1 auto!important;
+    width:auto!important;min-width:0!important;max-width:none!important;
+    min-height:0!important;height:auto!important;
+    margin:0!important;padding:2px 0!important;
+    border:0!important;border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    text-shadow:none!important;
+    color:#F4F9FC!important;
+    opacity:1!important;
+    font-size:14px!important;font-weight:560!important;
+    line-height:1.3!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;writing-mode:horizontal-tb!important;
+  }
+  /* Sólo una banda discreta para el módulo seleccionado.
+     No restablecer cajas ni bordes en .nav-copy. */
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav].active:not([hidden]),
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav][aria-current="page"]:not([hidden]) {
+    background:rgba(224,242,249,.16)!important;
+    border:0!important;
+    border-radius:12px!important;
+    box-shadow:none!important;
+    color:#FFFFFF!important;
+    transform:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav].active:not([hidden]) .nav-copy,
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav][aria-current="page"]:not([hidden]) .nav-copy {
+    min-height:0!important;
+    border:0!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#FFFFFF!important;
+    font-weight:740!important;
+    text-shadow:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav].active:not([hidden]) .nav-icon,
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav][aria-current="page"]:not([hidden]) .nav-icon {
+    border:0!important;
+    background:#C5E4EE!important;
+    color:#1C465A!important;
+    box-shadow:none!important;
+    filter:none!important;
+  }
+  /* Sutil respuesta al ratón, sin sombras persistentes. */
+  @media (hover:hover) {
+    html:root body.fr2-app-authorized #sidebar.bubble-navigation
+    .nav-list button[data-nav]:not(.active):not([aria-current="page"]):not([hidden]):hover {
+      background:rgba(231,242,249,.07)!important;
+    }
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav]:focus-visible {
+    outline:2px solid #A5DAEC!important;
+    outline-offset:2px!important;
+  }
+
+  /* Cerrar sesión permanece inmediatamente después de Configuración,
+     sin un recuadro especial ni cambios en su manejador de clic. */
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout:not([hidden]) {
+    width:100%!important;min-height:50px!important;
+    margin:2px 0 0!important;padding:4px 8px!important;
+    gap:10px!important;
+    border:0!important;border-radius:12px!important;
+    background:transparent!important;
+    box-shadow:none!important;
+    color:#F4F9FC!important;
+    text-shadow:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-icon {
+    flex:0 0 40px!important;
+    width:40px!important;min-width:40px!important;height:40px!important;
+    margin:0!important;padding:0!important;
+    border:0!important;border-radius:50%!important;
+    background:#DCEBF0!important;color:#234B60!important;
+    box-shadow:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-icon svg {
+    width:22px!important;height:22px!important;
+    color:inherit!important;stroke:currentColor!important;
+    filter:none!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout .nav-copy {
+    flex:1 1 auto!important;
+    width:auto!important;min-width:0!important;max-width:none!important;
+    min-height:0!important;height:auto!important;
+    margin:0!important;padding:2px 0!important;
+    border:0!important;border-radius:0!important;
+    background:transparent!important;
+    box-shadow:none!important;color:#F4F9FC!important;
+    font-size:14px!important;font-weight:560!important;
+    line-height:1.3!important;text-shadow:none!important;
+    white-space:normal!important;
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout[hidden] {
+    display:none!important;
+  }
+  @media (hover:hover) {
+    html:root body.fr2-app-authorized #sidebar.bubble-navigation
+    .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout:not([hidden]):hover {
+      background:rgba(231,242,249,.07)!important;
+    }
+  }
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list .nav-group-items #fleboGlobalSignOut.fr2-nav-signout:focus-visible {
+    outline:2px solid #A5DAEC!important;outline-offset:2px!important;
+  }
+}
+@media screen and (prefers-reduced-motion:reduce) {
+  html:root body.fr2-app-authorized #sidebar.bubble-navigation
+  .nav-list button[data-nav] {
+    transition:none!important;
+  }
+}
