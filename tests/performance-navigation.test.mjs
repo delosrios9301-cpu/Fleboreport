@@ -20,7 +20,7 @@ test('Sincronización mantiene el estado remoto pero pinta solo el módulo visib
  assert.match(html,/document\.addEventListener\('focusout'/);
  assert.match(html,/document\.addEventListener\('visibilitychange'/);
  assert.match(html,/function renderAll\(\)/);
- assert.match(html,/if\(view==='journey'\)\{syncJourneyFormFromState\(\);renderJourneyPatients\(\)\}/);
+ assert.match(html,/if\(view==='journey'\)\{syncJourneyFormFromState\(\);renderJourneyPatientChoices\(\);renderJourneyPatients\(\);renderJourney\(\)\}/);
 });
 
 test('Pacientes no reconstruye las cintas cuando el contenido visible no cambia',()=>{
