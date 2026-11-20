@@ -8,7 +8,7 @@
    gap:18px!important;background:transparent!important;
  }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-heading {
-   min-height:72px!important;gap:14px!important;padding:6px 4px 10px!important;
+   min-height:0!important;gap:8px!important;padding:2px 4px 4px!important;
  }
  html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard #view-home .hp-home-title {
    gap:14px!important;min-width:0!important;align-items:center!important;
