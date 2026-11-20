@@ -1,0 +1,69 @@
+/* FleboReport · Inicio sin franja vacía entre marca y Panel principal.
+   Capa final exclusivamente visual. La regla antigua de forest-dashboard
+   impone min-height:72px a .hp-home-heading, incluso en teléfono.
+   Esta hoja corrige la altura forzada y el padding de la vista inicial.
+   No interviene en navegación, permisos, carga clínica ni gráficos. */
+@media screen {
+ /* Ajustar únicamente la pantalla Inicio; los demás módulos mantienen
+    su propio ritmo. :has está admitido en Android WebView actualizado. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ .app-shell .content:has(> #view-home.active) {
+  padding-top:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.fr5-screen-home.active.hp-layout-ready {
+  margin-top:0!important;padding-top:0!important;
+  min-height:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready .hp-dashboard-flow {
+  padding-top:0!important;
+  margin-top:0!important;
+ }
+ /* Sobrescribir la regla de 72px conservando el espacio necesario para
+    la fecha, título y subtítulo reales. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready .hp-dashboard-flow>.hp-home-heading {
+  height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0 0 4px!important;padding:2px 2px 3px!important;
+  align-content:center!important;align-items:center!important;
+  gap:8px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .hp-home-title,
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .hp-reference-heading-copy {
+  min-height:0!important;height:auto!important;
+  margin:0!important;padding:0!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .hp-reference-heading-copy h1 {
+  margin:0!important;line-height:1.16!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home .hp-reference-subtitle {
+  margin:2px 0 0!important;line-height:1.28!important;
+ }
+}
+@media screen and (max-width:760px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ .app-shell .content:has(> #view-home.active) {
+  padding-top:5px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready .hp-dashboard-flow>.hp-home-heading {
+  margin:0 0 2px!important;padding:0 1px 2px!important;
+  gap:5px!important;
+ }
+}
+@media screen and (orientation:landscape) and (max-height:700px)
+ and (max-width:1400px) and (pointer:coarse) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ .app-shell .content:has(> #view-home.active) {
+  padding-top:4px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.hp-layout-ready .hp-dashboard-flow>.hp-home-heading {
+  margin:0 0 2px!important;padding:0 1px 2px!important;
+ }
+}
