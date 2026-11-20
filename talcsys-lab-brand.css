@@ -1,0 +1,12 @@
+/* TALCSYS Lab · identidad visual de producción, capa no invasiva.
+   No altera estados, campos, permisos, almacenamiento ni flujos clínicos. */
+:root{--talcsys-petrol:#0c3448;--talcsys-teal:#0a898b;--talcsys-ink:#173b4b}
+.topbar .topbar-title{font-weight:850;letter-spacing:.01em;color:var(--talcsys-petrol)}
+.drawer-brand-copy strong{font-weight:850;letter-spacing:.01em}
+.drawer-brand-copy small{letter-spacing:.02em}
+.drawer-brand-mark{color:#6de0d4}
+.topbar,.sidebar{min-width:0}
+.top-left,.drawer-brand,.drawer-brand-copy{min-width:0}
+@media(max-width:600px){.topbar .topbar-title{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.drawer-brand-copy strong{font-size:16px}}
+@media(min-width:601px) and (max-width:1024px){.topbar .topbar-title{font-size:13px}}
+@media(min-width:1025px){.topbar .topbar-title{font-size:14px}}
