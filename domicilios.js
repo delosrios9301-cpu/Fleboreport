@@ -328,7 +328,7 @@ function restoreHomeVisitCache(){
  if(!canCacheHomeVisitSnapshot()||!cloud.user?.id)return false;
  try{
   const cached=JSON.parse(localStorage.getItem(KEY)||'null');
-  if(!cached||cached.workspaceId!==cloud.workspaceId||cached.userId!==cloud.user.id||cached.role!==cloud.role||!Array.isArray(cached.visits)||!Number.isFinite(Number(cached.cursor)))return false;
+  if(cached?.agendaVersion!==2||cached.workspaceId!==cloud.workspaceId||cached.userId!==cloud.user.id||cached.role!==cloud.role||!Array.isArray(cached.visits)||!Number.isFinite(Number(cached.cursor)))return false;
   if(Date.now()-Number(cached.cachedAt||0)>5*60*1000)return false;
   visits=cached.visits.map(v=>({...v,scheduledDate:canonicalHomeVisitDate(v.scheduledDate),scheduledTime:canonicalHomeVisitTime(v.scheduledTime)}));homeVisitSyncCursor=Number(cached.cursor);homeVisitCacheActive=true;
   if($('hvRows'))render();
@@ -337,7 +337,7 @@ function restoreHomeVisitCache(){
 }
 function saveHomeVisitCache(){
  if(!canCacheHomeVisitSnapshot()||!cloud.user?.id||homeVisitSyncCursor===null){if(homeVisitCacheActive){try{localStorage.removeItem(KEY)}catch(_){}homeVisitCacheActive=false;}return;}
- try{localStorage.setItem(KEY,JSON.stringify({workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));homeVisitCacheActive=true;}
+ try{localStorage.setItem(KEY,JSON.stringify({agendaVersion:2,workspaceId:cloud.workspaceId,userId:cloud.user.id,role:cloud.role,cursor:homeVisitSyncCursor,cachedAt:Date.now(),visits}));homeVisitCacheActive=true;}
  catch(error){console.warn('[Domicilios] No se pudo actualizar la caché de agenda:',error);}
 }
 async function latestHomeVisitPrunedFloor(){
@@ -401,12 +401,15 @@ async function loadCloudVisits(options={}){
  const cursorBefore=fullSnapshot?await latestHomeVisitSyncCursor():homeVisitSyncCursor;
  const changes=fullSnapshot?[]:await fetchAllPages(cloud.client.from('sync_change_log').select('seq,record_id,operation').eq('workspace_id',cloud.workspaceId).eq('entity','domiciles').gt('seq',homeVisitSyncCursor).order('seq',{ascending:true}));
  const invitationRows=await fetchInvitationPreviewRows();
+ const requestedVisit=asUuid(new URLSearchParams(location.search).get('visit'));
+ const previewRole=cloud.role==='technician';
  const currentInvitations=visits.filter(v=>v.assignmentStatus==='invited').map(v=>String(v.id)).sort().join('|');
  const nextInvitations=invitationRows.map(v=>String(v.id)).sort().join('|');
- if(!fullSnapshot&&!changes.length&&currentInvitations===nextInvitations){
+ if(!fullSnapshot&&!changes.length&&!requestedVisit&&(!previewRole||currentInvitations===nextInvitations)){
   cloudDataVerified=true;saveHomeVisitCache();return false;
  }
  const changedIds=Array.from(new Set(changes.map(x=>String(x.record_id))));
+ if(requestedVisit&&!changedIds.includes(requestedVisit))changedIds.push(requestedVisit);
  const data=await fetchHomeVisitRows(fullSnapshot?null:changedIds);
  const detailedIds=new Set(data.map(v=>String(v.id)));
  const pendingMapped=invitationRows.filter(row=>!detailedIds.has(String(row.id))).map(dbVisit);
@@ -418,7 +421,9 @@ async function loadCloudVisits(options={}){
   const changedSet=new Set(changedIds);
   // El cambio de una invitación o su rechazo debe eliminar información anterior
   // del dispositivo sin conservar datos que ya no son visibles por RLS.
-  for(const v of visits)if(v.assignmentStatus==='invited')changedSet.add(String(v.id));
+  if(previewRole){
+   for(const v of visits)if(v.assignmentStatus==='invited')changedSet.add(String(v.id));
+  }
   for(const v of pendingMapped)changedSet.add(String(v.id));
   visits=visits.filter(v=>!changedSet.has(String(v.id))).concat(mapped);
  }
@@ -431,9 +436,19 @@ async function loadCloudVisits(options={}){
    catch(e){cloudNotice('No se pudo completar la asignación de '+v.assignedTo+': '+(e.message||'error desconocido'),true);}
   }
  }
- const requestedVisit=new URLSearchParams(location.search).get('visit');
- if(requestedVisit&&visits.some(v=>v.id===requestedVisit)){selected=requestedVisit;activeTab='agenda';history.replaceState({},'',location.pathname+'?view=domicilios');}
- else if(!visits.some(v=>v.id===selected))selected='';
+ if(requestedVisit&&new URLSearchParams(location.search).get('visit')===requestedVisit){
+  const target=visits.find(v=>v.id===requestedVisit);
+  const url=new URL(location.href);
+  url.searchParams.delete('visit');
+  history.replaceState(history.state,'',url);
+  if(target){
+   selected=target.id;activeTab='agenda';detailOpen=true;
+   referenceQuickStatus='';dismissedInvitationId='';
+  }else{
+   say('No se encontró este domicilio entre los disponibles para tu cuenta.');
+  }
+ }
+ if(!visits.some(v=>v.id===selected))selected='';
  cloudDataVerified=true;
  if($('hvRows')){
   render();
@@ -445,7 +460,7 @@ async function loadCloudVisits(options={}){
   // Recupera las modificaciones que pudieron ocurrir mientras se cargaba la instantánea.
   return await loadCloudVisits();
  }
- homeVisitSyncCursor=Number(changes[changes.length-1].seq);
+ if(changes.length)homeVisitSyncCursor=Number(changes[changes.length-1].seq);
  saveHomeVisitCache();
  return true;
 }
@@ -1601,7 +1616,15 @@ window.hvRefreshVoluntary=async id=>{
  if(backdrop)backdrop.remove();
  const panel=$('hvDetail');
  if(panel){panel.hidden=true;panel.replaceChildren();}
-};window.hvOpenNotificationVisit=id=>{const visit=visits.find(v=>v.id===id);if(!visit)return;selected=id;activeTab='agenda';detailOpen=true;render()};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
+};window.hvOpenNotificationVisit=async id=>{
+ if(!asUuid(id))return;
+ const url=new URL(location.href);
+ url.searchParams.set('view','domicilios');url.searchParams.set('visit',id);
+ history.replaceState(history.state,'',url);
+ if(!cloud.ready){await connectCloud();return;}
+ try{await loadCloudVisits();}
+ catch(error){cloudNotice('No se pudo cargar el domicilio asignado: '+(error.message||'error de conexión'),true);}
+};window.hvExport=exportCsv;window.hvUploadDocument=uploadVisitDocument;window.hvOpenDocument=openVisitDocument;window.hvSaveFieldObservation=saveFieldObservation;
 async function activatePush(){
  const button=$('hvActivatePush'),status=$('hvPushStatus');
  const set=(message,error=false)=>{if(status){status.textContent=message;status.style.color=error?'#a33e47':'#557184'}};
