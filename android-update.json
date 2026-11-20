@@ -1,8 +1,8 @@
 {
-  "versionCode": 14,
-  "versionName": "2.3",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.3",
-  "notes": "Restaurado el lector QR de cédula que funcionaba, con relleno automático en Jornada y revisión antes de guardar. Retirada la lectura de licencia y OCR de texto impreso para evitar fallos. Mantiene notificaciones, instalación firmada y datos existentes.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.3/FleboReport-2.3.apk",
-  "sha256": "197782ebe88426d6e7bb496ef0925f39eb318636258ab63353d310dc1e7361e3"
+  "versionCode": 15,
+  "versionName": "2.4",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.4",
+  "notes": "TALCSYS Lab incorpora el logotipo original y los nuevos iconos de Android.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.4/FleboReport-2.4.apk",
+  "sha256": "6429877c4561539c9e66224ea4a3b6cf2f931532d4b94cd9404a601a7ef45145"
 }
