@@ -10,6 +10,7 @@ java=app/'src/main/java/com/fleboreport/app'
 java.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(root/'MainActivity.java',java/'MainActivity.java')
 shutil.copyfile(root/'FleboIdScannerPlugin.java',java/'FleboIdScannerPlugin.java')
+shutil.copyfile(root/'TalcsysDownloadsPlugin.java',java/'TalcsysDownloadsPlugin.java')
 shutil.copyfile(root/'FleboQrCameraActivity.java',java/'FleboQrCameraActivity.java')
 xml=app/'src/main/res/xml'
 xml.mkdir(parents=True,exist_ok=True)
