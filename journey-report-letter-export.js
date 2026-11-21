@@ -72,7 +72,7 @@ function pdfFromPages(pages){
  }
  objects[catalog-1]=catalog+' 0 obj << /Type /Catalog /Pages '+root+' 0 R >> endobj\n';
  objects[root-1]=root+' 0 obj << /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >> endobj\n';
- let pdf='%PDF-1.4\n%âãÏÓ\n',offsets=[0];
+ let pdf='%PDF-1.4\n%TALCSYS-LAB\n',offsets=[0];
  for(const obj of objects){offsets.push(pdf.length);pdf+=obj}
  const start=pdf.length;pdf+='xref\n0 '+offsets.length+'\n0000000000 65535 f \n';
  for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
