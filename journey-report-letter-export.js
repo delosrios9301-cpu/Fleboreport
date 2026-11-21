@@ -80,15 +80,46 @@ function pdfFromPages(pages){
  return new Blob([Uint8Array.from(pdf,ch=>ch.charCodeAt(0)&255)],{type:'application/pdf'});
 }
 function name(s,format){return'TALCSYS-Lab-jornada-'+(s.journeyDate||'reporte')+'.'+format}
+let lastDownloadUrl=null;
+function presentFile(blob,filename){
+ if(!blob||blob.size<100)throw Error('El archivo generado está vacío.');
+ const url=URL.createObjectURL(blob);
+ if(lastDownloadUrl)URL.revokeObjectURL(lastDownloadUrl);
+ lastDownloadUrl=url;
+ let panel=document.getElementById('talcsysDownloadPanel');
+ if(!panel){
+  panel=document.createElement('div');panel.id='talcsysDownloadPanel';
+  panel.style.cssText='position:fixed;bottom:12px;left:12px;right:12px;z-index:2147483640;max-width:560px;margin:auto;padding:14px;background:#fff;color:#14384d;border:2px solid #0b8988;border-radius:12px;box-shadow:0 6px 25px #1235;font:14px Arial';
+  document.body.appendChild(panel);
+ }
+ panel.replaceChildren();
+ const title=document.createElement('strong');title.textContent='Archivo preparado: '+filename;title.style.display='block';title.style.marginBottom='9px';
+ const desc=document.createElement('div');desc.textContent='Pulsa Guardar archivo. Si tu aplicación no permite descargar, usa Compartir / Guardar en Archivos.';desc.style.marginBottom='10px';
+ const link=document.createElement('a');link.href=url;link.download=filename;link.textContent='Guardar archivo ('+Math.ceil(blob.size/1024)+' KB)';
+ link.style.cssText='display:inline-block;padding:10px 14px;background:#0b8988;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin:0 8px 8px 0';
+ const share=document.createElement('button');share.type='button';share.textContent='Compartir / Guardar en Archivos';
+ share.style.cssText='padding:10px;border:1px solid #0b8988;border-radius:8px;background:white;color:#0b8988;font-weight:bold';
+ share.onclick=async function(){
+  try{
+   const file=new File([blob],filename,{type:blob.type});
+   if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:filename});return}
+   window.open(url,'_blank','noopener');
+  }catch(e){if(e&&e.name!=='AbortError')toast('No se pudo compartir; utiliza Guardar archivo.')}
+ };
+ const close=document.createElement('button');close.type='button';close.textContent='Cerrar';close.style.cssText='margin-left:8px;padding:10px;border:0;background:transparent;color:#345';close.onclick=function(){panel.remove()};
+ panel.append(title,desc,link,share,close);
+ // No informar descarga exitosa: el navegador o WebView decide si guarda el archivo.
+ return {filename,bytes:blob.size};
+}
 function exportSnapshot(s,format){
  const pages=pagesFor(s);
- if(format==='pdf'){downloadBlobFile(pdfFromPages(pages),name(s,'pdf'));return Promise.resolve()}
+ if(format==='pdf')return Promise.resolve(presentFile(pdfFromPages(pages),name(s,'pdf')));
  if(pages.length>12)throw Error('El reporte tiene demasiadas páginas para una sola imagen. Descárgalo en PDF.');
  const image=document.createElement('canvas');image.width=W;image.height=H*pages.length;
  if(image.height>32767)throw Error('El reporte supera el tamaño máximo de imagen. Utiliza PDF.');
  const ctx=image.getContext('2d');if(!ctx)throw Error('No se pudo preparar la imagen');
  pages.forEach((p,i)=>ctx.drawImage(p,0,i*H));
- return canvasBlob(image,'image/png').then(b=>downloadBlobFile(b,name(s,'png')));
+ return canvasBlob(image,'image/png').then(blob=>presentFile(blob,name(s,'png')));
 }
 function selection(s){
  const check=document.getElementById('talcsysArchivePatients');
@@ -103,8 +134,8 @@ function addChoice(){
 }
 const oldOpen=window.openArchivedReport;
 if(typeof oldOpen==='function')window.openArchivedReport=function(id){oldOpen(id);addChoice();const r=archivedRecord(),check=document.getElementById('talcsysArchivePatients');if(check&&r)check.checked=!!r.snapshot.includePatientList};
-window.downloadArchivedReport=async function(format){const r=archivedRecord();if(!r)return;try{await exportSnapshot(selection(r.snapshot),format);toast('Reporte preparado para descargar. Puedes repetir la descarga cuando quieras.')}catch(e){toast(e.message||'No se pudo generar el reporte')}};
-window.shareArchivedReport=async function(format){const r=archivedRecord();if(!r)return;try{await exportSnapshot(selection(r.snapshot),format);toast('Reporte preparado para descargar y compartir desde el dispositivo.')}catch(e){toast(e.message||'No se pudo generar el reporte')}};
-window.generateReportPDF=async function(){if(!totalTests()){toast('Agrega pruebas antes de generar el reporte.');return}try{const r=archiveCurrentReport('pdf');if(!r)return;await exportSnapshot(r.snapshot,'pdf');toast('Reporte guardado en historial y PDF generado. La jornada permanece intacta.')}catch(e){toast(e.message||'No se pudo generar el PDF')}};
-window.downloadPNG=async function(){if(!totalTests()){toast('Agrega pruebas antes de generar el reporte.');return}try{const r=archiveCurrentReport('png');if(!r)return;await exportSnapshot(r.snapshot,'png');toast('Reporte guardado en historial e imagen generada.')}catch(e){toast(e.message||'No se pudo generar la imagen')}};
+window.downloadArchivedReport=async function(format){const r=archivedRecord();if(!r)return;try{await exportSnapshot(selection(r.snapshot),format);toast('Archivo listo: pulsa Guardar archivo o Compartir / Guardar en Archivos.')}catch(e){toast(e.message||'No se pudo generar el reporte')}};
+window.shareArchivedReport=async function(format){const r=archivedRecord();if(!r)return;try{await exportSnapshot(selection(r.snapshot),format);toast('Archivo listo: pulsa Compartir / Guardar en Archivos.')}catch(e){toast(e.message||'No se pudo generar el reporte')}};
+window.generateReportPDF=async function(){if(!totalTests()){toast('Agrega pruebas antes de generar el reporte.');return}try{const r=archiveCurrentReport('pdf');if(!r)return;await exportSnapshot(r.snapshot,'pdf');toast('PDF preparado. Pulsa Guardar archivo; la jornada permanece intacta.')}catch(e){toast(e.message||'No se pudo generar el PDF')}};
+window.downloadPNG=async function(){if(!totalTests()){toast('Agrega pruebas antes de generar el reporte.');return}try{const r=archiveCurrentReport('png');if(!r)return;await exportSnapshot(r.snapshot,'png');toast('Imagen preparada. Pulsa Guardar archivo.')}catch(e){toast(e.message||'No se pudo generar la imagen')}};
 })();
