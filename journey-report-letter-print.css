@@ -1,0 +1,16 @@
+/* Reporte de jornada · impresión carta, sin controles ni cortes de fichas. */
+@page{size:letter portrait;margin:12mm}
+@media print{
+ html,body{width:auto!important;height:auto!important;min-height:0!important;overflow:visible!important;background:#fff!important}
+ #view-reports,.report-card,#reportCard,#reportPatientListSection,#reportPatientList{overflow:visible!important;max-height:none!important}
+ #view-reports .heading-actions,#view-reports .no-print,#reportCard .report-toolbar,
+ #view-reports button,#view-reports .style-picker,.report-patient-toggle,
+ .report-toolbar,.report-actions{display:none!important}
+ #reportCard{width:100%!important;max-width:none!important;box-shadow:none!important;border:0!important;margin:0!important;padding:0!important;break-inside:auto!important}
+ #reportPatientListSection{break-before:auto!important}
+ #reportPatientList .table-wrap{overflow:visible!important}
+ #reportPatientList table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+ #reportPatientList tr{break-inside:avoid!important;page-break-inside:avoid!important}
+ #reportPatientList th,#reportPatientList td{font-size:8pt!important;line-height:1.2!important;padding:3px 5px!important;overflow-wrap:anywhere!important}
+ .report-test,.report-summary,.report-stat,.report-kpi{break-inside:avoid!important;page-break-inside:avoid!important}
+}
