@@ -39,7 +39,7 @@ s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
 s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.5.2'\n    implementation 'androidx.camera:camera-lifecycle:1.5.2'\n    implementation 'androidx.camera:camera-view:1.5.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'com.google.zxing:core:3.5.3'",1)
-s=s.replace('versionCode 1','versionCode 15').replace('versionName "1.0"','versionName "2.4"')
+s=s.replace('versionCode 1','versionCode 16').replace('versionName "1.0"','versionName "2.5"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
 ET.register_namespace('android','http://schemas.android.com/apk/res/android')
@@ -66,4 +66,4 @@ if not any(x.get(ns+'name')=='com.google.mlkit.vision.DEPENDENCIES' for x in app
 if not any(x.get(ns+'name')=='.FleboQrCameraActivity' for x in application.findall('activity')):
     ET.SubElement(application,'activity',{ns+'name':'.FleboQrCameraActivity',ns+'exported':'false',ns+'screenOrientation':'portrait'})
 tree.write(manifest,encoding='utf-8',xml_declaration=True)
-print('TALCSYS Lab Android 2.4 configurado')
+print('TALCSYS Lab Android 2.5 configurado')
