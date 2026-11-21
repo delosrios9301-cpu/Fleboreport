@@ -43,6 +43,8 @@ jobs:
         run: npx cap add android
       - name: Sincronizar recursos Android
         run: npx cap sync android
+      - name: Incorporar plugins nativos y versión Android
+        run: python3 native/android/configure_android.py
       - name: Compilar APK de depuración instalable
         run: |
           cd android
