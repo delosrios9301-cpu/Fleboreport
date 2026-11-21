@@ -8,7 +8,7 @@ function canvas(){const c=document.createElement('canvas');c.width=W;c.height=H;
 function t(ctx,str,x,y,max){ctx.fillText(String(str==null?'':str),x,y,max)}
 function rect(ctx,x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h)}
 function line(ctx,str,x,y,max,fill='#193b51',font='12px Arial'){ctx.fillStyle=fill;ctx.font=font;t(ctx,str,x,y,max)}
-function split(ctx,value,maxWidth){const words=String(value||'—').split(/\\s+/),out=[];let current='';for(const word of words){const next=current?current+' '+word:word;if(ctx.measureText(next).width>maxWidth&&current){out.push(current);current=word}else current=next}if(current)out.push(current);return out.length?out:['—']}
+function split(ctx,value,maxWidth){const words=String(value||'—').split(/\s+/),out=[];let current='';for(const word of words){const next=current?current+' '+word:word;if(ctx.measureText(next).width>maxWidth&&current){out.push(current);current=word}else current=next}if(current)out.push(current);return out.length?out:['—']}
 function pagesFor(snapshot){
  const s=snapshot||{},tests=Array.isArray(s.tests)?s.tests:[],patients=s.includePatientList&&Array.isArray(s.patientList)?s.patientList:[],pages=[];
  let p=canvas(),c=p.getContext('2d'),y=0;
@@ -64,19 +64,19 @@ function pdfFromPages(pages){
  const kids=[];
  for(let i=0;i<pages.length;i++){
   const pageId=objects.length+1,imageId=pageId+1,streamId=pageId+2;kids.push(pageId+' 0 R');
-  objects.push(pageId+' 0 obj << /Type /Page /Parent '+root+' 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 '+imageId+' 0 R >> >> /Contents '+streamId+' 0 R >> endobj\\n');
+  objects.push(pageId+' 0 obj << /Type /Page /Parent '+root+' 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 '+imageId+' 0 R >> >> /Contents '+streamId+' 0 R >> endobj\n');
   const binary=binaries[i];
-  objects.push(imageId+' 0 obj << /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+binary.length+' >> stream\\n'+binary+'\\nendstream endobj\\n');
+  objects.push(imageId+' 0 obj << /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+binary.length+' >> stream\n'+binary+'\nendstream endobj\n');
   const commands='q 612 0 0 792 0 0 cm /Im0 Do Q';
-  objects.push(streamId+' 0 obj << /Length '+commands.length+' >> stream\\n'+commands+'\\nendstream endobj\\n');
+  objects.push(streamId+' 0 obj << /Length '+commands.length+' >> stream\n'+commands+'\nendstream endobj\n');
  }
- objects[catalog-1]=catalog+' 0 obj << /Type /Catalog /Pages '+root+' 0 R >> endobj\\n';
- objects[root-1]=root+' 0 obj << /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >> endobj\\n';
- let pdf='%PDF-1.4\\n%âãÏÓ\\n',offsets=[0];
+ objects[catalog-1]=catalog+' 0 obj << /Type /Catalog /Pages '+root+' 0 R >> endobj\n';
+ objects[root-1]=root+' 0 obj << /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >> endobj\n';
+ let pdf='%PDF-1.4\n%âãÏÓ\n',offsets=[0];
  for(const obj of objects){offsets.push(pdf.length);pdf+=obj}
- const start=pdf.length;pdf+='xref\\n0 '+offsets.length+'\\n0000000000 65535 f \\n';
- for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \\n';
- pdf+='trailer << /Size '+offsets.length+' /Root '+catalog+' 0 R >>\\nstartxref\\n'+start+'\\n%%EOF';
+ const start=pdf.length;pdf+='xref\n0 '+offsets.length+'\n0000000000 65535 f \n';
+ for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
+ pdf+='trailer << /Size '+offsets.length+' /Root '+catalog+' 0 R >>\nstartxref\n'+start+'\n%%EOF';
  return new Blob([Uint8Array.from(pdf,ch=>ch.charCodeAt(0)&255)],{type:'application/pdf'});
 }
 function name(s,format){return'TALCSYS-Lab-jornada-'+(s.journeyDate||'reporte')+'.'+format}
