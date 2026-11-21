@@ -81,6 +81,16 @@ function pdfFromPages(pages){
 }
 function name(s,format){return'TALCSYS-Lab-jornada-'+(s.journeyDate||'reporte')+'.'+format}
 let lastDownloadUrl=null;
+async function nativeSave(blob,filename){
+ const capacitor=window.Capacitor;
+ const native=capacitor&&typeof capacitor.isNativePlatform==='function'&&capacitor.isNativePlatform();
+ const plugin=capacitor&&capacitor.Plugins&&capacitor.Plugins.TalcsysDownloads;
+ if(!native||!plugin||typeof plugin.save!=='function')return null;
+ const bytes=new Uint8Array(await blob.arrayBuffer());
+ let binary='';
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
+ return plugin.save({filename,mime:blob.type,base64:btoa(binary)});
+}
 function presentFile(blob,filename){
  if(!blob||blob.size<100)throw Error('El archivo generado está vacío.');
  const url=URL.createObjectURL(blob);
@@ -94,21 +104,35 @@ function presentFile(blob,filename){
  }
  panel.replaceChildren();
  const title=document.createElement('strong');title.textContent='Archivo preparado: '+filename;title.style.display='block';title.style.marginBottom='9px';
- const desc=document.createElement('div');desc.textContent='Pulsa Guardar archivo. Si tu aplicación no permite descargar, usa Compartir / Guardar en Archivos.';desc.style.marginBottom='10px';
- const link=document.createElement('a');link.href=url;link.download=filename;link.textContent='Guardar archivo ('+Math.ceil(blob.size/1024)+' KB)';
- link.style.cssText='display:inline-block;padding:10px 14px;background:#0b8988;color:white;border-radius:8px;text-decoration:none;font-weight:bold;margin:0 8px 8px 0';
- const share=document.createElement('button');share.type='button';share.textContent='Compartir / Guardar en Archivos';
+ const desc=document.createElement('div');desc.textContent='Selecciona Guardar. La confirmación aparecerá únicamente si Android informa que el archivo fue escrito.';desc.style.marginBottom='10px';
+ const save=document.createElement('button');save.type='button';save.textContent='Guardar en Descargas ('+Math.ceil(blob.size/1024)+' KB)';
+ save.style.cssText='display:inline-block;padding:10px 14px;background:#0b8988;color:white;border:0;border-radius:8px;font-weight:bold;margin:0 8px 8px 0';
+ save.onclick=async function(){
+  save.disabled=true;
+  try{
+   const result=await nativeSave(blob,filename);
+   if(result&&result.saved){desc.textContent='Guardado: '+result.location+'/'+result.filename;toast('Archivo guardado en Descargas/TALCSYS Lab');return}
+   // Navegador convencional: la descarga requiere la acción explícita del usuario.
+   desc.textContent='Este navegador no confirmó el guardado. Usa el enlace Descargar en navegador.';
+  }catch(e){desc.textContent='No se pudo guardar: '+(e.message||String(e));toast('Error al guardar el archivo')}
+  finally{save.disabled=false}
+ };
+ const link=document.createElement('a');link.href=url;link.download=filename;link.textContent='Descargar en navegador';
+ link.style.cssText='display:inline-block;padding:10px;border:1px solid #0b8988;color:#0b8988;border-radius:8px;text-decoration:none;margin:0 8px 8px 0';
+ const share=document.createElement('button');share.type='button';share.textContent='Compartir';
  share.style.cssText='padding:10px;border:1px solid #0b8988;border-radius:8px;background:white;color:#0b8988;font-weight:bold';
  share.onclick=async function(){
   try{
    const file=new File([blob],filename,{type:blob.type});
    if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:filename});return}
-   window.open(url,'_blank','noopener');
-  }catch(e){if(e&&e.name!=='AbortError')toast('No se pudo compartir; utiliza Guardar archivo.')}
+   desc.textContent='Compartir archivos no está disponible en este WebView. Utiliza Guardar en Descargas y compártelo desde Archivos.';
+  }catch(e){if(e&&e.name!=='AbortError')desc.textContent='No se pudo compartir: '+(e.message||String(e))}
  };
  const close=document.createElement('button');close.type='button';close.textContent='Cerrar';close.style.cssText='margin-left:8px;padding:10px;border:0;background:transparent;color:#345';close.onclick=function(){panel.remove()};
- panel.append(title,desc,link,share,close);
- // No informar descarga exitosa: el navegador o WebView decide si guarda el archivo.
+ panel.append(title,desc,save,link,share,close);
+ const native=window.Capacitor&&typeof window.Capacitor.isNativePlatform==='function'&&window.Capacitor.isNativePlatform();
+ const plugin=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.TalcsysDownloads;
+ if(native&&(!plugin||typeof plugin.save!=='function'))desc.textContent='El APK instalado todavía no incluye el guardado nativo. Es necesario instalar una versión actualizada del APK.';
  return {filename,bytes:blob.size};
 }
 function exportSnapshot(s,format){
