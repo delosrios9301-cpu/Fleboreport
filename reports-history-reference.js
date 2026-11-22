@@ -76,14 +76,15 @@
   return Number.isFinite(d.getTime())?d.toLocaleTimeString('es-PA',{hour:'2-digit',minute:'2-digit'}):'—';
  }
  function openArchive(id,format){
-  if(!has('audit','view')){window.toast?.('No tienes acceso al archivo de auditoría.');return;}
-  openView('audit');
+  // Exportar un reporte no requiere acceder al historial general de Auditoría.
+  // Sí requiere permisos explícitos de exportar o imprimir reportes.
+  if(format&&!allowReportExport()){window.toast?.('No tienes autorización para exportar reportes.');return;}
+  if(!format&&!has('audit','view')){window.toast?.('No tienes acceso al historial general de auditoría.');return;}
+  if(has('audit','view'))openView('audit');
   if(typeof window.renderReportHistory==='function')window.renderReportHistory();
   if(typeof window.openArchivedReport!=='function')return;
   window.openArchivedReport(id);
-  if(format&&allowReportExport()&&typeof window.downloadArchivedReport==='function'){
-   window.downloadArchivedReport(format);
-  }
+  if(format&&typeof window.downloadArchivedReport==='function')window.downloadArchivedReport(format);
  }
  let reportsReady=false;
  function makeReportKpis(root){
@@ -203,7 +204,7 @@
    info.append(el('strong','','Reporte de jornada'),el('small','',prettyDate(r.savedAt)+' · '+prettyTime(r.savedAt)),
     el('small','',String(Number(s.totalPatients)||0)+' pacientes · '+String(Number(s.totalTests)||0)+' pruebas'));
    card.append(logo,info);
-   if(has('audit','view')){
+   if(has('audit','view')||allowReportExport()){
     const actions=el('div','rhr-archive-actions');
     if(allowReportExport()){
      actions.append(button('PNG','rhr-small-export',()=>openArchive(r.id,'png'),'image'),
@@ -211,7 +212,7 @@
       button('Compartir PDF','rhr-small-export',()=>window.shareArchivedReport?.('pdf',r.id),'share'),
       button('Compartir PNG','rhr-small-export',()=>window.shareArchivedReport?.('png',r.id),'share'));
     }
-    actions.append(button('Ver reporte','rhr-archive-open',()=>openArchive(r.id),'chevron'));
+    if(has('audit','view'))actions.append(button('Ver reporte','rhr-archive-open',()=>openArchive(r.id),'chevron'));
     card.append(actions);
    }
    frag.append(card);
