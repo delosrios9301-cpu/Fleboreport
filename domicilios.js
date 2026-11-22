@@ -1083,7 +1083,7 @@ function openHomeVisitEdit(id){
  const title=document.createElement('h3');title.textContent='Corregir domicilio · '+(v.patientName||'Paciente');title.style.margin='0';
  form.append(title);
  const field=(label,type,value)=>{const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;font-size:13px;font-weight:600';wrap.textContent=label;const input=document.createElement('input');input.type=type;input.value=value||'';input.required=true;input.style.cssText='padding:11px;border:1px solid #a8c4ce;border-radius:9px;width:100%;box-sizing:border-box';wrap.append(input);form.append(wrap);return input};
- const date=field('Fecha programada','date',v.scheduledDate),time=field('Hora programada','time',v.scheduledTime),address=field('Dirección','text',v.address);
+ const date=field('Fecha programada','date',canonicalHomeVisitDate(v.scheduledDate)),time=field('Hora programada','time',canonicalHomeVisitTime(v.scheduledTime)),address=field('Dirección','text',v.address);
  const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';
  const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';
@@ -1106,7 +1106,7 @@ function openHomeVisitEdit(id){
    if(!Number.isFinite(Date.parse(scheduledAt)))throw new Error('Fecha u hora inválida.');
    // El backend confirma la escritura antes de actualizar la ficha local.
    const changes={};
-   if(d!==v.scheduledDate||t!==v.scheduledTime)changes.scheduled_at=scheduledAt;
+   if(d!==canonicalHomeVisitDate(v.scheduledDate)||t!==canonicalHomeVisitTime(v.scheduledTime))changes.scheduled_at=scheduledAt;
    if(a!==v.address)changes.address=a;
    const result=await cloud.client.from('home_visits')
     .update(changes)
@@ -1121,7 +1121,7 @@ function openHomeVisitEdit(id){
    const verified=await cloud.client.from('home_visits')
     .select('id,scheduled_at,address').eq('id',v.id).eq('workspace_id',cloud.workspaceId).maybeSingle();
    if(verified.error)throw verified.error;
-   if(!verified.data||Math.abs(new Date(verified.data.scheduled_at).getTime()-savedAt)>60000)
+   if(!verified.data||Math.abs(new Date(verified.data.scheduled_at).getTime()-savedAt)>60000||String(verified.data.address||'')!==a)
     throw new Error('El cambio se envió, pero no pudo verificarse. Actualiza la agenda antes de reintentarlo.');
    v.scheduledDate=d;v.scheduledTime=t;v.address=a;
    saveHomeVisitCache();
