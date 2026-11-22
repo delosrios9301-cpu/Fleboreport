@@ -147,3 +147,9 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button:focu
 @media(max-width:520px){
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button{flex:1 1 auto;}
 }
+
+/* Corrección: mantener visible la acción de edición tras deslizar a la derecha. */
+@media screen and (pointer:coarse){
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-edit-open>.hv-swipe-content{transform:translate3d(92px,0,0)!important;}
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-edit-open>.hv-edit-action{visibility:visible;opacity:1;pointer-events:auto;}
+}
