@@ -182,6 +182,28 @@ public class FleboIdScannerPlugin extends Plugin {
         }
     }
 
+    /** Programación privada de alertas de domicilio, sin datos identificatorios. */
+    @PluginMethod
+    public void syncHomeVisitReminders(PluginCall call) {
+        try {
+            com.getcapacitor.JSArray visits = call.getArray("visits");
+            if (visits == null) { call.reject("Falta la lista de recordatorios."); return; }
+            int count = FleboHomeVisitReminderReceiver.replace(getContext(), visits);
+            JSObject response = new JSObject();
+            response.put("scheduled", count);
+            call.resolve(response);
+        } catch (Exception error) {
+            call.reject("No se pudieron programar las alertas: " + error.getMessage());
+        }
+    }
+
+    /** Evita que las alertas locales de un usuario continúen tras cerrar sesión. */
+    @PluginMethod
+    public void clearHomeVisitReminders(PluginCall call) {
+        FleboHomeVisitReminderReceiver.clear(getContext());
+        call.resolve();
+    }
+
     /** Solo se devuelve la vista solicitada, nunca datos clínicos del Intent. */
     @PluginMethod
     public void consumeSystemNotificationTarget(PluginCall call) {
