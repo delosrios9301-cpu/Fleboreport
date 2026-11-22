@@ -25,9 +25,15 @@ function canonicalHomeVisitDate(value){
 }
 function canonicalHomeVisitTime(value){
  const s=String(value||'').trim();
- const match=s.match(/^(\d{1,2}):(\d{2})/);
+ const match=s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(.*)$/);
  if(!match)return s;
- return (match[1]==='24'?'00':match[1].padStart(2,'0'))+':'+match[2];
+ let hour=Number(match[1]),minute=Number(match[2]);
+ const suffix=match[3].toLowerCase().replace(/[.\s]/g,'');
+ if(hour>24||minute>59)return s;
+ if(suffix==='pm'&&hour<12)hour+=12;
+ if(suffix==='am'&&hour===12)hour=0;
+ if(hour===24&&minute===0)hour=0;
+ return String(hour).padStart(2,'0')+':'+match[2];
 }
 
 async function fetchAllPages(query,pageSize=500){const rows=[];for(let from=0;;from+=pageSize){const result=await query.range(from,from+pageSize-1);if(result.error)throw result.error;const page=result.data||[];rows.push(...page);if(page.length<pageSize)break;}return rows;}
@@ -1071,7 +1077,7 @@ function canArchiveVisit(v){
 function canEditVisit(v){
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
-  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit'))));
+  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit')&&window.fleboCan('domicilios','manage'))));
 }
 function openHomeVisitEdit(id){
  const v=visits.find(x=>String(x.id)===String(id));
@@ -1079,14 +1085,14 @@ function openHomeVisitEdit(id){
  document.getElementById('hvSwipeEditDialog')?.remove();
  const overlay=document.createElement('div');overlay.id='hvSwipeEditDialog';
  overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#102b3a99;display:grid;place-items:center;padding:16px';
- const form=document.createElement('form');form.style.cssText='width:min(100%,450px);max-height:90dvh;overflow:auto;background:white;color:#173b4b;border-radius:16px;padding:20px;box-shadow:0 15px 45px #0003;display:grid;gap:12px';
+ const form=document.createElement('form');form.style.cssText='width:min(100%,480px);max-height:90dvh;overflow:auto;background:white;color:#173b4b;border-radius:18px;padding:20px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 15px 45px #0003;display:grid;gap:12px';
  const title=document.createElement('h3');title.textContent='Corregir domicilio · '+(v.patientName||'Paciente');title.style.margin='0';
  form.append(title);
  const field=(label,type,value)=>{const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;font-size:13px;font-weight:600';wrap.textContent=label;const input=document.createElement('input');input.type=type;input.value=value||'';input.required=true;input.style.cssText='padding:11px;border:1px solid #a8c4ce;border-radius:9px;width:100%;box-sizing:border-box';wrap.append(input);form.append(wrap);return input};
  const date=field('Fecha programada','date',canonicalHomeVisitDate(v.scheduledDate)),time=field('Hora programada','time',canonicalHomeVisitTime(v.scheduledTime)),address=field('Dirección','text',v.address);
- const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap';
- const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';
- const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';
+ const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;padding:10px 0;background:white';
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='btn';cancel.style.cssText='min-height:44px;padding:10px 16px;border:1px solid #aac3c8;border-radius:11px;background:#f4f8f9;color:#244657;font-weight:700';
+ const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';save.className='btn primary';save.style.cssText='min-height:44px;padding:10px 16px;border:0;border-radius:11px;background:#087f85;color:white;font-weight:800';
  actions.append(cancel,save);form.append(actions);overlay.append(form);document.body.append(overlay);
  cancel.onclick=()=>overlay.remove();
  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
@@ -1194,7 +1200,7 @@ function setupHomeVisitSwipe(workspace){
  workspace.dataset.hvArchiveSwipeReady='1';
  workspace.addEventListener('pointerdown',event=>{
   if(!isTouchSwipeMode()||!['touch','pen'].includes(event.pointerType))return;
-  if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,.hv-edit-action,input,select,textarea'))return;
+  if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,.hv-edit-action,.hv-ref-manage,input,select,textarea'))return;
   const row=event.target.closest('.hv-swipe-row');
   if(!row||!workspace.contains(row))return;
   if(hvOpenedSwipe&&hvOpenedSwipe!==row)setHomeVisitSwipe(hvOpenedSwipe,false);
@@ -1270,7 +1276,12 @@ function hvReferenceVisitCard(v,technician){
   +(highPriority?'<span class="hv-ref-priority">'+esc(priorityLabel(v.priority))+'</span>':'')
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
-  +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div></article>';
+  +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div>'
+  +((canEditVisit(v)||canArchiveVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+   +(canEditVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-edit="'+id+'">✎ Corregir fecha y hora</button>':'')
+   +(canArchiveVisit(v)?'<button type="button" class="hv-ref-manage-archive" data-hv-archive="'+id+'">Eliminar</button>':'')
+   +'</div>':'')
+  +'</article>';
  if(!canArchiveVisit(v)&&!canEditVisit(v))return card;
  const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
  const accessibility='Eliminar domicilio '+name+' del listado';

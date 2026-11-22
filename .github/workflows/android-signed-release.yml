@@ -4,7 +4,6 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/android-signed-release.yml'
-      - 'native/android/configure_android.py'
       - 'native/android/FleboIdScannerPlugin.java'
       - 'native/android/ic_stat_fleboreport.xml'
       - 'native/android/flebo_idscanner_paths.xml'

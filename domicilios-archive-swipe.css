@@ -126,3 +126,24 @@
  }
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content {z-index:2;}
 }
+
+/* v2.7: controles visibles y táctiles. Los gestos originales se conservan. */
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage{
+ display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;
+ padding:9px 12px 11px;border-top:1px solid #dce9ec;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:42px;min-width:112px;padding:9px 13px;margin:0;
+ border:1px solid #88bcc3;border-radius:11px;background:#e9f7f7;color:#0e5667;
+ font-size:12px;font-weight:800;line-height:1.25;cursor:pointer;touch-action:manipulation;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button.hv-ref-manage-archive{
+ background:#fff1f2;border-color:#ebacb3;color:#a02a40;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button:focus-visible{
+ outline:3px solid #13b3b4;outline-offset:2px;
+}
+@media(max-width:520px){
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button{flex:1 1 auto;}
+}

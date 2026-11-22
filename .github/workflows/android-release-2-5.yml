@@ -1,4 +1,4 @@
-name: Publicar TALCSYS Lab Android 2.6
+name: Publicar TALCSYS Lab Android 2.7
 on:
   workflow_dispatch:
   push:
@@ -62,34 +62,34 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.6.apk
+          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.7.apk
       - name: Verificar misma firma que Android 2.5
         run: |
           set -euo pipefail
-          APK="TALCSYS-Lab-2.6.apk"
+          APK="TALCSYS-Lab-2.7.apk"
           TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.6-cert.txt"
-          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.6-cert.txt" | head -1 | tr 'A-F' 'a-f')"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.7-cert.txt"
+          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.7-cert.txt" | head -1 | tr 'A-F' 'a-f')"
           test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
           "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionCode='17'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionName='2.6'" "$RUNNER_TEMP/talcsys-badging.txt"
-          echo "Certificado original y versión Android 2.6 verificados."
-      - name: Publicar versión 2.6
+          grep -F "versionCode='18'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionName='2.7'" "$RUNNER_TEMP/talcsys-badging.txt"
+          echo "Certificado original y versión Android 2.7 verificados."
+      - name: Publicar versión 2.7
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-v2.6 >/dev/null 2>&1 || gh release create android-v2.6 --title 'TALCSYS Lab Android 2.6' --notes 'Actualización Android 2.6 con las correcciones recientes de Domicilios y actualización OTA.'
-          gh release upload android-v2.6 TALCSYS-Lab-2.6.apk --clobber
+          gh release view android-v2.7 >/dev/null 2>&1 || gh release create android-v2.7 --title 'TALCSYS Lab Android 2.7' --notes 'Actualización Android 2.7 con las correcciones recientes de Domicilios y actualización OTA.'
+          gh release upload android-v2.7 TALCSYS-Lab-2.7.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ASSET="TALCSYS-Lab-2.6.apk"
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.6/${ASSET}"
-          gh release view android-v2.6 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          ASSET="TALCSYS-Lab-2.7.apk"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.7/${ASSET}"
+          gh release view android-v2.7 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
@@ -98,9 +98,9 @@ jobs:
           from pathlib import Path
           p = Path("android-update.json")
           data = {
-              "versionCode": 17,
-              "versionName": "2.6",
-              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.6",
+              "versionCode": 18,
+              "versionName": "2.7",
+              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.7",
               "notes": "Correcciones de Domicilios y del mecanismo de actualizaciones de TALCSYS Lab.",
               "apkUrl": os.environ["URL"],
               "sha256": os.environ["SHA"]
@@ -111,6 +111,6 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add android-update.json
           if ! git diff --cached --quiet; then
-            git commit -m "Publicar aviso Android 2.6 tras verificar APK firmado"
+            git commit -m "Publicar aviso Android 2.7 tras verificar APK firmado"
             git push origin HEAD:main
           fi
