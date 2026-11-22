@@ -1068,6 +1068,53 @@ function canArchiveVisit(v){
  return !!(v&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&HV_ARCHIVE_STATES.has(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','delete'))));
 }
+function canEditVisit(v){
+ return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
+  !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
+  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit'))));
+}
+function openHomeVisitEdit(id){
+ const v=visits.find(x=>String(x.id)===String(id));
+ if(!canEditVisit(v)){say('No tienes permiso para corregir este domicilio.');return}
+ document.getElementById('hvSwipeEditDialog')?.remove();
+ const overlay=document.createElement('div');overlay.id='hvSwipeEditDialog';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#102b3a99;display:grid;place-items:center;padding:16px';
+ const form=document.createElement('form');form.style.cssText='width:min(100%,450px);max-height:90dvh;overflow:auto;background:white;color:#173b4b;border-radius:16px;padding:20px;box-shadow:0 15px 45px #0003;display:grid;gap:12px';
+ const title=document.createElement('h3');title.textContent='Corregir domicilio · '+(v.patientName||'Paciente');title.style.margin='0';
+ form.append(title);
+ const field=(label,type,value)=>{const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;font-size:13px;font-weight:600';wrap.textContent=label;const input=document.createElement('input');input.type=type;input.value=value||'';input.required=true;input.style.cssText='padding:11px;border:1px solid #a8c4ce;border-radius:9px;width:100%;box-sizing:border-box';wrap.append(input);form.append(wrap);return input};
+ const date=field('Fecha programada','date',v.scheduledDate),time=field('Hora programada','time',v.scheduledTime),address=field('Dirección','text',v.address);
+ const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap';
+ const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';
+ const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';
+ actions.append(cancel,save);form.append(actions);overlay.append(form);document.body.append(overlay);
+ cancel.onclick=()=>overlay.remove();
+ overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
+ form.onsubmit=async e=>{
+  e.preventDefault();
+  if(!canEditVisit(v)){say('Ya no tienes permiso para modificar esta visita.');return}
+  const d=date.value,t=time.value,a=address.value.trim();
+  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)||!/^\\d{2}:\\d{2}$/.test(t)||!a){say('Verifica fecha, hora y dirección.');return}
+  if(d===v.scheduledDate&&t===v.scheduledTime&&a===v.address){overlay.remove();return}
+  save.disabled=true;save.textContent='Guardando…';
+  try{
+   if(!navigator.onLine)throw new Error('Se necesita conexión para guardar');
+   // La política RLS del servidor es la autoridad final; nunca modificar caché antes de confirmar.
+   const scheduledAt=new Date(d+'T'+t+':00-05:00').toISOString();
+   const result=await cloud.client.from('home_visits').update({scheduled_at:scheduledAt,address:a})
+    .eq('id',v.id).eq('workspace_id',cloud.workspaceId).is('archived_at',null)
+    .select('id,scheduled_at,address').maybeSingle();
+   if(result.error)throw result.error;
+   if(!result.data)throw new Error('El servidor no autorizó o no confirmó la actualización');
+   overlay.remove();
+   await loadCloudVisits({forceFull:true});
+   render();
+   say('Domicilio actualizado en la nube.');
+  }catch(error){say('No se pudo guardar: '+(error.message||'Error de conexión'))}
+  finally{save.disabled=false;save.textContent='Guardar cambios'}
+ };
+ date.focus();
+}
 function isTouchSwipeMode(){
  return !!window.matchMedia?.('(pointer:coarse)').matches;
 }
@@ -1134,7 +1181,7 @@ function setupHomeVisitSwipe(workspace){
    g.row.classList.add('is-dragging');
   }
   if(event.cancelable)event.preventDefault();
-  const distance=Math.max(-92,Math.min(0,dx+(g.startedOpen?-92:0)));
+  const distance=Math.max(-92,Math.min(92,dx+(g.startedOpen?-92:0)));
   g.row.querySelector('.hv-swipe-content')?.style.setProperty('transform','translate3d('+distance+'px,0,0)','important');
  },{passive:false});
  workspace.addEventListener('pointerup',event=>{
@@ -1143,7 +1190,7 @@ function setupHomeVisitSwipe(workspace){
   if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
-  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
+  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);openHomeVisitEdit(g.row.dataset.hvSwipeId);return}\n  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
  });
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
@@ -1188,13 +1235,13 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div></article>';
- if(!canArchiveVisit(v))return card;
+ if(!canArchiveVisit(v)&&!canEditVisit(v))return card;
  const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
  const accessibility='Eliminar domicilio '+name+' del listado';
  return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'"><div class="hv-swipe-content">'+card+'</div>'
   +'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'"'
   +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
-  +' aria-label="'+esc(accessibility)+'"><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
+  +' aria-label="'+esc(accessibility)+'"'+(canArchiveVisit(v)?'':' hidden disabled')+'><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
 }
 function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
