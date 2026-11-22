@@ -5,7 +5,9 @@ import shutil
 import xml.etree.ElementTree as ET
 
 root=Path(__file__).resolve().parent
-app=root/'android'/'app'
+app=root.parents[1]/'android'/'app'
+if not (app/'build.gradle').is_file():
+    raise SystemExit('No existe android/app/build.gradle: ejecuta primero npx cap add android y npx cap sync android')
 java=app/'src/main/java/com/fleboreport/app'
 java.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(root/'MainActivity.java',java/'MainActivity.java')
