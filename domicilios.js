@@ -1142,9 +1142,10 @@ function setHomeVisitSwipe(row,opened){
  if(!row)return;
  row.classList.remove('is-dragging');
  row.classList.toggle('is-open',opened);
- const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action');
+ const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action'),editButton=row.querySelector('.hv-edit-action');
  if(content)content.style.removeProperty('transform');
  if(button){button.tabIndex=isTouchSwipeMode()?(opened?0:-1):0;button.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!opened));}
+ if(editButton){editButton.tabIndex=isTouchSwipeMode()?-1:0;}
  if(opened)hvOpenedSwipe=row;
  else if(hvOpenedSwipe===row)hvOpenedSwipe=null;
 }
@@ -1183,7 +1184,7 @@ function setupHomeVisitSwipe(workspace){
  workspace.dataset.hvArchiveSwipeReady='1';
  workspace.addEventListener('pointerdown',event=>{
   if(!isTouchSwipeMode()||!['touch','pen'].includes(event.pointerType))return;
-  if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,input,select,textarea'))return;
+  if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,.hv-edit-action,input,select,textarea'))return;
   const row=event.target.closest('.hv-swipe-row');
   if(!row||!workspace.contains(row))return;
   if(hvOpenedSwipe&&hvOpenedSwipe!==row)setHomeVisitSwipe(hvOpenedSwipe,false);
@@ -1216,6 +1217,10 @@ function setupHomeVisitSwipe(workspace){
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
   hvSwipeGesture=null;setHomeVisitSwipe(g.row,g.startedOpen);
+ });
+ workspace.addEventListener('click',event=>{
+  const button=event.target instanceof Element?event.target.closest('[data-hv-edit]'):null;
+  if(button&&workspace.contains(button)){event.preventDefault();event.stopPropagation();openHomeVisitEdit(button.dataset.hvEdit)}
  });
  workspace.addEventListener('click',event=>{
   if(Date.now()<hvIgnoreCardClickUntil&&event.target instanceof Element&&event.target.closest('.hv-swipe-content')){
@@ -1259,7 +1264,10 @@ function hvReferenceVisitCard(v,technician){
  if(!canArchiveVisit(v)&&!canEditVisit(v))return card;
  const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
  const accessibility='Eliminar domicilio '+name+' del listado';
- return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'"><div class="hv-swipe-content">'+card+'</div>'
+ const pencil=svg('<path d="M12 20h9M16 4l4 4L9 19l-5 1 1-5L16 4Z"/>');
+ return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'">'
+  +(canEditVisit(v)?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" aria-label="Corregir domicilio '+esc(name)+'"><span aria-hidden="true">'+pencil+'</span><span>Corregir</span></button>':'')
+  +'<div class="hv-swipe-content">'+card+'</div>'
   +'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'"'
   +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
   +' aria-label="'+esc(accessibility)+'"'+(canArchiveVisit(v)?'':' hidden disabled')+'><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
