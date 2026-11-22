@@ -5,6 +5,29 @@ const ALLOWED_HOST = 'delosrios9301-cpu.github.io';
 const ALLOWED_PATH_PREFIX = '/Fleboreport/updates/';
 
 let updateInProgress = false;
+function showUpdateMessage(message) {
+  const display = () => {
+    if (!document.body) return;
+    let el = document.getElementById('talcsys-ota-status');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'talcsys-ota-status';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-live', 'polite');
+      Object.assign(el.style, {
+        position: 'fixed', left: '12px', right: '12px', bottom: '18px',
+        zIndex: '2147483647', padding: '12px 16px', borderRadius: '12px',
+        background: '#123e4b', color: '#ffffff', fontSize: '14px',
+        textAlign: 'center', boxShadow: '0 4px 18px #0003'
+      });
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+  };
+  if (document.body) display();
+  else document.addEventListener('DOMContentLoaded', display, { once: true });
+}
+
 let lastCheckAt = 0;
 async function startFleboLiveUpdates() {
   if (updateInProgress || Date.now() - lastCheckAt < 30000) return;
@@ -46,15 +69,18 @@ async function startFleboLiveUpdates() {
     if (active?.bundle?.version === manifest.version) return;
 
     console.info('[FleboReport OTA] Descargando versión', manifest.version);
+    showUpdateMessage('TALCSYS Lab: descargando actualización…');
     const downloaded = await CapacitorUpdater.download({
       url: bundleUrl.href,
       version: manifest.version,
       checksum: manifest.checksum
     });
     await CapacitorUpdater.set({ id: downloaded.id });
+    showUpdateMessage('Actualización descargada. La aplicación aplicará los cambios.');
   } catch (error) {
     // An OTA/network failure must never prevent the installed app from opening.
     console.warn('[FleboReport OTA] Se conserva la versión actual:', error);
+    showUpdateMessage('No se pudo actualizar TALCSYS Lab. Se conserva la versión actual.');
   } finally {
     updateInProgress = false;
   }
