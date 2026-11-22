@@ -1,4 +1,4 @@
-name: Publicar TALCSYS Lab Android 2.9
+name: Publicar TALCSYS Lab Android 2.10
 on:
   workflow_dispatch:
   push:
@@ -40,6 +40,9 @@ jobs:
       - name: Verificar sintaxis de exportación HD y compartir
         run: |
           node --check journey-report-share-hd.js
+          node --check journey-report-letter-export.js
+          grep -F 'ClipData.newUri' native/android/TalcsysDownloadsPlugin.java
+          grep -F 'window.talcsysShareReport' journey-report-letter-export.js
           node --check reports-history-reference.js
           grep -F 'journey-report-share-hd.js' index.html
           grep -F 'journey-report-export-quality.css' index.html
@@ -71,40 +74,40 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.9.apk
+          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.10.apk
       - name: Verificar misma firma que Android 2.5
         run: |
           set -euo pipefail
-          APK="TALCSYS-Lab-2.9.apk"
+          APK="TALCSYS-Lab-2.10.apk"
           TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.9-cert.txt"
-          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.9-cert.txt" | head -1 | tr 'A-F' 'a-f')"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.10-cert.txt"
+          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.10-cert.txt" | head -1 | tr 'A-F' 'a-f')"
           test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
           "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionCode='20'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionName='2.9'" "$RUNNER_TEMP/talcsys-badging.txt"
-          echo "Certificado original y versión Android 2.9 verificados."
-      - name: Publicar versión 2.9
+          grep -F "versionCode='21'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionName='2.10'" "$RUNNER_TEMP/talcsys-badging.txt"
+          echo "Certificado original y versión Android 2.10 verificados."
+      - name: Publicar versión 2.10
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-v2.9 >/dev/null 2>&1 || gh release create android-v2.9 --title 'TALCSYS Lab Android 2.9' --notes 'TALCSYS Lab 2.9: compartir PDF/PNG nativo, encabezados completos y reportes HD.'
+          gh release view android-v2.10 >/dev/null 2>&1 || gh release create android-v2.10 --title 'TALCSYS Lab Android 2.10' --notes 'TALCSYS Lab 2.10: compartir PDF/PNG nativo, encabezados completos y reportes HD.'
           # Publicar primero el nombre histórico para que Android 2.7 y anteriores
-          # puedan descargar la 2.9 con el instalador ya incorporado en su APK.
-          cp TALCSYS-Lab-2.9.apk FleboReport-2.9.apk
-          gh release upload android-v2.9 FleboReport-2.9.apk --clobber
-          gh release upload android-v2.9 TALCSYS-Lab-2.9.apk --clobber
+          # puedan descargar la 2.10 con el instalador ya incorporado en su APK.
+          cp TALCSYS-Lab-2.10.apk FleboReport-2.10.apk
+          gh release upload android-v2.10 FleboReport-2.10.apk --clobber
+          gh release upload android-v2.10 TALCSYS-Lab-2.10.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # El enlace del manifiesto usa el alias compatible con APK 2.7.
-          ASSET="FleboReport-2.9.apk"
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.9/${ASSET}"
-          gh release view android-v2.9 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
-          gh release view android-v2.9 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.9.apk"
+          ASSET="FleboReport-2.10.apk"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.10/${ASSET}"
+          gh release view android-v2.10 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          gh release view android-v2.10 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.10.apk"
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
@@ -120,9 +123,9 @@ jobs:
           from pathlib import Path
           p = Path("android-update.json")
           data = {
-              "versionCode": 20,
-              "versionName": "2.9",
-              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.9",
+              "versionCode": 21,
+              "versionName": "2.10",
+              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.10",
               "notes": "Compartir nativo de archivos PNG/PDF, reportes de jornada HD y encabezados completos.",
               "apkUrl": os.environ["URL"],
               "sha256": os.environ["SHA"]
@@ -134,9 +137,9 @@ jobs:
               echo "El aviso Android ya está actualizado."
               exit 0
             fi
-            git commit -m "Publicar aviso Android 2.9 tras verificar APK firmado"
+            git commit -m "Publicar aviso Android 2.10 tras verificar APK firmado"
             if git push origin HEAD:main; then
-              echo "Aviso Android 2.9 publicado correctamente."
+              echo "Aviso Android 2.10 publicado correctamente."
               exit 0
             fi
             sleep 3
