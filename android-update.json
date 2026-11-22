@@ -1,8 +1,8 @@
 {
-  "versionCode": 23,
-  "versionName": "2.12",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.12",
-  "notes": "Compartir nativo de archivos PNG/PDF, reportes de jornada HD y encabezados completos.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.12/FleboReport-2.12.apk",
-  "sha256": "cc7559cc937915b527977b3b7ec9584628e5f4038921a4b7c430cbea98c47bc8"
+  "versionCode": 24,
+  "versionName": "2.13",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.13",
+  "notes": "Reportes de jornada sin marca de la aplicación en todas las páginas, PDF y PNG.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.13/FleboReport-2.13.apk",
+  "sha256": "e3dca35b787fc6add6d2ff89fac8105acf985a19f3bf9c435342b70ca39982d4"
 }
