@@ -87,8 +87,12 @@ jobs:
         run: |
           gh release view android-v2.5 >/dev/null 2>&1 || gh release create android-v2.5 --title 'TALCSYS Lab Android 2.5' --notes 'Actualización Android 2.5 con las correcciones recientes de Domicilios y actualización OTA.'
           gh release upload android-v2.5 TALCSYS-Lab-2.5.apk --clobber
-      - name: Indicar bloqueo de publicación segura
+      - name: Publicar APK de diagnóstico separado cuando falte firma
         if: steps.firma.outputs.disponible != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          echo "::error::La compilación de diagnóstico no se publica como actualización. Configura ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD con la firma ORIGINAL del APK instalado."
-          exit 1
+          cp android/app/build/outputs/apk/debug/app-debug.apk TALCSYS-Lab-2.5-SOLO-INSTALACION-NUEVA.apk
+          gh release view android-v2.5-diagnostico >/dev/null 2>&1 || gh release create android-v2.5-diagnostico --prerelease --title 'TALCSYS Lab 2.5 - APK diagnóstico (NO actualiza instalaciones)' --notes 'APK de diagnóstico firmado con clave de depuración temporal. NO instalar sobre la aplicación existente: la firma puede ser incompatible. Para una actualización sin perder datos, configurar ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD de la firma ORIGINAL y ejecutar la publicación firmada.'
+          gh release upload android-v2.5-diagnostico TALCSYS-Lab-2.5-SOLO-INSTALACION-NUEVA.apk --clobber
+          echo "::warning::APK de diagnóstico publicado por separado. No sustituye una actualización firmada compatible."
