@@ -87,7 +87,7 @@
    :await window.canvasBlob(canvas,'image/png');
   // El nombre solo utiliza letras ASCII, números, guiones, puntos y subrayados.
   const date=String(record.snapshot.journeyDate||'jornada').replace(/[^0-9A-Za-z_-]/g,'_');
-  const filename='TALCSYS-Lab-jornada-'+date+'.'+format;
+  const filename='Reporte-de-jornada-'+date+'.'+format;
   const mime=format==='pdf'?'application/pdf':'image/png';
   const capacitor=window.Capacitor;
   const native=!!capacitor?.isNativePlatform?.();
@@ -104,7 +104,7 @@
    catch(e){allowed=false}
    if(allowed){
     try{
-     await navigator.share({title:'Reporte de jornada TALCSYS Lab',files:[file]});
+     await navigator.share({title:'Reporte de jornada',files:[file]});
      return;
     }catch(e){if(e?.name==='AbortError')return}
    }
