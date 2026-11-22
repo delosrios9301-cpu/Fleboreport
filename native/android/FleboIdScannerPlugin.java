@@ -371,7 +371,7 @@ public class FleboIdScannerPlugin extends Plugin {
             }
 
             Uri apkUri = FileProvider.getUriForFile(getContext(),
-                getContext().getPackageName() + ".idscanner.provider", file);
+                getContext().getPackageName() + ".talcsys.privateprovider", file);
             // ACTION_INSTALL_PACKAGE entrega el APK directamente al instalador oficial.
             // ClipData y FLAG_GRANT_READ_URI_PERMISSION permiten que este lea el
             // archivo privado en Android modernos sin copiarlo a Descargas.
