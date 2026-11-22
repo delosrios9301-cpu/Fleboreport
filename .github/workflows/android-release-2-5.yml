@@ -81,15 +81,21 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view android-v2.8 >/dev/null 2>&1 || gh release create android-v2.8 --title 'TALCSYS Lab Android 2.8' --notes 'Actualización Android 2.8 con compatibilidad de descarga para archivos TALCSYS-Lab y firma Android original.'
+          # Publicar primero el nombre histórico para que Android 2.7 y anteriores
+          # puedan descargar la 2.8 con el instalador ya incorporado en su APK.
+          cp TALCSYS-Lab-2.8.apk FleboReport-2.8.apk
+          gh release upload android-v2.8 FleboReport-2.8.apk --clobber
           gh release upload android-v2.8 TALCSYS-Lab-2.8.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ASSET="TALCSYS-Lab-2.8.apk"
+          # El enlace del manifiesto usa el alias compatible con APK 2.7.
+          ASSET="FleboReport-2.8.apk"
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.8/${ASSET}"
           gh release view android-v2.8 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          gh release view android-v2.8 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.8.apk"
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
