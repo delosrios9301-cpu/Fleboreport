@@ -1,8 +1,8 @@
 {
-  "versionCode": 18,
-  "versionName": "2.7",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.7",
-  "notes": "Correcciones de Domicilios y del mecanismo de actualizaciones de TALCSYS Lab.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.7/TALCSYS-Lab-2.7.apk",
-  "sha256": "62c1ab0190409e5cc890fc38a1afee80708b6909f28f8c767b2543c578725bd1"
+  "versionCode": 19,
+  "versionName": "2.8",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.8",
+  "notes": "El instalador de TALCSYS Lab admite el nombre oficial del APK y mantiene las verificaciones de firma e integridad.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.8/FleboReport-2.8.apk",
+  "sha256": "fe0820408bf742ecccd3e06d6d661bd3da2a77308d03f4afeaa37dbf8c941483"
 }
