@@ -1094,8 +1094,8 @@ function openHomeVisitEdit(id){
   e.preventDefault();
   if(!canEditVisit(v)){say('Ya no tienes permiso para modificar esta visita.');return}
   const d=date.value,t=time.value,a=address.value.trim();
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)||!/^\\d{2}:\\d{2}$/.test(t)||!a){say('Verifica fecha, hora y dirección.');return}
-  if(d===v.scheduledDate&&t===v.scheduledTime&&a===v.address){overlay.remove();return}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!/^\d{2}:\d{2}$/.test(t)||!a){say('Verifica fecha, hora y dirección.');return}
+  if(d===canonicalHomeVisitDate(v.scheduledDate)&&t===canonicalHomeVisitTime(v.scheduledTime)&&a===v.address){overlay.remove();return}
   save.disabled=true;save.textContent='Guardando…';
   let errorText=form.querySelector('[data-hv-edit-error]');
   if(!errorText){errorText=document.createElement('p');errorText.dataset.hvEditError='1';errorText.style.cssText='color:#a52828;font-size:13px;margin:0;white-space:pre-wrap';actions.before(errorText)}
