@@ -1,8 +1,8 @@
 {
-  "versionCode": 15,
-  "versionName": "2.4",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.4",
-  "notes": "TALCSYS Lab incorpora el logotipo original y los nuevos iconos de Android.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.4/FleboReport-2.4.apk",
-  "sha256": "6429877c4561539c9e66224ea4a3b6cf2f931532d4b94cd9404a601a7ef45145"
+  "versionCode": 17,
+  "versionName": "2.6",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.6",
+  "notes": "Correcciones de Domicilios y del mecanismo de actualizaciones de TALCSYS Lab.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.6/TALCSYS-Lab-2.6.apk",
+  "sha256": "a6a800ba20ae97d84b7f47601126330b936d7c065285b2ef902d84d47331919a"
 }
