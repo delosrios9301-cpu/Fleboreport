@@ -117,7 +117,7 @@ public class TalcsysDownloadsPlugin extends Plugin {
                 stream.flush();
             }
             Uri uri = FileProvider.getUriForFile(getContext(),
-                getContext().getPackageName() + ".idscanner.provider", output);
+                getContext().getPackageName() + ".talcsys.privateprovider", output);
             // Android / WhatsApp necesitan recibir tanto EXTRA_STREAM como ClipData,
             // con permiso URI de lectura propagado también al selector nativo.
             ClipData attachment = ClipData.newUri(
