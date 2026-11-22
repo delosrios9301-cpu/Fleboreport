@@ -4,6 +4,7 @@
  'use strict';
 
  function notify(message){if(typeof window.toast==='function')window.toast(message);else console.info('[Jornada]',message);}
+ function canShareReports(){const can=window.fleboCan;return typeof can==='function'&&(can('reports','export')||can('reports','print'));}
  function bytesToBase64(blob){
   return new Promise(function(resolve,reject){
    const reader=new FileReader();
@@ -119,6 +120,7 @@
  }
 
  window.shareCurrentJourneyReport=async function(format){
+  if(!canShareReports()){notify('No tienes permiso para compartir reportes.');return;}
   if(typeof window.totalTests!=='function'||window.totalTests()<=0){
    notify('Agrega pruebas a la jornada antes de compartir el reporte.');return;
   }
@@ -133,6 +135,7 @@
   }
  };
  window.shareArchivedReport=async function(format,recordId){
+  if(!canShareReports()){notify('No tienes permiso para compartir reportes.');return;}
   const records=window.FleboAppState?.get?.()?.reportHistory||[];
   const record=recordId?records.find(x=>String(x.id)===String(recordId)):
    (typeof window.archivedRecord==='function'?window.archivedRecord():null);
