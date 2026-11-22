@@ -1097,22 +1097,41 @@ function openHomeVisitEdit(id){
   if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(d)||!/^\\d{2}:\\d{2}$/.test(t)||!a){say('Verifica fecha, hora y dirección.');return}
   if(d===v.scheduledDate&&t===v.scheduledTime&&a===v.address){overlay.remove();return}
   save.disabled=true;save.textContent='Guardando…';
+  let errorText=form.querySelector('[data-hv-edit-error]');
+  if(!errorText){errorText=document.createElement('p');errorText.dataset.hvEditError='1';errorText.style.cssText='color:#a52828;font-size:13px;margin:0;white-space:pre-wrap';actions.before(errorText)}
+  errorText.textContent='';
   try{
-   if(!navigator.onLine)throw new Error('Se necesita conexión para guardar');
-   // La política RLS del servidor es la autoridad final; nunca modificar caché antes de confirmar.
+   if(!cloud.ready||!cloud.client||!navigator.onLine)throw new Error('Conéctate a Internet para guardar el cambio.');
    const scheduledAt=new Date(d+'T'+t+':00-05:00').toISOString();
-   const result=await cloud.client.from('home_visits').update({scheduled_at:scheduledAt,address:a})
-    .eq('id',v.id).eq('workspace_id',cloud.workspaceId).is('archived_at',null)
+   if(!Number.isFinite(Date.parse(scheduledAt)))throw new Error('Fecha u hora inválida.');
+   // El backend confirma la escritura antes de actualizar la ficha local.
+   const result=await cloud.client.from('home_visits')
+    .update({scheduled_at:scheduledAt,address:a})
+    .eq('id',v.id).eq('workspace_id',cloud.workspaceId)
     .select('id,scheduled_at,address').maybeSingle();
    if(result.error)throw result.error;
-   if(!result.data)throw new Error('El servidor no autorizó o no confirmó la actualización');
+   if(!result.data)throw new Error('La base de datos no autorizó la modificación. Comprueba los permisos de edición.');
+   const savedAt=new Date(result.data.scheduled_at).getTime();
+   if(Math.abs(savedAt-Date.parse(scheduledAt))>60000||String(result.data.address||'')!==a)
+    throw new Error('El servidor no devolvió los valores solicitados.');
+   // Recargar el registro completo: evita que un cursor de sincronización antiguo restaure la fecha anterior.
+   const verified=await cloud.client.from('home_visits')
+    .select('id,scheduled_at,address').eq('id',v.id).eq('workspace_id',cloud.workspaceId).maybeSingle();
+   if(verified.error)throw verified.error;
+   if(!verified.data||Math.abs(new Date(verified.data.scheduled_at).getTime()-savedAt)>60000)
+    throw new Error('El cambio se envió, pero no pudo verificarse. Actualiza la agenda antes de reintentarlo.');
+   v.scheduledDate=d;v.scheduledTime=t;v.address=a;
+   saveHomeVisitCache();
    overlay.remove();
-   // Respuesta inmediata: actualizar únicamente la ficha confirmada y consultar deltas después.
-   v.scheduledDate=d;v.scheduledTime=t;v.address=result.data.address;
-   saveHomeVisitCache();render();scheduleCloudVisitsRefresh();
-   say('Domicilio actualizado en la nube.');
-  }catch(error){say('No se pudo guardar: '+(error.message||'Error de conexión'))}
-  finally{save.disabled=false;save.textContent='Guardar cambios'}
+   render();
+   // Refresco completo tras una corrección de agenda para evitar sobrescrituras por deltas obsoletos.
+   loadCloudVisits({forceFull:true}).catch(err=>console.warn('[Domicilios] Falló refresco completo tras edición:',err));
+   say('Fecha y dirección guardadas y verificadas.');
+  }catch(error){
+   const message=error?.message||'Error de conexión';
+   errorText.textContent='No se pudo confirmar el cambio: '+message;
+   console.error('[Domicilios] Falló la corrección de agenda:',error);
+  }finally{save.disabled=false;save.textContent='Guardar cambios'}
  };
  date.focus();
 }
