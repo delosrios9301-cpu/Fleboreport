@@ -86,3 +86,43 @@
   touch-action:pan-y!important;
  }
 }
+
+/* v2.5: revelar Corregir a la izquierda al deslizar a la derecha;
+   mantener Eliminar a la derecha, sin mostrar acciones no autorizadas. */
+@media screen {
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row {
+  grid-template-columns:86px minmax(0,1fr) 86px;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row:not(:has(.hv-edit-action)) {
+  grid-template-columns:minmax(0,1fr) 86px;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row:not(:has(.hv-archive-action:not([hidden]))) {
+  grid-template-columns:86px minmax(0,1fr);
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row:not(:has(.hv-edit-action)):not(:has(.hv-archive-action:not([hidden]))) {
+  grid-template-columns:minmax(0,1fr);
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-edit-action {
+  position:relative;z-index:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;width:86px;min-width:0;min-height:100%;box-sizing:border-box;
+  border:0;border-radius:18px;padding:8px 4px;
+  color:#fff;background:linear-gradient(145deg,#087d8b,#12506b);
+  font-size:11px;font-weight:800;cursor:pointer;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-edit-action svg {width:22px;height:22px;}
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content {grid-column:auto;}
+}
+@media screen and (pointer:coarse) {
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row {display:block;}
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-edit-action {
+  position:absolute;left:0;top:0;bottom:0;z-index:1;width:92px;height:100%;
+  border-radius:18px 0 0 18px;pointer-events:none;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row:not(.is-dragging)>.hv-edit-action {
+  visibility:hidden;opacity:0;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-dragging>.hv-edit-action {
+  visibility:visible;opacity:1;
+ }
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-content {z-index:2;}
+}
