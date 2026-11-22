@@ -15,7 +15,7 @@
  }
  function validatedAsset(v,url){
   if(!parts(v))return false;
-  return url===repoUrl+'/releases/download/android-v'+v+'/FleboReport-'+v+'.apk';
+  return ['FleboReport-'+v+'.apk','TALCSYS-Lab-'+v+'.apk'].some(name=>url===repoUrl+'/releases/download/android-v'+v+'/'+name);
  }
  async function fromPublishedReleases(){
   const response=await fetch(api,{cache:'no-store',headers:{Accept:'application/vnd.github+json'}});
@@ -28,8 +28,7 @@
    const match=/^android-v([0-9]+\.[0-9]+(?:\.[0-9]+)?)$/.exec(String(release.tag_name||''));
    if(!match)continue;
    const versionName=match[1];
-   const asset=(release.assets||[]).find(item=>item.name==='FleboReport-'+versionName+'.apk'
-      && validatedAsset(versionName,item.browser_download_url));
+   const asset=(release.assets||[]).find(item=>validatedAsset(versionName,item.browser_download_url));
    if(asset){const shaMatch=/^sha256:([0-9a-f]{64})$/i.exec(String(asset.digest||''));available.push({versionName,apkUrl:asset.browser_download_url,sha256:shaMatch?shaMatch[1]:''});}
   }
   available.sort((a,b)=>isNewer(a.versionName,b.versionName)?-1:isNewer(b.versionName,a.versionName)?1:0);
@@ -46,7 +45,7 @@
  async function check(force=false){
   if(!window.Capacitor?.isNativePlatform?.())return;
   const plugin=window.Capacitor?.Plugins?.FleboIdScanner;
-  if(!plugin?.getAppVersion)return;
+  if(!plugin?.getAppVersion){console.warn('[TALCSYS][Actualizaciones] Puente de versión nativa no disponible');return;}
   if(working||(!force&&Date.now()-last<CHECK_INTERVAL))return;
   working=true;last=Date.now();
   try{
