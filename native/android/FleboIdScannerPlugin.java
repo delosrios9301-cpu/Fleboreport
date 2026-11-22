@@ -279,9 +279,13 @@ public class FleboIdScannerPlugin extends Plugin {
             call.reject("Versión de actualización inválida.");
             return;
         }
-        String expected = "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/"
-            + "android-v" + version + "/FleboReport-" + version + ".apk";
-        if (!expected.equals(assetUrl) || (!sha256.isEmpty() && !sha256.matches("[a-fA-F0-9]{64}"))) {
+        // Los APK oficiales recientes se llaman TALCSYS-Lab-X.apk; los anteriores,
+        // FleboReport-X.apk. Solo se aceptan estos dos nombres de la misma versión.
+        String releasePath = "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/"
+            + "android-v" + version + "/";
+        boolean authorizedAsset = assetUrl.equals(releasePath + "FleboReport-" + version + ".apk")
+            || assetUrl.equals(releasePath + "TALCSYS-Lab-" + version + ".apk");
+        if (!authorizedAsset || (!sha256.isEmpty() && !sha256.matches("[a-fA-F0-9]{64}"))) {
             call.reject("El archivo de actualización no es una publicación autorizada.");
             return;
         }
