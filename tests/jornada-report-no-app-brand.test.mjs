@@ -29,7 +29,7 @@ const document={
  createElement:tag=>{assert.equal(tag,'canvas');return canvas()},
  getElementById:()=>null
 };
-runInNewContext(source,{window,document,Blob,atob,btoa,console});
+runInNewContext(source,{window,document,Blob,atob,btoa,console,canvasBlob:c=>new Promise(resolve=>c.toBlob(resolve))});
 const sample={
  clientName:'GRUPO TOVA',journeyDate:'2026-11-16',
  start:'10:00',end:'16:30',responsible:'Responsable de prueba',
