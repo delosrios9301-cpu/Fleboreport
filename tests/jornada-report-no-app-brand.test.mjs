@@ -62,5 +62,6 @@ const patientPrint=html.split('function indReportHtml(p,only)')[1]?.split('funct
 assert.ok(patientPrint,'Se encontró la plantilla del reporte de paciente');
 assert.doesNotMatch(patientPrint,/TALCSYS(?:\\s*Lab)?|FleboReport/i);
 assert.ok(html.includes("function archivedFileName(r,format){return'Reporte-de-jornada-"));
-assert.doesNotMatch(source,/TALCSYS Lab · REPORTE DE JORNADA|TALCSYS Lab · '\\+\\(s.journeyDate/);
+assert.ok(!source.includes('TALCSYS Lab · REPORTE DE JORNADA'));
+assert.ok(!source.includes("line(ctx,'TALCSYS Lab · '"));
 console.log('Correcto: páginas PDF/PNG, encabezado, pie, nombres, compartir y reporte individual sin marca.');
