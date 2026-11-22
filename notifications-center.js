@@ -49,7 +49,7 @@ async function checkAndroidNotificationPermission(askOnce=false){
   panel.style.display='block';
   const message=$('frAndroidNotifyMessage');
   if(message)message.textContent=status.enabled
-   ?'Avisos de Android activados. Las alertas nuevas aparecerán en la barra mientras TALCSYS Lab esté abierto.'
+   ?'Avisos Android activos. Las salidas programadas pueden avisarte con la app cerrada; otros avisos se reciben con conexión.'
    :'Para recibir avisos en la barra, permite las notificaciones de TALCSYS Lab en Android.';
   if(button)button.textContent=status.enabled?'Ajustes de avisos Android':'Activar notificaciones Android';
  }catch(error){
@@ -85,22 +85,37 @@ async function testAndroidNotification(){
   console.warn('[FleboReport Android] Aviso de prueba:',e);
  }
 }
+// Evitar duplicar un aviso recibido por Realtime y recuperado al reabrir la campana.
+const notificationInFlight=new Set();
+function notificationKey(){return 'talcsys-native-alerts:'+workspaceId+':'+userId;}
+function notifiedRecently(id){
+ try{return JSON.parse(localStorage.getItem(notificationKey())||'[]').includes(id)}
+ catch(_){return false}
+}
+function rememberNotified(id){
+ try{
+  const key=notificationKey(),list=JSON.parse(localStorage.getItem(key)||'[]');
+  localStorage.setItem(key,JSON.stringify([...new Set([...list,id])].slice(-200)));
+ }catch(_){}
+}
 function showDeviceNotification(n){
  if(!n)return;
+ const key=String(n.id||'');
+ if(!key||notificationInFlight.has(key)||notifiedRecently(key))return;
  const clinical=n.entity==='clinical_sample'
   ||String(n.alert_code||'').startsWith('sample_')
   ||String(n.alert_code||'').startsWith('coagulation_');
  const p=androidNotifications();
  if(p){
   // No se envía texto clínico, identificadores de pacientes ni direcciones a Android.
-  const eventId=String(n.id||'');
-  if(!eventId)return;
+  const eventId=key;
+  notificationInFlight.add(eventId);
   p.showSystemNotification({
    eventId,category:clinical?'clinical-processing':'domicilios'
-  }).catch(error=>{
+  }).then(()=>rememberNotified(eventId)).catch(error=>{
    console.warn('[FleboReport Android] Aviso del sistema no mostrado:',error?.message||error);
    void checkAndroidNotificationPermission();
-  });
+  }).finally(()=>notificationInFlight.delete(eventId));
   return;
  }
  try{
@@ -122,7 +137,16 @@ async function resumeNativeNotificationTarget(){
  }catch(error){console.warn('[FleboReport Android] Navegación de aviso:',error)}
 }
 function render(){const list=$('frNotifList');if(!list)return;const unread=rows.filter(n=>n.status!=='read').length,count=$('frNotifCount');count.textContent=unread>99?'99+':String(unread);count.style.display=unread?'inline-flex':'none';$('frNotifSummary').textContent=unread?unread+' pendiente'+(unread===1?'':'s'):'Estás al día';if(!rows.length){list.innerHTML='<div class="fr-notif-empty">No tienes notificaciones todavía.<br>Los avisos de tus módulos aparecerán aquí.</div>';return}list.innerHTML=rows.map(n=>'<button type="button" class="fr-notif-item '+(n.status==='read'?'':'unread')+(n.isSla?' sla-'+esc(n.severity):'')+'" data-notif-id="'+esc(n.id)+'"><strong>'+esc(titleOf(n))+(n.isSla?'<span class="fr-notif-tag">'+(n.severity==='overdue'?'VENCIDO':n.severity==='critical'?'CRÍTICO':'AVISO')+'</span>':'')+'</strong><p>'+esc(messageOf(n))+'</p><time>'+esc(dateOf(n.created_at))+'</time></button>').join('');list.querySelectorAll('[data-notif-id]').forEach(b=>b.addEventListener('click',()=>openNotification(b.dataset.notifId)))}
-async function load(){if(!client||!userId||!workspaceId)return;const [normal,primarySla]=await Promise.all([client.from('home_visit_notifications').select('id,home_visit_id,recipient_user_id,channel,status,template_name,message_body,metadata,created_at').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).eq('channel','in_app').order('created_at',{ascending:false}).limit(60),client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).or('resolved_at.is.null,alert_code.in.(coagulation_minimum,coagulation_near_maximum,coagulation_maximum)').order('generated_at',{ascending:false}).limit(60)]);if(normal.error){$('frNotifList').innerHTML='<div class="fr-notif-empty">No se pudieron cargar los avisos. '+esc(normal.error.message)+'</div>';return}let sla=primarySla;if(sla.error){console.warn('Consulta SLA con espacio de trabajo falló; se reintenta por destinatario:',sla.error);sla=await client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).is('resolved_at',null).order('generated_at',{ascending:false}).limit(60)}if(sla.error){console.warn('No se pudieron cargar las alertas SLA:',sla.error);rows=normal.data||[];render();const note=document.createElement('div');note.className='fr-notif-empty';note.textContent='No se pudieron cargar las alertas de seguimiento. Vuelve a abrir las notificaciones.';$('frNotifList').appendChild(note);return}const a=(sla.data||[]).map(x=>({...x,isSla:true,status:x.acknowledged_at?'read':'pending',created_at:x.generated_at,home_visit_id:x.entity==='home_visit'?x.record_id:null}));rows=[...(normal.data||[]),...a].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,100);render()}
+async function load(){if(!client||!userId||!workspaceId)return;const [normal,primarySla]=await Promise.all([client.from('home_visit_notifications').select('id,home_visit_id,recipient_user_id,channel,status,template_name,message_body,metadata,created_at').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).eq('channel','in_app').order('created_at',{ascending:false}).limit(60),client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).eq('workspace_id',workspaceId).or('resolved_at.is.null,alert_code.in.(coagulation_minimum,coagulation_near_maximum,coagulation_maximum)').order('generated_at',{ascending:false}).limit(60)]);if(normal.error){$('frNotifList').innerHTML='<div class="fr-notif-empty">No se pudieron cargar los avisos. '+esc(normal.error.message)+'</div>';return}let sla=primarySla;if(sla.error){console.warn('Consulta SLA con espacio de trabajo falló; se reintenta por destinatario:',sla.error);sla=await client.from('workflow_sla_alerts').select('id,entity,record_id,recipient_user_id,alert_code,severity,due_at,generated_at,acknowledged_at,resolved_at,metadata').eq('recipient_user_id',userId).is('resolved_at',null).order('generated_at',{ascending:false}).limit(60)}if(sla.error){console.warn('No se pudieron cargar las alertas SLA:',sla.error);rows=normal.data||[];render();const note=document.createElement('div');note.className='fr-notif-empty';note.textContent='No se pudieron cargar las alertas de seguimiento. Vuelve a abrir las notificaciones.';$('frNotifList').appendChild(note);return}const a=(sla.data||[]).map(x=>({...x,isSla:true,status:x.acknowledged_at?'read':'pending',created_at:x.generated_at,home_visit_id:x.entity==='home_visit'?x.record_id:null}));rows=[...(normal.data||[]),...a].sort((x,y)=>new Date(y.created_at)-new Date(x.created_at)).slice(0,100);render();
+ if(androidNotifications()){
+  const now=Date.now();
+  rows.filter(n=>n.isSla&&!n.resolved_at&&n.status!=='read'
+   &&['critical','overdue'].includes(n.severity)
+   &&(now-Date.parse(n.created_at))>=0
+   &&(now-Date.parse(n.created_at))<=2*60*60000)
+   .slice(0,4).forEach(showDeviceNotification);
+ }
+}
 async function mark(id){const n=rows.find(x=>x.id===id);if(!n)return;if(n.isSla){const {error}=await client.from('workflow_sla_alerts').update({acknowledged_at:new Date().toISOString(),acknowledged_by:userId}).eq('id',id).eq('recipient_user_id',userId);if(error)throw error;n.acknowledged_at=new Date().toISOString()}else{const {error}=await client.from('home_visit_notifications').update({status:'read',updated_at:new Date().toISOString()}).eq('id',id).eq('recipient_user_id',userId);if(error)throw error}n.status='read';render()}
 async function openNotification(id){const notification=rows.find(n=>n.id===id);try{await mark(id)}catch(e){console.warn('No se pudo marcar la notificación:',e)}$('frNotifPanel').classList.remove('open');$('frNotifBell').setAttribute('aria-expanded','false');if(notification?.isSla&&notification.entity==='clinical_sample'){if(window.navigate)window.navigate('clinical-processing');return}if(window.navigate)window.navigate('domicilios');
  if(notification?.alert_code==='volunteer_available'&&window.FleboHomeVolunteer?.focusAvailable){
