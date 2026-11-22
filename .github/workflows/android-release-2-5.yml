@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths-ignore:
       - 'android-update.json'
+concurrency:
+  group: talcsys-lab-android-signed-release
+  cancel-in-progress: false
 permissions:
   contents: write
 jobs:
@@ -105,12 +108,19 @@ jobs:
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
-          python3 - <<'PY'
+          # Serializar escrituras del manifiesto en la rama main. Los demás
+          # procesos de GitHub pueden haber avanzado HEAD durante la compilación.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch --quiet origin main
+            git reset --hard origin/main
+            python3 - <<'PY'
           import json, os
           from pathlib import Path
           p = Path("android-update.json")
           data = {
-              "versionCode": 19,
+              "versionCode": 20,
               "versionName": "2.9",
               "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.9",
               "notes": "Compartir nativo de archivos PNG/PDF, reportes de jornada HD y encabezados completos.",
@@ -119,10 +129,17 @@ jobs:
           }
           p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
           PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add android-update.json
-          if ! git diff --cached --quiet; then
+            git add android-update.json
+            if git diff --cached --quiet; then
+              echo "El aviso Android ya está actualizado."
+              exit 0
+            fi
             git commit -m "Publicar aviso Android 2.9 tras verificar APK firmado"
-            git push origin HEAD:main
-          fi
+            if git push origin HEAD:main; then
+              echo "Aviso Android 2.9 publicado correctamente."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::No se pudo sincronizar el aviso con la rama main."
+          exit 1
