@@ -1,4 +1,4 @@
-name: Publicar TALCSYS Lab Android 2.5
+name: Publicar TALCSYS Lab Android 2.6
 on:
   workflow_dispatch:
   push:
@@ -47,7 +47,7 @@ jobs:
       - name: Guardar APK de diagnóstico
         uses: actions/upload-artifact@v4
         with:
-          name: TALCSYS-Lab-2.5-diagnostico-no-instalar
+          name: TALCSYS-Lab-2.6-diagnostico-no-instalar
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
       - name: Compilar APK firmado
@@ -79,20 +79,20 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.5.apk
-      - name: Publicar versión 2.5
+          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.6.apk
+      - name: Publicar versión 2.6
         if: steps.firma.outputs.disponible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-v2.5 >/dev/null 2>&1 || gh release create android-v2.5 --title 'TALCSYS Lab Android 2.5' --notes 'Actualización Android 2.5 con las correcciones recientes de Domicilios y actualización OTA.'
-          gh release upload android-v2.5 TALCSYS-Lab-2.5.apk --clobber
+          gh release view android-v2.6 >/dev/null 2>&1 || gh release create android-v2.6 --title 'TALCSYS Lab Android 2.6' --notes 'Actualización Android 2.6 con las correcciones recientes de Domicilios y actualización OTA.'
+          gh release upload android-v2.6 TALCSYS-Lab-2.6.apk --clobber
       - name: Publicar APK de diagnóstico separado cuando falte firma
         if: steps.firma.outputs.disponible != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk TALCSYS-Lab-2.5-SOLO-INSTALACION-NUEVA.apk
-          gh release view android-v2.5-diagnostico >/dev/null 2>&1 || gh release create android-v2.5-diagnostico --prerelease --title 'TALCSYS Lab 2.5 - APK diagnóstico (NO actualiza instalaciones)' --notes 'APK de diagnóstico firmado con clave de depuración temporal. NO instalar sobre la aplicación existente: la firma puede ser incompatible. Para una actualización sin perder datos, configurar ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD de la firma ORIGINAL y ejecutar la publicación firmada.'
-          gh release upload android-v2.5-diagnostico TALCSYS-Lab-2.5-SOLO-INSTALACION-NUEVA.apk --clobber
+          cp android/app/build/outputs/apk/debug/app-debug.apk TALCSYS-Lab-2.6-SOLO-INSTALACION-NUEVA.apk
+          gh release view android-v2.6-diagnostico >/dev/null 2>&1 || gh release create android-v2.6-diagnostico --prerelease --title 'TALCSYS Lab 2.6 - APK diagnóstico (NO actualiza instalaciones)' --notes 'APK de diagnóstico firmado con clave de depuración temporal. NO instalar sobre la aplicación existente: la firma puede ser incompatible. Para una actualización sin perder datos, configurar ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD de la firma ORIGINAL y ejecutar la publicación firmada.'
+          gh release upload android-v2.6-diagnostico TALCSYS-Lab-2.6-SOLO-INSTALACION-NUEVA.apk --clobber
           echo "::warning::APK de diagnóstico publicado por separado. No sustituye una actualización firmada compatible."
