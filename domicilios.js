@@ -1191,7 +1191,8 @@ function setupHomeVisitSwipe(workspace){
   if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
-  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);openHomeVisitEdit(g.row.dataset.hvSwipeId);return}\n  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
+  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);openHomeVisitEdit(g.row.dataset.hvSwipeId);return}
+  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
  });
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
