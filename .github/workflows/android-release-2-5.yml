@@ -3,8 +3,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/android-release-2-5.yml'
 permissions:
   contents: write
 jobs:
@@ -19,22 +17,41 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Verificar firma persistente
+      - name: Comprobar disponibilidad de firma persistente
+        id: firma
         env:
           KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          test -n "$KEYSTORE" && test -n "$STORE_PASS" && test -n "$KEY_ALIAS" && test -n "$KEY_PASS" || { echo "::error::Faltan secretos de firma Android. No se publicará APK incompatible."; exit 1; }
-          printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/talcsys-release.jks"
-          echo "TALCSYS_KEYSTORE=$RUNNER_TEMP/talcsys-release.jks" >> "$GITHUB_ENV"
+          if [ -n "$KEYSTORE" ] && [ -n "$STORE_PASS" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASS" ]; then
+            printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/talcsys-release.jks"
+            echo "TALCSYS_KEYSTORE=$RUNNER_TEMP/talcsys-release.jks" >> "$GITHUB_ENV"
+            echo "disponible=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "disponible=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Faltan secretos de firma. Se compilará APK de diagnóstico pero no se publicará una actualización incompatible."
+          fi
       - run: npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
       - run: node scripts/prepare-android-web.mjs
       - run: npx cap add android
       - run: npx cap sync android
       - run: python3 native/android/configure_android.py
+      - name: Compilar APK de diagnóstico
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          test -s app/build/outputs/apk/debug/app-debug.apk
+      - name: Guardar APK de diagnóstico
+        uses: actions/upload-artifact@v4
+        with:
+          name: TALCSYS-Lab-2.5-diagnostico-no-instalar
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
       - name: Compilar APK firmado
+        if: steps.firma.outputs.disponible == 'true'
         env:
           STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -64,8 +81,14 @@ jobs:
           test -s app/build/outputs/apk/release/app-release.apk
           cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.5.apk
       - name: Publicar versión 2.5
+        if: steps.firma.outputs.disponible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view android-v2.5 >/dev/null 2>&1 || gh release create android-v2.5 --title 'TALCSYS Lab Android 2.5' --notes 'Actualización Android 2.5 con las correcciones recientes de Domicilios y actualización OTA.'
           gh release upload android-v2.5 TALCSYS-Lab-2.5.apk --clobber
+      - name: Indicar bloqueo de publicación segura
+        if: steps.firma.outputs.disponible != 'true'
+        run: |
+          echo "::error::La compilación de diagnóstico no se publica como actualización. Configura ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD con la firma ORIGINAL del APK instalado."
+          exit 1
