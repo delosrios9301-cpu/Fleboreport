@@ -1107,8 +1107,9 @@ function openHomeVisitEdit(id){
    if(result.error)throw result.error;
    if(!result.data)throw new Error('El servidor no autorizó o no confirmó la actualización');
    overlay.remove();
-   await loadCloudVisits({forceFull:true});
-   render();
+   // Respuesta inmediata: actualizar únicamente la ficha confirmada y consultar deltas después.
+   v.scheduledDate=d;v.scheduledTime=t;v.address=result.data.address;
+   saveHomeVisitCache();render();scheduleCloudVisitsRefresh();
    say('Domicilio actualizado en la nube.');
   }catch(error){say('No se pudo guardar: '+(error.message||'Error de conexión'))}
   finally{save.disabled=false;save.textContent='Guardar cambios'}
