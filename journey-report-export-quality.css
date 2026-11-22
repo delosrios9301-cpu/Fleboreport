@@ -1,0 +1,61 @@
+/* TALCSYS Lab | Exportación Carta: evita cortar "REPORTE DE JORNADA" en PNG/PDF. */
+#view-reports #reportPaper,
+#view-reports .report-paper {box-sizing:border-box;max-width:100%;min-width:0;}
+#view-reports #reportPaper .report-head {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(155px,35%)!important;
+ align-items:start!important;gap:16px!important;
+ width:100%!important;max-width:100%!important;
+ box-sizing:border-box!important;
+}
+#view-reports #reportPaper .report-lab,
+#view-reports #reportPaper .report-lab>div,
+#view-reports #reportPaper .report-meta {min-width:0!important;max-width:100%!important;}
+#view-reports #reportPaper .report-meta {
+ display:block!important;text-align:right!important;
+ white-space:normal!important;overflow:visible!important;
+ overflow-wrap:anywhere!important;
+}
+#view-reports #reportPaper .report-meta strong {
+ display:block!important;max-width:100%!important;
+ font-size:clamp(11px,1.8vw,15px)!important;
+ line-height:1.24!important;
+ white-space:normal!important;overflow:visible!important;
+ overflow-wrap:normal!important;word-break:normal!important;
+ text-overflow:clip!important;
+ color:#0c8b83!important;
+}
+#view-reports #reportPaper .report-lab h2 {
+ max-width:100%!important;overflow-wrap:break-word!important;
+}
+@media(max-width:540px) {
+ #view-reports #reportPaper .report-head{
+  grid-template-columns:minmax(0,1fr) minmax(148px,44%)!important;
+  gap:10px!important;
+ }
+ #view-reports #reportPaper .report-meta strong{font-size:12px!important;}
+}
+@media print {
+ @page {size:letter portrait;margin:12mm;}
+ #view-reports, #view-reports .report-card,
+ #view-reports #reportPaper {
+  width:100%!important;max-width:100%!important;
+  min-width:0!important;height:auto!important;
+  overflow:visible!important;box-sizing:border-box!important;
+ }
+ #view-reports #reportPaper {
+  padding:0!important;margin:0!important;
+  background:#fff!important;box-shadow:none!important;
+  font-family:Arial,sans-serif!important;
+ }
+ #view-reports #reportPaper .report-head{
+  grid-template-columns:minmax(0,1fr) 196px!important;
+  gap:16px!important;break-inside:avoid!important;
+ }
+ #view-reports #reportPaper .report-meta strong{
+  font-size:13px!important;line-height:1.25!important;
+ }
+ #view-reports #reportPaper .report-metrics,
+ #view-reports #reportPaper .report-total{break-inside:avoid!important;}
+ #view-reports #reportPaper .report-test{break-inside:avoid!important;}
+}
