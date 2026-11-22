@@ -1105,8 +1105,11 @@ function openHomeVisitEdit(id){
    const scheduledAt=new Date(d+'T'+t+':00-05:00').toISOString();
    if(!Number.isFinite(Date.parse(scheduledAt)))throw new Error('Fecha u hora inválida.');
    // El backend confirma la escritura antes de actualizar la ficha local.
+   const changes={};
+   if(d!==v.scheduledDate||t!==v.scheduledTime)changes.scheduled_at=scheduledAt;
+   if(a!==v.address)changes.address=a;
    const result=await cloud.client.from('home_visits')
-    .update({scheduled_at:scheduledAt,address:a})
+    .update(changes)
     .eq('id',v.id).eq('workspace_id',cloud.workspaceId)
     .select('id,scheduled_at,address').maybeSingle();
    if(result.error)throw result.error;
@@ -1129,7 +1132,8 @@ function openHomeVisitEdit(id){
    say('Fecha y dirección guardadas y verificadas.');
   }catch(error){
    const message=error?.message||'Error de conexión';
-   errorText.textContent='No se pudo confirmar el cambio: '+message;
+   const details=[message,error?.details,error?.hint,error?.code&&'Código: '+error.code].filter(Boolean).join(' · ');
+   errorText.textContent='No se pudo guardar la nueva fecha: '+details;
    console.error('[Domicilios] Falló la corrección de agenda:',error);
   }finally{save.disabled=false;save.textContent='Guardar cambios'}
  };
