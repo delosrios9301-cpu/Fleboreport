@@ -1077,7 +1077,7 @@ function canArchiveVisit(v){
 function canEditVisit(v){
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
-  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit')&&window.fleboCan('domicilios','manage'))));
+  (cloud.role==='admin'||(typeof window.fleboCan==='function'&&(window.fleboCan('domicilios','edit')||window.fleboCan('domicilios','manage')))));
 }
 function openHomeVisitEdit(id){
  const v=visits.find(x=>String(x.id)===String(id));
@@ -1157,11 +1157,11 @@ function isTouchSwipeMode(){
 function setHomeVisitSwipe(row,opened){
  if(!row)return;
  row.classList.remove('is-dragging');
- row.classList.toggle('is-open',opened);
+ row.classList.toggle('is-open',opened);if(opened)row.classList.remove('is-edit-open');
  const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action'),editButton=row.querySelector('.hv-edit-action');
  if(content)content.style.removeProperty('transform');
  if(button){button.tabIndex=isTouchSwipeMode()?(opened?0:-1):0;button.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!opened));}
- if(editButton){editButton.tabIndex=isTouchSwipeMode()?-1:0;}
+ if(editButton){editButton.tabIndex=isTouchSwipeMode()?(row.classList.contains('is-edit-open')?0:-1):0;editButton.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!row.classList.contains('is-edit-open')));}
  if(opened)hvOpenedSwipe=row;
  else if(hvOpenedSwipe===row)hvOpenedSwipe=null;
 }
@@ -1227,8 +1227,8 @@ function setupHomeVisitSwipe(workspace){
   if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
-  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);openHomeVisitEdit(g.row.dataset.hvSwipeId);return}
-  setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
+  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);g.row.classList.add('is-edit-open');g.row.querySelector('.hv-edit-action')?.setAttribute('aria-hidden','false');g.row.querySelector('.hv-edit-action')?.setAttribute('tabindex','0');return}
+  g.row.classList.remove('is-edit-open');setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
  });
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
