@@ -85,7 +85,7 @@ jobs:
           test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
           "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionCode='21'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionCode='22'" "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "versionName='2.11'" "$RUNNER_TEMP/talcsys-badging.txt"
           echo "Certificado original y versión Android 2.11 verificados."
       - name: Publicar versión 2.11
