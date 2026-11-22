@@ -72,6 +72,14 @@
  async function shareRecord(record,format){
   if(!record||!record.snapshot){notify('No hay un reporte seleccionado.');return;}
   if(format!=='png'&&format!=='pdf')throw new Error('Formato no disponible');
+  // Utilizar exactamente el mismo generador Carta del panel Descargar/Compartir.
+  // Evita dos archivos distintos y da prioridad al plugin nativo de Android.
+  if(typeof window.talcsysShareReport==='function'){
+   const check=document.getElementById('talcsysArchivePatients');
+   const snapshot=check&&!check.closest('[hidden]')?
+     Object.assign({},record.snapshot,{includePatientList:!!check.checked}):record.snapshot;
+   return await window.talcsysShareReport(snapshot,format);
+  }
   const canvas=await window.makeArchivedCanvas(record.snapshot);
   const blob=format==='pdf'
    ?await letterPdfFromCanvas(canvas)
