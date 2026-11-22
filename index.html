@@ -1954,11 +1954,12 @@ function archiveCurrentReport(format){
 }
 function archiveFormatLabel(formats){return (formats||[]).map(function(x){return x.toUpperCase()}).join(' · ')}
 function renderReportHistory(){
+ var canReportShare=typeof window.fleboCan==='function'&&(window.fleboCan('reports','export')||window.fleboCan('reports','print'));
  var list=document.getElementById('reportHistoryList');if(!list)return;
  var records=Array.isArray(state.reportHistory)?state.reportHistory:[];
  document.getElementById('reportHistoryCount').textContent=records.length;
  document.getElementById('reportHistoryLast').textContent=records.length?new Date(records[0].savedAt).toLocaleDateString('es',{day:'numeric',month:'short',year:'numeric'}):'—';
- list.innerHTML=records.length?records.map(function(r){var s=r.snapshot||{};return '<article class="list-row archive-report-row"><div><b>Jornada · '+esc(formatDate(s.journeyDate))+'</b><small>'+esc([s.clientName,s.companyName].filter(Boolean).join(' · ')||'Sin empresa configurada')+' · '+(s.totalPatients||0)+' pacientes · '+(s.totalTests||0)+' pruebas</small><small>Guardado '+esc(new Date(r.savedAt).toLocaleString('es'))+' · Formatos: '+esc(archiveFormatLabel(r.formats))+'</small></div><div class="form-actions"><button class="btn primary" onclick="openArchivedReport(\''+esc(r.id)+'\')">Ver y recuperar</button><button type="button" class="btn" data-archive-share-format="pdf" data-archive-share-id="'+esc(r.id)+'">Compartir PDF</button><button type="button" class="btn" data-archive-share-format="png" data-archive-share-id="'+esc(r.id)+'">Compartir PNG</button></div></article>'}).join(''):'<div class="empty-state">Todavía no hay reportes guardados. Al imprimir como PDF o descargar PNG, se guardará una copia para poder recuperarla aquí.</div>';
+ list.innerHTML=records.length?records.map(function(r){var s=r.snapshot||{};return '<article class="list-row archive-report-row"><div><b>Jornada · '+esc(formatDate(s.journeyDate))+'</b><small>'+esc([s.clientName,s.companyName].filter(Boolean).join(' · ')||'Sin empresa configurada')+' · '+(s.totalPatients||0)+' pacientes · '+(s.totalTests||0)+' pruebas</small><small>Guardado '+esc(new Date(r.savedAt).toLocaleString('es'))+' · Formatos: '+esc(archiveFormatLabel(r.formats))+'</small></div><div class="form-actions"><button class="btn primary" onclick="openArchivedReport(\''+esc(r.id)+'\')">Ver y recuperar</button>'+(canReportShare?'<button type="button" class="btn" data-archive-share-format="pdf" data-archive-share-id="'+esc(r.id)+'">Compartir PDF</button><button type="button" class="btn" data-archive-share-format="png" data-archive-share-id="'+esc(r.id)+'">Compartir PNG</button>':'')+'</div></article>'}).join(''):'<div class="empty-state">Todavía no hay reportes guardados. Al imprimir como PDF o descargar PNG, se guardará una copia para poder recuperarla aquí.</div>';
 }
 function openArchivedReport(id){
  var r=(state.reportHistory||[]).find(function(x){return x.id===id});if(!r)return;activeArchivedReportId=id;
@@ -3959,7 +3960,7 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./clinical-sample-assignment.css?v=20261113-sample1" media="screen">
 <script src="./clinical-sample-assignment.js?v=20261113-sample1"></script>
 <link rel="stylesheet" href="./reports-history-reference.css?v=20261122-hd-share2" media="screen">
-<script src="./reports-history-reference.js?v=20261122-hd-share2"></script>
+<script src="./reports-history-reference.js?v=20261122-share-rights1"></script>
 <link rel="stylesheet" href="./bubble-navigation-catalog.css?v=20261113-bubble2" media="screen">
 <script src="./bubble-navigation-catalog.js?v=20261113-bubble2"></script>
 <link rel="stylesheet" href="./catalog-premium-reference.css?v=20261113-catalog1" media="screen">
@@ -4037,5 +4038,5 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./talcsys-lab-brand.css?v=20261120-color1" media="screen">
 <link rel="stylesheet" href="./journey-report-letter-print.css?v=20261121-1" media="print">
 <script src="./journey-report-letter-export.js?v=20261122-attachment-fix2"></script>
-<script src="./journey-report-share-hd.js?v=20261122-attachment-fix2"></script>
+<script src="./journey-report-share-hd.js?v=20261122-share-rights1"></script>
 </body></html>
