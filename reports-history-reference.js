@@ -24,7 +24,8 @@
   image:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m5 18 5-5 3 3 3-4 4 6"/>',
   file:'<path d="M6 2h8l5 5v14H6V2ZM14 2v6h5M9 12h7M9 16h5"/>',
   filter:'<path d="M3 5h18l-7 8v6l-4 2v-8L3 5Z"/>',
-  print:'<path d="M6 9V3h12v6M6 18H4V10h16v8h-2M6 15h12v7H6v-7Z"/>'
+  print:'<path d="M6 9V3h12v6M6 18H4V10h16v8h-2M6 15h12v7H6v-7Z"/>',
+  share:'<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.5 10.8 7-4M8.5 13.3l7 4"/>'
  };
  function el(tag,klass,text){
   const n=document.createElement(tag);
@@ -121,7 +122,9 @@
   const exports=el('div','rhr-export-actions');
   const png=button('PNG','rhr-export rhr-png',()=>{const source=header?.querySelector('button[onclick="downloadPNG()"]');if(source&&!source.hidden)source.click();},'image');
   const pdf=button('PDF','rhr-export rhr-pdf',()=>{const source=header?.querySelector('button[onclick="generateReportPDF()"]');if(source&&!source.hidden){const preview=$('rhrReportPreview');if(preview)preview.open=true;source.click();}},'file');
-  exports.append(png,pdf);content.append(exports);
+  const sharePdf=button('Compartir PDF','rhr-export rhr-share-pdf',()=>window.shareCurrentJourneyReport?.('pdf'),'share');
+  const sharePng=button('Compartir PNG','rhr-export rhr-share-png',()=>window.shareCurrentJourneyReport?.('png'),'share');
+  exports.append(png,pdf,sharePdf,sharePng);content.append(exports);
   const openPreview=button('','rhr-banner-more',()=>{
    const details=$('rhrReportPreview');
    if(details){
@@ -204,7 +207,9 @@
     const actions=el('div','rhr-archive-actions');
     if(allowReportExport()){
      actions.append(button('PNG','rhr-small-export',()=>openArchive(r.id,'png'),'image'),
-      button('PDF','rhr-small-export',()=>openArchive(r.id,'pdf'),'file'));
+      button('PDF','rhr-small-export',()=>openArchive(r.id,'pdf'),'file'),
+      button('Compartir PDF','rhr-small-export',()=>window.shareArchivedReport?.('pdf',r.id),'share'),
+      button('Compartir PNG','rhr-small-export',()=>window.shareArchivedReport?.('png',r.id),'share'));
     }
     actions.append(button('Ver reporte','rhr-archive-open',()=>openArchive(r.id),'chevron'));
     card.append(actions);
