@@ -131,14 +131,49 @@ async function openNotification(id){const notification=rows.find(n=>n.id===id);t
  }
  if(notification?.home_visit_id&&window.hvOpenNotificationVisit)window.hvOpenNotificationVisit(notification.home_visit_id)}
 async function readAll(){if(!client||!userId)return;const normalIds=rows.filter(n=>!n.isSla&&n.status!=='read').map(n=>n.id),slaIds=rows.filter(n=>n.isSla&&n.status!=='read').map(n=>n.id);if(normalIds.length){const {error}=await client.from('home_visit_notifications').update({status:'read',updated_at:new Date().toISOString()}).in('id',normalIds).eq('recipient_user_id',userId);if(error){console.warn('No se pudieron marcar las notificaciones:',error);return}}if(slaIds.length){const {error}=await client.from('workflow_sla_alerts').update({acknowledged_at:new Date().toISOString(),acknowledged_by:userId}).in('id',slaIds).eq('recipient_user_id',userId);if(error){console.warn('No se pudieron confirmar las alertas:',error);return}}rows.forEach(n=>{n.status='read'});render()}
-function disconnect(){if(channel&&client){client.removeChannel(channel);channel=null}rows=[];userId=null;workspaceId=null;const count=$('frNotifCount');if(count)count.style.display='none';if($('frNotifPanel'))$('frNotifPanel').classList.remove('open')}
-async function connect(){const auth=window.FleboAuth;if(!auth)return;const c=await auth.init(),u=auth.user,m=auth.membership;if(!u||!m?.workspace_id||m.active!==true){disconnect();return}if(userId===u.id&&workspaceId===m.workspace_id&&client===c)return;disconnect();client=c;userId=u.id;workspaceId=m.workspace_id;await load();channel=client.channel('fr-in-app-notifications-'+workspaceId+'-'+userId).on('postgres_changes',{event:'INSERT',schema:'public',table:'home_visit_notifications',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId&&payload.new?.channel==='in_app'){showDeviceNotification(payload.new);load()}}).on('postgres_changes',{event:'INSERT',schema:'public',table:'workflow_sla_alerts',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId){const a={...payload.new,isSla:true};showDeviceNotification({id:a.id,entity:a.entity,record_id:a.record_id,alert_code:a.alert_code,severity:a.severity,metadata:{title:titleOf(a)},message_body:messageOf(a),home_visit_id:a.entity==='home_visit'?a.record_id:null});load()}}).subscribe()}
+// Alertas locales sin depender de que el WebView siga abierto.
+// Solo se entregan UUID y horarios; nunca información de pacientes.
+let homeReminderBusy=false,homeReminderLast=0,homeReminderOwner='';
+async function syncHomeVisitReminders(force=false){
+ const p=androidNotifications();
+ if(!p||typeof p.syncHomeVisitReminders!=='function'||!client||!userId||!workspaceId)return;
+ const owner=workspaceId+':'+userId,now=Date.now();
+ if(homeReminderBusy||(!force&&owner===homeReminderOwner&&now-homeReminderLast<90000))return;
+ homeReminderBusy=true;
+ try{
+  const {data,error}=await client.from('home_visits')
+   .select('id,scheduled_at,status,archived_at,home_visit_assignments(id,assigned_user_id,status,assigned_at)')
+   .eq('workspace_id',workspaceId).is('archived_at',null)
+   .gte('scheduled_at',new Date(now-300000).toISOString())
+   .lte('scheduled_at',new Date(now+120*86400000).toISOString())
+   .order('scheduled_at',{ascending:true}).limit(100);
+  if(error)throw error;
+  const role=String(window.FleboAuth?.membership?.role||'').toLowerCase();
+  const coordinator=['admin','clinician','reception','coordinator','office'].includes(role);
+  const visits=(data||[]).filter(v=>{
+   if(!['accepted','pending_acceptance'].includes(String(v.status||'')))return false;
+   const assignment=(v.home_visit_assignments||[]).slice().sort((a,b)=>
+    new Date(b.assigned_at||0)-new Date(a.assigned_at||0))[0];
+   return assignment?.status==='accepted'&&
+    (coordinator||String(assignment.assigned_user_id||'')===userId);
+  }).map(v=>({id:String(v.id),scheduledAt:Date.parse(v.scheduled_at)}))
+   .filter(v=>/^[0-9a-f-]{36}$/i.test(v.id)&&Number.isFinite(v.scheduledAt)&&v.scheduledAt>now);
+  if(owner!==workspaceId+':'+userId)return;
+  await p.syncHomeVisitReminders({visits});
+  homeReminderOwner=owner;homeReminderLast=Date.now();
+ }catch(error){
+  console.warn('[TALCSYS Android] No se sincronizaron recordatorios:',error?.message||error);
+ }finally{homeReminderBusy=false}
+}
+function disconnect(){if(userId&&androidNotifications()?.clearHomeVisitReminders){void androidNotifications().clearHomeVisitReminders().catch(error=>console.warn('[TALCSYS Android] No se cancelaron alarmas:',error))}homeReminderOwner='';homeReminderLast=0;if(channel&&client){client.removeChannel(channel);channel=null}rows=[];userId=null;workspaceId=null;const count=$('frNotifCount');if(count)count.style.display='none';if($('frNotifPanel'))$('frNotifPanel').classList.remove('open')}
+async function connect(){const auth=window.FleboAuth;if(!auth)return;const c=await auth.init(),u=auth.user,m=auth.membership;if(!u||!m?.workspace_id||m.active!==true){disconnect();return}if(userId===u.id&&workspaceId===m.workspace_id&&client===c)return;disconnect();client=c;userId=u.id;workspaceId=m.workspace_id;await load();void syncHomeVisitReminders(true);channel=client.channel('fr-in-app-notifications-'+workspaceId+'-'+userId).on('postgres_changes',{event:'INSERT',schema:'public',table:'home_visit_notifications',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId&&payload.new?.channel==='in_app'){showDeviceNotification(payload.new);load()}}).on('postgres_changes',{event:'INSERT',schema:'public',table:'workflow_sla_alerts',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId){const a={...payload.new,isSla:true};showDeviceNotification({id:a.id,entity:a.entity,record_id:a.record_id,alert_code:a.alert_code,severity:a.severity,metadata:{title:titleOf(a)},message_body:messageOf(a),home_visit_id:a.entity==='home_visit'?a.record_id:null});load()}}).on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+workspaceId},()=>{homeReminderLast=0;void syncHomeVisitReminders(true)}).on('postgres_changes',{event:'*',schema:'public',table:'home_visit_assignments',filter:'workspace_id=eq.'+workspaceId},()=>{homeReminderLast=0;void syncHomeVisitReminders(true)}).subscribe()}
 function inspectPushDiagnostics(){if(!('serviceWorker'in navigator))return;navigator.serviceWorker.ready.then(reg=>{const worker=reg.active;if(!worker||!window.MessageChannel)return;const channel=new MessageChannel();channel.port1.onmessage=e=>{const result=e.data,box=$('frPushDiag');if(result?.ok){const rows=result.rows||[],latest=rows.slice(-8),received=latest.filter(x=>x.event==='push_received'),shown=latest.filter(x=>x.event==='show_notification_resolved'),failed=latest.filter(x=>x.event==='show_notification_failed');if(box&&rows.length){box.style.display='block';box.textContent=failed.length?'Diagnóstico Push: el Service Worker recibió el aviso, pero falló al mostrarlo.':shown.length?'Diagnóstico Push: el Service Worker recibió el aviso y showNotification terminó correctamente.':received.length?'Diagnóstico Push: el aviso llegó al Service Worker; falta confirmar su presentación.':'Diagnóstico Push: no hay eventos de presentación registrados.'}console.info('[FleboReport][Push diagnóstico] Eventos locales:',rows)}else if(box){box.style.display='block';box.textContent='Diagnóstico Push no disponible en este dispositivo.'}};worker.postMessage({type:'FR_GET_PUSH_DIAGNOSTICS'},[channel.port2])}).catch(e=>console.warn('[FleboReport][Push diagnóstico] No disponible:',e))}
 function init(){style();mount();if(!androidNotifications())inspectPushDiagnostics();if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e));setTimeout(()=>{void checkAndroidNotificationPermission(true);void resumeNativeNotificationTarget()},800)}
 window.addEventListener('flebo:auth-changed',()=>{if(window.FleboAuth)connect().catch(e=>console.warn('Centro de notificaciones:',e));setTimeout(()=>{void checkAndroidNotificationPermission(true);void resumeNativeNotificationTarget()},800)});
-window.addEventListener('online',()=>{if(window.FleboAuth)connect().then(load).catch(e=>console.warn('Centro de notificaciones:',e))});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(navigator.onLine&&userId)load();void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()}});window.addEventListener('focus',()=>{void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()});
+window.addEventListener('online',()=>{if(window.FleboAuth)connect().then(()=>{void load();void syncHomeVisitReminders(true)}).catch(e=>console.warn('Centro de notificaciones:',e))});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){if(navigator.onLine&&userId){load();void syncHomeVisitReminders(true)}void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()}});window.addEventListener('focus',()=>{void checkAndroidNotificationPermission();void resumeNativeNotificationTarget()});
 document.addEventListener('click',e=>{const p=$('frNotifPanel'),b=$('frNotifBell');if(p?.classList.contains('open')&&!p.contains(e.target)&&!b?.contains(e.target)){p.classList.remove('open');b?.setAttribute('aria-expanded','false')}});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.FleboNotifications={refresh:load,close:()=>{$('frNotifPanel')?.classList.remove('open')}};
+window.FleboNotifications={refresh:()=>{void syncHomeVisitReminders();return load()},close:()=>{$('frNotifPanel')?.classList.remove('open')}};
+setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&userId)void syncHomeVisitReminders()},180000);
 })();
