@@ -13,6 +13,8 @@ java.mkdir(parents=True,exist_ok=True)
 shutil.copyfile(root/'MainActivity.java',java/'MainActivity.java')
 shutil.copyfile(root/'FleboIdScannerPlugin.java',java/'FleboIdScannerPlugin.java')
 shutil.copyfile(root/'TalcsysDownloadsPlugin.java',java/'TalcsysDownloadsPlugin.java')
+shutil.copyfile(root/'TalcsysPrivateFileProvider.java',java/'TalcsysPrivateFileProvider.java')
+shutil.copyfile(root/'FleboHomeVisitReminderReceiver.java',java/'FleboHomeVisitReminderReceiver.java')
 shutil.copyfile(root/'FleboQrCameraActivity.java',java/'FleboQrCameraActivity.java')
 xml=app/'src/main/res/xml'
 xml.mkdir(parents=True,exist_ok=True)
@@ -41,7 +43,7 @@ s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
 s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.5.2'\n    implementation 'androidx.camera:camera-lifecycle:1.5.2'\n    implementation 'androidx.camera:camera-view:1.5.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'com.google.zxing:core:3.5.3'",1)
-s=s.replace('versionCode 1','versionCode 22').replace('versionName "1.0"','versionName "2.11"')
+s=s.replace('versionCode 1','versionCode 23').replace('versionName "1.0"','versionName "2.12"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
 ET.register_namespace('android','http://schemas.android.com/apk/res/android')
@@ -60,12 +62,21 @@ application=base.find('application')
 assert application is not None
 for attribute in ('icon', 'roundIcon'):
     application.set(ns + attribute, '@drawable/talcsys_launcher')
-provider=ET.SubElement(application,'provider',{ns+'name':'androidx.core.content.FileProvider',ns+'authorities':'${applicationId}.idscanner.provider',ns+'exported':'false',ns+'grantUriPermissions':'true'})
+provider=ET.SubElement(application,'provider',{ns+'name':'.TalcsysPrivateFileProvider',ns+'authorities':'${applicationId}.talcsys.privateprovider',ns+'exported':'false',ns+'grantUriPermissions':'true'})
 ET.SubElement(provider,'meta-data',{ns+'name':'android.support.FILE_PROVIDER_PATHS',ns+'resource':'@xml/flebo_idscanner_paths'})
 # Solicitar disponibilidad del visor QR de Google Play services en los dispositivos compatibles.
 if not any(x.get(ns+'name')=='com.google.mlkit.vision.DEPENDENCIES' for x in application.findall('meta-data')):
     ET.SubElement(application,'meta-data',{ns+'name':'com.google.mlkit.vision.DEPENDENCIES',ns+'value':'barcode_ui'})
 if not any(x.get(ns+'name')=='.FleboQrCameraActivity' for x in application.findall('activity')):
     ET.SubElement(application,'activity',{ns+'name':'.FleboQrCameraActivity',ns+'exported':'false',ns+'screenOrientation':'portrait'})
+# Alertas de salida sin WebView abierto; permiso de reinicio no es un permiso de datos.
+if not any(x.get(ns+'name')=='android.permission.RECEIVE_BOOT_COMPLETED' for x in base.findall('uses-permission')):
+    base.insert(0,ET.Element('uses-permission',{ns+'name':'android.permission.RECEIVE_BOOT_COMPLETED'}))
+if not any(x.get(ns+'name')=='.FleboHomeVisitReminderReceiver' for x in application.findall('receiver')):
+    receiver=ET.SubElement(application,'receiver',{
+        ns+'name':'.FleboHomeVisitReminderReceiver',ns+'exported':'false'})
+    action_filter=ET.SubElement(receiver,'intent-filter')
+    ET.SubElement(action_filter,'action',{ns+'name':'android.intent.action.BOOT_COMPLETED'})
+    ET.SubElement(action_filter,'action',{ns+'name':'android.intent.action.MY_PACKAGE_REPLACED'})
 tree.write(manifest,encoding='utf-8',xml_declaration=True)
-print('TALCSYS Lab Android 2.11 configurado')
+print('TALCSYS Lab Android 2.12 configurado')
