@@ -19,45 +19,26 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
-      - name: Comprobar disponibilidad de firma persistente
+      - name: Recuperar firma Android original sin crear claves nuevas
         id: firma
         env:
-          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          if [ -n "$KEYSTORE" ] && [ -n "$STORE_PASS" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASS" ]; then
-            printf '%s' "$KEYSTORE" | base64 --decode > "$RUNNER_TEMP/talcsys-release.jks"
-            echo "TALCSYS_KEYSTORE=$RUNNER_TEMP/talcsys-release.jks" >> "$GITHUB_ENV"
-            echo "disponible=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "disponible=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Faltan secretos de firma. Se compilará APK de diagnóstico pero no se publicará una actualización incompatible."
-          fi
+          GH_TOKEN: ${{ github.token }}
+          BACKUP_PASSWORD: ${{ secrets.ANDROID_SIGNING_BACKUP_PASSWORD }}
+          FLEBO_KEYSTORE: ${{ secrets.FLEBO_ANDROID_KEYSTORE_BASE64 }}
+          FLEBO_STORE_PASS: ${{ secrets.FLEBO_ANDROID_KEYSTORE_PASSWORD }}
+          FLEBO_ALIAS: ${{ secrets.FLEBO_ANDROID_KEY_ALIAS }}
+          FLEBO_KEY_PASS: ${{ secrets.FLEBO_ANDROID_KEY_PASSWORD }}
+          LEGACY_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          LEGACY_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          LEGACY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          LEGACY_KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: bash native/android/signing/seleccionar_firma_original.sh
       - run: npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
       - run: node scripts/prepare-android-web.mjs
       - run: npx cap add android
       - run: npx cap sync android
       - run: python3 native/android/configure_android.py
-      - name: Compilar APK de diagnóstico
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-          test -s app/build/outputs/apk/debug/app-debug.apk
-      - name: Guardar APK de diagnóstico
-        uses: actions/upload-artifact@v4
-        with:
-          name: TALCSYS-Lab-2.6-diagnostico-no-instalar
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 14
       - name: Compilar APK firmado
-        if: steps.firma.outputs.disponible == 'true'
-        env:
-          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           cat >> android/app/build.gradle <<'EOF'
 
@@ -82,15 +63,26 @@ jobs:
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
           cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.6.apk
+      - name: Verificar misma firma que Android 2.5
+        run: |
+          set -euo pipefail
+          APK="TALCSYS-Lab-2.6.apk"
+          TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.6-cert.txt"
+          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\\1/p' "$RUNNER_TEMP/talcsys-2.6-cert.txt" | head -1 | tr 'A-F' 'a-f')"
+          test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
+          "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionCode='17'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionName='2.6'" "$RUNNER_TEMP/talcsys-badging.txt"
+          echo "Certificado original y versión Android 2.6 verificados."
       - name: Publicar versión 2.6
-        if: steps.firma.outputs.disponible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release view android-v2.6 >/dev/null 2>&1 || gh release create android-v2.6 --title 'TALCSYS Lab Android 2.6' --notes 'Actualización Android 2.6 con las correcciones recientes de Domicilios y actualización OTA.'
           gh release upload android-v2.6 TALCSYS-Lab-2.6.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
-        if: steps.firma.outputs.disponible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -122,12 +114,3 @@ jobs:
             git commit -m "Publicar aviso Android 2.6 tras verificar APK firmado"
             git push origin HEAD:main
           fi
-      - name: Publicar APK de diagnóstico separado cuando falte firma
-        if: steps.firma.outputs.disponible != 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk TALCSYS-Lab-2.6-SOLO-INSTALACION-NUEVA.apk
-          gh release view android-v2.6-diagnostico >/dev/null 2>&1 || gh release create android-v2.6-diagnostico --prerelease --title 'TALCSYS Lab 2.6 - APK diagnóstico (NO actualiza instalaciones)' --notes 'APK de diagnóstico firmado con clave de depuración temporal. NO instalar sobre la aplicación existente: la firma puede ser incompatible. Para una actualización sin perder datos, configurar ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD de la firma ORIGINAL y ejecutar la publicación firmada.'
-          gh release upload android-v2.6-diagnostico TALCSYS-Lab-2.6-SOLO-INSTALACION-NUEVA.apk --clobber
-          echo "::warning::APK de diagnóstico publicado por separado. No sustituye una actualización firmada compatible."
