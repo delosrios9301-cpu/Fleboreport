@@ -1093,8 +1093,14 @@ function openHomeVisitEdit(id){
  form.onsubmit=async e=>{
   e.preventDefault();
   if(!canEditVisit(v)){say('Ya no tienes permiso para modificar esta visita.');return}
-  const d=date.value,t=time.value,a=address.value.trim();
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!/^\d{2}:\d{2}$/.test(t)||!a){say('Verifica fecha, hora y dirección.');return}
+  const d=canonicalHomeVisitDate(date.value),t=canonicalHomeVisitTime(time.value),a=address.value.trim();
+  const invalidDate=!/^\d{4}-\d{2}-\d{2}$/.test(d)||!Number.isFinite(Date.parse(d+'T12:00:00Z'));
+  const invalidTime=!/^\d{2}:\d{2}$/.test(t)||Number(t.slice(0,2))>23||Number(t.slice(3,5))>59;
+  if(invalidDate||invalidTime||!a){
+   const problem=invalidDate?'Selecciona una fecha válida.':invalidTime?'Selecciona una hora válida.':'La dirección no puede quedar vacía.';
+   window.alert(problem+' Fecha: '+(date.value||'(vacía)')+' · Hora: '+(time.value||'(vacía)'));
+   return;
+  }
   if(d===canonicalHomeVisitDate(v.scheduledDate)&&t===canonicalHomeVisitTime(v.scheduledTime)&&a===v.address){overlay.remove();return}
   save.disabled=true;save.textContent='Guardando…';
   let errorText=form.querySelector('[data-hv-edit-error]');
