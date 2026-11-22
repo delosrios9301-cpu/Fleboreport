@@ -1,8 +1,8 @@
 {
   "versionCode": 19,
-  "versionName": "2.8",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.8",
-  "notes": "El instalador de TALCSYS Lab admite el nombre oficial del APK y mantiene las verificaciones de firma e integridad.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.8/FleboReport-2.8.apk",
-  "sha256": "dd3dd19f284cee6e3321a293de2f71140fadc5e99ef12278911e347350c21cbe"
+  "versionName": "2.9",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.9",
+  "notes": "Compartir nativo de archivos PNG/PDF, reportes de jornada HD y encabezados completos.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.9/FleboReport-2.9.apk",
+  "sha256": "c14b4e681ff467c0427571ac7c0a6c944916aae02fbac9a228fa4eeb64d56f05"
 }
