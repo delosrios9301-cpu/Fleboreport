@@ -3,8 +3,8 @@
    Los reportes archivados se reconstruyen desde su snapshot guardado. */
 (function(){
 'use strict';
-const W=816,H=1056,M=44,BOTTOM=1010,COLGAP=16;
-function canvas(){const c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');if(!x)throw Error('Canvas no disponible');x.fillStyle='#fff';x.fillRect(0,0,W,H);return c}
+const W=816,H=1056,EXPORT_SCALE=2,M=44,BOTTOM=1010,COLGAP=16;
+function canvas(){const c=document.createElement('canvas');c.width=W*EXPORT_SCALE;c.height=H*EXPORT_SCALE;const x=c.getContext('2d');if(!x)throw Error('Canvas no disponible');x.scale(EXPORT_SCALE,EXPORT_SCALE);x.fillStyle='#fff';x.fillRect(0,0,W,H);return c}
 function t(ctx,str,x,y,max){ctx.fillText(String(str==null?'':str),x,y,max)}
 function rect(ctx,x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(x,y,w,h)}
 function line(ctx,str,x,y,max,fill='#193b51',font='12px Arial'){ctx.fillStyle=fill;ctx.font=font;t(ctx,str,x,y,max)}
@@ -15,8 +15,8 @@ function pagesFor(snapshot){
  function next(){pages.push(p);p=canvas();c=p.getContext('2d');y=56;line(c,'TALCSYS Lab · REPORTE DE JORNADA',M,33,600,'#0a898b','bold 12px Arial');rect(c,M,43,W-M*2,1,'#dce8ed')}
  function ensure(height){if(y+height>BOTTOM)next()}
  function header(){
- line(c,s.clientName||s.companyName||'Reporte de jornada',M,75,510,'#0b3552','bold 22px Arial');
- line(c,'REPORTE DE JORNADA',W-M,65,250,'#0c8b83','bold 14px Arial'); // right-aligned below
+ line(c,s.clientName||s.companyName||'Reporte de jornada',M,75,420,'#0b3552','bold 22px Arial');
+ c.textAlign='right';line(c,'REPORTE DE JORNADA',W-M,65,285,'#0c8b83','bold 14px Arial');c.textAlign='left';
  line(c,'Fecha: '+(s.journeyDate||'—')+'  |  Horario: '+(s.start||'—')+' a '+(s.end||'—'),M,102,720,'#526c7d','11px Arial');
  line(c,'Responsable: '+(s.responsible||'Sin especificar'),M,121,720,'#526c7d','11px Arial');
  if(s.clientName&&s.companyName)line(c,'Laboratorio: '+s.companyName,M,139,720,'#526c7d','10px Arial');
@@ -58,7 +58,7 @@ function pagesFor(snapshot){
 }
 function pdfFromPages(pages){
  // PDF A4 no: tamaño carta exacto 612 × 792 pt.
- const binaries=pages.map(p=>atob(p.toDataURL('image/jpeg',.87).split(',')[1]));
+ const binaries=pages.map(p=>atob(p.toDataURL('image/jpeg',.96).split(',')[1]));
  const objects=[],add=o=>{objects.push(o);return objects.length};
  const catalog=add(''),root=add('');
  const kids=[];
@@ -66,7 +66,7 @@ function pdfFromPages(pages){
   const pageId=objects.length+1,imageId=pageId+1,streamId=pageId+2;kids.push(pageId+' 0 R');
   objects.push(pageId+' 0 obj << /Type /Page /Parent '+root+' 0 R /MediaBox [0 0 612 792] /Resources << /XObject << /Im0 '+imageId+' 0 R >> >> /Contents '+streamId+' 0 R >> endobj\n');
   const binary=binaries[i];
-  objects.push(imageId+' 0 obj << /Type /XObject /Subtype /Image /Width '+W+' /Height '+H+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+binary.length+' >> stream\n'+binary+'\nendstream endobj\n');
+  objects.push(imageId+' 0 obj << /Type /XObject /Subtype /Image /Width '+pages[i].width+' /Height '+pages[i].height+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+binary.length+' >> stream\n'+binary+'\nendstream endobj\n');
   const commands='q 612 0 0 792 0 0 cm /Im0 Do Q';
   objects.push(streamId+' 0 obj << /Length '+commands.length+' >> stream\n'+commands+'\nendstream endobj\n');
  }
@@ -81,16 +81,53 @@ function pdfFromPages(pages){
 }
 function name(s,format){return'TALCSYS-Lab-jornada-'+(s.journeyDate||'reporte')+'.'+format}
 let lastDownloadUrl=null;
+async function nativeFilePayload(blob,filename){
+ const bytes=new Uint8Array(await blob.arrayBuffer());
+ let binary='';
+ for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
+ return {filename:filename,mime:blob.type,base64:btoa(binary)};
+}
 async function nativeSave(blob,filename){
  const capacitor=window.Capacitor;
  const native=capacitor&&typeof capacitor.isNativePlatform==='function'&&capacitor.isNativePlatform();
  const plugin=capacitor&&capacitor.Plugins&&capacitor.Plugins.TalcsysDownloads;
  if(!native||!plugin||typeof plugin.save!=='function')return null;
- const bytes=new Uint8Array(await blob.arrayBuffer());
- let binary='';
- for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));
- return plugin.save({filename,mime:blob.type,base64:btoa(binary)});
+ return plugin.save(await nativeFilePayload(blob,filename));
 }
+async function shareRealReport(blob,filename){
+ const capacitor=window.Capacitor;
+ const native=capacitor&&typeof capacitor.isNativePlatform==='function'&&capacitor.isNativePlatform();
+ const plugin=capacitor&&capacitor.Plugins&&capacitor.Plugins.TalcsysDownloads;
+ if(native){
+  if(!plugin||typeof plugin.share!=='function')throw Error('Este APK no admite compartir archivos. Actualiza TALCSYS Lab.');
+  await plugin.share(await nativeFilePayload(blob,filename));
+  return;
+ }
+ if(typeof navigator.share==='function'&&typeof File==='function'){
+  const file=new File([blob],filename,{type:blob.type});
+  if(typeof navigator.canShare==='function'&&navigator.canShare({files:[file]})){
+   await navigator.share({files:[file],title:'Reporte de jornada TALCSYS Lab'});
+   return;
+  }
+ }
+ throw Error('El navegador no admite compartir archivos directamente. Descarga el reporte.');
+}
+window.talcsysShareReport=async function(snapshot,format){
+ if(format!=='pdf'&&format!=='png')throw Error('Formato de reporte no admitido');
+ const pages=pagesFor(snapshot);
+ let blob;
+ if(format==='pdf')blob=pdfFromPages(pages);
+ else{
+  if(pages.length>12)throw Error('Reporte demasiado largo para PNG; utiliza PDF.');
+  const image=document.createElement('canvas');
+  image.width=W*EXPORT_SCALE;image.height=H*EXPORT_SCALE*pages.length;
+  if(image.height>32767||image.width*image.height>40000000)throw Error('Reporte demasiado grande para PNG HD. Utiliza PDF.');
+  const ctx=image.getContext('2d');if(!ctx)throw Error('No se pudo preparar la imagen');
+  pages.forEach((p,i)=>ctx.drawImage(p,0,i*H*EXPORT_SCALE));
+  blob=await canvasBlob(image,'image/png');
+ }
+ await shareRealReport(blob,name(snapshot,format));
+};
 function presentFile(blob,filename){
  if(!blob||blob.size<100)throw Error('El archivo generado está vacío.');
  const url=URL.createObjectURL(blob);
@@ -122,11 +159,14 @@ function presentFile(blob,filename){
  const share=document.createElement('button');share.type='button';share.textContent='Compartir';
  share.style.cssText='padding:10px;border:1px solid #0b8988;border-radius:8px;background:white;color:#0b8988;font-weight:bold';
  share.onclick=async function(){
+  share.disabled=true;
   try{
-   const file=new File([blob],filename,{type:blob.type});
-   if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:filename});return}
-   desc.textContent='Compartir archivos no está disponible en este WebView. Utiliza Guardar en Descargas y compártelo desde Archivos.';
-  }catch(e){if(e&&e.name!=='AbortError')desc.textContent='No se pudo compartir: '+(e.message||String(e))}
+   await shareRealReport(blob,filename);
+   // Selector abierto: no afirmar que WhatsApp o el destinatario recibió el archivo.
+   panel.remove();
+  }catch(e){
+   if(e&&e.name!=='AbortError')desc.textContent='No se pudo compartir: '+(e.message||String(e));
+  }finally{share.disabled=false}
  };
  const close=document.createElement('button');close.type='button';close.textContent='Cerrar';close.style.cssText='margin-left:8px;padding:10px;border:0;background:transparent;color:#345';close.onclick=function(){panel.remove()};
  panel.append(title,desc,save,link,share,close);
@@ -139,10 +179,10 @@ function exportSnapshot(s,format){
  const pages=pagesFor(s);
  if(format==='pdf')return Promise.resolve(presentFile(pdfFromPages(pages),name(s,'pdf')));
  if(pages.length>12)throw Error('El reporte tiene demasiadas páginas para una sola imagen. Descárgalo en PDF.');
- const image=document.createElement('canvas');image.width=W;image.height=H*pages.length;
- if(image.height>32767)throw Error('El reporte supera el tamaño máximo de imagen. Utiliza PDF.');
+ const image=document.createElement('canvas');image.width=W*EXPORT_SCALE;image.height=H*EXPORT_SCALE*pages.length;
+ if(image.height>32767||image.width*image.height>40000000)throw Error('El reporte es demasiado grande para PNG HD. Utiliza PDF.');
  const ctx=image.getContext('2d');if(!ctx)throw Error('No se pudo preparar la imagen');
- pages.forEach((p,i)=>ctx.drawImage(p,0,i*H));
+ pages.forEach((p,i)=>ctx.drawImage(p,0,i*H*EXPORT_SCALE));
  return canvasBlob(image,'image/png').then(blob=>presentFile(blob,name(s,'png')));
 }
 function selection(s){
