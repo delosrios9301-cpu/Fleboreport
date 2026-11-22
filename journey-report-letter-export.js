@@ -12,7 +12,7 @@ function split(ctx,value,maxWidth){const words=String(value||'—').split(/\s+/)
 function pagesFor(snapshot){
  const s=snapshot||{},tests=Array.isArray(s.tests)?s.tests:[],patients=s.includePatientList&&Array.isArray(s.patientList)?s.patientList:[],pages=[];
  let p=canvas(),c=p.getContext('2d'),y=0;
- function next(){pages.push(p);p=canvas();c=p.getContext('2d');y=56;line(c,'TALCSYS Lab · REPORTE DE JORNADA',M,33,600,'#0a898b','bold 12px Arial');rect(c,M,43,W-M*2,1,'#dce8ed')}
+ function next(){pages.push(p);p=canvas();c=p.getContext('2d');y=56;line(c,'REPORTE DE JORNADA',M,33,600,'#0a898b','bold 12px Arial');rect(c,M,43,W-M*2,1,'#dce8ed')}
  function ensure(height){if(y+height>BOTTOM)next()}
  function header(){
  line(c,s.clientName||s.companyName||'Reporte de jornada',M,75,420,'#0b3552','bold 22px Arial');
@@ -53,7 +53,7 @@ function pagesFor(snapshot){
   }
  }
  pages.push(p);
- pages.forEach((page,i)=>{const ctx=page.getContext('2d');line(ctx,'TALCSYS Lab · '+(s.journeyDate||''),M,H-23,500,'#8a9ca6','9px Arial');ctx.textAlign='right';line(ctx,'Página '+(i+1)+' de '+pages.length,W-M,H-23,160,'#8a9ca6','9px Arial');ctx.textAlign='left'});
+ pages.forEach((page,i)=>{const ctx=page.getContext('2d');line(ctx,'Fecha: '+(s.journeyDate||'—'),M,H-23,500,'#8a9ca6','9px Arial');ctx.textAlign='right';line(ctx,'Página '+(i+1)+' de '+pages.length,W-M,H-23,160,'#8a9ca6','9px Arial');ctx.textAlign='left'});
  return pages;
 }
 function pdfFromPages(pages){
@@ -72,14 +72,14 @@ function pdfFromPages(pages){
  }
  objects[catalog-1]=catalog+' 0 obj << /Type /Catalog /Pages '+root+' 0 R >> endobj\n';
  objects[root-1]=root+' 0 obj << /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >> endobj\n';
- let pdf='%PDF-1.4\n%TALCSYS-LAB\n',offsets=[0];
+ let pdf='%PDF-1.4\n%REPORTE-DE-JORNADA\n',offsets=[0];
  for(const obj of objects){offsets.push(pdf.length);pdf+=obj}
  const start=pdf.length;pdf+='xref\n0 '+offsets.length+'\n0000000000 65535 f \n';
  for(let i=1;i<offsets.length;i++)pdf+=String(offsets[i]).padStart(10,'0')+' 00000 n \n';
  pdf+='trailer << /Size '+offsets.length+' /Root '+catalog+' 0 R >>\nstartxref\n'+start+'\n%%EOF';
  return new Blob([Uint8Array.from(pdf,ch=>ch.charCodeAt(0)&255)],{type:'application/pdf'});
 }
-function name(s,format){return'TALCSYS-Lab-jornada-'+(s.journeyDate||'reporte')+'.'+format}
+function name(s,format){return'Reporte-de-jornada-'+(s.journeyDate||'sin-fecha')+'.'+format}
 let lastDownloadUrl=null;
 async function nativeFilePayload(blob,filename){
  const bytes=new Uint8Array(await blob.arrayBuffer());
@@ -106,7 +106,7 @@ async function shareRealReport(blob,filename){
  if(typeof navigator.share==='function'&&typeof File==='function'){
   const file=new File([blob],filename,{type:blob.type});
   if(typeof navigator.canShare==='function'&&navigator.canShare({files:[file]})){
-   await navigator.share({files:[file],title:'Reporte de jornada TALCSYS Lab'});
+   await navigator.share({files:[file],title:'Reporte de jornada'});
    return;
   }
  }
