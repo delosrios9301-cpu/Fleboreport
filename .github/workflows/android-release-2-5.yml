@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - 'android-update.json'
 permissions:
   contents: write
 jobs:
@@ -87,6 +89,39 @@ jobs:
         run: |
           gh release view android-v2.6 >/dev/null 2>&1 || gh release create android-v2.6 --title 'TALCSYS Lab Android 2.6' --notes 'Actualización Android 2.6 con las correcciones recientes de Domicilios y actualización OTA.'
           gh release upload android-v2.6 TALCSYS-Lab-2.6.apk --clobber
+      - name: Verificar publicación y actualizar aviso Android
+        if: steps.firma.outputs.disponible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSET="TALCSYS-Lab-2.6.apk"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.6/${ASSET}"
+          gh release view android-v2.6 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          curl --fail --location --silent --show-error --output /dev/null "$URL"
+          SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
+          export URL SHA
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path("android-update.json")
+          data = {
+              "versionCode": 17,
+              "versionName": "2.6",
+              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.6",
+              "notes": "Correcciones de Domicilios y del mecanismo de actualizaciones de TALCSYS Lab.",
+              "apkUrl": os.environ["URL"],
+              "sha256": os.environ["SHA"]
+          }
+          p.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android-update.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publicar aviso Android 2.6 tras verificar APK firmado"
+            git push origin HEAD:main
+          fi
       - name: Publicar APK de diagnóstico separado cuando falte firma
         if: steps.firma.outputs.disponible != 'true'
         env:
