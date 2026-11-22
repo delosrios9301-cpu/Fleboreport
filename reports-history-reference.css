@@ -607,3 +607,22 @@
  #view-audit.rhr-ready .rhr-history-advanced>.audit-stats,
  #view-audit.rhr-ready>.rhr-archive-disclosure{display:none!important}
 }
+/* Jornada 2.9: cuatro opciones de exportación reales sin recortar texto en Android. */
+body.fr2-app-authorized #view-reports.rhr-ready .rhr-export-actions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ gap:7px!important;
+}
+body.fr2-app-authorized #view-reports.rhr-ready button.rhr-export{
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ white-space:normal!important;line-height:1.18!important;
+ padding:8px!important;
+}
+body.fr2-app-authorized #view-reports.rhr-ready button.rhr-export[hidden]{display:none!important}
+body.fr2-app-authorized #view-reports.rhr-ready .rhr-archive-actions{
+ flex:1 1 100%!important;max-width:100%!important;min-width:0!important;
+ justify-content:flex-start!important;flex-wrap:wrap!important;
+}
+body.fr2-app-authorized #view-reports.rhr-ready .rhr-archive-actions button{
+ white-space:normal!important;flex:0 1 auto!important;
+}
