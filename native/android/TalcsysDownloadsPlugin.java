@@ -3,6 +3,7 @@ package com.fleboreport.app;
 import android.content.ContentValues;
 import android.content.ContentResolver;
 import android.content.Intent;
+import android.content.ClipData;
 import android.net.Uri;
 import androidx.core.content.FileProvider;
 import android.os.Build;
@@ -117,13 +118,22 @@ public class TalcsysDownloadsPlugin extends Plugin {
             }
             Uri uri = FileProvider.getUriForFile(getContext(),
                 getContext().getPackageName() + ".idscanner.provider", output);
+            // Android / WhatsApp necesitan recibir tanto EXTRA_STREAM como ClipData,
+            // con permiso URI de lectura propagado también al selector nativo.
+            ClipData attachment = ClipData.newUri(
+                getContext().getContentResolver(), filename, uri);
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType(mime);
             intent.putExtra(Intent.EXTRA_STREAM, uri);
+            intent.setClipData(attachment);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            getActivity().startActivity(Intent.createChooser(intent, "Compartir reporte de jornada"));
+            Intent chooser = Intent.createChooser(intent, "Compartir reporte de jornada");
+            chooser.setClipData(attachment);
+            chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            getActivity().runOnUiThread(() -> getActivity().startActivity(chooser));
             JSObject result = new JSObject();
-            result.put("shared", true);
+            // Solo confirma que se abrió el selector; no que el destinatario recibió.
+            result.put("chooserOpened", true);
             call.resolve(result);
         } catch (Exception ex) {
             call.reject("No se pudo abrir Compartir: " + ex.getMessage());
