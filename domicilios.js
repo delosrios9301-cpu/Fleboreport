@@ -23,6 +23,11 @@ function canonicalHomeVisitDate(value){
  if(us)return us[3]+'-'+us[1].padStart(2,'0')+'-'+us[2].padStart(2,'0');
  return s;
 }
+// Formato estable independientemente de locale/navegador (Android, iPad y PC).
+function isFutureHomeVisitDay(date){
+ const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/Panama',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+ return canonicalHomeVisitDate(date)>[parts.year,parts.month,parts.day].join('-');
+}
 function canonicalHomeVisitTime(value){
  const s=String(value||'').trim();
  const match=s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(.*)$/);
@@ -185,7 +190,7 @@ async function ensureVisitAssignment(v){
   if(!result.data)throw new Error('El servidor no confirmó la asignación.');
   // La regla definitiva se aplica en la transacción de la base de datos.
   // La vista se actualiza inmediatamente y luego se reconcilia con la nube.
-  const plannedSchedule=canonicalHomeVisitDate(v.scheduledDate)>today();
+  const plannedSchedule=isFutureHomeVisitDay(v.scheduledDate);
   v.assignedUserId=assignedUserId;v.assignmentId=result.data;
   v.assignmentStatus=plannedSchedule?'accepted':'invited';
   v.autoAssigned=plannedSchedule;
@@ -1109,7 +1114,7 @@ function openHomeVisitAssignment(id){
  form.style.cssText='width:min(100%,470px);max-height:90dvh;overflow:auto;padding:20px;background:#fff;color:#173b4b;border-radius:18px;display:grid;gap:12px;box-shadow:0 15px 45px #0003';
  const heading=document.createElement('h3');heading.textContent='Asignar responsable · '+(visit.patientName||'Domicilio');
  heading.style.margin='0';form.append(heading);
- const plannedSchedule=canonicalHomeVisitDate(visit.scheduledDate)>today();
+ const plannedSchedule=isFutureHomeVisitDay(visit.scheduledDate);
  const note=document.createElement('p');note.textContent='Cita programada: '+dateLabel(visit.scheduledDate)+' · '+hvReferenceHour(visit.scheduledTime)+'. '+(plannedSchedule?'Se incorporará directamente a la agenda, sin solicitar aceptación.':'Se enviará como domicilio adicional, pendiente de aceptación del responsable.');
  note.style.cssText='font-size:12px;line-height:1.5;margin:0;color:#536c7b';form.append(note);
  const label=document.createElement('label');label.textContent='Buscar usuario autorizado';label.style.cssText='font-weight:700;font-size:13px;display:grid;gap:6px';
