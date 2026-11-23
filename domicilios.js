@@ -1116,7 +1116,7 @@ function openHomeVisitAssignment(id){
  actions.append(cancel,submit);form.append(actions);overlay.append(form);document.body.append(overlay);
  const close=()=>overlay.remove();cancel.onclick=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
  form.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close()}});
- const normalize=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('es').trim();
+ const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').trim();
  let directory=[],chosen='',loaded=false,saving=false;
  function list(){
   options.replaceChildren();
