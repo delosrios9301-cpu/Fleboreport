@@ -43,7 +43,7 @@ s=gradle.read_text()
 needle='dependencies {'
 assert needle in s,'No se encontró bloque de dependencias'
 s=s.replace(needle,needle+"\n    implementation 'androidx.camera:camera-camera2:1.5.2'\n    implementation 'androidx.camera:camera-lifecycle:1.5.2'\n    implementation 'androidx.camera:camera-view:1.5.2'\n    implementation 'com.google.mlkit:barcode-scanning:17.3.0'\n    implementation 'com.google.zxing:core:3.5.3'",1)
-s=s.replace('versionCode 1','versionCode 24').replace('versionName "1.0"','versionName "2.13"')
+s=s.replace('versionCode 1','versionCode 25').replace('versionName "1.0"','versionName "2.14"')
 gradle.write_text(s)
 manifest=app/'src/main/AndroidManifest.xml'
 ET.register_namespace('android','http://schemas.android.com/apk/res/android')
@@ -79,4 +79,4 @@ if not any(x.get(ns+'name')=='.FleboHomeVisitReminderReceiver' for x in applicat
     ET.SubElement(action_filter,'action',{ns+'name':'android.intent.action.BOOT_COMPLETED'})
     ET.SubElement(action_filter,'action',{ns+'name':'android.intent.action.MY_PACKAGE_REPLACED'})
 tree.write(manifest,encoding='utf-8',xml_declaration=True)
-print('TALCSYS Lab Android 2.13 configurado')
+print('TALCSYS Lab Android 2.14 configurado')
