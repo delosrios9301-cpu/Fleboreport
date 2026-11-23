@@ -153,3 +153,17 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button:focu
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-edit-open>.hv-swipe-content{transform:translate3d(92px,0,0)!important;}
  body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-swipe-row.is-edit-open>.hv-edit-action{visibility:visible;opacity:1;pointer-events:auto;}
 }
+
+/* Asignar responsables a domicilios creados: acción visible solo con permiso. */
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button.hv-ref-manage-assign{
+ background:#e4f5f1;border-color:#65b8a9;color:#0a6662;
+ flex:1 1 145px;min-height:44px;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button.hv-ref-manage-assign:active{
+ transform:scale(.985);
+}
+@media(max-width:520px){
+ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button.hv-ref-manage-assign{
+  flex:1 1 100%;width:100%;
+ }
+}
