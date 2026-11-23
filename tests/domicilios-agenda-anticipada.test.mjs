@@ -28,15 +28,22 @@ test('resguardos de servidor exigen autenticación, permisos y transacción iden
 });
 
 test('fecha local estricta diferencia agenda de mañana de los extras de hoy',()=>{
- const today='2026-11-22';
- const planned=date=>date>today;
- assert.equal(planned('2026-11-23'),true);
- assert.equal(planned('2026-12-01'),true);
- assert.equal(planned('2026-11-22'),false);
- assert.equal(planned('2026-11-21'),false);
- assert.match(client,/canonicalHomeVisitDate\(v\.scheduledDate\)>today\(\)/);
+ assert.match(client,/function isFutureHomeVisitDay\(date\)/);
+ assert.match(client,/formatToParts\(new Date\(\)\)/);
+ assert.match(client,/isFutureHomeVisitDay\(v\.scheduledDate\)/);
  assert.match(client,/assignmentStatus=plannedSchedule\?'accepted':'invited'/);
  assert.match(client,/if\(plannedSchedule\)v\.status='Aceptado'/);
+ const start=client.indexOf('function canonicalHomeVisitDate(');
+ const end=client.indexOf('function canonicalHomeVisitTime(',start);
+ assert.ok(start>0&&end>start);
+ // El reloj congelado se encuentra en Panamá a las 23:55 del día 22.
+ const FrozenDate=class extends Date {constructor(...args){super(...(args.length?args:['2026-11-23T04:55:00Z']));}};
+ const future=runInNewContext(client.slice(start,end)+'\nisFutureHomeVisitDay',{Date:FrozenDate,Intl});
+ assert.equal(future('2026-11-23'),true);
+ assert.equal(future('2026-12-01'),true);
+ assert.equal(future('2026-11-22'),false);
+ assert.equal(future('2026-11-21'),false);
+ assert.equal(future('11/22/2026'),false);
 });
 
 test('invitaciones pendientes conservan privacidad y las visitas de agenda muestran ficha completa',()=>{
@@ -52,6 +59,6 @@ test('avisos distinguen programados y extras y actualización PWA carga script n
  assert.match(edge,/scheduledDirect \? "scheduled" : "same_day_extra"/);
  assert.match(edge,/Ya forma parte de tu agenda y no necesitas aceptarlo/);
  assert.match(edge,/Abre TALCSYS Lab para aceptar o rechazar el domicilio/);
- assert.match(html,/domicilios\.js\?v=20261122-agenda-anticipada-v1/);
- assert.match(sw,/fleboreport-shell-v333-20261122-agenda-anticipada/);
+ assert.match(html,/domicilios\.js\?v=20261122-agenda-anticipada-v2/);
+ assert.match(sw,/fleboreport-shell-v334-20261122-agenda-anticipada/);
 });
