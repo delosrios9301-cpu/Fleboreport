@@ -1,8 +1,8 @@
 {
-  "versionCode": 24,
-  "versionName": "2.13",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.13",
-  "notes": "Reportes de jornada sin marca de la aplicación en todas las páginas, PDF y PNG.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.13/FleboReport-2.13.apk",
-  "sha256": "baed7c8c38e9093805c49a9b525b1c6524dd143e86649616dd7b5f467091632b"
+  "versionCode": 25,
+  "versionName": "2.14",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.14",
+  "notes": "Asignación administrativa de domicilios ya creados para cualquier fecha futura, sin alterar asignación voluntaria.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.14/FleboReport-2.14.apk",
+  "sha256": "5792f1c344d51ffae078dfc25935e64c7e976533d5a227d9aed365b25c2cd3c5"
 }
