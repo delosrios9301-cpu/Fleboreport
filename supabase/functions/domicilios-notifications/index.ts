@@ -374,10 +374,18 @@ Deno.serve(async (req: Request) => {
         ? new Date(visit.scheduled_at).toLocaleString("es-PA", { timeZone: "America/Panama" })
         : "Horario por confirmar";
       const priority = visit?.priority === "urgent" ? "Urgente" : visit?.priority === "high" ? "Prioritario" : "Normal";
-      const title = (priority === "Urgente" ? "URGENTE · " : priority === "Prioritario" ? "PRIORITARIO · " : "") + "Domicilio pendiente de aprobación";
-      const message = "Prioridad: " + priority + ".\\nTienes un nuevo domicilio asignado.\\nFecha y hora: " + when +
-        "\\nAbre FleboReport para aceptar o rechazar la asignación. Los datos del paciente, dirección y pruebas se mostrarán después de aceptar.";
-      const metadata = { assignment_id: assignment.id, event: "home_visit_assigned", priority: visit?.priority || "normal" };
+      // La base de datos confirma la agenda futura directamente;
+      // las asignaciones extras del mismo día sí requieren aceptación.
+      const scheduledDirect = assignment.status === "accepted";
+      const title = (priority === "Urgente" ? "URGENTE · " : priority === "Prioritario" ? "PRIORITARIO · " : "") +
+        (scheduledDirect ? "Domicilio incorporado a tu agenda" : "Domicilio pendiente de aprobación");
+      const message = scheduledDirect
+        ? "Prioridad: " + priority + ".\\nTienes un domicilio programado.\\nFecha y hora: " + when +
+          "\\nYa forma parte de tu agenda y no necesitas aceptarlo. Abre TALCSYS Lab para revisar paciente, dirección y pruebas."
+        : "Prioridad: " + priority + ".\\nTienes un domicilio adicional asignado.\\nFecha y hora: " + when +
+          "\\nAbre TALCSYS Lab para aceptar o rechazar el domicilio. Los datos del paciente, dirección y pruebas se mostrarán después de aceptar.";
+      const metadata = { assignment_id: assignment.id, event: "home_visit_assigned",
+        priority: visit?.priority || "normal", assignment_mode: scheduledDirect ? "scheduled" : "same_day_extra" };
 
       // Guardar primero el aviso dentro de FleboReport, aunque Push no esté configurado.
       const { data: existingInApp, error: inAppLookupError } = await admin.from("home_visit_notifications")
