@@ -22,6 +22,14 @@ test('Asignación administrativa de visita ya creada funciona para cualquier fec
  assert.equal(allowed('coordinator',true,unassigned),true);
  assert.equal(allowed('technician',false,unassigned),false);
 });
+test('El buscador de usuarios reconoce nombres con tildes',()=>{
+ const start=js.indexOf('const normalize=value=>',js.indexOf('function openHomeVisitAssignment'));
+ assert.ok(start>=0);
+ const expr=js.slice(start,js.indexOf(';',start)+1);
+ const normalize=runInNewContext(expr+'\nnormalize');
+ assert.equal(normalize('Ángel Gutiérrez'),normalize('angel gutierrez'));
+ assert.equal(normalize('María José'),normalize('maria jose'));
+});
 test('No permite reemplazar a un responsable ya invitado o aceptado',()=>{
  for(const assignmentStatus of ['invited','accepted']){
   assert.equal(allowed('admin',true,{...unassigned,assignmentStatus}),false);
