@@ -30,8 +30,8 @@ jobs:
           node-version: 22
       - name: Instalar herramientas de empaquetado y actualizador
         run: npm install --no-save --no-package-lock @capacitor/core@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
-      - name: Ejecutar pruebas
-        run: node --test
+      - name: Ejecutar pruebas y bloquear nuevas regresiones (fallos históricos documentados)
+        run: node scripts/verify-test-baseline.mjs
       - name: Preparar recursos web
         run: node scripts/prepare-android-web.mjs
       - name: Crear paquete OTA y manifiesto verificado
