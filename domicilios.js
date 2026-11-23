@@ -1079,6 +1079,98 @@ function canEditVisit(v){
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&(window.fleboCan('domicilios','edit')||window.fleboCan('domicilios','manage')))));
 }
+
+/* La asignación administrativa posterior no depende del día de la visita.
+   La RPC realiza las validaciones de rol, destinatario y concurrencia. */
+function canAssignUnassignedVisit(v){
+ return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt
+  &&['Pendiente de asignación','Pendiente de aceptación','Rechazado'].includes(v.status)
+  &&(!v.assignmentStatus||['rejected','withdrawn'].includes(v.assignmentStatus))
+  &&(cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','assign'))));
+}
+function openHomeVisitAssignment(id){
+ const visit=visits.find(v=>String(v.id)===String(id));
+ if(!canAssignUnassignedVisit(visit)){
+  say('No tienes permiso o el domicilio ya tiene un responsable activo.');return;
+ }
+ document.getElementById('hvAssignExistingDialog')?.remove();
+ const overlay=document.createElement('div');overlay.id='hvAssignExistingDialog';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483100;background:#102b3a99;display:grid;place-items:center;padding:16px';
+ const form=document.createElement('form');form.setAttribute('role','dialog');form.setAttribute('aria-modal','true');
+ form.setAttribute('aria-label','Asignar responsable al domicilio');
+ form.style.cssText='width:min(100%,470px);max-height:90dvh;overflow:auto;padding:20px;background:#fff;color:#173b4b;border-radius:18px;display:grid;gap:12px;box-shadow:0 15px 45px #0003';
+ const heading=document.createElement('h3');heading.textContent='Asignar responsable · '+(visit.patientName||'Domicilio');
+ heading.style.margin='0';form.append(heading);
+ const note=document.createElement('p');note.textContent='Cita programada: '+dateLabel(visit.scheduledDate)+' · '+hvReferenceHour(visit.scheduledTime)+'. Puedes asignar esta visita aunque esté programada para mañana o dentro de una semana.';
+ note.style.cssText='font-size:12px;line-height:1.5;margin:0;color:#536c7b';form.append(note);
+ const label=document.createElement('label');label.textContent='Buscar usuario autorizado';label.style.cssText='font-weight:700;font-size:13px;display:grid;gap:6px';
+ const search=document.createElement('input');search.type='search';search.autocomplete='off';search.required=true;
+ search.placeholder='Escribe un nombre';search.style.cssText='padding:11px;min-height:44px;border:1px solid #a8c4ce;border-radius:9px;width:100%;box-sizing:border-box';
+ label.append(search);form.append(label);
+ const options=document.createElement('div');options.style.cssText='display:grid;gap:5px;max-height:210px;overflow:auto';form.append(options);
+ const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.style.cssText='font-size:12px;color:#536c7b;margin:0';
+ feedback.textContent='Consultando usuarios activos…';form.append(feedback);
+ const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px';
+ const cancel=document.createElement('button');cancel.type='button';cancel.className='btn';cancel.textContent='Cancelar';
+ const submit=document.createElement('button');submit.type='submit';submit.className='btn primary';submit.textContent='Enviar asignación';submit.disabled=true;
+ actions.append(cancel,submit);form.append(actions);overlay.append(form);document.body.append(overlay);
+ const close=()=>overlay.remove();cancel.onclick=close;overlay.addEventListener('click',e=>{if(e.target===overlay)close()});
+ form.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();close()}});
+ const normalize=value=>String(value||'').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLocaleLowerCase('es').trim();
+ let directory=[],chosen='',loaded=false,saving=false;
+ function list(){
+  options.replaceChildren();
+  if(!loaded)return;
+  const searchText=normalize(search.value);
+  if(!searchText){feedback.textContent='Busca y pulsa un nombre para seleccionarlo.';return}
+  const matches=directory.filter(m=>normalize(m.display_name).includes(searchText)).slice(0,12);
+  for(const member of matches){
+   const option=document.createElement('button');option.type='button';option.textContent=member.display_name;
+   option.style.cssText='text-align:left;padding:10px;background:#f0f8f9;border:1px solid #b9d7de;border-radius:9px;color:#173b4b;min-height:42px';
+   option.onclick=()=>{chosen=member.user_id;search.value=member.display_name;options.replaceChildren();submit.disabled=false;feedback.textContent='Se enviará una invitación a '+member.display_name+'.'};
+   options.append(option);
+  }
+  if(!matches.length)feedback.textContent='No se encontraron usuarios activos con ese nombre.';
+ }
+ search.oninput=()=>{chosen='';submit.disabled=true;list()};
+ (async()=>{
+  try{
+   const {data,error}=await cloud.client.rpc('list_domicile_assignable_members',{p_workspace_id:cloud.workspaceId});
+   if(error)throw error;
+   if(!overlay.isConnected)return;
+   directory=(data||[]).filter(m=>m.user_id&&m.display_name);
+   loaded=true;list();
+  }catch(error){feedback.textContent='No se pudo cargar el directorio: '+(error?.message||'Error de conexión');feedback.style.color='#a52828'}
+ })();
+ form.onsubmit=async e=>{
+  e.preventDefault();if(saving)return;
+  if(!chosen||!directory.some(x=>x.user_id===chosen)){feedback.textContent='Selecciona un usuario del directorio.';return}
+  if(!canAssignUnassignedVisit(visit)){feedback.textContent='Este domicilio ya no admite asignación.';return}
+  if(!navigator.onLine){feedback.textContent='Conéctate a Internet para asignar.';return}
+  saving=true;submit.disabled=true;cancel.disabled=true;search.disabled=true;submit.textContent='Guardando…';
+  try{
+   const {data,error}=await cloud.client.rpc('assign_home_visit_member',{p_home_visit_id:visit.id,p_user_id:chosen});
+   if(error)throw error;
+   if(!data)throw new Error('La base de datos no confirmó la asignación.');
+   close();
+   let notification=false;
+   try{
+    const result=await invokeDomicileNotifications({action:'dispatch',assignment_id:data});
+    notification=!!result?.in_app_saved;
+   }catch(error){console.warn('[Domicilios] Aviso pendiente:',error?.message||error)}
+   try{await loadCloudVisits({forceFull:true});render()}
+   catch(error){console.warn('[Domicilios] Refresco pendiente:',error?.message||error)}
+   void window.FleboHomeVolunteer?.refresh?.();
+   say(notification?'Domicilio asignado. El usuario recibió una invitación.':'Domicilio asignado. La entrega del aviso está pendiente de confirmación.');
+  }catch(error){
+   feedback.style.color='#a52828';feedback.textContent='No se pudo asignar: '+(error?.message||'Error del servidor');
+  }finally{
+   saving=false;
+   if(overlay.isConnected){search.disabled=false;cancel.disabled=false;submit.disabled=!chosen;submit.textContent='Enviar asignación'}
+  }
+ };
+ search.focus();
+}
 function openHomeVisitEdit(id){
  const v=visits.find(x=>String(x.id)===String(id));
  if(!canEditVisit(v)){say('No tienes permiso para corregir este domicilio.');return}
@@ -1093,6 +1185,13 @@ function openHomeVisitEdit(id){
  const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;padding:10px 0;background:white';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='btn';cancel.style.cssText='min-height:44px;padding:10px 16px;border:1px solid #aac3c8;border-radius:11px;background:#f4f8f9;color:#244657;font-weight:700';
  const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';save.className='btn primary';save.style.cssText='min-height:44px;padding:10px 16px;border:0;border-radius:11px;background:#087f85;color:white;font-weight:800';
+ if(canAssignUnassignedVisit(v)){
+  const assign=document.createElement('button');assign.type='button';assign.className='btn';
+  assign.textContent='Asignar responsable';
+  assign.style.cssText='min-height:44px;padding:10px 14px;background:#e9f8f4;color:#0b6666;border:1px solid #72b8b4;border-radius:11px;font-weight:800';
+  assign.onclick=()=>{overlay.remove();openHomeVisitAssignment(v.id)};
+  actions.append(assign);
+ }
  actions.append(cancel,save);form.append(actions);overlay.append(form);document.body.append(overlay);
  cancel.onclick=()=>overlay.remove();
  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove()});
@@ -1277,7 +1376,8 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div>'
-  +((canEditVisit(v)||canArchiveVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+   +(canAssignUnassignedVisit(v)?'<button type="button" class="hv-ref-manage-assign" data-hv-assign="'+id+'">＋ Asignar responsable</button>':'')
    +(canEditVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-edit="'+id+'">✎ Corregir fecha y hora</button>':'')
    +(canArchiveVisit(v)?'<button type="button" class="hv-ref-manage-archive" data-hv-archive="'+id+'">Eliminar</button>':'')
    +'</div>':'')
@@ -1312,6 +1412,9 @@ function enhanceReferenceVisitLayout(){
  workspace.addEventListener('click',event=>{
   const target=event.target.closest('button');
   if(!target)return;
+  if(target.hasAttribute('data-hv-assign')){
+   event.preventDefault();openHomeVisitAssignment(target.dataset.hvAssign);return;
+  }
   if(target.hasAttribute('data-hv-archive')){
    void archiveVisitFromCard(target.dataset.hvArchive);return;
   }
