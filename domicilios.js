@@ -536,9 +536,12 @@ async function persistVisit(v,options={}){
    return;
   }
  }
- const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
+ const writeVisit=async()=>{
+const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle():await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
  if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
+ };
+ if(!options.testsFirst)await writeVisit();
  // Los cambios puros de estado NO reenvían todas las pruebas. Sus estados
  // y catálogo solo se guardan al editar pruebas o confirmar «Muestras tomadas».
  if(!technicianResponse&&!staffReassignment&&!options.skipTests){
@@ -559,7 +562,15 @@ async function persistVisit(v,options={}){
    }
    testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:asUuid(t.addedById)||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||serviceFields(t)});
   }
-  if(testRows.length){if(technician){for(const tr of testRows){const upd=await c.from('home_visit_tests').update({status:tr.status,notes:tr.notes,catalog_snapshot:tr.catalog_snapshot}).eq('id',tr.id).eq('workspace_id',w).select('id').maybeSingle();if(upd.error)throw upd.error;if(!upd.data&&tr.source==='additional'){const ins=await c.from('home_visit_tests').insert(tr);if(ins.error)throw ins.error}else if(!upd.data)throw new Error('No se pudo actualizar la prueba '+tr.test_name+'.')}}else{const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}}
+  if(testRows.length){if(technician){for(const tr of testRows){const upd=await c.from('home_visit_tests').update({status:tr.status,notes:tr.notes}).eq('id',tr.id).eq('workspace_id',w).eq('home_visit_id',v.id).select('id').maybeSingle();if(upd.error)throw upd.error;if(!upd.data&&tr.source==='additional'){const ins=await c.from('home_visit_tests').insert(tr);if(ins.error)throw ins.error}else if(!upd.data)throw new Error('No se pudo actualizar la prueba '+tr.test_name+'.')}}else{const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}}
+ }
+ if(options.testsFirst){
+ const check=await c.from('home_visit_tests').select('id,status,notes').eq('workspace_id',w).eq('home_visit_id',v.id);
+ if(check.error)throw check.error;
+ const remote=new Map((check.data||[]).map(t=>[t.id,t]));
+ if((v.tests||[]).some(t=>!remote.has(t.id)||remote.get(t.id).status!==(testToDb[t.status]||'pending')||(remote.get(t.id).notes||'')!==(t.notes||'')))throw new Error('No se pudo verificar el guardado de todas las pruebas. Reintenta sin cerrar la revisión.');
+ if(v.status==='Muestras tomadas'&&(check.data||[]).some(t=>!String(t.notes||'').includes('[CORRECCION: RETIRADA]')&&!['collected','not_collected'].includes(t.status)))throw new Error('Hay pruebas pendientes en el servidor. Revisa la solicitud antes de continuar.');
+ await writeVisit();
  }
  const eventRows=(staffReassignment?[]:(v.events||[])).filter(e=>e.id&&!persistedEventIds.has(e.id)).map(e=>{
   const transition=(e.detail||'').match(/([^→]+)→\s*([^·]+)/);
@@ -820,7 +831,9 @@ async function create(){
  }
 }
 async function openSamplesReview(id){
- const v=visits.find(x=>x.id===id);if(!v)return;
+ if(document.getElementById('hvSamplesReview'))return;
+ let v=visits.find(x=>x.id===id);if(!v)return;
+ v={...v,tests:(v.tests||[]).map(t=>({...t}))};
  if(!cloud.ready||!cloud.client){say('Conecta la agenda con Supabase antes de revisar las pruebas.');return}
  if(!Array.isArray(v.tests))v.tests=[];
  try{
@@ -838,7 +851,7 @@ async function openSamplesReview(id){
   return;
  }
  const overlay=document.createElement('div');overlay.className='hv-review-overlay';overlay.id='hvSamplesReview';
- const correctionSelection=new Set();
+ let reviewSaving=false;
  const isRemoved=t=>String(t.notes||'').includes('[CORRECCION: RETIRADA]');
  const total=()=>v.tests.filter(t=>!isRemoved(t)).reduce((n,t)=>n+Number(t.quantity||1),0);
  const counts=()=>({taken:v.tests.filter(t=>!isRemoved(t)&&t.status==='Tomada').length,notTaken:v.tests.filter(t=>!isRemoved(t)&&t.status==='No tomada').length,pending:v.tests.filter(t=>!isRemoved(t)&&(!t.status||t.status==='Pendiente')).length});
@@ -861,12 +874,13 @@ async function openSamplesReview(id){
   const summary=overlay.querySelector('[data-review-vessels]');if(summary)summary.innerHTML=Object.entries(vessels).map(([name,count])=>'<span class="hv-review-chip">'+esc(name)+': <b>'+count+'</b></span>').join('');
   const heading=overlay.querySelector('[data-review-total]');if(heading)heading.textContent=total()+' unidad(es) · '+v.tests.filter(t=>!isRemoved(t)).length+' prueba(s) activas';
   const c=counts(),counter=overlay.querySelector('[data-review-count]');if(counter)counter.textContent='Tomadas: '+c.taken+' · No tomadas: '+c.notTaken+' · Pendientes: '+c.pending;
-  const confirm=overlay.querySelector('[data-review-confirm]');if(confirm)confirm.disabled=c.pending>0||c.taken===0;
+  const confirm=overlay.querySelector('[data-review-confirm]');if(confirm)confirm.disabled=reviewSaving||c.pending>0||c.taken+c.notTaken===0;
  };
- overlay.innerHTML='<section class="hv-review-modal" role="dialog" aria-modal="true" aria-labelledby="hvReviewTitle"><header class="hv-review-header"><div><span class="eyebrow">VERIFICACIÓN PREVIA A LA TOMA</span><h2 id="hvReviewTitle">Revisión del paciente y las muestras</h2><p>Verifica que las pruebas correspondan a la solicitud antes de confirmar la toma.</p></div><button type="button" class="hv-review-close" data-review-close aria-label="Cerrar">×</button></header><div class="hv-review-body"><h3>Datos del paciente</h3><div class="hv-review-grid"><div><small>Nombre completo</small><b>'+esc(v.patientName||'—')+'</b></div><div><small>Documento</small><b>'+esc(v.document||'—')+'</b></div><div><small>Teléfono</small><b>'+esc(v.phone||'—')+'</b></div><div><small>Responsable</small><b>'+esc(v.assignedTo||'—')+'</b></div><div><small>Fecha y hora</small><b>'+dateLabel(v.scheduledDate)+' · '+esc(v.scheduledTime)+'</b></div><div class="wide"><small>Dirección</small><b>'+esc(v.address||'—')+'</b></div></div><div class="hv-review-section-title"><h3>Pruebas solicitadas</h3><strong data-review-total></strong></div><div class="hv-review-bulk"><button type="button" class="btn primary" data-mark-all-taken>✓ Marcar todas como tomadas</button><span data-review-count></span></div><div data-review-tests></div><section class="hv-review-correction" style="margin-top:18px;padding:14px;border:1px solid var(--border-color,#d7e0e8);border-radius:14px"><h3>¿La solicitud tiene pruebas incorrectas?</h3><p class="hv-help">Retira las pruebas equivocadas y agrega las correctas desde el catálogo central. Las retiradas quedarán registradas en el historial; no se borrarán silenciosamente.</p><label for="hvCorrectionSearch"><b>Buscar prueba correcta por nombre o código</b></label><input id="hvCorrectionSearch" type="search" autocomplete="off" placeholder="Escribe nombre o código de la prueba" style="width:100%;margin:8px 0"><div data-correction-results class="hv-test-choices" role="listbox"></div></section><h3>Resumen de recipientes</h3><div class="hv-review-chips" data-review-vessels></div><p class="hv-review-warning">Antes de confirmar, cada prueba activa debe quedar como “Tomada” o “No tomada”. Las pruebas retiradas se conservan para auditoría y no se consideran muestras tomadas.</p></div><footer class="hv-review-footer"><button type="button" class="btn" data-review-close>Volver a revisar</button><button type="button" class="btn" data-save-corrections>Guardar correcciones</button><button type="button" class="btn primary" data-review-confirm>Confirmar muestras tomadas</button></footer></section>';
+ overlay.innerHTML='<section class="hv-review-modal" role="dialog" aria-modal="true" aria-labelledby="hvReviewTitle"><header class="hv-review-header"><div><span class="eyebrow">VERIFICACIÓN PREVIA A LA TOMA</span><h2 id="hvReviewTitle">Revisión del paciente y las muestras</h2><p>Verifica que las pruebas correspondan a la solicitud antes de confirmar la toma.</p></div><button type="button" class="hv-review-close" data-review-close aria-label="Cerrar">×</button></header><div class="hv-review-body"><h3>Datos del paciente</h3><div class="hv-review-grid"><div><small>Nombre completo</small><b>'+esc(v.patientName||'—')+'</b></div><div><small>Documento</small><b>'+esc(v.document||'—')+'</b></div><div><small>Teléfono</small><b>'+esc(v.phone||'—')+'</b></div><div><small>Responsable</small><b>'+esc(v.assignedTo||'—')+'</b></div><div><small>Fecha y hora</small><b>'+dateLabel(v.scheduledDate)+' · '+esc(v.scheduledTime)+'</b></div><div class="wide"><small>Dirección</small><b>'+esc(v.address||'—')+'</b></div></div><div class="hv-review-section-title"><h3>Pruebas solicitadas</h3><strong data-review-total></strong></div><div class="hv-review-bulk"><button type="button" class="btn primary" data-mark-all-taken>✓ Marcar todas como tomadas</button><span data-review-count></span></div><div data-review-tests></div><section class="hv-review-correction" style="margin-top:18px;padding:14px;border:1px solid var(--border-color,#d7e0e8);border-radius:14px"><h3>¿La solicitud tiene pruebas incorrectas?</h3><p class="hv-help">Retira las pruebas equivocadas y agrega las correctas desde el catálogo central. Las retiradas quedarán registradas en el historial; no se borrarán silenciosamente.</p><label for="hvCorrectionSearch"><b>Buscar prueba correcta por nombre o código</b></label><input id="hvCorrectionSearch" type="search" autocomplete="off" placeholder="Escribe nombre o código de la prueba" style="width:100%;margin:8px 0"><div data-correction-results class="hv-test-choices" role="listbox"></div></section><h3>Resumen de recipientes</h3><div class="hv-review-chips" data-review-vessels></div><p class="hv-review-warning">Antes de confirmar, cada prueba activa debe quedar como “Tomada” o “No tomada”. Las pruebas retiradas se conservan para auditoría y no se consideran muestras tomadas.</p></div><footer class="hv-review-footer"><button type="button" class="btn" data-review-close>Volver a revisar</button><button type="button" class="btn" data-save-corrections>Guardar correcciones</button><button type="button" class="btn primary" data-review-confirm>Confirmar y guardar</button></footer></section>';
  const updateCount=()=>refresh();
- overlay.addEventListener('change',e=>{const sel=e.target.closest('[data-test-status]');if(!sel)return;const t=v.tests[Number(sel.dataset.testStatus)];if(t)t.status=sel.value;updateCount()});
+ overlay.addEventListener('change',e=>{if(reviewSaving)return;const sel=e.target.closest('[data-test-status]');if(!sel)return;const t=v.tests[Number(sel.dataset.testStatus)];if(t)t.status=sel.value;updateCount()});
  overlay.addEventListener('click',async e=>{
+ if(reviewSaving)return;
   if(e.target===overlay||e.target.closest('[data-review-close]')){overlay.remove();return}
   const remove=e.target.closest('[data-remove-requested-test]');
   if(remove){const t=v.tests[Number(remove.dataset.removeRequestedTest)];if(!t)return;if(t.status==='Tomada'){say('Esta prueba ya está marcada como tomada. No se puede retirar después de registrar su toma.');return}const reason='[CORRECCION: RETIRADA] '+actor()+' · '+new Date().toISOString();t.status='No tomada';t.notes=(t.notes? t.notes+' | ':'')+reason;refresh();return}
@@ -881,13 +895,15 @@ async function openSamplesReview(id){
   if(e.target.closest('[data-save-corrections]')){
    const button=overlay.querySelector('[data-save-corrections]');if(!cloud.ready){say('Conecta la agenda antes de guardar las correcciones.');return}
    button.disabled=true;const label=button.textContent;button.textContent='Guardando…';
-   try{if(!await save(v))return;say('Correcciones guardadas. Las pruebas retiradas y las nuevas pruebas quedaron registradas.');}
+   try{const current=visits.find(x=>x.id===id);if(!current||current.status!=='En domicilio'){say('El domicilio cambió de estado. Actualiza la agenda.');return}if(!await save({...current,tests:v.tests},{testsFirst:true}))return;say('Correcciones guardadas. Las pruebas retiradas y las nuevas pruebas quedaron registradas.');}
    finally{button.disabled=false;button.textContent=label}
    return;
   }
   if(e.target.closest('[data-review-confirm]')){
-   const c=counts();if(c.pending){say('Todavía hay '+c.pending+' prueba(s) pendientes. Marca cada una como tomada o no tomada.');return}if(!c.taken){say('No hay pruebas tomadas. No se puede confirmar “Muestras tomadas” si ninguna prueba fue tomada.');return}
-   overlay.remove();await changeStatus(id,'Muestras tomadas',true);
+   const c=counts();if(c.pending){say('Todavía hay '+c.pending+' prueba(s) pendientes. Marca cada una como tomada o no tomada.');return}if(!c.taken&&!c.notTaken){say('No hay pruebas activas para confirmar.');return}
+   reviewSaving=true;const button=overlay.querySelector('[data-review-confirm]');const controls=[...overlay.querySelectorAll('button,input,select')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);button.textContent='Guardando…';button.setAttribute('aria-busy','true');
+ try{if(await changeStatus(id,'Muestras tomadas',true,v.tests)){overlay.remove();say('Muestras guardadas. Ya puedes finalizar el domicilio.');}}
+ finally{reviewSaving=false;controls.forEach(([el,disabled])=>el.disabled=disabled);button.textContent='Confirmar y guardar';button.removeAttribute('aria-busy');refresh()}
   }
  });
  const search=overlay.querySelector('#hvCorrectionSearch');search.addEventListener('input',()=>renderCatalogResults(search.value));
@@ -920,17 +936,18 @@ function markVisitTransitionPending(id,next){
   }
  };
 }
-async function changeStatus(id,next,confirmed=false){if(pendingVisitTransitions.has(id))return;if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){let pending=v.tests.filter(t=>t.status==='Pendiente');let taken=v.tests.some(t=>t.status==='Tomada');if(pending.length){say('Actualiza el estado de cada prueba antes de continuar.');return}if(!taken){say('No hay pruebas tomadas. Registra el domicilio como no realizado o indica la incidencia correspondiente.');return}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}const actionMessage=$('hvFieldActionMessage');if(actionMessage){actionMessage.textContent='Guardando cambio a '+next+'…';actionMessage.style.color='';}
+async function changeStatus(id,next,confirmed=false,reviewTests=null){if(pendingVisitTransitions.has(id))return;if(next==='Muestras tomadas'&&!confirmed){openSamplesReview(id);return}if(!cloud.ready){say('Conecta la agenda con Supabase antes de actualizar estados.');return}let v=visits.find(x=>x.id===id);if(!v)return;const staff=['admin','clinician','reception'].includes(cloud.role)&&!isMyAssignedDomicile(v);if(staff&&next!=='Cancelado'){say('Agenda no acepta ni rechaza domicilios ni actualiza el progreso de campo. Esa respuesta corresponde al flebotomista asignado.');return}if(staff&&next==='Cancelado'&&!['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status)){say('Este domicilio ya inició su ejecución o está cerrado y no puede cancelarse desde Agenda.');return}let flow={'Pendiente de asignación':['Cancelado'],'Pendiente de aceptación':['Aceptado','Rechazado','Cancelado'],'Aceptado':['En camino','Cancelado','Reprogramado'],'En camino':['En domicilio','Paciente ausente','Paciente rechazó la toma','No realizado'],'En domicilio':['Muestras tomadas','Paciente ausente','Paciente rechazó la toma','No realizado'],'Muestras tomadas':['Finalizado'],'Reprogramado':['Pendiente de aceptación','Cancelado'],'No realizado':['Reprogramado','Cancelado'],'Paciente ausente':['Reprogramado','Cancelado'],'Paciente rechazó la toma':['Reprogramado','Cancelado']};if(!(flow[v.status]||[]).includes(next)){say('Cambio de estado no permitido.');return}if(['Muestras tomadas','Finalizado'].includes(next)){const activeTests=(reviewTests||v.tests||[]).filter(t=>!String(t.notes||'').includes('[CORRECCION: RETIRADA]'));if(!activeTests.length||activeTests.some(t=>!['Tomada','No tomada'].includes(t.status))){say('Registra cada prueba activa como tomada o no tomada antes de continuar.');return false}}if(['Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'].includes(next)){let reason=next==='Rechazado'?'El flebotomista no puede realizar el domicilio.':prompt(next==='Cancelado'&&['admin','clinician','reception'].includes(cloud.role)?'Indica por qué el paciente solicitó cancelar el domicilio:':'Indica el motivo u observación:');if(next!=='Rechazado'&&(!reason||!reason.trim()))return;v.reason=(reason||'').trim()}const actionMessage=$('hvFieldActionMessage');if(actionMessage){actionMessage.textContent='Guardando cambio a '+next+'…';actionMessage.style.color='';}
  pendingVisitTransitions.add(id);
  const restorePending=markVisitTransitionPending(id,next);
  try{
- let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt;v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
- const saved=await save(v,{skipTests:next!=='Muestras tomadas'});
+ let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt,prevTests=v.tests;if(reviewTests&&next==='Muestras tomadas')v.tests=reviewTests.map(t=>({...t}));v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',prev+' → '+next+(next==='Muestras tomadas'?' · Tomadas: '+v.tests.filter(t=>t.status==='Tomada').length+' · No tomadas: '+v.tests.filter(t=>t.status==='No tomada'&&!String(t.notes||'').includes('[CORRECCION: RETIRADA]')).length:'')+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
+ const saved=await save(v,{skipTests:next!=='Muestras tomadas',testsFirst:next==='Muestras tomadas'});
  window.FleboEngine?.record('domicilios.status-save',performance.now()-startedAt,saved);
- if(saved){if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.events.shift();render();
+ if(saved){if(next==='Muestras tomadas'){const current=visits.find(x=>x.id===id);if(current&&current!==v){current.status=next;current.tests=v.tests;current.events=v.events;}}if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.tests=prevTests;v.events.shift();render();
  const failed=$('hvFieldActionMessage');if(failed){failed.textContent='No se confirmó el cambio de estado. Revisa el mensaje de error de la agenda.';failed.style.color='#a33e47';}
  
  }
+ return saved;
  }finally{restorePending();pendingVisitTransitions.delete(id)}
 }async function addTests(id){
  if(!cloud.ready){say('Conecta la agenda con Supabase antes de agregar pruebas.');return}
