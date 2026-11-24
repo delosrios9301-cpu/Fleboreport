@@ -1,8 +1,8 @@
 {
-  "versionCode": 26,
-  "versionName": "2.15",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.15",
-  "notes": "Asignación administrativa de domicilios ya creados para cualquier fecha futura, sin alterar asignación voluntaria.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.15/FleboReport-2.15.apk",
-  "sha256": "134291a2881a04e551c290f126ded18ecb09859bba47bed0636a767066641138"
+  "versionCode": 27,
+  "versionName": "2.16",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.16",
+  "notes": "Confirmar y guardar muestras tomadas y no tomadas; verificación antes de finalizar domicilio.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.16/FleboReport-2.16.apk",
+  "sha256": "0e92cc4a57fe9eea056767a2a4e5f11280f327b4b0b6c56262c0b369ff4848f6"
 }
