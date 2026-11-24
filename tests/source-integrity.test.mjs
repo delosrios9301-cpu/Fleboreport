@@ -1635,3 +1635,17 @@ test('no tomada se conserva al marcar las pendientes y se distingue del estado d
  assert.match(domicilios,/data-review-note/);
  assert.match(domicilios,/markPendingReviewTests\(v.tests\)/);
 });
+test('reapertura del domicilio conserva pruebas, exige motivo y responsable vigente',async()=>{
+ const source=domicilios.slice(domicilios.indexOf('function canReopenHomeVisit'),domicilios.indexOf('window.hvReopenHomeVisit='));
+ const v={id:'demo',status:'Finalizado',assignmentStatus:'accepted',completedAt:'2026-11-24T16:00:00Z',tests:[{id:'test',status:'Tomada'}],events:[]};
+ let assigned=true,reason='Corregir orina',ok=true,reviewed=0,saved=null;
+ const {canReopenHomeVisit,reopenHomeVisit}=new Function('visits','cloud','isMyAssignedDomicile','pendingVisitTransitions','say','prompt','markVisitTransitionPending','log','save','render','openSamplesReview','loadCloudVisits','let historyCloudVisits=[],activeTab="history",referenceQuickStatus="",selected="",detailOpen=false;'+source+';return {canReopenHomeVisit,reopenHomeVisit}')(
+ [v],{ready:true,user:{id:'u'},workspaceId:'w'},()=>assigned,new Set(),()=>{},()=>reason,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(d,o)=>{saved={d,o};return ok},()=>{},async()=>{reviewed++},async()=>{});
+ assert.equal(canReopenHomeVisit(v),true);
+ assigned=false;assert.equal(await reopenHomeVisit('demo'),false);
+ assigned=true;reason='';assert.equal(await reopenHomeVisit('demo'),false);
+ reason='Corregir orina';ok=false;assert.equal(await reopenHomeVisit('demo'),false);assert.equal(v.status,'Finalizado');
+ ok=true;assert.equal(await reopenHomeVisit('demo'),true);assert.equal(v.status,'En domicilio');assert.equal(v.completedAt,null);assert.equal(v.tests[0].status,'Tomada');assert.equal(reviewed,1);assert.equal(saved.o.skipTests,true);assert.equal(saved.o.reopen,true);
+ assert.match(v.events[0].detail,/Corregir orina/);assert.match(v.events[0].detail,/Cierre anterior/);
+ assert.match(domicilios,/data-hv-reopen/);
+});
