@@ -12,7 +12,7 @@ test('El estado completado del servidor sigue entrando al Historial normal',()=>
  assert.match(dom,/const statusFromDb=Object.fromEntries\(Object.entries\(statusToDb\)/);
  assert.match(dom,/const historyStatuses=\['Finalizado','Rechazado','Cancelado','No realizado','Paciente ausente','Paciente rechazó la toma'\]/);
  assert.match(dom,/const historyById=new Map\(historyCloudVisits\.filter/);
- assert.match(dom,/visits\.filter\(v=>historyStatuses\.includes\(v\.status\)\)\.forEach/);
+ assert.match(dom,/visits\.forEach\(v=>\{if\(historyStatuses\.includes\(v\.status\)\)historyById\.set\(v\.id,v\);else historyById\.delete\(v\.id\)\}\);/);
  assert.match(dom,/const historyList=Array\.from\(historyById\.values\(\)\)\.filter\(historyMatches\)/);
 });
 
@@ -106,4 +106,15 @@ test('Código y hoja CSS están bien formados',()=>{
  let balance=0;
  for(const c of css.replace(/\/\*[\s\S]*?\*\//g,'')){if(c==='{')balance++;if(c==='}')balance--;assert.ok(balance>=0);}
  assert.equal(balance,0);
+});
+
+test('Historial elimina una copia finalizada obsoleta al reabrir y conserva las otras visitas',()=>{
+ const start=dom.indexOf('const historyById=new Map(');
+ const end=dom.indexOf('const todayList=',start);
+ assert.ok(start>=0&&end>start);
+ const result=new Function('visits','historyCloudVisits','historyStatuses','historyMatches',dom.slice(start,end)+';return historyList')(
+ [{id:'reopened',status:'En domicilio'},{id:'new',status:'Finalizado',scheduledDate:'2026-11-24',scheduledTime:'10:00'}],
+ [{id:'reopened',status:'Finalizado',scheduledDate:'2026-11-24',scheduledTime:'09:00'},{id:'other',status:'Finalizado',scheduledDate:'2026-11-23',scheduledTime:'11:00'}],
+ ['Finalizado'],()=>true);
+ assert.deepEqual(result.map(x=>x.id),['new','other']);
 });
