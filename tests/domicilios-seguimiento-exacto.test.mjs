@@ -14,7 +14,7 @@ test('vista aprobada: JavaScript analizable por Node',()=>{
 });
 test('vista aprobada se monta en el seguimiento existente y no altera transiciones',()=>{
  assert.match(core,/window\.FleboTrackEnhance\(premiumDialog,activeVisit\)/);
- assert.match(core,/function changeStatus\(id,next,confirmed=false\)/);
+ assert.match(core,/function changeStatus\(id,next,confirmed=false,reviewTests=null\)/);
  assert.match(core,/function technicianFieldScreen\(v\)/);
  assert.match(js,/appendChild\(cards\[0\]\)/);
  assert.match(js,/appendChild\(cards\[1\]\)/);

@@ -122,7 +122,7 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   }
   assert.match(domicilios, /Indica por qué no se pudo tomar esta prueba/);
   assert.match(domicilios, /Observación de no toma/);
-  assert.match(domicilios, /Actualiza el estado de cada prueba antes de continuar/);
+  assert.match(domicilios, /Registra cada prueba activa como tomada o no tomada antes de continuar/);
   for (const feature of ['technicianFieldScreen', 'hv-field-screen', 'Abrir ubicación en Google Maps', 'Observaciones de campo', 'Resumen de recipientes', 'hvSaveFieldObservation']) {
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
@@ -748,7 +748,7 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
 test('la revisión de muestras permite recuperar una solicitud vacía desde el catálogo central sin confirmar por error', () => {
   assert.match(domicilios, /id="hvCorrectionSearch"/);
   assert.match(domicilios, /No se encontraron pruebas activas con ese nombre o código/);
-  assert.match(domicilios, /confirm\.disabled=c\.pending>0\|\|c\.taken===0/);
+  assert.match(domicilios, /confirm\.disabled=reviewSaving\|\|c\.pending>0\|\|c\.taken\+c\.notTaken===0/);
 });
 
 test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () => {
@@ -876,8 +876,8 @@ test('los resultados del catálogo de domicilios mantienen el texto horizontal e
 test('al aceptar un domicilio se cierra el cuadro flotante y se desbloquea la vista de campo', () => {
   // Con el guardado optimizado el éxito se evalúa una vez y nunca se
   // presenta la aceptación como confirmada hasta recibir respuesta de nube.
-  assert.match(domicilios, /const saved=await save\(v,\{skipTests:next!=='Muestras tomadas'\}\)/);
-  assert.match(domicilios, /if\(saved\)\{if\(next==='Aceptado'\|\|next==='Rechazado'\)\{closeAssignmentOverlays\(\);dismissedInvitationId=id;const current=visits\.find\(x=>x\.id===id\)\|\|v;current\.status=next;current\.assignmentStatus=next==='Aceptado'\?'accepted':'rejected';/);
+  assert.match(domicilios, /const saved=await save\(v,\{skipTests:next!=='Muestras tomadas',testsFirst:\['Muestras tomadas','Finalizado'\]\.includes\(next\)\}\)/);
+  assert.match(domicilios, /if\(saved\)\{[\s\S]*?if\(next==='Aceptado'\|\|next==='Rechazado'\)\{closeAssignmentOverlays\(\);dismissedInvitationId=id;const current=visits\.find\(x=>x\.id===id\)\|\|v;current\.status=next;current\.assignmentStatus=next==='Aceptado'\?'accepted':'rejected';/);
   assert.match(domicilios, /if\(!technicianResponse&&\!staffReassignment&&\!options\.skipTests\)/);
   assert.match(domicilios, /pendingVisitTransitions\.has\(id\)/);
   assert.match(domicilios, /pendingVisitTransitions\.delete\(id\)/);
@@ -1543,4 +1543,33 @@ test('La sincronización del catálogo se reintenta tras modificaciones concurre
  assert.match(domicilios,/catalogRefreshPending=false/);
  assert.match(domicilios,/claimedServices\.add\(matched\.id\)/);
  assert.match(domicilios,/if\(!payload\.active\)continue/);
+});
+
+test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante un fallo', async () => {
+  assert.match(domicilios, /data-review-confirm>Confirmar y guardar<\/button>/);
+  assert.match(domicilios, /if\(await changeStatus\(id,'Muestras tomadas',true,v.tests\)\)\{overlay.remove\(\)/);
+  const persist=domicilios.slice(domicilios.indexOf('async function persistVisit'),domicilios.indexOf('async function save(v,'));
+  assert.ok(persist.indexOf("const check=await c.from('home_visit_tests')") < persist.indexOf('await writeVisit();',persist.indexOf('if(options.testsFirst)')));
+  assert.match(persist,/No se pudo verificar el guardado de todas las pruebas/);
+  const source=domicilios.slice(domicilios.indexOf('async function changeStatus'),domicilios.indexOf('async function addTests'));
+  const visit={id:'demo',status:'En domicilio',tests:[{id:'t1',status:'Pendiente'}],events:[]};
+  const calls=[];
+  let success=false;
+  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
+    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{}
+  );
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
+  assert.equal(calls.length,0);
+  const draft=[{id:'t1',status:'No tomada',notes:'No pudo entregar muestra'}];
+  assert.equal(await run('demo','Muestras tomadas',true,draft),false);
+  assert.equal(visit.status,'En domicilio');
+  assert.equal(visit.tests[0].status,'Pendiente');
+  assert.equal(draft[0].status,'No tomada');
+  success=true;
+  assert.equal(await run('demo','Muestras tomadas',true,draft),true);
+  assert.equal(visit.tests[0].status,'No tomada');
+  assert.equal(await run('demo','Finalizado'),true);
+  assert.equal(visit.status,'Finalizado');
+  assert.equal(calls.at(-1).options.testsFirst,true);
+  assert.equal(calls.at(-1).options.skipTests,true);
 });
