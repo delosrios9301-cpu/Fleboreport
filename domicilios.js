@@ -1016,6 +1016,7 @@ function technicianFieldScreen(v){
  else if(v.status==='En domicilio')actions=action('Muestras tomadas','Revisar y confirmar muestras')+action('Paciente ausente','Paciente ausente','')+action('Paciente rechazó la toma','Paciente rechazó','danger')+action('No realizado','No se pudo realizar','danger');
  else if(v.status==='Muestras tomadas')actions=action('Muestras tomadas','Corregir muestras')+action('Finalizado','Finalizar domicilio');
  else if(canReopenHomeVisit(v))actions='<button class="btn hv-field-action" type="button" onclick="hvReopenHomeVisit(\''+id+'\')">Reabrir operativamente</button>';
+ if(canRestorePreviousClosure(v))actions='<button class="btn hv-field-action primary" type="button" onclick="hvRestorePreviousClosure(\''+id+'\')">Restaurar cierre anterior</button>'+actions;
  const locked=v.status==='Pendiente de aceptación'&&v.assignmentStatus!=='accepted';
  if(v.assignmentStatus==='rejected'||v.status==='Rechazado')return '<div class="hv-field-screen"><div class="hv-field-banner"><span>ASIGNACIÓN RECHAZADA</span><h2>Has rechazado este domicilio</h2><p>La información del paciente permanece protegida. Coordinación puede asignarte otra visita.</p></div></div>';
  if(locked){
@@ -1240,6 +1241,27 @@ async function saveClosedSampleReview(id,original,draft,reason,eventId){
 }
 window.hvCorrectClosedVisit=openClosedVisitCorrection;
 
+function canRestorePreviousClosure(v){
+ return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&!v.historySummaryOnly&&v.status==='En domicilio'&&!v.completedAt&&v.assignmentStatus==='accepted'&&isMyAssignedDomicile(v)&&v.events?.[0]?.action==='Domicilio reabierto'&&String(v.events[0].detail||'').includes('Cierre anterior:'));
+}
+async function restorePreviousClosure(id){
+ if(pendingVisitTransitions.has(id))return false;
+ pendingVisitTransitions.add(id);
+ try{
+  const v=await loadVisitForHistoryAction(id);
+  if(!canRestorePreviousClosure(v)){say('No se puede restaurar el cierre anterior de este domicilio. Revisa el historial.');return false;}
+  if(!window.confirm('¿Deshacer la reapertura y restaurar la fecha de cierre original? Las muestras no se modificarán.'))return false;
+  const result=await cloud.client.rpc('restore_home_visit_previous_closure',{p_home_visit_id:id});
+  if(result.error)throw result.error;
+  const fresh=await loadVisitForHistoryAction(id);
+  if(!fresh||fresh.status!=='Finalizado'||Date.parse(fresh.completedAt)!==Date.parse(result.data))throw new Error('El servidor no confirmó el cierre restaurado. Actualiza el historial.');
+  selected='';detailOpen=false;setTab('history');
+  say('Cierre original restaurado. Se conservaron las muestras y la auditoría.');
+  return true;
+ }catch(error){say('No se pudo restaurar el cierre: '+(error?.message||'Error de conexión'));return false;}
+ finally{pendingVisitTransitions.delete(id)}
+}
+window.hvRestorePreviousClosure=restorePreviousClosure;
 function canOpenVisitEditor(v){
  if(!v||!cloud.ready||!cloud.user?.id||!cloud.workspaceId||v.archivedAt||v.historySummaryOnly)return false;
  if(v.status==='Finalizado')return canReopenHomeVisit(v)||canCorrectClosedVisit(v);

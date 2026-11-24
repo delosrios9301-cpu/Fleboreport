@@ -1684,3 +1684,17 @@ test('abrir expediente es solo lectura y no reabre el domicilio',async()=>{
  assert.doesNotMatch(source,/reopenHomeVisit\(|save\(|openClosedVisitCorrection\(/);
  assert.match(domicilios,/window\.confirm\('¿Reabrir operativamente este domicilio/);
 });
+
+test('restaurar cierre anterior exige responsable vigente y confirmación sin modificar pruebas',async()=>{
+ const source=domicilios.slice(domicilios.indexOf('function canRestorePreviousClosure'),domicilios.indexOf('window.hvRestorePreviousClosure='));
+ const v={id:'demo',status:'En domicilio',assignmentStatus:'accepted',events:[{action:'Domicilio reabierto',detail:'Cierre anterior: 2026-11-24T14:36:16.637Z'}]};
+ let calls=0,consent=false,assigned=true,restored=false,tab='';
+ const cloud={ready:true,user:{id:'u'},workspaceId:'w',client:{rpc:async(name,args)=>{assert.equal(name,'restore_home_visit_previous_closure');assert.equal(args.p_home_visit_id,'demo');calls++;restored=true;return {data:'2026-11-24T14:36:16.637Z'}}}};
+ const {canRestorePreviousClosure,restorePreviousClosure}=new Function('cloud','isMyAssignedDomicile','pendingVisitTransitions','loadVisitForHistoryAction','say','window','setTab','let selected="",detailOpen=true;'+source+';return {canRestorePreviousClosure,restorePreviousClosure}')(
+ cloud,()=>assigned,new Set(),async()=>restored?{...v,status:'Finalizado',completedAt:'2026-11-24T14:36:16.637Z'}:v,()=>{},{confirm:()=>consent},x=>tab=x);
+ assert.equal(canRestorePreviousClosure(v),true);assert.equal(canRestorePreviousClosure({...v,events:[{action:'Otra corrección'}]}),false);
+ assigned=false;assert.equal(await restorePreviousClosure('demo'),false);assigned=true;
+ assert.equal(await restorePreviousClosure('demo'),false);assert.equal(calls,0);
+ consent=true;assert.equal(await restorePreviousClosure('demo'),true);assert.equal(calls,1);assert.equal(tab,'history');
+ assert.doesNotMatch(source,/home_visit_tests|\.update\(/);
+});
