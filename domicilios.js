@@ -1015,7 +1015,7 @@ function technicianFieldScreen(v){
  else if(v.status==='En camino')actions=action('En domicilio','Confirmar llegada')+action('Paciente ausente','Paciente ausente','')+action('Paciente rechazó la toma','Paciente rechazó','danger')+action('No realizado','No se pudo realizar','danger');
  else if(v.status==='En domicilio')actions=action('Muestras tomadas','Revisar y confirmar muestras')+action('Paciente ausente','Paciente ausente','')+action('Paciente rechazó la toma','Paciente rechazó','danger')+action('No realizado','No se pudo realizar','danger');
  else if(v.status==='Muestras tomadas')actions=action('Muestras tomadas','Corregir muestras')+action('Finalizado','Finalizar domicilio');
- else if(canReopenHomeVisit(v))actions='<button class="btn hv-field-action" type="button" onclick="hvReopenHomeVisit(\''+id+'\')">Reabrir domicilio</button>';
+ else if(canReopenHomeVisit(v))actions='<button class="btn hv-field-action" type="button" onclick="hvReopenHomeVisit(\''+id+'\')">Reabrir operativamente</button>';
  const locked=v.status==='Pendiente de aceptación'&&v.assignmentStatus!=='accepted';
  if(v.assignmentStatus==='rejected'||v.status==='Rechazado')return '<div class="hv-field-screen"><div class="hv-field-banner"><span>ASIGNACIÓN RECHAZADA</span><h2>Has rechazado este domicilio</h2><p>La información del paciente permanece protegida. Coordinación puede asignarte otra visita.</p></div></div>';
  if(locked){
@@ -1156,8 +1156,9 @@ async function reopenHomeVisit(id){
  let v=visits.find(x=>x.id===id);
  if(!v){try{await loadCloudVisits({forceFull:true});v=visits.find(x=>x.id===id)}catch(error){say('No se pudo consultar el domicilio en la nube.');return false}}
  if(!canReopenHomeVisit(v)){say('Solo el responsable de la asignación vigente puede reabrir un domicilio finalizado.');return false}
- const reason=prompt('Motivo de reapertura del domicilio (obligatorio):','Corregir resultado de toma');
+ const reason=prompt('Motivo de reapertura del domicilio (obligatorio):','');
  if(!reason||!reason.trim())return false;
+ if(!window.confirm('¿Reabrir operativamente este domicilio? Dejará de estar finalizado y deberá cerrarse nuevamente.'))return false;
  pendingVisitTransitions.add(id);
  const restore=markVisitTransitionPending(id,'En domicilio');
  try{
@@ -1248,10 +1249,10 @@ async function openVisitEditor(id){
  try{
   const v=await loadVisitForHistoryAction(id);
   if(!canOpenVisitEditor(v)){say('No tienes permiso para reabrir este expediente.');return;}
-  if(canReopenHomeVisit(v))return await reopenHomeVisit(id);
-  if(canCorrectClosedVisit(v))return await openClosedVisitCorrection(id);
+  // Abrir el expediente nunca modifica el estado ni inicia una reapertura operativa.
   selected=id;detailOpen=true;moreTestSelection=[];render();
-  if(isMyAssignedDomicile(v)&&['En domicilio','Muestras tomadas'].includes(v.status))await openSamplesReview(id);
+  if(v.status==='Finalizado'){const modal=document.querySelector('body > .hv-detail-backdrop');const trigger=modal?.querySelector('[data-hv-track-action-trigger]');const menu=modal?.querySelector('.hv-track-action-list');if(trigger&&menu){menu.hidden=false;trigger.setAttribute('aria-expanded','true');}}
+  return true;
  }catch(error){say('No se pudo abrir el expediente: '+(error?.message||'Error de conexión'))}
 }
 function canEditVisit(v){

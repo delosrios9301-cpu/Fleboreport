@@ -1639,8 +1639,8 @@ test('reapertura del domicilio conserva pruebas, exige motivo y responsable vige
  const source=domicilios.slice(domicilios.indexOf('function canReopenHomeVisit'),domicilios.indexOf('window.hvReopenHomeVisit='));
  const v={id:'demo',status:'Finalizado',assignmentStatus:'accepted',completedAt:'2026-11-24T16:00:00Z',tests:[{id:'test',status:'Tomada'}],events:[]};
  let assigned=true,reason='Corregir orina',ok=true,reviewed=0,saved=null;
- const {canReopenHomeVisit,reopenHomeVisit}=new Function('visits','cloud','isMyAssignedDomicile','pendingVisitTransitions','say','prompt','markVisitTransitionPending','log','save','render','openSamplesReview','loadCloudVisits','let historyCloudVisits=[],activeTab="history",referenceQuickStatus="",selected="",detailOpen=false;'+source+';return {canReopenHomeVisit,reopenHomeVisit}')(
- [v],{ready:true,user:{id:'u'},workspaceId:'w'},()=>assigned,new Set(),()=>{},()=>reason,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(d,o)=>{saved={d,o};return ok},()=>{},async()=>{reviewed++},async()=>{});
+ const {canReopenHomeVisit,reopenHomeVisit}=new Function('visits','cloud','isMyAssignedDomicile','pendingVisitTransitions','say','prompt','markVisitTransitionPending','log','save','render','openSamplesReview','loadCloudVisits','window','let historyCloudVisits=[],activeTab="history",referenceQuickStatus="",selected="",detailOpen=false;'+source+';return {canReopenHomeVisit,reopenHomeVisit}')(
+ [v],{ready:true,user:{id:'u'},workspaceId:'w'},()=>assigned,new Set(),()=>{},()=>reason,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(d,o)=>{saved={d,o};return ok},()=>{},async()=>{reviewed++},async()=>{},{confirm:()=>ok});
  assert.equal(canReopenHomeVisit(v),true);
  assigned=false;assert.equal(await reopenHomeVisit('demo'),false);
  assigned=true;reason='';assert.equal(await reopenHomeVisit('demo'),false);
@@ -1672,4 +1672,15 @@ test('fichas táctiles compactas muestran acciones independientes y PC sin dupli
  edit=false;del=false;markup=card(v,false);assert.doesNotMatch(markup,/data-hv-edit=/);assert.doesNotMatch(markup,/data-hv-archive=/);assert.match(markup,/data-hv-open-editor/);
  open=false;markup=card(v,false);assert.doesNotMatch(markup,/hv-swipe-row/);
  edit=true;open=true;del=true;touch=false;markup=card(v,false);assert.match(markup,/hv-ref-manage/);assert.doesNotMatch(markup,/hv-swipe-edit-rail/);assert.equal((markup.match(/data-hv-archive=/g)||[]).length,1);
+});
+
+test('abrir expediente es solo lectura y no reabre el domicilio',async()=>{
+ const source=domicilios.slice(domicilios.indexOf('async function openVisitEditor'),domicilios.indexOf('function canEditVisit'));
+ let renders=0,reads=0;
+ const v={id:'demo',status:'Finalizado'};
+ const open=new Function('loadVisitForHistoryAction','canOpenVisitEditor','say','render','document','let selected="",detailOpen=false,moreTestSelection=[];'+source+';return openVisitEditor')(
+ async()=>{reads++;return v},()=>true,()=>{},()=>renders++,{querySelector:()=>null});
+ assert.equal(await open('demo'),true);assert.equal(v.status,'Finalizado');assert.equal(reads,1);assert.equal(renders,1);
+ assert.doesNotMatch(source,/reopenHomeVisit\(|save\(|openClosedVisitCorrection\(/);
+ assert.match(domicilios,/window\.confirm\('¿Reabrir operativamente este domicilio/);
 });

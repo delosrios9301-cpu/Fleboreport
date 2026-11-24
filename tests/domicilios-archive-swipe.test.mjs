@@ -38,8 +38,8 @@ test('El escritorio muestra Eliminar mientras móvil/tablet usa swipe',()=>{
  assert.match(css,/display:grid;grid-template-columns:minmax\(0,1fr\) 86px/);
  assert.match(css,/button\.hv-archive-action/);
  assert.match(css,/background:linear-gradient\(145deg,#e5425e,#a91843\)/);
- assert.match(js,/tabindex="'\+\(isTouchSwipeMode\(\)\?'-1':'0'\)/);
- assert.match(js,/aria-label="'\+esc\(accessibility\)/);
+ assert.match(js,/if\(!touch\)return card/);
+ assert.match(js,/data-hv-archive="\x27\+id\+\x27" tabindex="-1" aria-hidden="true"/);
 });
 test('Nube omite archivados; mantiene historiales clínicos',()=>{
  assert.match(js,/\.is\('archived_at',null\)/);
