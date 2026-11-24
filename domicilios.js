@@ -1278,6 +1278,7 @@ async function openVisitEditor(id){
  }catch(error){say('No se pudo abrir el expediente: '+(error?.message||'Error de conexión'))}
 }
 function canEditVisit(v){
+ if(v?.status==='Finalizado')return !!(cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&!v.historySummaryOnly&&(cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit')&&window.fleboCan('domicilios','manage'))));
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&(window.fleboCan('domicilios','edit')||window.fleboCan('domicilios','manage')))));
@@ -1376,8 +1377,9 @@ function openHomeVisitAssignment(id){
  };
  search.focus();
 }
-function openHomeVisitEdit(id){
- const v=visits.find(x=>String(x.id)===String(id));
+async function openHomeVisitEdit(id){
+ let v=visits.find(x=>String(x.id)===String(id));
+ if(!v||v.status==='Finalizado'){try{v=await loadVisitForHistoryAction(id);}catch(error){say('No se pudo consultar el domicilio: '+(error?.message||'Error de conexión'));return;}}
  if(!canEditVisit(v)){say('No tienes permiso para corregir este domicilio.');return}
  document.getElementById('hvSwipeEditDialog')?.remove();
  const overlay=document.createElement('div');overlay.id='hvSwipeEditDialog';
@@ -1387,6 +1389,7 @@ function openHomeVisitEdit(id){
  form.append(title);
  const field=(label,type,value)=>{const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;font-size:13px;font-weight:600';wrap.textContent=label;const input=document.createElement('input');input.type=type;input.value=value||'';input.required=true;input.style.cssText='padding:11px;border:1px solid #a8c4ce;border-radius:9px;width:100%;box-sizing:border-box';wrap.append(input);form.append(wrap);return input};
  const date=field('Fecha programada','date',canonicalHomeVisitDate(v.scheduledDate)),time=field('Hora programada','time',canonicalHomeVisitTime(v.scheduledTime)),address=field('Dirección','text',v.address);
+ const closed=v.status==='Finalizado';if(closed){address.readOnly=true;address.required=false;}
  const actions=document.createElement('div');actions.style.cssText='display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;padding:10px 0;background:white';
  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancelar';cancel.className='btn';cancel.style.cssText='min-height:44px;padding:10px 16px;border:1px solid #aac3c8;border-radius:11px;background:#f4f8f9;color:#244657;font-weight:700';
  const save=document.createElement('button');save.type='submit';save.textContent='Guardar cambios';save.className='btn primary';save.style.cssText='min-height:44px;padding:10px 16px;border:0;border-radius:11px;background:#087f85;color:white;font-weight:800';
@@ -1403,10 +1406,10 @@ function openHomeVisitEdit(id){
  form.onsubmit=async e=>{
   e.preventDefault();
   if(!canEditVisit(v)){say('Ya no tienes permiso para modificar esta visita.');return}
-  const d=canonicalHomeVisitDate(date.value),t=canonicalHomeVisitTime(time.value),a=address.value.trim();
+  const d=canonicalHomeVisitDate(date.value),t=canonicalHomeVisitTime(time.value),a=closed?(v.address||''):address.value.trim();
   const invalidDate=!/^\d{4}-\d{2}-\d{2}$/.test(d)||!Number.isFinite(Date.parse(d+'T12:00:00Z'));
   const invalidTime=!/^\d{2}:\d{2}$/.test(t)||Number(t.slice(0,2))>23||Number(t.slice(3,5))>59;
-  if(invalidDate||invalidTime||!a){
+  if(invalidDate||invalidTime||(!closed&&!a)){
    const problem=invalidDate?'Selecciona una fecha válida.':invalidTime?'Selecciona una hora válida.':'La dirección no puede quedar vacía.';
    window.alert(problem+' Fecha: '+(date.value||'(vacía)')+' · Hora: '+(time.value||'(vacía)'));
    return;
@@ -1423,13 +1426,15 @@ function openHomeVisitEdit(id){
    // El backend confirma la escritura antes de actualizar la ficha local.
    const changes={};
    if(d!==canonicalHomeVisitDate(v.scheduledDate)||t!==canonicalHomeVisitTime(v.scheduledTime))changes.scheduled_at=scheduledAt;
-   if(a!==v.address)changes.address=a;
-   const result=await cloud.client.from('home_visits')
+   if(!closed&&a!==v.address)changes.address=a;
+   let request=cloud.client.from('home_visits')
     .update(changes)
-    .eq('id',v.id).eq('workspace_id',cloud.workspaceId)
-    .select('id,scheduled_at,address').maybeSingle();
+    .eq('id',v.id).eq('workspace_id',cloud.workspaceId);
+   if(closed)request=request.eq('status','completed');
+   const result=await request.select('id,scheduled_at,address,status,completed_at').maybeSingle();
    if(result.error)throw result.error;
    if(!result.data)throw new Error('La base de datos no autorizó la modificación. Comprueba los permisos de edición.');
+   if(closed&&(result.data.status!=='completed'||Date.parse(result.data.completed_at)!==Date.parse(v.completedAt)))throw new Error('El cierre del domicilio cambió. Actualiza el historial.');
    const savedAt=new Date(result.data.scheduled_at).getTime();
    if(Math.abs(savedAt-Date.parse(scheduledAt))>60000||String(result.data.address||'')!==a)
     throw new Error('El servidor no devolvió los valores solicitados.');
@@ -1440,6 +1445,7 @@ function openHomeVisitEdit(id){
    if(!verified.data||Math.abs(new Date(verified.data.scheduled_at).getTime()-savedAt)>60000||String(verified.data.address||'')!==a)
     throw new Error('El cambio se envió, pero no pudo verificarse. Actualiza la agenda antes de reintentarlo.');
    v.scheduledDate=d;v.scheduledTime=t;v.address=a;
+   historyCloudVisits=historyCloudVisits.map(x=>x.id===v.id?{...x,scheduledDate:d,scheduledTime:t,address:a}:x);
    saveHomeVisitCache();
    overlay.remove();
    render();

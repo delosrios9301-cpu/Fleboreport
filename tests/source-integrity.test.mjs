@@ -1709,3 +1709,16 @@ test('APK y pantallas táctiles se detectan aunque el navegador declare puntero 
  assert.equal(mode({...desktop,matchMedia:q=>({matches:q.includes('max-width')})}),true);
  assert.equal(mode({...desktop,navigator:{userAgent:'Android 16'}}),true);
 });
+
+test('fecha y hora finalizadas: solamente administración autorizada y sin alterar el cierre',()=>{
+ const source=domicilios.slice(domicilios.indexOf('function canEditVisit(v)'),domicilios.indexOf('/* La asignación administrativa posterior'));
+ const cloud={ready:true,user:{id:'u'},workspaceId:'w',role:'admin'};
+ let edit=false,manage=false;
+ const can=new Function('cloud','window',source+';return canEditVisit')(cloud,{fleboCan:(m,a)=>a==='edit'?edit:manage});
+ const v={status:'Finalizado'};
+ assert.equal(can(v),true);assert.equal(can({...v,archivedAt:'date'}),false);
+ cloud.role='technician';assert.equal(can(v),false);edit=true;assert.equal(can(v),false);manage=true;assert.equal(can(v),true);
+ assert.match(domicilios,/if\(closed\)\{address.readOnly=true;address.required=false;\}/);
+ assert.match(domicilios,/if\(!closed&&a!==v.address\)changes.address=a/);
+ assert.match(domicilios,/if\(closed\)request=request.eq\('status','completed'\)/);
+});
