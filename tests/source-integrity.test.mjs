@@ -1549,14 +1549,18 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   assert.match(domicilios, /data-review-confirm>Confirmar y guardar<\/button>/);
   assert.match(domicilios, /if\(await changeStatus\(id,'Muestras tomadas',true,v.tests\)\)\{\s*overlay.remove\(\)/);
   const persist=domicilios.slice(domicilios.indexOf('async function persistVisit'),domicilios.indexOf('async function save(v,'));
-  assert.ok(persist.indexOf("const check=await c.from('home_visit_tests')") < persist.indexOf('await writeVisit();',persist.indexOf('if(options.testsFirst)')));
+  const verifyStart=persist.indexOf("const check=await c.from('home_visit_tests')");
+  const deferredWrite=persist.indexOf('await writeVisit();',verifyStart);
+  assert.ok(verifyStart>=0 && deferredWrite>verifyStart);
+  assert.match(persist,/if\(!options\.testsFirst\)await writeVisit\(\);/);
+  assert.match(persist,/if\(options\.testsFirst\)\{\s*const check=await c.from\('home_visit_tests'\)[\s\S]*?await writeVisit\(\);/);
   assert.match(persist,/No se pudo verificar el guardado de todas las pruebas/);
   const source=domicilios.slice(domicilios.indexOf('async function changeStatus'),domicilios.indexOf('async function addTests'));
   const visit={id:'demo',status:'En domicilio',tests:[{id:'t1',status:'Pendiente'}],events:[]};
   const calls=[];
   let success=false;
-  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
-    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null}
+  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document','performance', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
+    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null},{now:()=>0}
   );
   assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
   assert.equal(calls.length,0);
@@ -1580,4 +1584,36 @@ test('historial de domicilios no reintenta insertar eventos que ya existen',()=>
  assert.match(domicilios,/er.error\?\.code==='23505'/);
  assert.match(domicilios,/verified.data\?\.status!==dbStatus/);
  assert.match(domicilios,/Finalizar domicilio/);
+});
+
+test('persistencia del cliente recupera colisión de auditoría y confirma cierre',async()=>{
+ const source=domicilios.slice(domicilios.indexOf('async function persistVisit'),domicilios.indexOf('async function save(v,'));
+ const calls=[];let status='at_home',testStatus='pending',notes=null,collision=true;
+ const history=new Set(['old']);
+ const client={from(table){
+  let op='read',payload,filters={};
+  return {select(){return this},eq(k,v){filters[k]=v;return this},in(k,v){filters[k]=v;return this},update(v){op='update';payload=v;return this},insert(v){op='insert';payload=v;return this},maybeSingle(){return this},then(resolve,reject){try{
+   calls.push([table,op]);let result={data:null,error:null};
+   if(table==='home_visits'){
+    if(op==='update'){assert.equal(testStatus,'not_collected');assert.equal(filters.status,status);status=payload.status;}
+    result.data={id:'visit',status};
+   }else if(table==='home_visit_tests'){
+    if(op==='update'){testStatus=payload.status;notes=payload.notes;result.data={id:'test'};}
+    else result.data=[{id:'test',status:testStatus,notes}];
+   }else if(table==='home_visit_events'){
+    if(op==='read')result.data=filters.id.filter(id=>history.has(id)).map(id=>({id}));
+    else {assert.ok(payload.every(e=>!history.has(e.id)));if(collision){collision=false;history.add(payload[0].id);result.error={code:'23505'};}else payload.forEach(e=>history.add(e.id));}
+   }
+   resolve(result);
+  }catch(e){reject(e)}}};
+ }};
+ const persisted=new Set();
+ const persist=new Function('cloud','isMyAssignedDomicile','statusToDb','testToDb','canonicalHomeVisitDate','canonicalHomeVisitTime','asUuid','priorityDb','serviceFields','persistedEventIds','invokeDomicileNotifications',source+';return persistVisit')({client,workspaceId:'w',user:{id:'u'},role:'technician'},()=>true,{'Muestras tomadas':'samples_taken','Finalizado':'completed'},{'No tomada':'not_collected'},x=>x,x=>x,x=>x,x=>x,()=>({}),persisted,async()=>({ok:true}));
+ const v={id:'visit',status:'Muestras tomadas',scheduledDate:'2026-11-24',scheduledTime:'11:00',tests:[{id:'test',status:'No tomada',notes:'No pudo entregar muestra'}],events:[{id:'new',action:'Estado actualizado',detail:'En domicilio → Muestras tomadas'},{id:'old',action:'Aceptado'}]};
+ await persist(v,{testsFirst:true});
+ assert.equal(status,'samples_taken');assert.ok(history.has('new'));assert.ok(persisted.has('old'));assert.ok(persisted.has('new'));
+ assert.ok(calls.findIndex(([table,op])=>table==='home_visit_tests'&&op==='update')<calls.findIndex(([table,op])=>table==='home_visits'&&op==='update'));
+ v.status='Finalizado';v.completedAt='2026-11-24T17:00:00Z';v.events.unshift({id:'final',action:'Estado actualizado',detail:'Muestras tomadas → Finalizado'});
+ await persist(v,{testsFirst:true,skipTests:true});
+ assert.equal(status,'completed');assert.ok(history.has('final'));assert.equal(history.size,3);
 });
