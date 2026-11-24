@@ -194,3 +194,23 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>button.hv-
 body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe:is(.is-open,.is-dragging-left)>button.hv-archive-action{visibility:visible;opacity:1;pointer-events:auto;}
 body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe.is-open>.hv-swipe-content{transform:translate3d(-92px,0,0)!important;}
 @media(prefers-reduced-motion:reduce){body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-content{transition:none!important;}}
+
+/* 2.18: protección visual independiente del detector JS. Ninguna acción
+   de escritorio puede ocupar espacio en una ficha táctil. */
+html.hv-compact-device #view-domicilios #hvWorkspace .hv-ref-visit .hv-ref-manage{
+ display:none!important;visibility:hidden!important;margin:0!important;padding:0!important;border:0!important;height:0!important;min-height:0!important;
+}
+@media screen and (max-width:900px), screen and (pointer:coarse){
+ #view-domicilios #hvWorkspace .hv-ref-visit .hv-ref-manage{
+  display:none!important;visibility:hidden!important;margin:0!important;padding:0!important;border:0!important;height:0!important;min-height:0!important;
+ }
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-edit-rail>.hv-edit-action{
+ min-height:44px;max-height:100%;white-space:normal!important;word-break:normal!important;overflow-wrap:normal!important;writing-mode:horizontal-tb!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe:not(.is-edit-open):not(.is-dragging-right)>.hv-swipe-edit-rail{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe:not(.is-open):not(.is-dragging-left)>button.hv-archive-action{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}

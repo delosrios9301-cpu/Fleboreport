@@ -1457,7 +1457,8 @@ function openHomeVisitEdit(id){
 }
 function isTouchSwipeMode(){
  const n=window.navigator||{},ua=n.userAgent||'';
- return !!(/Android|iPhone|iPad|iPod/i.test(ua)||(n.platform==='MacIntel'&&n.maxTouchPoints>1)||window.matchMedia?.('(pointer:coarse)').matches);
+ const nativeMobile=window.Capacitor?.isNativePlatform?.()&&['android','ios'].includes(window.Capacitor?.getPlatform?.());
+ return !!(nativeMobile||/Android|iPhone|iPad|iPod|Mobile/i.test(ua)||(n.platform==='MacIntel'&&n.maxTouchPoints>1)||window.matchMedia?.('(pointer:coarse)')?.matches||window.matchMedia?.('(max-width: 900px)')?.matches);
 }
 function setHomeVisitSwipe(row,opened,direction='left'){
  if(!row)return;
@@ -1505,7 +1506,7 @@ function setupHomeVisitSwipe(workspace){
  if(!workspace||workspace.dataset.hvArchiveSwipeReady==='1')return;
  workspace.dataset.hvArchiveSwipeReady='1';
  workspace.addEventListener('pointerdown',event=>{
-  if(!isTouchSwipeMode()||!['touch','pen'].includes(event.pointerType))return;
+  if(!isTouchSwipeMode()||!['touch','pen','mouse'].includes(event.pointerType))return;
   if(!(event.target instanceof Element)||event.target.closest('.hv-archive-action,.hv-edit-action,.hv-ref-manage,input,select,textarea'))return;
   const row=event.target.closest('.hv-swipe-row');
   if(!row||!workspace.contains(row))return;
@@ -1549,7 +1550,7 @@ function setupHomeVisitSwipe(workspace){
   if(button&&workspace.contains(button)){event.preventDefault();event.stopPropagation();if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);openHomeVisitEdit(button.dataset.hvEdit)}
  });
  workspace.addEventListener('click',event=>{
-  if(Date.now()<hvIgnoreCardClickUntil&&event.target instanceof Element&&event.target.closest('.hv-swipe-content')){
+  if(Date.now()<hvIgnoreCardClickUntil&&event.target instanceof Element&&event.target.closest('.hv-swipe-row')){
    event.preventDefault();event.stopImmediatePropagation();
   }
  },true);
@@ -1602,7 +1603,7 @@ function hvReferenceVisitCard(v,technician){
  return '<div class="hv-swipe-row hv-touch-swipe" data-hv-swipe-id="'+id+'">'
   +((canDate||canOpen)?'<div class="hv-swipe-edit-rail">'
    +(canDate?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" tabindex="-1" aria-hidden="true"><span aria-hidden="true">'+pencil+'</span><span>Corregir fecha y hora</span></button>':'')
-   +(canOpen?'<button type="button" class="hv-edit-action" data-hv-open-editor="'+id+'" tabindex="-1" aria-hidden="true"><span aria-hidden="true">↻</span><span>Reabrir expediente</span></button>':'')
+   +(canOpen?'<button type="button" class="hv-edit-action" data-hv-open-editor="'+id+'" tabindex="-1" aria-hidden="true"><span aria-hidden="true">↻</span><span>Reabrir domicilio</span></button>':'')
    +'</div>':'')
   +'<div class="hv-swipe-content">'+card+'</div>'
   +(canDelete?'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'" tabindex="-1" aria-hidden="true" aria-label="'+esc('Eliminar domicilio '+name+' del listado')+'"><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button>':'')
@@ -1612,6 +1613,8 @@ function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
  workspace.dataset.referenceCards='1';
  setupHomeVisitSwipe(workspace);
+ let lastTouchMode=isTouchSwipeMode();
+ window.addEventListener('resize',()=>{const next=isTouchSwipeMode();if(next!==lastTouchMode){lastTouchMode=next;render();}},{passive:true});
  const head=document.createElement('header');head.className='hv-ref-heading';
  head.innerHTML='<div class="hv-ref-heading-title"><span class="hv-ref-house" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15 16 5l13 10v13H3V15Z"/><path d="M11 28V17h10v11"/></svg></span><div><h1>Domicilios</h1><p>Visitas domiciliarias asignadas</p></div></div><button type="button" id="hvRefNew" class="hv-ref-new" hidden>＋ Nuevo domicilio</button>';
  workspace.prepend(head);
@@ -1662,6 +1665,7 @@ window.hvSetTab=setTab;
 function render(){
  window.dispatchEvent(new Event('flebo:home-history-changed'));
   const technician=cloud.role==='technician';
+  document.documentElement.classList.toggle('hv-compact-device',isTouchSwipeMode());
   if(technician&&!selected&&visits.length)selected=visits[0].id;
   const createPanel=$('hvCreatePanel'),kpis=$('hvKpis'),detailPanel=$('hvDetail'),calendarPanel=$('hvCalendar')?.closest('.hv-calendar-panel'),agendaPanel=$('hvAgendaPanel');
   const manager=['admin','clinician','reception'].includes(cloud.role);

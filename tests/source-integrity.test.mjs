@@ -1668,7 +1668,7 @@ test('fichas táctiles compactas muestran acciones independientes y PC sin dupli
  const card=new Function('isTouchSwipeMode','canEditVisit','canOpenVisitEditor','canArchiveVisit','canAssignUnassignedVisit','hvReferenceStatus','priorityDb','esc','dateLabel','hvReferenceHour','priorityLabel',source+';return hvReferenceVisitCard')(()=>touch,()=>edit,()=>open,()=>del,()=>false,()=>['Aceptado','accepted'],()=> 'normal',String,String,String,String);
  const v={id:'demo',patientName:'Paciente ficticio',status:'Aceptado',tests:[],scheduledDate:'2026-11-24',scheduledTime:'10:00'};
  let markup=card(v,false);
- assert.match(markup,/hv-swipe-edit-rail/);assert.match(markup,/Corregir fecha y hora/);assert.match(markup,/Reabrir expediente/);assert.match(markup,/data-hv-archive/);assert.doesNotMatch(markup,/hv-ref-manage/);
+ assert.match(markup,/hv-swipe-edit-rail/);assert.match(markup,/Corregir fecha y hora/);assert.match(markup,/Reabrir domicilio/);assert.match(markup,/data-hv-archive/);assert.doesNotMatch(markup,/hv-ref-manage/);
  edit=false;del=false;markup=card(v,false);assert.doesNotMatch(markup,/data-hv-edit=/);assert.doesNotMatch(markup,/data-hv-archive=/);assert.match(markup,/data-hv-open-editor/);
  open=false;markup=card(v,false);assert.doesNotMatch(markup,/hv-swipe-row/);
  edit=true;open=true;del=true;touch=false;markup=card(v,false);assert.match(markup,/hv-ref-manage/);assert.doesNotMatch(markup,/hv-swipe-edit-rail/);assert.equal((markup.match(/data-hv-archive=/g)||[]).length,1);
@@ -1697,4 +1697,15 @@ test('restaurar cierre anterior exige responsable vigente y confirmación sin mo
  assert.equal(await restorePreviousClosure('demo'),false);assert.equal(calls,0);
  consent=true;assert.equal(await restorePreviousClosure('demo'),true);assert.equal(calls,1);assert.equal(tab,'history');
  assert.doesNotMatch(source,/home_visit_tests|\.update\(/);
+});
+
+test('APK y pantallas táctiles se detectan aunque el navegador declare puntero fino',()=>{
+ const source=domicilios.slice(domicilios.indexOf('function isTouchSwipeMode'),domicilios.indexOf('function setHomeVisitSwipe'));
+ const mode=(window)=>new Function('window',source+';return isTouchSwipeMode()')(window);
+ const desktop={navigator:{userAgent:'Desktop',platform:'Win32',maxTouchPoints:0},matchMedia:()=>({matches:false})};
+ assert.equal(mode(desktop),false);
+ assert.equal(mode({...desktop,Capacitor:{isNativePlatform:()=>true,getPlatform:()=> 'android'}}),true);
+ assert.equal(mode({...desktop,navigator:{platform:'MacIntel',maxTouchPoints:5,userAgent:'Macintosh'}}),true);
+ assert.equal(mode({...desktop,matchMedia:q=>({matches:q.includes('max-width')})}),true);
+ assert.equal(mode({...desktop,navigator:{userAgent:'Android 16'}}),true);
 });
