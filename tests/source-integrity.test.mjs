@@ -1547,7 +1547,7 @@ test('La sincronización del catálogo se reintenta tras modificaciones concurre
 
 test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante un fallo', async () => {
   assert.match(domicilios, /data-review-confirm>Confirmar y guardar<\/button>/);
-  assert.match(domicilios, /if\(await changeStatus\(id,'Muestras tomadas',true,v.tests\)\)\{overlay.remove\(\)/);
+  assert.match(domicilios, /if\(await changeStatus\(id,'Muestras tomadas',true,v.tests\)\)\{\s*overlay.remove\(\)/);
   const persist=domicilios.slice(domicilios.indexOf('async function persistVisit'),domicilios.indexOf('async function save(v,'));
   assert.ok(persist.indexOf("const check=await c.from('home_visit_tests')") < persist.indexOf('await writeVisit();',persist.indexOf('if(options.testsFirst)')));
   assert.match(persist,/No se pudo verificar el guardado de todas las pruebas/);
@@ -1555,8 +1555,8 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   const visit={id:'demo',status:'En domicilio',tests:[{id:'t1',status:'Pendiente'}],events:[]};
   const calls=[];
   let success=false;
-  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
-    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{}
+  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
+    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null}
   );
   assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
   assert.equal(calls.length,0);
@@ -1572,4 +1572,12 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   assert.equal(visit.status,'Finalizado');
   assert.equal(calls.at(-1).options.testsFirst,true);
   assert.equal(calls.at(-1).options.skipTests,true);
+});
+
+test('historial de domicilios no reintenta insertar eventos que ya existen',()=>{
+ assert.match(domicilios,/const readExisting=async\(\)=>/);
+ assert.match(domicilios,/remaining=eventRows.filter\(e=>!existing.has\(e.id\)\)/);
+ assert.match(domicilios,/er.error\?\.code==='23505'/);
+ assert.match(domicilios,/verified.data\?\.status!==dbStatus/);
+ assert.match(domicilios,/Finalizar domicilio/);
 });
