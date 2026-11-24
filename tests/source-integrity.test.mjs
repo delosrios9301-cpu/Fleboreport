@@ -1649,3 +1649,16 @@ test('reapertura del domicilio conserva pruebas, exige motivo y responsable vige
  assert.match(v.events[0].detail,/Corregir orina/);assert.match(v.events[0].detail,/Cierre anterior/);
  assert.match(domicilios,/data-hv-reopen/);
 });
+
+test('reapertura visible y deslizamiento con permisos: no expone registros archivados',()=>{
+ const source=domicilios.slice(domicilios.indexOf('function canCorrectClosedVisit'),domicilios.indexOf('async function loadVisitForHistoryAction'));
+ const cloud={ready:true,user:{id:'u'},workspaceId:'w',role:'admin'};
+ let rights=false;const can=new Function('cloud','window',source+';return canCorrectClosedVisit')(cloud,{fleboCan:()=>rights});
+ const v={status:'Finalizado'};
+ assert.equal(can(v),true);assert.equal(can({...v,archivedAt:'date'}),false);assert.equal(can({...v,historySummaryOnly:true}),false);
+ cloud.role='technician';assert.equal(can(v),false);rights=true;assert.equal(can(v),true);
+ assert.match(domicilios,/class="hv-edit-action" data-hv-reopen/);
+ assert.match(domicilios,/class="hv-edit-action" data-hv-correct-closed/);
+ assert.match(domicilios,/data-hv-correct-closed/);
+ assert.match(domicilios,/Corrección de expediente finalizado/);
+});

@@ -859,9 +859,10 @@ async function create(){
   if(button){button.disabled=false;button.textContent=originalLabel}
  }
 }
-async function openSamplesReview(id){
+async function openSamplesReview(id,closedReason=null){
  if(document.getElementById('hvSamplesReview'))return;
  let v=visits.find(x=>x.id===id);if(!v)return;
+ if(closedReason&&!canCorrectClosedVisit(v))return;
  v={...v,tests:(v.tests||[]).map(t=>({...t}))};
  if(!cloud.ready||!cloud.client){say('Conecta la agenda con Supabase antes de revisar las pruebas.');return}
  if(!Array.isArray(v.tests))v.tests=[];
@@ -879,6 +880,7 @@ async function openSamplesReview(id){
   say('No se pudieron cargar las pruebas de este paciente. No se confirmó ninguna muestra. '+(error.message||''));
   return;
  }
+ const originalTests=v.tests.map(t=>({...t}));const correctionEventId=closedReason?makeId():null;
  const overlay=document.createElement('div');overlay.className='hv-review-overlay';overlay.id='hvSamplesReview';
  let reviewSaving=false;
  const isRemoved=t=>String(t.notes||'').includes('[CORRECCION: RETIRADA]');
@@ -899,7 +901,7 @@ async function openSamplesReview(id){
  const refresh=()=>{
   vessels={};
   v.tests.filter(t=>!isRemoved(t)).forEach(t=>{const k=t.vessel||'Sin recipiente';vessels[k]=(vessels[k]||0)+Number(t.quantity||1)});
-  const list=overlay.querySelector('[data-review-tests]');if(list)list.innerHTML=renderTests();
+  const list=overlay.querySelector('[data-review-tests]');if(list){list.innerHTML=renderTests();if(closedReason)list.querySelectorAll('[data-remove-requested-test]').forEach(b=>b.remove());}
   const summary=overlay.querySelector('[data-review-vessels]');if(summary)summary.innerHTML=Object.entries(vessels).map(([name,count])=>'<span class="hv-review-chip">'+esc(name)+': <b>'+count+'</b></span>').join('');
   const heading=overlay.querySelector('[data-review-total]');if(heading)heading.textContent=total()+' unidad(es) · '+v.tests.filter(t=>!isRemoved(t)).length+' prueba(s) activas';
   const c=counts(),counter=overlay.querySelector('[data-review-count]');if(counter)counter.textContent='Tomadas: '+c.taken+' · No tomadas: '+c.notTaken+' · Pendientes: '+c.pending;
@@ -913,16 +915,18 @@ async function openSamplesReview(id){
  if(reviewSaving)return;
   if(e.target===overlay||e.target.closest('[data-review-close]')){overlay.remove();return}
   const remove=e.target.closest('[data-remove-requested-test]');
-  if(remove){const t=v.tests[Number(remove.dataset.removeRequestedTest)];if(!t)return;if(t.status==='Tomada'){say('Esta prueba ya está marcada como tomada. No se puede retirar después de registrar su toma.');return}const reason='[CORRECCION: RETIRADA] '+actor()+' · '+new Date().toISOString();t.status='No tomada';t.notes=(t.notes? t.notes+' | ':'')+reason;refresh();return}
+  if(remove){if(closedReason)return;const t=v.tests[Number(remove.dataset.removeRequestedTest)];if(!t)return;if(t.status==='Tomada'){say('Esta prueba ya está marcada como tomada. No se puede retirar después de registrar su toma.');return}const reason='[CORRECCION: RETIRADA] '+actor()+' · '+new Date().toISOString();t.status='No tomada';t.notes=(t.notes? t.notes+' | ':'')+reason;refresh();return}
   const add=e.target.closest('[data-correction-add]');
   if(add){
+   if(closedReason)return;
    const item=catalog().find(x=>String(x.id)===String(add.dataset.correctionAdd));if(!item){say('La prueba ya no está disponible en el catálogo. Búscala nuevamente.');return}
    if(v.tests.some(t=>!isRemoved(t)&&(t.serviceId===item.id||t.testId===item.id||String(t.name).toLowerCase()===String(item.name).toLowerCase()))){say('Esa prueba ya está incluida en la solicitud.');return}
    v.tests.push({id:crypto.randomUUID(),testId:item.id,serviceId:item.id,name:item.name,sample:item.sample||'',vessel:item.vessel||'',colorName:item.colorName||'',fasting:item.fasting||'',conditions:item.conditions||'',instructions:item.instructions||'',volume:item.volume||'',method:item.method||'',color:item.color||'',shape:item.shape||'tube',catalogSnapshot:serviceFields(item),status:'Pendiente',source:'adicional',addedBy:actor(),addedAt:new Date().toISOString()});
    const input=overlay.querySelector('#hvCorrectionSearch');if(input)input.value='';renderCatalogResults('');refresh();return;
   }
-  if(e.target.closest('[data-mark-all-taken]')){markPendingReviewTests(v.tests);refresh();return}
+  if(e.target.closest('[data-mark-all-taken]')){if(closedReason)return;markPendingReviewTests(v.tests);refresh();return}
   if(e.target.closest('[data-save-corrections]')){
+   if(closedReason)return;
    const button=overlay.querySelector('[data-save-corrections]');if(!cloud.ready){say('Conecta la agenda antes de guardar las correcciones.');return}
    button.disabled=true;const label=button.textContent;button.textContent='Guardando…';
    try{const current=visits.find(x=>x.id===id);if(!current||current.status!=='En domicilio'){say('El domicilio cambió de estado. Actualiza la agenda.');return}if(!await save({...current,tests:v.tests},{testsFirst:true}))return;const updated=visits.find(x=>x.id===id);if(updated)updated.tests=v.tests.map(t=>({...t}));say('Correcciones guardadas. Las pruebas retiradas y las nuevas pruebas quedaron registradas.');}
@@ -932,7 +936,7 @@ async function openSamplesReview(id){
   if(e.target.closest('[data-review-confirm]')){
    const feedback=overlay.querySelector('[data-review-feedback]');if(feedback)feedback.textContent='';const c=counts();if(c.pending){say('Todavía hay '+c.pending+' prueba(s) pendientes. Marca cada una como tomada o no tomada.');return}if(!c.taken&&!c.notTaken){say('No hay pruebas activas para confirmar.');return}
    reviewSaving=true;const button=overlay.querySelector('[data-review-confirm]');const controls=[...overlay.querySelectorAll('button,input,select,textarea')].map(el=>[el,el.disabled]);controls.forEach(([el])=>el.disabled=true);button.textContent='Guardando…';button.setAttribute('aria-busy','true');
- try{if(await changeStatus(id,'Muestras tomadas',true,v.tests)){
+ try{if(closedReason){await saveClosedSampleReview(id,originalTests,v.tests,closedReason,correctionEventId);overlay.remove();say('Resultados corregidos. Se conserva el domicilio finalizado.');return;}if(await changeStatus(id,'Muestras tomadas',true,v.tests)){
   overlay.remove();
   const detail=document.querySelector('body > .hv-detail-backdrop');const trigger=detail?.querySelector('[data-hv-track-action-trigger]');const menu=detail?.querySelector('.hv-track-action-list');if(menu&&trigger){menu.hidden=false;trigger.setAttribute('aria-expanded','true');}
   const finalButton=Array.from(detail?.querySelectorAll('button')||[]).find(b=>b.textContent.trim()==='Finalizar domicilio');if(finalButton)finalButton.scrollIntoView({block:'nearest'});
@@ -943,6 +947,7 @@ async function openSamplesReview(id){
   }
  });
  const search=overlay.querySelector('#hvCorrectionSearch');search.addEventListener('input',()=>renderCatalogResults(search.value));
+ if(closedReason){overlay.querySelector('#hvReviewTitle').textContent='Corregir expediente finalizado';overlay.querySelector('.hv-review-header p').textContent='Corrige exclusivamente los resultados. Se conservará el cierre original y la auditoría.';overlay.querySelector('.hv-review-correction').hidden=true;overlay.querySelector('[data-save-corrections]').hidden=true;overlay.querySelector('[data-mark-all-taken]').hidden=true;}
  document.body.appendChild(overlay);renderCatalogResults('');refresh();
 }
 const pendingVisitTransitions=new Set();
@@ -1024,6 +1029,7 @@ function technicianFieldScreen(v){
 async function saveFieldObservation(id){if(!cloud.ready){say('Necesitas conexión para guardar la observación.');return}const v=visits.find(x=>x.id===id),input=$('hvFieldObservation'),note=input?.value.trim();if(!v||!note){say('Escribe una observación antes de guardar.');return}log(v,'Observación de campo',note);if(await save(v)){render();say('Observación registrada en el historial del domicilio.')}}
 function detail(v){if(!v)return'<div class="hv-empty">Selecciona un domicilio.</div>';if(cloud.role==='technician'||isMyAssignedDomicile(v))return technicianFieldScreen(v);const awaitingTechnicianDecision=cloud.role==='technician'&&v.assignmentStatus==='invited'&&v.status==='Pendiente de aceptación';if(awaitingTechnicianDecision){return '<div class="hv-detail-head"><div><div class="eyebrow">NUEVA ASIGNACIÓN</div><h2>Domicilio pendiente de tu respuesta</h2><small>Fecha: '+dateLabel(v.scheduledDate)+' · Hora: '+esc(v.scheduledTime)+'</small></div>'+statusBadge(v.status)+'</div><p class="hv-help">Revisa la fecha y la hora y confirma si puedes realizar este servicio. Por privacidad, los datos del paciente, la dirección y las pruebas se mostrarán únicamente después de aceptar.</p><div class="hv-actions"><button class="btn primary" onclick="hvStatus(\''+v.id+'\',\'Aceptado\')">Aceptar domicilio y ver detalles</button><button class="btn danger" onclick="hvStatus(\''+v.id+'\',\'Rechazado\')">Rechazar domicilio</button></div></div>';}let buttons='';
 const canAgendaCancel=['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status);
+if(canCorrectClosedVisit(v))buttons='<button class="btn primary" type="button" onclick="hvCorrectClosedVisit(\''+v.id+'\')">Reabrir expediente · Corregir muestras</button>';
 if(canAgendaCancel)buttons='<button class="btn danger" onclick="hvStatus(\''+v.id+'\',\'Cancelado\')">Cancelar por solicitud del paciente</button>';
 ;let tests=v.tests.map(t=>'<div class="hv-test"><span><b>'+esc(t.name)+'</b><small>'+'Muestra: '+esc(t.sample||'No configurada')+' · Recipiente: '+esc(t.vessel||'No configurado')+(t.colorName?' · Color: '+esc(t.colorName):'')+'</small>'+(t.fasting?'<small>Ayuno / preparación: '+esc(t.fasting)+'</small>':'')+(t.conditions?'<small>Condiciones de toma: '+esc(t.conditions)+'</small>':'')+(t.instructions?'<small>Indicaciones: '+esc(t.instructions)+'</small>':'')+(t.notes?'<small>Observación de no toma: '+esc(t.notes)+'</small>':'')+(t.volume?'<small>Volumen: '+esc(t.volume)+'</small>':'')+'<small>'+(t.source==='adicional'?'Adicional':'Original')+'</small></span><select onchange="hvTestStatus(\''+v.id+'\',\''+t.id+'\',this.value)"><option '+(t.status==='Pendiente'?'selected':'')+'>Pendiente</option><option '+(t.status==='Tomada'?'selected':'')+'>Tomada</option><option '+(t.status==='No tomada'?'selected':'')+'>No tomada</option></select></div>').join('');let totals={};v.tests.forEach(t=>totals[t.vessel||'Sin recipiente']=(totals[t.vessel||'Sin recipiente']||0)+1);let chips=Object.keys(totals).map(k=>'<span class="hv-chip">'+esc(k)+': <b>'+totals[k]+'</b></span>').join('');let events=v.events.map(e=>'<div class="hv-event"><b>'+esc(e.action)+'</b><small>'+esc(new Date(e.at).toLocaleString('es-PA'))+' · '+esc(e.by)+'</small><span>'+esc(e.detail)+'</span></div>').join('');return '<div class="hv-detail-head"><div><div class="eyebrow">DETALLE DEL SERVICIO</div><h2>'+esc(v.patientName)+'</h2><small>'+esc(v.id)+' · '+dateLabel(v.scheduledDate)+' · '+esc(v.scheduledTime)+'</small><div class="hv-priority-label hv-priority-'+priorityDb(v.priority)+'">Prioridad: '+priorityLabel(v.priority)+'</div></div>'+statusBadge(v.status)+'</div><div class="hv-info"><div><small>Teléfono</small><b>'+esc(v.phone||'—')+'</b></div><div><small>Responsable</small><b>'+esc(v.assignedTo||'Sin asignar')+'</b></div><div class="wide"><small>Dirección</small><b>'+esc(v.address)+'</b></div></div><div class="hv-actions">'+buttons+'</div><h3>Pruebas y recipientes</h3><div>'+(tests||'<div class="hv-empty">Este domicilio no tiene pruebas guardadas. Añádelas desde el catálogo compartido.</div>')+'</div><div class="hv-chips">'+chips+'</div><div class="hv-more"><label>Agregar pruebas adicionales</label>'+testPicker('hvMoreTests')+'<button class="btn" onclick="hvAddTests(\''+v.id+'\')">＋ Agregar pruebas</button></div><h3>Documentos adjuntos</h3><div class="hv-doc-list">'+((v.documents||[]).map(d=>'<div class="hv-doc-row"><span>📎 <b>'+esc(d.file_name)+'</b><small>'+(Number(d.file_size||0)/1024).toFixed(0)+' KB</small></span><button class="btn small" type="button" onclick="hvOpenDocument(\''+v.id+'\',\''+d.id+'\')">Abrir</button></div>').join('')||'<div class="hv-empty">No hay documentos adjuntos.</div>')+'</div><div class="hv-doc-upload"><input type="file" id="hvDocumentFile" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.txt"><button class="btn" type="button" onclick="hvUploadDocument(\''+v.id+'\')">＋ Adjuntar documento</button><small>PDF, fotos, Word, Excel, CSV o TXT · hasta 50 MB · archivo privado</small></div><h3>Historial de actividad</h3><div class="hv-timeline">'+(events||'Sin movimientos')+'</div>'}
 function additionalPatientsPanel(v){
@@ -1167,6 +1173,71 @@ async function reopenHomeVisit(id){
  }finally{restore();pendingVisitTransitions.delete(id)}
 }
 window.hvReopenHomeVisit=reopenHomeVisit;
+function canCorrectClosedVisit(v){
+ return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&!v.historySummaryOnly&&v.status==='Finalizado'&&(cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','edit')&&window.fleboCan('domicilios','manage'))));
+}
+async function loadVisitForHistoryAction(id){
+ const w=cloud.workspaceId,u=cloud.user?.id;
+ if(!cloud.ready||!w||!u)return null;
+ const rows=await fetchHomeVisitRows([id]);
+ if(w!==cloud.workspaceId||u!==cloud.user?.id)return null;
+ const row=rows.find(x=>String(x.id)===String(id));if(!row)return null;
+ const fresh=dbVisit(row);
+ (fresh.events||[]).forEach(e=>persistedEventIds.add(e.id));
+ visits=visits.filter(x=>x.id!==fresh.id).concat(fresh);
+ return fresh;
+}
+async function openClosedVisitCorrection(id){
+ try{
+  const v=await loadVisitForHistoryAction(id);
+  if(!canCorrectClosedVisit(v)){say('No tienes permiso para corregir este expediente finalizado.');return;}
+  const reason=prompt('Motivo de corrección del expediente (obligatorio):','Corregir resultado de toma');
+  if(!reason||!reason.trim())return;
+  selected=id;detailOpen=true;render();
+  await openSamplesReview(id,reason.trim());
+ }catch(error){say('No se pudo abrir el expediente: '+(error?.message||'Error de conexión'))}
+}
+async function saveClosedSampleReview(id,original,draft,reason,eventId){
+ const v=visits.find(x=>x.id===id);
+ if(!canCorrectClosedVisit(v)||!reason.trim())throw new Error('No tienes permiso para corregir este expediente.');
+ const c=cloud.client,w=cloud.workspaceId,u=cloud.user.id;
+ const visit=await c.from('home_visits').select('id,status,archived_at').eq('workspace_id',w).eq('id',id).maybeSingle();
+ if(visit.error)throw visit.error;
+ if(visit.data?.status!=='completed'||visit.data?.archived_at)throw new Error('El domicilio ya no está finalizado o fue archivado.');
+ const read=async()=>{const r=await c.from('home_visit_tests').select('id,status,notes').eq('workspace_id',w).eq('home_visit_id',id);if(r.error)throw r.error;return new Map((r.data||[]).map(t=>[t.id,t]));};
+ const before=await read(),changes=[];
+ if(original.length!==draft.length||before.size!==original.length)throw new Error('La solicitud cambió; vuelve a abrirla.');
+ for(const old of original){
+  const next=draft.find(t=>t.id===old.id),remote=before.get(old.id);
+  if(!next||!remote)throw new Error('La solicitud cambió; vuelve a abrirla.');
+  const retired=String(old.notes||'').includes('[CORRECCION: RETIRADA]');
+  if(retired){if(next.status!==old.status||(next.notes||'')!==(old.notes||''))throw new Error('Una prueba retirada es de solo lectura.');continue;}
+  if(!['Tomada','No tomada'].includes(next.status))throw new Error('Confirma cada resultado activo.');
+  if(next.status===old.status&&(next.notes||'')===(old.notes||''))continue;
+  const desired=testToDb[next.status],notes=next.notes||null;
+  if(remote.status!==desired||(remote.notes||'')!==(notes||'')){
+   if(remote.status!==testToDb[old.status]||(remote.notes||'')!==(old.notes||''))throw new Error('Otra persona modificó una prueba. Vuelve a abrir el expediente.');
+   let query=c.from('home_visit_tests').update({status:desired,notes}).eq('id',old.id).eq('workspace_id',w).eq('home_visit_id',id).eq('status',remote.status);
+   query=remote.notes===null?query.is('notes',null):query.eq('notes',remote.notes);
+   const saved=await query.select('id,status,notes').maybeSingle();if(saved.error)throw saved.error;if(saved.data?.status!==desired||(saved.data?.notes||'')!==(notes||''))throw new Error('No se confirmó la corrección de una prueba.');
+  }
+  changes.push((old.name||'Prueba')+': '+old.status+' → '+next.status+((old.notes||'')!==(next.notes||'')?' (observación modificada)':''));
+ }
+ const after=await read();
+ if(draft.some(t=>!after.has(t.id)||after.get(t.id).status!==testToDb[t.status]||(after.get(t.id).notes||'')!==(t.notes||'')))throw new Error('No se confirmó el resultado completo.');
+ if(changes.length){
+  const description='Motivo: '+reason+' · '+changes.join('; ');
+  const existing=await c.from('home_visit_events').select('id').eq('workspace_id',w).eq('home_visit_id',id).eq('id',eventId).maybeSingle();if(existing.error)throw existing.error;
+  if(!existing.data){const event=await c.from('home_visit_events').insert({id:eventId,workspace_id:w,home_visit_id:id,event_type:'Corrección de expediente finalizado',from_status:'completed',to_status:'completed',description,actor_user_id:u,metadata:{by:actor()}});if(event.error)throw event.error;}
+  persistedEventIds.add(eventId);
+ }
+ const fresh=await loadVisitForHistoryAction(id);
+ if(!fresh)throw new Error('Guardado confirmado; no se pudo actualizar la ficha. Consulta el historial.');
+ historyCloudVisits=historyCloudVisits.map(x=>x.id===id?fresh:x);render();
+ return true;
+}
+window.hvCorrectClosedVisit=openClosedVisitCorrection;
+
 function canEditVisit(v){
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
@@ -1420,8 +1491,8 @@ function setupHomeVisitSwipe(workspace){
   if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
-  if(dx>65&&!g.startedOpen){setHomeVisitSwipe(g.row,false);g.row.classList.add('is-edit-open');g.row.querySelector('.hv-edit-action')?.setAttribute('aria-hidden','false');g.row.querySelector('.hv-edit-action')?.setAttribute('tabindex','0');return}
-  g.row.classList.remove('is-edit-open');setHomeVisitSwipe(g.row,g.startedOpen?dx<42:dx<-43);
+  if(dx>65&&!g.startedOpen&&g.row.querySelector('.hv-edit-action')){setHomeVisitSwipe(g.row,false);g.row.classList.add('is-edit-open');g.row.querySelector('.hv-edit-action')?.setAttribute('aria-hidden','false');g.row.querySelector('.hv-edit-action')?.setAttribute('tabindex','0');return}
+  g.row.classList.remove('is-edit-open');setHomeVisitSwipe(g.row,!!g.row.querySelector('.hv-archive-action:not([hidden])')&&(g.startedOpen?dx<42:dx<-43));
  });
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
@@ -1470,19 +1541,19 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div>'
-  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v)||canReopenHomeVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v)||canReopenHomeVisit(v)||canCorrectClosedVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
    +(canAssignUnassignedVisit(v)?'<button type="button" class="hv-ref-manage-assign" data-hv-assign="'+id+'">＋ Asignar responsable</button>':'')
    +(canEditVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-edit="'+id+'">✎ Corregir fecha y hora</button>':'')
-   +(canReopenHomeVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-reopen="'+id+'">↻ Reabrir domicilio</button>':'')
+   +(canReopenHomeVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-reopen="'+id+'">↻ Reabrir domicilio</button>':canCorrectClosedVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-correct-closed="'+id+'">↻ Reabrir expediente</button>':'')
    +(canArchiveVisit(v)?'<button type="button" class="hv-ref-manage-archive" data-hv-archive="'+id+'">Eliminar</button>':'')
    +'</div>':'')
   +'</article>';
- if(!canArchiveVisit(v)&&!canEditVisit(v))return card;
+ if(!canArchiveVisit(v)&&!canEditVisit(v)&&!canReopenHomeVisit(v)&&!canCorrectClosedVisit(v))return card;
  const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
  const accessibility='Eliminar domicilio '+name+' del listado';
  const pencil=svg('<path d="M12 20h9M16 4l4 4L9 19l-5 1 1-5L16 4Z"/>');
  return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'">'
-  +(canEditVisit(v)?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" aria-label="Corregir domicilio '+esc(name)+'"><span aria-hidden="true">'+pencil+'</span><span>Corregir</span></button>':'')
+  +(canReopenHomeVisit(v)?'<button type="button" class="hv-edit-action" data-hv-reopen="'+id+'" aria-label="Reabrir domicilio"><span aria-hidden="true">↻</span><span>Reabrir</span></button>':canCorrectClosedVisit(v)?'<button type="button" class="hv-edit-action" data-hv-correct-closed="'+id+'" aria-label="Reabrir expediente"><span aria-hidden="true">↻</span><span>Reabrir</span></button>':canEditVisit(v)?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" aria-label="Corregir domicilio '+esc(name)+'"><span aria-hidden="true">'+pencil+'</span><span>Corregir</span></button>':'')
   +'<div class="hv-swipe-content">'+card+'</div>'
   +'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'"'
   +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
@@ -1510,6 +1581,7 @@ function enhanceReferenceVisitLayout(){
   if(target.hasAttribute('data-hv-assign')){
    event.preventDefault();openHomeVisitAssignment(target.dataset.hvAssign);return;
   }
+  if(target.hasAttribute('data-hv-correct-closed')){event.preventDefault();void openClosedVisitCorrection(target.dataset.hvCorrectClosed);return;}
   if(target.hasAttribute('data-hv-reopen')){event.preventDefault();void reopenHomeVisit(target.dataset.hvReopen);return;}
   if(target.hasAttribute('data-hv-archive')){
    void archiveVisitFromCard(target.dataset.hvArchive);return;
@@ -1939,7 +2011,7 @@ window.hvOrderApplyTests=ids=>{
  drawTestPicker('hvTests','',false);
  return newTestSelection.length-before;
 };
-window.hvCreate=create;window.hvAddAdditionalPatient=addAdditionalPatient;window.hvReviewAdditionalPatient=reviewAdditionalPatient;window.hvReset=reset;window.hvStatus=changeStatus;window.hvAddTests=addTests;window.hvTestStatus=testStatus;window.hvToggleTest=toggleTest;window.hvSelect=id=>{selected=id;detailOpen=true;moreTestSelection=[];render()};
+window.hvCreate=create;window.hvAddAdditionalPatient=addAdditionalPatient;window.hvReviewAdditionalPatient=reviewAdditionalPatient;window.hvReset=reset;window.hvStatus=changeStatus;window.hvAddTests=addTests;window.hvTestStatus=testStatus;window.hvToggleTest=toggleTest;window.hvSelect=async id=>{if(!visits.some(v=>v.id===id)){try{if(!await loadVisitForHistoryAction(id)){say('No se pudo consultar el domicilio.');return;}}catch(error){say('No se pudo consultar el expediente: '+(error?.message||'Error de conexión'));return;}}selected=id;detailOpen=true;moreTestSelection=[];render()};
 window.hvRefreshVoluntary=async id=>{
  homeVisitSyncCursor=null;
  await loadCloudVisits();
