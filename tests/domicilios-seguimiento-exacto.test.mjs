@@ -69,3 +69,10 @@ test('flecha Volver: botón táctil cierra solamente el seguimiento y regresa a 
  assert.equal(stopped,1);
  assert.doesNotMatch(js, /history\.back\(\)|location\.reload\(\)/);
 });
+
+test('el seguimiento distingue muestras registradas de muestras realmente tomadas',()=>{
+ assert.match(js,/status==='Muestras tomadas'\?'Muestras registradas'/);
+ assert.match(js,/var text=labelStatus\(item\[0\]\)/);
+ assert.match(js,/t.status==='No tomada'/);
+ assert.match(js,/esc\(resultSummary\)/);
+});

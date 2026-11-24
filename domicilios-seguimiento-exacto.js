@@ -34,14 +34,14 @@ function mapLink(address){
  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(value);
 }
 function labelStatus(status){
- return status==='Finalizado'?'Completado':String(status||'Pendiente');
+ return status==='Finalizado'?'Completado':status==='Muestras tomadas'?'Muestras registradas':String(status||'Pendiente');
 }
 function statusMessage(status){
  var messages={
   'Aceptado':'El domicilio fue aceptado. Se puede iniciar el desplazamiento.',
   'En camino':'El flebotomista va en camino al domicilio.',
   'En domicilio':'El flebotomista llegó al domicilio.',
-  'Muestras tomadas':'Las muestras fueron registradas. Falta finalizar la visita.',
+  'Muestras tomadas':'Los resultados de toma fueron registrados. Consulta las pruebas tomadas y no tomadas. Falta finalizar la visita.',
   'Finalizado':'La visita se completó correctamente.',
   'Pendiente de asignación':'La visita está pendiente de asignación.',
   'Pendiente de aceptación':'La visita espera confirmación del asignado.',
@@ -58,7 +58,7 @@ function progress(status){
  var terminal=['Cancelado','Rechazado','Paciente ausente','Paciente rechazó la toma','No realizado'].includes(status);
  return '<div class="hv-track-progress" aria-label="Progreso del domicilio: '+esc(labelStatus(status))+'">'+stages.map(function(item,i){
   var phase=current>=0?(i<current?'done':i===current?'current':'future'):'future';
-  var text=item[0]==='Finalizado'?'Completado':item[0];
+  var text=labelStatus(item[0]);
   return '<div class="hv-track-step '+phase+'"><span class="hv-track-step-node">'+(phase==='done'?svg('check'):phase==='current'?svg(item[1]):'')+'</span><span class="hv-track-step-label">'+esc(text)+'</span></div>';
  }).join('')+'</div>'+(terminal?'<span class="hv-track-terminal">Estado de incidencia: '+esc(status)+'</span>':'');
 }
@@ -97,6 +97,8 @@ function enhance(dialog,v){
  var when=banner.querySelector('p')?.textContent||'';
  var priority=banner.querySelector('.hv-priority-label')?.textContent||'Prioridad: Normal';
  var status=String(v.status||'');
+ var activeTests=(v.tests||[]).filter(function(t){return !String(t.notes||'').includes('[CORRECCION: RETIRADA]');});
+ var resultSummary='Tomadas: '+activeTests.filter(function(t){return t.status==='Tomada';}).length+' · No tomadas: '+activeTests.filter(function(t){return t.status==='No tomada';}).length+' · Pendientes: '+activeTests.filter(function(t){return !['Tomada','No tomada'].includes(t.status);}).length;
  var href=mapLink(v.address);
  var addressLink=href?'<a class="hv-track-location-link" target="_blank" rel="noopener noreferrer" href="'+esc(href)+'">'+svg('pin')+'<span>Ver ubicación</span>'+svg('external')+'</a>':'<span class="hv-track-location-missing">Ubicación no registrada</span>';
  var phone=String(v.phone||'').trim(),tel=phone.replace(/[^\d+]/g,'');
@@ -110,7 +112,7 @@ function enhance(dialog,v){
    '<section class="hv-track-hero" aria-label="Resumen de la visita"><div class="hv-track-hero-copy"><p class="hv-track-code">MI VISITA · '+esc(String(v.id).slice(0,8).toUpperCase())+'</p><h3>'+esc(name)+'</h3><p class="hv-track-when">'+svg('calendar')+esc(when)+'</p><div class="hv-track-chips"><span class="hv-track-state '+statusColor+'">'+svg(status==='En camino'?'pin':'check')+esc(labelStatus(status))+'</span><span class="hv-track-priority">'+esc(priority)+'</span></div></div><div class="hv-track-house" aria-hidden="true"><svg viewBox="0 0 130 120"><circle cx="67" cy="63" r="59" fill="#dcf8f2"/><path d="M28 66 67 32l38 34v38H28Z" fill="#fff"/><path d="M23 65 67 27l43 38" fill="none" stroke="#11a99a" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"/><path d="M58 75h18v29H58Z" fill="#13998d"/><circle cx="106" cy="38" r="19" fill="#13ac82" stroke="#fff" stroke-width="3"/><path d="M106 28v20M96 38h20" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="26" cy="102" r="16" fill="#91ddd0"/><circle cx="106" cy="103" r="16" fill="#91ddd0"/></svg></div></section>'+
    '<div class="hv-track-tabs" role="tablist" aria-label="Información del domicilio">'+tabButton('seguimiento','Seguimiento','pulse')+tabButton('paciente','Paciente','person')+tabButton('pruebas','Pruebas','vial')+'</div>'+
    '<section class="hv-track-tabpanel" role="tabpanel" id="hv-track-tab-seguimiento" data-hv-track-panel="seguimiento">'+
-    '<section class="hv-track-card hv-track-status-card"><h3>Estado de la visita</h3>'+progress(status)+'<div class="hv-track-status-note">'+svg('truck')+'<span>'+esc(statusMessage(status))+'</span></div></section>'+
+    '<section class="hv-track-card hv-track-status-card"><h3>Estado de la visita</h3>'+progress(status)+'<div class="hv-track-status-note">'+svg('truck')+'<span>'+esc(statusMessage(status))+'</span></div>'+((status==='Muestras tomadas'||status==='Finalizado')?'<p class="hv-help">'+esc(resultSummary)+'</p>':'')+'</section>'+
     '<section class="hv-track-card hv-track-patient-preview"><h3>'+svg('person')+'Paciente y ubicación</h3>'+
       '<div class="hv-track-detail-row"><span class="hv-track-detail-icon">'+svg('card')+'</span><div><small>Documento</small><strong>'+esc(v.document||'No registrado')+'</strong></div></div>'+
       '<div class="hv-track-detail-row"><span class="hv-track-detail-icon">'+svg('phone')+'</span><div><small>Teléfono</small><strong>'+phoneText+'</strong></div></div>'+

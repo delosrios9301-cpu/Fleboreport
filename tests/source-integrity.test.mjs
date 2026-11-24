@@ -1559,8 +1559,8 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   const visit={id:'demo',status:'En domicilio',tests:[{id:'t1',status:'Pendiente'}],events:[]};
   const calls=[];
   let success=false;
-  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document','performance', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
-    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null},{now:()=>0}
+  const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document','performance','homeVisitDisplayStatus', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
+    [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null},{now:()=>0},s=>s==='Muestras tomadas'?'Muestras registradas':s
   );
   assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
   assert.equal(calls.length,0);
@@ -1616,4 +1616,22 @@ test('persistencia del cliente recupera colisión de auditoría y confirma cierr
  v.status='Finalizado';v.completedAt='2026-11-24T17:00:00Z';v.events.unshift({id:'final',action:'Estado actualizado',detail:'Muestras tomadas → Finalizado'});
  await persist(v,{testsFirst:true,skipTests:true});
  assert.equal(status,'completed');assert.ok(history.has('final'));assert.equal(history.size,3);
+});
+
+test('no tomada se conserva al marcar las pendientes y se distingue del estado de visita',()=>{
+ const source=domicilios.slice(domicilios.indexOf('function homeVisitResultSummary'),domicilios.indexOf('function statusBadge'));
+ const {homeVisitResultSummary,homeVisitDisplayStatus,setReviewTestResult,markPendingReviewTests}=new Function(source+';return {homeVisitResultSummary,homeVisitDisplayStatus,setReviewTestResult,markPendingReviewTests}')();
+ const tests=[{status:'Tomada'},{status:'Pendiente'},{status:'Pendiente'},{status:'No tomada',notes:'[CORRECCION: RETIRADA]'}];
+ assert.equal(setReviewTestResult(tests[0],'No tomada'),true);
+ assert.equal(tests[0].status,'No tomada');
+ tests[0].notes='Sin muestra de orina';
+ markPendingReviewTests(tests);
+ assert.equal(tests[0].status,'No tomada');
+ assert.equal(tests[0].notes,'Sin muestra de orina');
+ assert.equal(tests[1].status,'Tomada');
+ assert.equal(tests[3].status,'No tomada');
+ assert.deepEqual(homeVisitResultSummary(tests),{taken:2,notTaken:1,pending:0});
+ assert.equal(homeVisitDisplayStatus('Muestras tomadas'),'Muestras registradas');
+ assert.match(domicilios,/data-review-note/);
+ assert.match(domicilios,/markPendingReviewTests\(v.tests\)/);
 });
