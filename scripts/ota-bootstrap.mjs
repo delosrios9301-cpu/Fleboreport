@@ -46,7 +46,10 @@ async function startFleboLiveUpdates() {
   }
 
   try {
-    const response = await fetch(MANIFEST_URL, { cache: 'no-store' });
+    // Evitar manifiestos antiguos conservados por el WebView o un proxy.
+    const manifestUrl = new URL(MANIFEST_URL);
+    manifestUrl.searchParams.set('check', String(Date.now()));
+    const response = await fetch(manifestUrl.href, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
     const manifest = await response.json();
 
@@ -75,8 +78,13 @@ async function startFleboLiveUpdates() {
       version: manifest.version,
       checksum: manifest.checksum
     });
-    await CapacitorUpdater.set({ id: downloaded.id });
-    showUpdateMessage('Actualización descargada. La aplicación aplicará los cambios.');
+    // No interrumpir una revisión clínica abierta: aplicar al volver a iniciar.
+    if (document.querySelector('#hvSamplesReview, .hv-detail-backdrop, .hv-assignment-overlay')) {
+      await CapacitorUpdater.next({ id: downloaded.id });
+      showUpdateMessage('Actualización descargada. Se aplicará al reiniciar la aplicación.');
+    } else {
+      await CapacitorUpdater.set({ id: downloaded.id });
+    }
   } catch (error) {
     // An OTA/network failure must never prevent the installed app from opening.
     console.warn('[FleboReport OTA] Se conserva la versión actual:', error);
@@ -89,6 +97,8 @@ async function startFleboLiveUpdates() {
 void startFleboLiveUpdates();
 // Reintentar al recuperar conexión o volver a primer plano; sin bucles de descarga.
 window.addEventListener('online', () => void startFleboLiveUpdates());
+window.addEventListener('focus', () => void startFleboLiveUpdates());
+window.setInterval(() => { if (document.visibilityState === 'visible' && !document.querySelector('#hvSamplesReview, .hv-detail-backdrop, .hv-assignment-overlay')) void startFleboLiveUpdates(); }, 120000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') void startFleboLiveUpdates();
 });

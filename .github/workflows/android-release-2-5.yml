@@ -1,4 +1,4 @@
-name: Publicar TALCSYS Lab Android 2.15
+name: Publicar TALCSYS Lab Android 2.16
 on:
   workflow_dispatch:
   push:
@@ -48,6 +48,7 @@ jobs:
           node --check reports-history-reference.js
           node --check domicilios.js
           node --test tests/domicilios-existing-assign.test.mjs
+          node --test --test-name-pattern='confirmar y guardar verifica resultados' tests/source-integrity.test.mjs
           grep -F 'journey-report-share-hd.js' index.html
           grep -F 'journey-report-export-quality.css' index.html
       - run: node scripts/prepare-android-web.mjs
@@ -86,40 +87,40 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.15.apk
+          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.16.apk
       - name: Verificar misma firma que Android 2.5
         run: |
           set -euo pipefail
-          APK="TALCSYS-Lab-2.15.apk"
+          APK="TALCSYS-Lab-2.16.apk"
           TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.15-cert.txt"
-          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.15-cert.txt" | head -1 | tr 'A-F' 'a-f')"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.16-cert.txt"
+          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.16-cert.txt" | head -1 | tr 'A-F' 'a-f')"
           test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
           "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionCode='26'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionName='2.15'" "$RUNNER_TEMP/talcsys-badging.txt"
-          echo "Certificado original y versión Android 2.15 verificados."
-      - name: Publicar versión 2.15
+          grep -F "versionCode='27'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionName='2.16'" "$RUNNER_TEMP/talcsys-badging.txt"
+          echo "Certificado original y versión Android 2.16 verificados."
+      - name: Publicar versión 2.16
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-v2.15 >/dev/null 2>&1 || gh release create android-v2.15 --title 'TALCSYS Lab Android 2.15' --notes 'TALCSYS Lab 2.15: compartir PDF/PNG nativo, encabezados completos y reportes HD.'
+          gh release view android-v2.16 >/dev/null 2>&1 || gh release create android-v2.16 --title 'TALCSYS Lab Android 2.16' --notes 'TALCSYS Lab 2.16: Confirmar y guardar muestras de domicilio; actualización de recuperación con firma original.'
           # Publicar primero el nombre histórico para que Android 2.7 y anteriores
-          # puedan descargar la 2.15 con el instalador ya incorporado en su APK.
-          cp TALCSYS-Lab-2.15.apk FleboReport-2.15.apk
-          gh release upload android-v2.15 FleboReport-2.15.apk --clobber
-          gh release upload android-v2.15 TALCSYS-Lab-2.15.apk --clobber
+          # puedan descargar la 2.16 con el instalador ya incorporado en su APK.
+          cp TALCSYS-Lab-2.16.apk FleboReport-2.16.apk
+          gh release upload android-v2.16 FleboReport-2.16.apk --clobber
+          gh release upload android-v2.16 TALCSYS-Lab-2.16.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # El enlace del manifiesto usa el alias compatible con APK 2.7.
-          ASSET="FleboReport-2.15.apk"
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.15/${ASSET}"
-          gh release view android-v2.15 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
-          gh release view android-v2.15 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.15.apk"
+          ASSET="FleboReport-2.16.apk"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.16/${ASSET}"
+          gh release view android-v2.16 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          gh release view android-v2.16 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.16.apk"
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
@@ -135,10 +136,10 @@ jobs:
           from pathlib import Path
           p = Path("android-update.json")
           data = {
-              "versionCode": 26,
-              "versionName": "2.15",
-              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.15",
-              "notes": "Asignación administrativa de domicilios ya creados para cualquier fecha futura, sin alterar asignación voluntaria.",
+              "versionCode": 27,
+              "versionName": "2.16",
+              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.16",
+              "notes": "Confirmar y guardar muestras tomadas y no tomadas; verificación antes de finalizar domicilio.",
               "apkUrl": os.environ["URL"],
               "sha256": os.environ["SHA"]
           }
@@ -149,9 +150,9 @@ jobs:
               echo "El aviso Android ya está actualizado."
               exit 0
             fi
-            git commit -m "Publicar aviso Android 2.15 tras verificar APK firmado"
+            git commit -m "Publicar aviso Android 2.16 tras verificar APK firmado"
             if git push origin HEAD:main; then
-              echo "Aviso Android 2.15 publicado correctamente."
+              echo "Aviso Android 2.16 publicado correctamente."
               exit 0
             fi
             sleep 3
