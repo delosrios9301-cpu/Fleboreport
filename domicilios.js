@@ -537,18 +537,18 @@ async function persistVisit(v,options={}){
   }
  }
  let remoteVisitStatus=null;
- if(options.testsFirst){
+ if(options.testsFirst||options.reopen){
   const before=await c.from('home_visits').select('status').eq('id',v.id).eq('workspace_id',w).maybeSingle();
   if(before.error)throw before.error;if(!before.data)throw new Error('No se encontró el domicilio asignado en la nube.');
   remoteVisitStatus=before.data.status;
-  const allowed=dbStatus==='samples_taken'?['at_home','samples_taken']:dbStatus==='completed'?['samples_taken','completed']:[dbStatus];
+  const allowed=options.reopen&&dbStatus==='at_home'?['completed','at_home']:dbStatus==='samples_taken'?['at_home','samples_taken']:dbStatus==='completed'?['samples_taken','completed']:[dbStatus];
   if(!allowed.includes(remoteVisitStatus))throw new Error('El estado del domicilio cambió en la nube. Actualiza la agenda antes de continuar.');
  }
  const writeVisit=async()=>{
-const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await (options.testsFirst?c.from('home_visits').update({status:dbStatus,...(dbStatus==='completed'?{completed_at:v.completedAt}: {})}).eq('id',v.id).eq('workspace_id',w).eq('status',remoteVisitStatus).select('id,status').maybeSingle():c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle()):await c.from('home_visits').upsert(row,{onConflict:'id'});
+const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:technician?await ((options.testsFirst||options.reopen)?c.from('home_visits').update({status:dbStatus,...(options.reopen?{completed_at:null}:dbStatus==='completed'?{completed_at:v.completedAt}: {})}).eq('id',v.id).eq('workspace_id',w).eq('status',remoteVisitStatus).select('id,status').maybeSingle():c.from('home_visits').update(row).eq('id',v.id).eq('workspace_id',w).select('id').maybeSingle()):await c.from('home_visits').upsert(row,{onConflict:'id'});
  if(saved.error)throw saved.error;
  if(technician&&!saved.data)throw new Error('No se pudo actualizar el domicilio. Verifica que siga asignado a tu cuenta y que tengas permiso para este paso.');
- if(options.testsFirst){const verified=await c.from('home_visits').select('status').eq('id',v.id).eq('workspace_id',w).maybeSingle();if(verified.error)throw verified.error;if(verified.data?.status!==dbStatus)throw new Error('El servidor no confirmó el nuevo estado del domicilio.');}
+ if(options.testsFirst||options.reopen){const verified=await c.from('home_visits').select('status').eq('id',v.id).eq('workspace_id',w).maybeSingle();if(verified.error)throw verified.error;if(verified.data?.status!==dbStatus)throw new Error('El servidor no confirmó el nuevo estado del domicilio.');}
  };
  if(!options.testsFirst)await writeVisit();
  // Los cambios puros de estado NO reenvían todas las pruebas. Sus estados
@@ -976,7 +976,7 @@ async function changeStatus(id,next,confirmed=false,reviewTests=null){if(pending
  pendingVisitTransitions.add(id);
  const restorePending=markVisitTransitionPending(id,next);
  try{
- let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt,prevTests=v.tests;if(reviewTests&&next==='Muestras tomadas')v.tests=reviewTests.map(t=>({...t}));v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',homeVisitDisplayStatus(prev)+' → '+homeVisitDisplayStatus(next)+(next==='Muestras tomadas'?' · Tomadas: '+v.tests.filter(t=>t.status==='Tomada').length+' · No tomadas: '+v.tests.filter(t=>t.status==='No tomada'&&!String(t.notes||'').includes('[CORRECCION: RETIRADA]')).length:'')+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
+ let prev=v.status,prevReason=v.reason,prevCompleted=v.completedAt,prevTests=v.tests;if(reviewTests&&next==='Muestras tomadas')v.tests=reviewTests.map(t=>({...t}));v.status=next;if(next==='Finalizado')v.completedAt=new Date().toISOString();log(v,'Estado actualizado',homeVisitDisplayStatus(prev)+' → '+homeVisitDisplayStatus(next)+(next==='Muestras tomadas'?' · Tomadas: '+v.tests.filter(t=>t.status==='Tomada').length+' · No tomadas: '+v.tests.filter(t=>t.status==='No tomada'&&!String(t.notes||'').includes('[CORRECCION: RETIRADA]')).length:'')+(reviewTests&&next==='Muestras tomadas'?' · '+reviewTests.map(t=>{const old=(prevTests||[]).find(x=>x.id===t.id);return old&&old.status!==t.status?(t.name||'Prueba')+': '+old.status+' a '+t.status:''}).filter(Boolean).join('; '):'')+(v.reason?' · '+v.reason:''));const startedAt=performance.now();
  const saved=await save(v,{skipTests:next!=='Muestras tomadas',testsFirst:['Muestras tomadas','Finalizado'].includes(next)});
  window.FleboEngine?.record('domicilios.status-save',performance.now()-startedAt,saved);
  if(saved){if(next==='Muestras tomadas'){const current=visits.find(x=>x.id===id);if(current&&current!==v){current.status=next;current.tests=v.tests;current.events=v.events;}selected=id;detailOpen=true;const dialog=document.querySelector('body > .hv-detail-backdrop .hv-detail-dialog');if(dialog)delete dialog.dataset.hvTrackingSignature;}if(next==='Aceptado'||next==='Rechazado'){closeAssignmentOverlays();dismissedInvitationId=id;const current=visits.find(x=>x.id===id)||v;current.status=next;current.assignmentStatus=next==='Aceptado'?'accepted':'rejected';if(current!==v){v.status=current.status;v.assignmentStatus=current.assignmentStatus;}selected=id;}if(next==='Finalizado'){selected='';detailOpen=false;setTab('history')}else render()}else{v.status=prev;v.reason=prevReason;v.completedAt=prevCompleted;v.tests=prevTests;v.events.shift();render();
@@ -1009,7 +1009,8 @@ function technicianFieldScreen(v){
  else if(v.status==='Aceptado')actions=action('En camino','Iniciar desplazamiento');
  else if(v.status==='En camino')actions=action('En domicilio','Confirmar llegada')+action('Paciente ausente','Paciente ausente','')+action('Paciente rechazó la toma','Paciente rechazó','danger')+action('No realizado','No se pudo realizar','danger');
  else if(v.status==='En domicilio')actions=action('Muestras tomadas','Revisar y confirmar muestras')+action('Paciente ausente','Paciente ausente','')+action('Paciente rechazó la toma','Paciente rechazó','danger')+action('No realizado','No se pudo realizar','danger');
- else if(v.status==='Muestras tomadas')actions=action('Finalizado','Finalizar domicilio');
+ else if(v.status==='Muestras tomadas')actions=action('Muestras tomadas','Corregir muestras')+action('Finalizado','Finalizar domicilio');
+ else if(canReopenHomeVisit(v))actions='<button class="btn hv-field-action" type="button" onclick="hvReopenHomeVisit(\''+id+'\')">Reabrir domicilio</button>';
  const locked=v.status==='Pendiente de aceptación'&&v.assignmentStatus!=='accepted';
  if(v.assignmentStatus==='rejected'||v.status==='Rechazado')return '<div class="hv-field-screen"><div class="hv-field-banner"><span>ASIGNACIÓN RECHAZADA</span><h2>Has rechazado este domicilio</h2><p>La información del paciente permanece protegida. Coordinación puede asignarte otra visita.</p></div></div>';
  if(locked){
@@ -1140,6 +1141,32 @@ function canArchiveVisit(v){
  return !!(v&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&HV_ARCHIVE_STATES.has(v.status)&&
   (cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','delete'))));
 }
+function canReopenHomeVisit(v){
+ return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&!v.historySummaryOnly&&v.status==='Finalizado'&&v.assignmentStatus==='accepted'&&isMyAssignedDomicile(v));
+}
+async function reopenHomeVisit(id){
+ if(pendingVisitTransitions.has(id))return false;
+ let v=visits.find(x=>x.id===id);
+ if(!v){try{await loadCloudVisits({forceFull:true});v=visits.find(x=>x.id===id)}catch(error){say('No se pudo consultar el domicilio en la nube.');return false}}
+ if(!canReopenHomeVisit(v)){say('Solo el responsable de la asignación vigente puede reabrir un domicilio finalizado.');return false}
+ const reason=prompt('Motivo de reapertura del domicilio (obligatorio):','Corregir resultado de toma');
+ if(!reason||!reason.trim())return false;
+ pendingVisitTransitions.add(id);
+ const restore=markVisitTransitionPending(id,'En domicilio');
+ try{
+  const draft={...v,status:'En domicilio',completedAt:null,events:(v.events||[]).map(e=>({...e}))};
+  log(draft,'Domicilio reabierto','Finalizado → En domicilio · Motivo: '+reason.trim()+(v.completedAt?' · Cierre anterior: '+v.completedAt:''));
+  if(!await save(draft,{skipTests:true,reopen:true}))return false;
+  const current=visits.find(x=>x.id===id);
+  if(current){current.status=draft.status;current.completedAt=null;current.events=draft.events;}
+  historyCloudVisits=historyCloudVisits.filter(x=>x.id!==id);
+  activeTab='agenda';referenceQuickStatus='';selected=id;detailOpen=true;
+  render();say('Domicilio reabierto. Corrige los resultados y vuelve a finalizarlo.');
+  await openSamplesReview(id);
+  return true;
+ }finally{restore();pendingVisitTransitions.delete(id)}
+}
+window.hvReopenHomeVisit=reopenHomeVisit;
 function canEditVisit(v){
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
@@ -1443,9 +1470,10 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div>'
-  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v)||canReopenHomeVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
    +(canAssignUnassignedVisit(v)?'<button type="button" class="hv-ref-manage-assign" data-hv-assign="'+id+'">＋ Asignar responsable</button>':'')
    +(canEditVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-edit="'+id+'">✎ Corregir fecha y hora</button>':'')
+   +(canReopenHomeVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-reopen="'+id+'">↻ Reabrir domicilio</button>':'')
    +(canArchiveVisit(v)?'<button type="button" class="hv-ref-manage-archive" data-hv-archive="'+id+'">Eliminar</button>':'')
    +'</div>':'')
   +'</article>';
@@ -1482,6 +1510,7 @@ function enhanceReferenceVisitLayout(){
   if(target.hasAttribute('data-hv-assign')){
    event.preventDefault();openHomeVisitAssignment(target.dataset.hvAssign);return;
   }
+  if(target.hasAttribute('data-hv-reopen')){event.preventDefault();void reopenHomeVisit(target.dataset.hvReopen);return;}
   if(target.hasAttribute('data-hv-archive')){
    void archiveVisitFromCard(target.dataset.hvArchive);return;
   }
@@ -1539,7 +1568,7 @@ function render(){
   const sortVisits=(a,b)=>priorityRank(a.priority)-priorityRank(b.priority)||a.scheduledDate.localeCompare(b.scheduledDate)||a.scheduledTime.localeCompare(b.scheduledTime)||String(b.createdAtDb||b.createdAt||'').localeCompare(String(a.createdAtDb||a.createdAt||''));
   const activeList=visits.filter(v=>!historyStatuses.includes(v.status)&&matches(v)&&(!referenceQuickStatus||hvReferenceStatusGroups[referenceQuickStatus].includes(v.status))).sort(sortVisits);
   const historyById=new Map(historyCloudVisits.filter(v=>historyStatuses.includes(v.status)).map(v=>[v.id,v]));
-  visits.filter(v=>historyStatuses.includes(v.status)).forEach(v=>historyById.set(v.id,v));
+  visits.forEach(v=>{if(historyStatuses.includes(v.status))historyById.set(v.id,v);else historyById.delete(v.id)});
   const historyList=Array.from(historyById.values()).filter(historyMatches).sort((a,b)=>b.scheduledDate.localeCompare(a.scheduledDate)||b.scheduledTime.localeCompare(a.scheduledTime));
   const todayList=visits.filter(v=>v.scheduledDate===today());
 
