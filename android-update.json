@@ -1,8 +1,8 @@
 {
-  "versionCode": 27,
-  "versionName": "2.16",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.16",
-  "notes": "Confirmar y guardar muestras tomadas y no tomadas; verificación antes de finalizar domicilio.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.16/FleboReport-2.16.apk",
-  "sha256": "045dc46ed0e6170dc7e7cf64d54bca323379002a863f6460fd0d078afd212168"
+  "versionCode": 28,
+  "versionName": "2.17",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.17",
+  "notes": "Reapertura de domicilios y corrección de resultados autorizada desde historial y gesto.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.17/FleboReport-2.17.apk",
+  "sha256": "f2e7b02842c8af4f5f93a89fea3dc2a2c73b6baf1167f9acb716fb6ef36ebb31"
 }
