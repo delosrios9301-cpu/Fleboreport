@@ -37,7 +37,7 @@ test('En móvil el control rojo sólo se muestra al deslizar o abrir la ficha',(
  assert.match(css,/\.hv-swipe-row:is\(\.is-open,\.is-dragging\)>button\.hv-archive-action\{\s*visibility:visible;opacity:1/);
  assert.match(js,/g\.row\.classList\.add\('is-dragging'\)/);
  assert.match(js,/row\.classList\.remove\('is-dragging'\)/);
- assert.match(js,/setHomeVisitSwipe\(g\.row,g\.startedOpen\?dx<42:dx<-43\)/);
+ assert.match(js,/setHomeVisitSwipe\(g\.row,dx<-43,'left'\)/);
  assert.match(css,/@media screen and \(pointer:coarse\)/);
  assert.match(css,/pointer-events:none/);
 });

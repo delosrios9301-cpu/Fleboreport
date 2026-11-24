@@ -167,3 +167,30 @@ body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-ref-manage>button.hv-r
   flex:1 1 100%;width:100%;
  }
 }
+
+/* Fichas táctiles compactas: las acciones laterales se generan solo con permiso.
+   La computadora usa únicamente la fila de botones de administración, sin duplicarlos. */
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe{
+ display:block;position:relative;overflow:hidden;isolation:isolate;border-radius:21px;touch-action:pan-y;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-content{
+ position:relative;z-index:2;transform:translate3d(0,0,0);transition:transform .22s ease;touch-action:pan-y;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe .hv-swipe-content :is(button,.hv-ref-visit,.hv-ref-actions){touch-action:pan-y!important;}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe .hv-ref-manage{display:none!important;}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-edit-rail{
+ position:absolute;z-index:1;inset:0 auto 0 0;width:132px;display:flex;flex-direction:column;gap:3px;
+ visibility:hidden;opacity:0;pointer-events:none;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-edit-rail>.hv-edit-action{
+ position:relative;inset:auto;width:100%;min-height:44px;height:auto;flex:1;flex-direction:row;
+ border-radius:10px;padding:7px 8px;line-height:1.2;pointer-events:auto;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe:is(.is-edit-open,.is-dragging-right)>.hv-swipe-edit-rail{visibility:visible;opacity:1;pointer-events:auto;}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe.is-edit-open>.hv-swipe-content{transform:translate3d(132px,0,0)!important;}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>button.hv-archive-action{
+ position:absolute;z-index:1;right:0;top:0;bottom:0;width:92px;height:100%;visibility:hidden;opacity:0;pointer-events:none;
+}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe:is(.is-open,.is-dragging-left)>button.hv-archive-action{visibility:visible;opacity:1;pointer-events:auto;}
+body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe.is-open>.hv-swipe-content{transform:translate3d(-92px,0,0)!important;}
+@media(prefers-reduced-motion:reduce){body.fr2-app-authorized #view-domicilios #hvWorkspace .hv-touch-swipe>.hv-swipe-content{transition:none!important;}}

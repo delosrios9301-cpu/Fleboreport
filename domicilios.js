@@ -1030,7 +1030,8 @@ async function saveFieldObservation(id){if(!cloud.ready){say('Necesitas conexió
 function detail(v){if(!v)return'<div class="hv-empty">Selecciona un domicilio.</div>';if(cloud.role==='technician'||isMyAssignedDomicile(v))return technicianFieldScreen(v);const awaitingTechnicianDecision=cloud.role==='technician'&&v.assignmentStatus==='invited'&&v.status==='Pendiente de aceptación';if(awaitingTechnicianDecision){return '<div class="hv-detail-head"><div><div class="eyebrow">NUEVA ASIGNACIÓN</div><h2>Domicilio pendiente de tu respuesta</h2><small>Fecha: '+dateLabel(v.scheduledDate)+' · Hora: '+esc(v.scheduledTime)+'</small></div>'+statusBadge(v.status)+'</div><p class="hv-help">Revisa la fecha y la hora y confirma si puedes realizar este servicio. Por privacidad, los datos del paciente, la dirección y las pruebas se mostrarán únicamente después de aceptar.</p><div class="hv-actions"><button class="btn primary" onclick="hvStatus(\''+v.id+'\',\'Aceptado\')">Aceptar domicilio y ver detalles</button><button class="btn danger" onclick="hvStatus(\''+v.id+'\',\'Rechazado\')">Rechazar domicilio</button></div></div>';}let buttons='';
 const canAgendaCancel=['Pendiente de asignación','Pendiente de aceptación','Aceptado','Reprogramado'].includes(v.status);
 if(canCorrectClosedVisit(v))buttons='<button class="btn primary" type="button" onclick="hvCorrectClosedVisit(\''+v.id+'\')">Reabrir expediente · Corregir muestras</button>';
-if(canAgendaCancel)buttons='<button class="btn danger" onclick="hvStatus(\''+v.id+'\',\'Cancelado\')">Cancelar por solicitud del paciente</button>';
+if(canAssignUnassignedVisit(v))buttons+='<button class="btn primary" type="button" data-hv-assign="'+esc(v.id)+'" onclick="hvOpenHomeVisitAssignment(this.dataset.hvAssign)">Asignar responsable</button>';
+if(canAgendaCancel)buttons+='<button class="btn danger" onclick="hvStatus(\''+v.id+'\',\'Cancelado\')">Cancelar por solicitud del paciente</button>';
 ;let tests=v.tests.map(t=>'<div class="hv-test"><span><b>'+esc(t.name)+'</b><small>'+'Muestra: '+esc(t.sample||'No configurada')+' · Recipiente: '+esc(t.vessel||'No configurado')+(t.colorName?' · Color: '+esc(t.colorName):'')+'</small>'+(t.fasting?'<small>Ayuno / preparación: '+esc(t.fasting)+'</small>':'')+(t.conditions?'<small>Condiciones de toma: '+esc(t.conditions)+'</small>':'')+(t.instructions?'<small>Indicaciones: '+esc(t.instructions)+'</small>':'')+(t.notes?'<small>Observación de no toma: '+esc(t.notes)+'</small>':'')+(t.volume?'<small>Volumen: '+esc(t.volume)+'</small>':'')+'<small>'+(t.source==='adicional'?'Adicional':'Original')+'</small></span><select onchange="hvTestStatus(\''+v.id+'\',\''+t.id+'\',this.value)"><option '+(t.status==='Pendiente'?'selected':'')+'>Pendiente</option><option '+(t.status==='Tomada'?'selected':'')+'>Tomada</option><option '+(t.status==='No tomada'?'selected':'')+'>No tomada</option></select></div>').join('');let totals={};v.tests.forEach(t=>totals[t.vessel||'Sin recipiente']=(totals[t.vessel||'Sin recipiente']||0)+1);let chips=Object.keys(totals).map(k=>'<span class="hv-chip">'+esc(k)+': <b>'+totals[k]+'</b></span>').join('');let events=v.events.map(e=>'<div class="hv-event"><b>'+esc(e.action)+'</b><small>'+esc(new Date(e.at).toLocaleString('es-PA'))+' · '+esc(e.by)+'</small><span>'+esc(e.detail)+'</span></div>').join('');return '<div class="hv-detail-head"><div><div class="eyebrow">DETALLE DEL SERVICIO</div><h2>'+esc(v.patientName)+'</h2><small>'+esc(v.id)+' · '+dateLabel(v.scheduledDate)+' · '+esc(v.scheduledTime)+'</small><div class="hv-priority-label hv-priority-'+priorityDb(v.priority)+'">Prioridad: '+priorityLabel(v.priority)+'</div></div>'+statusBadge(v.status)+'</div><div class="hv-info"><div><small>Teléfono</small><b>'+esc(v.phone||'—')+'</b></div><div><small>Responsable</small><b>'+esc(v.assignedTo||'Sin asignar')+'</b></div><div class="wide"><small>Dirección</small><b>'+esc(v.address)+'</b></div></div><div class="hv-actions">'+buttons+'</div><h3>Pruebas y recipientes</h3><div>'+(tests||'<div class="hv-empty">Este domicilio no tiene pruebas guardadas. Añádelas desde el catálogo compartido.</div>')+'</div><div class="hv-chips">'+chips+'</div><div class="hv-more"><label>Agregar pruebas adicionales</label>'+testPicker('hvMoreTests')+'<button class="btn" onclick="hvAddTests(\''+v.id+'\')">＋ Agregar pruebas</button></div><h3>Documentos adjuntos</h3><div class="hv-doc-list">'+((v.documents||[]).map(d=>'<div class="hv-doc-row"><span>📎 <b>'+esc(d.file_name)+'</b><small>'+(Number(d.file_size||0)/1024).toFixed(0)+' KB</small></span><button class="btn small" type="button" onclick="hvOpenDocument(\''+v.id+'\',\''+d.id+'\')">Abrir</button></div>').join('')||'<div class="hv-empty">No hay documentos adjuntos.</div>')+'</div><div class="hv-doc-upload"><input type="file" id="hvDocumentFile" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.xlsm,.csv,.txt"><button class="btn" type="button" onclick="hvUploadDocument(\''+v.id+'\')">＋ Adjuntar documento</button><small>PDF, fotos, Word, Excel, CSV o TXT · hasta 50 MB · archivo privado</small></div><h3>Historial de actividad</h3><div class="hv-timeline">'+(events||'Sin movimientos')+'</div>'}
 function additionalPatientsPanel(v){
  const rows=v.additionalPatients||[];
@@ -1238,6 +1239,21 @@ async function saveClosedSampleReview(id,original,draft,reason,eventId){
 }
 window.hvCorrectClosedVisit=openClosedVisitCorrection;
 
+function canOpenVisitEditor(v){
+ if(!v||!cloud.ready||!cloud.user?.id||!cloud.workspaceId||v.archivedAt||v.historySummaryOnly)return false;
+ if(v.status==='Finalizado')return canReopenHomeVisit(v)||canCorrectClosedVisit(v);
+ return canEditVisit(v)||(v.assignmentStatus==='accepted'&&isMyAssignedDomicile(v)&&['Aceptado','En camino','En domicilio','Muestras tomadas'].includes(v.status));
+}
+async function openVisitEditor(id){
+ try{
+  const v=await loadVisitForHistoryAction(id);
+  if(!canOpenVisitEditor(v)){say('No tienes permiso para reabrir este expediente.');return;}
+  if(canReopenHomeVisit(v))return await reopenHomeVisit(id);
+  if(canCorrectClosedVisit(v))return await openClosedVisitCorrection(id);
+  selected=id;detailOpen=true;moreTestSelection=[];render();
+  if(isMyAssignedDomicile(v)&&['En domicilio','Muestras tomadas'].includes(v.status))await openSamplesReview(id);
+ }catch(error){say('No se pudo abrir el expediente: '+(error?.message||'Error de conexión'))}
+}
 function canEditVisit(v){
  return !!(v&&cloud.ready&&cloud.user?.id&&cloud.workspaceId&&!v.archivedAt&&
   !['Finalizado','Cancelado','Rechazado','Muestras tomadas'].includes(v.status)&&
@@ -1252,6 +1268,7 @@ function canAssignUnassignedVisit(v){
   &&(!v.assignmentStatus||['rejected','withdrawn'].includes(v.assignmentStatus))
   &&(cloud.role==='admin'||(typeof window.fleboCan==='function'&&window.fleboCan('domicilios','assign'))));
 }
+window.hvOpenHomeVisitAssignment=openHomeVisitAssignment;
 function openHomeVisitAssignment(id){
  const visit=visits.find(v=>String(v.id)===String(id));
  if(!canAssignUnassignedVisit(visit)){
@@ -1416,18 +1433,20 @@ function openHomeVisitEdit(id){
  date.focus();
 }
 function isTouchSwipeMode(){
- return !!window.matchMedia?.('(pointer:coarse)').matches;
+ const n=window.navigator||{},ua=n.userAgent||'';
+ return !!(/Android|iPhone|iPad|iPod/i.test(ua)||(n.platform==='MacIntel'&&n.maxTouchPoints>1)||window.matchMedia?.('(pointer:coarse)').matches);
 }
-function setHomeVisitSwipe(row,opened){
+function setHomeVisitSwipe(row,opened,direction='left'){
  if(!row)return;
- row.classList.remove('is-dragging');
- row.classList.toggle('is-open',opened);if(opened)row.classList.remove('is-edit-open');
- const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action'),editButton=row.querySelector('.hv-edit-action');
+ const left=opened&&direction==='left'&&!!row.querySelector('.hv-archive-action');
+ const right=opened&&direction==='right'&&!!row.querySelector('.hv-swipe-edit-rail');
+ row.classList.remove('is-dragging','is-dragging-left','is-dragging-right');
+ row.classList.toggle('is-open',left);row.classList.toggle('is-edit-open',right);
+ const content=row.querySelector('.hv-swipe-content'),button=row.querySelector('.hv-archive-action');
  if(content)content.style.removeProperty('transform');
- if(button){button.tabIndex=isTouchSwipeMode()?(opened?0:-1):0;button.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!opened));}
- if(editButton){editButton.tabIndex=isTouchSwipeMode()?(row.classList.contains('is-edit-open')?0:-1):0;editButton.setAttribute('aria-hidden',String(isTouchSwipeMode()&&!row.classList.contains('is-edit-open')));}
- if(opened)hvOpenedSwipe=row;
- else if(hvOpenedSwipe===row)hvOpenedSwipe=null;
+ if(button){button.tabIndex=left?0:-1;button.setAttribute('aria-hidden',String(!left));}
+ row.querySelectorAll('.hv-edit-action').forEach(b=>{b.tabIndex=right?0:-1;b.setAttribute('aria-hidden',String(!right));});
+ if(left||right)hvOpenedSwipe=row;else if(hvOpenedSwipe===row)hvOpenedSwipe=null;
 }
 async function archiveVisitFromCard(id){
  const visit=visits.find(v=>String(v.id)===String(id));
@@ -1469,7 +1488,7 @@ function setupHomeVisitSwipe(workspace){
   if(!row||!workspace.contains(row))return;
   if(hvOpenedSwipe&&hvOpenedSwipe!==row)setHomeVisitSwipe(hvOpenedSwipe,false);
   hvSwipeGesture={row,id:event.pointerId,startX:event.clientX,startY:event.clientY,
-   startedOpen:row.classList.contains('is-open'),horizontal:false,vertical:false};
+   startedOpen:row.classList.contains('is-open'),startedRight:row.classList.contains('is-edit-open'),horizontal:false,vertical:false};
  },{passive:true});
  workspace.addEventListener('pointermove',event=>{
   const g=hvSwipeGesture;
@@ -1482,7 +1501,9 @@ function setupHomeVisitSwipe(workspace){
    g.row.classList.add('is-dragging');
   }
   if(event.cancelable)event.preventDefault();
-  const distance=Math.max(-92,Math.min(92,dx+(g.startedOpen?-92:0)));
+  const rightWidth=g.row.querySelector('.hv-swipe-edit-rail')?132:0,leftWidth=g.row.querySelector('.hv-archive-action')?92:0;
+  const distance=Math.max(-leftWidth,Math.min(rightWidth,dx+(g.startedOpen?-leftWidth:g.startedRight?rightWidth:0)));
+  g.row.classList.toggle('is-dragging-left',distance<0);g.row.classList.toggle('is-dragging-right',distance>0);
   g.row.querySelector('.hv-swipe-content')?.style.setProperty('transform','translate3d('+distance+'px,0,0)','important');
  },{passive:false});
  workspace.addEventListener('pointerup',event=>{
@@ -1491,16 +1512,18 @@ function setupHomeVisitSwipe(workspace){
   if(!g.horizontal){g.row.classList.remove('is-dragging');return}
   hvIgnoreCardClickUntil=Date.now()+350;
   const dx=event.clientX-g.startX;
-  if(dx>65&&!g.startedOpen&&g.row.querySelector('.hv-edit-action')){setHomeVisitSwipe(g.row,false);g.row.classList.add('is-edit-open');g.row.querySelector('.hv-edit-action')?.setAttribute('aria-hidden','false');g.row.querySelector('.hv-edit-action')?.setAttribute('tabindex','0');return}
-  g.row.classList.remove('is-edit-open');setHomeVisitSwipe(g.row,!!g.row.querySelector('.hv-archive-action:not([hidden])')&&(g.startedOpen?dx<42:dx<-43));
+  if(g.startedRight){setHomeVisitSwipe(g.row,dx>=-42,'right');return;}
+  if(g.startedOpen){setHomeVisitSwipe(g.row,dx<42,'left');return;}
+  if(dx>52){setHomeVisitSwipe(g.row,true,'right');return;}
+  setHomeVisitSwipe(g.row,dx<-43,'left');
  });
  workspace.addEventListener('pointercancel',event=>{
   const g=hvSwipeGesture;if(!g||g.id!==event.pointerId)return;
-  hvSwipeGesture=null;setHomeVisitSwipe(g.row,g.startedOpen);
+  hvSwipeGesture=null;setHomeVisitSwipe(g.row,g.startedOpen||g.startedRight,g.startedRight?'right':'left');
  });
  workspace.addEventListener('click',event=>{
   const button=event.target instanceof Element?event.target.closest('[data-hv-edit]'):null;
-  if(button&&workspace.contains(button)){event.preventDefault();event.stopPropagation();openHomeVisitEdit(button.dataset.hvEdit)}
+  if(button&&workspace.contains(button)){event.preventDefault();event.stopPropagation();if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);openHomeVisitEdit(button.dataset.hvEdit)}
  });
  workspace.addEventListener('click',event=>{
   if(Date.now()<hvIgnoreCardClickUntil&&event.target instanceof Element&&event.target.closest('.hv-swipe-content')){
@@ -1530,7 +1553,7 @@ function hvReferenceVisitCard(v,technician){
  const clock=svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
  const pin=svg('<path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z"/><circle cx="12" cy="9" r="2.5"/>');
  const chat=svg('<path d="M4 4h16v12H9l-5 4V4Z"/><path d="M8 10h8"/>');
- const id=esc(v.id),key=status[1];
+ const id=esc(v.id),key=status[1],touch=isTouchSwipeMode();
  const card='<article class="hv-premium-visit hv-ref-visit" data-hv-reference-state="'+key+'">'
   +'<div class="hv-ref-top"><div class="hv-ref-avatar" aria-hidden="true">'+esc(initial)+'</div>'
   +'<div class="hv-ref-head"><strong>'+esc(name)+'</strong><span>'+esc(subtitle)+'</span><small>'+esc(dateLabel(v.scheduledDate))+'</small></div>'
@@ -1541,23 +1564,26 @@ function hvReferenceVisitCard(v,technician){
   +'<div class="hv-ref-actions"><button class="hv-ref-route" type="button" data-hv-ref-route="'+id+'"'
   +(hasRoute?'':' disabled aria-disabled="true"')+'>'+pin+' Ver ruta</button>'
   +'<button class="hv-ref-respond" type="button" data-hv-ref-details="'+id+'">'+chat+' '+(privatePending?'Responder':'Ver seguimiento')+'</button></div>'
-  +((canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v)||canReopenHomeVisit(v)||canCorrectClosedVisit(v))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
+  +( (!touch&&(canEditVisit(v)||canArchiveVisit(v)||canAssignUnassignedVisit(v)||canOpenVisitEditor(v)))?'<div class="hv-ref-manage" aria-label="Acciones autorizadas de la visita">'
    +(canAssignUnassignedVisit(v)?'<button type="button" class="hv-ref-manage-assign" data-hv-assign="'+id+'">＋ Asignar responsable</button>':'')
    +(canEditVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-edit="'+id+'">✎ Corregir fecha y hora</button>':'')
-   +(canReopenHomeVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-reopen="'+id+'">↻ Reabrir domicilio</button>':canCorrectClosedVisit(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-correct-closed="'+id+'">↻ Reabrir expediente</button>':'')
+   +(canOpenVisitEditor(v)?'<button type="button" class="hv-ref-manage-edit" data-hv-open-editor="'+id+'">↻ Reabrir expediente</button>':'')
    +(canArchiveVisit(v)?'<button type="button" class="hv-ref-manage-archive" data-hv-archive="'+id+'">Eliminar</button>':'')
    +'</div>':'')
   +'</article>';
- if(!canArchiveVisit(v)&&!canEditVisit(v)&&!canReopenHomeVisit(v)&&!canCorrectClosedVisit(v))return card;
+ if(!touch)return card;
+ const canDate=canEditVisit(v),canOpen=canOpenVisitEditor(v),canDelete=canArchiveVisit(v);
+ if(!canDate&&!canOpen&&!canDelete)return card;
  const trash=svg('<path d="M4 7h16M9 4h6M7 7l1 14h8l1-14M10 11v6M14 11v6"/>');
- const accessibility='Eliminar domicilio '+name+' del listado';
  const pencil=svg('<path d="M12 20h9M16 4l4 4L9 19l-5 1 1-5L16 4Z"/>');
- return '<div class="hv-swipe-row" data-hv-swipe-id="'+id+'">'
-  +(canReopenHomeVisit(v)?'<button type="button" class="hv-edit-action" data-hv-reopen="'+id+'" aria-label="Reabrir domicilio"><span aria-hidden="true">↻</span><span>Reabrir</span></button>':canCorrectClosedVisit(v)?'<button type="button" class="hv-edit-action" data-hv-correct-closed="'+id+'" aria-label="Reabrir expediente"><span aria-hidden="true">↻</span><span>Reabrir</span></button>':canEditVisit(v)?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" aria-label="Corregir domicilio '+esc(name)+'"><span aria-hidden="true">'+pencil+'</span><span>Corregir</span></button>':'')
+ return '<div class="hv-swipe-row hv-touch-swipe" data-hv-swipe-id="'+id+'">'
+  +((canDate||canOpen)?'<div class="hv-swipe-edit-rail">'
+   +(canDate?'<button type="button" class="hv-edit-action" data-hv-edit="'+id+'" tabindex="-1" aria-hidden="true"><span aria-hidden="true">'+pencil+'</span><span>Corregir fecha y hora</span></button>':'')
+   +(canOpen?'<button type="button" class="hv-edit-action" data-hv-open-editor="'+id+'" tabindex="-1" aria-hidden="true"><span aria-hidden="true">↻</span><span>Reabrir expediente</span></button>':'')
+   +'</div>':'')
   +'<div class="hv-swipe-content">'+card+'</div>'
-  +'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'"'
-  +' tabindex="'+(isTouchSwipeMode()?'-1':'0')+'" aria-hidden="'+(isTouchSwipeMode()?'true':'false')+'"'
-  +' aria-label="'+esc(accessibility)+'"'+(canArchiveVisit(v)?'':' hidden disabled')+'><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button></div>';
+  +(canDelete?'<button type="button" class="hv-archive-action" data-hv-archive="'+id+'" tabindex="-1" aria-hidden="true" aria-label="'+esc('Eliminar domicilio '+name+' del listado')+'"><span class="hv-archive-icon" aria-hidden="true">'+trash+'</span><span>Eliminar</span></button>':'')
+  +'</div>';
 }
 function enhanceReferenceVisitLayout(){
  const workspace=$('hvWorkspace');if(!workspace||workspace.dataset.referenceCards==='1')return;
@@ -1581,6 +1607,7 @@ function enhanceReferenceVisitLayout(){
   if(target.hasAttribute('data-hv-assign')){
    event.preventDefault();openHomeVisitAssignment(target.dataset.hvAssign);return;
   }
+  if(target.hasAttribute('data-hv-open-editor')){event.preventDefault();if(hvOpenedSwipe)setHomeVisitSwipe(hvOpenedSwipe,false);void openVisitEditor(target.dataset.hvOpenEditor);return;}
   if(target.hasAttribute('data-hv-correct-closed')){event.preventDefault();void openClosedVisitCorrection(target.dataset.hvCorrectClosed);return;}
   if(target.hasAttribute('data-hv-reopen')){event.preventDefault();void reopenHomeVisit(target.dataset.hvReopen);return;}
   if(target.hasAttribute('data-hv-archive')){

@@ -1657,8 +1657,19 @@ test('reapertura visible y deslizamiento con permisos: no expone registros archi
  const v={status:'Finalizado'};
  assert.equal(can(v),true);assert.equal(can({...v,archivedAt:'date'}),false);assert.equal(can({...v,historySummaryOnly:true}),false);
  cloud.role='technician';assert.equal(can(v),false);rights=true;assert.equal(can(v),true);
- assert.match(domicilios,/class="hv-edit-action" data-hv-reopen/);
- assert.match(domicilios,/class="hv-edit-action" data-hv-correct-closed/);
+ assert.match(domicilios,/class="hv-edit-action" data-hv-open-editor/);
+ assert.match(domicilios,/class="hv-edit-action" data-hv-edit/);
  assert.match(domicilios,/data-hv-correct-closed/);
  assert.match(domicilios,/Corrección de expediente finalizado/);
+});
+test('fichas táctiles compactas muestran acciones independientes y PC sin duplicados',()=>{
+ const source=domicilios.slice(domicilios.indexOf('function hvReferenceVisitCard'),domicilios.indexOf('function enhanceReferenceVisitLayout'));
+ let touch=true,edit=true,open=true,del=true;
+ const card=new Function('isTouchSwipeMode','canEditVisit','canOpenVisitEditor','canArchiveVisit','canAssignUnassignedVisit','hvReferenceStatus','priorityDb','esc','dateLabel','hvReferenceHour','priorityLabel',source+';return hvReferenceVisitCard')(()=>touch,()=>edit,()=>open,()=>del,()=>false,()=>['Aceptado','accepted'],()=> 'normal',String,String,String,String);
+ const v={id:'demo',patientName:'Paciente ficticio',status:'Aceptado',tests:[],scheduledDate:'2026-11-24',scheduledTime:'10:00'};
+ let markup=card(v,false);
+ assert.match(markup,/hv-swipe-edit-rail/);assert.match(markup,/Corregir fecha y hora/);assert.match(markup,/Reabrir expediente/);assert.match(markup,/data-hv-archive/);assert.doesNotMatch(markup,/hv-ref-manage/);
+ edit=false;del=false;markup=card(v,false);assert.doesNotMatch(markup,/data-hv-edit=/);assert.doesNotMatch(markup,/data-hv-archive=/);assert.match(markup,/data-hv-open-editor/);
+ open=false;markup=card(v,false);assert.doesNotMatch(markup,/hv-swipe-row/);
+ edit=true;open=true;del=true;touch=false;markup=card(v,false);assert.match(markup,/hv-ref-manage/);assert.doesNotMatch(markup,/hv-swipe-edit-rail/);assert.equal((markup.match(/data-hv-archive=/g)||[]).length,1);
 });
