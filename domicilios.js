@@ -235,15 +235,13 @@ async function loadServiceCatalog(){
   let existingRows=[];
   const selectColumns='id,catalog_source_id,code,name,category,description,fields,active';
   const readExisting=async()=>{
-   const result=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).order('name').limit(2000);
-   if(result.error)throw result.error;
-   return result.data||[];
+   return fetchAllPages(cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).order('name').order('id'));
   };
   existingRows=await readExisting();
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
   if(cloud.role==='admin'){
    // El catálogo del administrador es la fuente maestra. Los elementos archivados se sincronizan como inactivos de forma explícita.
-   const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name);
+   const masterCatalog=Array.from(new Map(localCatalog().filter(x=>x&&x.id&&x.name).map(x=>[String(x.id),x])).values());
    const claimedServices=new Set(),pendingUpdates=[];
    const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
@@ -251,7 +249,7 @@ async function loadServiceCatalog(){
     return code?normalize(row.code)===code&&normalize(row.name)===name:normalize(row.name)===name;
    };
    for(const item of masterCatalog){
-    const matched=existingRows.find(x=>!claimedServices.has(x.id)&&matchesMaster(x,item)),fields=serviceFields(item);
+    const matched=existingRows.find(x=>!claimedServices.has(x.id)&&String(x.catalog_source_id||'')===String(item.id))||existingRows.find(x=>!claimedServices.has(x.id)&&!x.catalog_source_id&&matchesMaster(x,item)),fields=serviceFields(item);
     if(matched)claimedServices.add(matched.id);
     const payload={
      catalog_source_id:String(item.id),
@@ -269,7 +267,7 @@ async function loadServiceCatalog(){
       ||String(matched.category||'')!==String(payload.category||'')
       ||String(matched.description||'')!==String(payload.description||'')
       ||matched.active!==payload.active
-      ||JSON.stringify(matched.fields||{})!==JSON.stringify(fields||{});
+      ||Object.keys(fields).some(k=>(matched.fields?.[k]||'')!==fields[k]);
      if(changed)pendingUpdates.push({id:matched.id,payload});
      continue;
     }
@@ -278,7 +276,7 @@ async function loadServiceCatalog(){
     const row={id:crypto.randomUUID(),workspace_id:cloud.workspaceId,...payload,price:Number(item.price)||0};
     const saved=await cloud.client.from('services').insert(row).select(selectColumns).maybeSingle();
     if(saved.error){
-     if(saved.error.code==='23505'){existingRows=await readExisting();continue}
+     if(saved.error.code==='23505'){const existing=await cloud.client.from('services').select(selectColumns).eq('workspace_id',cloud.workspaceId).eq('catalog_source_id',String(item.id)).maybeSingle();if(existing.error)throw existing.error;if(!existing.data)throw saved.error;if(!existingRows.some(x=>x.id===existing.data.id))existingRows.push(existing.data);claimedServices.add(existing.data.id);continue}
      throw saved.error;
     }
     if(saved.data)existingRows.push(saved.data);
@@ -571,7 +569,7 @@ const saved=(technicianResponse||staffReassignment)?{data:{id:v.id},error:null}:
    }
    testRows.push({id:t.id,workspace_id:w,home_visit_id:v.id,service_id:serviceId,test_name:t.name,vessel:t.vessel||null,quantity:t.quantity||1,status:testToDb[t.status]||'pending',source:t.source==='adicional'?'additional':'original',notes:t.notes||null,added_by:asUuid(t.addedById)||u,added_at:t.addedAt||undefined,catalog_snapshot:t.catalogSnapshot||serviceFields(t)});
   }
-  if(testRows.length){if(technician){for(const tr of testRows){const upd=await c.from('home_visit_tests').update({status:tr.status,notes:tr.notes}).eq('id',tr.id).eq('workspace_id',w).eq('home_visit_id',v.id).select('id').maybeSingle();if(upd.error)throw upd.error;if(!upd.data&&tr.source==='additional'){const ins=await c.from('home_visit_tests').insert(tr);if(ins.error)throw ins.error}else if(!upd.data)throw new Error('No se pudo actualizar la prueba '+tr.test_name+'.')}}else{const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}}
+  if(testRows.length){if(technician){let previousTests=new Map();if(options.testsFirst){const beforeTests=await c.from('home_visit_tests').select('id,status,notes').eq('workspace_id',w).eq('home_visit_id',v.id);if(beforeTests.error)throw beforeTests.error;previousTests=new Map((beforeTests.data||[]).map(t=>[t.id,t]));}for(const tr of testRows){const previous=previousTests.get(tr.id);if(previous&&previous.status===tr.status&&(previous.notes||'')===(tr.notes||''))continue;const upd=await c.from('home_visit_tests').update({status:tr.status,notes:tr.notes}).eq('id',tr.id).eq('workspace_id',w).eq('home_visit_id',v.id).select('id').maybeSingle();if(upd.error)throw upd.error;if(!upd.data&&tr.source==='additional'){const ins=await c.from('home_visit_tests').insert(tr);if(ins.error)throw ins.error}else if(!upd.data)throw new Error('No se pudo actualizar la prueba '+tr.test_name+'.')}}else{const tr=await c.from('home_visit_tests').upsert(testRows,{onConflict:'id'});if(tr.error)throw tr.error}}
  }
  if(options.testsFirst){
  const check=await c.from('home_visit_tests').select('id,status,notes').eq('workspace_id',w).eq('home_visit_id',v.id);
