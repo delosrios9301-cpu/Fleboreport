@@ -353,3 +353,67 @@
    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
  }
 }
+
+
+/* TALCSYS DESKTOP LIVE DASHBOARD 20261126
+   El dashboard de nube se inserta después del encabezado y no pertenece
+   a las doce columnas del panel anterior. Abarca toda el área útil.
+   Sólo escritorio grande: no modifica móviles, permisos ni datos. */
+@media screen and (min-width:1280px) {
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard.hp-layout-ready .hp-dashboard-flow {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;
+  align-items:stretch!important;
+  justify-items:stretch!important;
+  width:100%!important;max-width:1680px!important;min-width:0!important;
+  gap:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard .hp-dashboard-flow>:is(.hp-home-heading,#dlLiveDashboard,.dl-live-access-details,.hp-extra-actions) {
+  grid-column:1/-1!important;grid-row:auto!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  box-sizing:border-box!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard .hp-dashboard-flow>#dlLiveDashboard {
+  display:block!important;order:1!important;
+  margin:0!important;padding:18px 22px!important;
+  color:#183e4b!important;background:#fff!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard .hp-dashboard-flow>.dl-live-access-details {
+  order:2!important;
+ }
+ /* Las pestañas anteriores no controlan los gráficos de nube. */
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard:has(#dlLiveDashboard) .hp-dashboard-flow>.frc-home-tabs {
+  display:none!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard .dl-live-head {
+  display:flex!important;flex-wrap:wrap!important;gap:10px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard :is(h2,h3,p,small,button,summary) {
+  writing-mode:horizontal-tb!important;text-orientation:mixed!important;
+  word-break:normal!important;overflow-wrap:break-word!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard .dl-live-highlights {
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard .dl-live-charts {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard .dl-live-chart {
+  padding:14px!important;
+ }
+ html:root body.fr2-app-authorized.cm-workspace.vc-compact.hp-dashboard
+ #view-home.dl-cloud-dashboard #dlLiveDashboard .dl-live-tab-panel[hidden] {
+  display:none!important;
+ }
+}
