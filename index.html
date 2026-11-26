@@ -3994,7 +3994,7 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./fleboreport-graphite-petrol-contrast.css?v=20261114-graphite1" media="screen">
 <!-- Referencia aprobada: bosque clínico, marfil y componentes funcionales. -->
 <link rel="stylesheet" href="./fleboreport-forest-clinical.css?v=20261114-forest1" media="screen">
-<link rel="stylesheet" href="./fleboreport-forest-dashboard.css?v=20261119-homegap2" media="screen">
+<link rel="stylesheet" href="./fleboreport-forest-dashboard.css?v=20261126-desktop2" media="screen">
 <link rel="stylesheet" href="./fleboreport-forest-modules.css?v=20261114-forest1" media="screen">
 <link rel="stylesheet" href="./fleboreport-forest-search.css?v=20261114-forest1" media="screen">
 <!-- Corrección de proporciones de Domicilios y contraste de Jornada en todos los dispositivos. -->
@@ -4039,4 +4039,41 @@ button:not(.quick-card):not(.mobile-bottom button):not(.nav-list button):not(.op
 <link rel="stylesheet" href="./journey-report-letter-print.css?v=20261121-1" media="print">
 <script src="./journey-report-letter-export.js?v=20261122-no-app-brand1"></script>
 <script src="./journey-report-share-hd.js?v=20261122-no-app-brand1"></script>
+
+<style id="talcsys-desktop-home-20261126-v2">
+/* Inicio de nube: no heredar la cuadrícula de doce columnas del dashboard antiguo. */
+@media screen and (min-width:761px) and (pointer:fine), screen and (min-width:1280px) {
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard {
+  display:block!important;box-sizing:border-box!important;width:100%!important;max-width:100%!important;min-width:0!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard .hp-dashboard-flow {
+  display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;
+  align-items:stretch!important;justify-content:flex-start!important;
+  width:100%!important;max-width:1680px!important;min-width:0!important;
+  margin-inline:auto!important;gap:12px!important;box-sizing:border-box!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard :is(#dlLiveDashboard,.dl-live-access-details,.hp-home-heading) {
+  box-sizing:border-box!important;flex:0 0 auto!important;
+  align-self:stretch!important;width:100%!important;max-width:100%!important;min-width:0!important;
+  grid-column:1/-1!important;grid-row:auto!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard #dlLiveDashboard {
+  display:block!important;order:1!important;position:relative!important;
+  margin:0!important;padding:16px clamp(12px,1.5vw,24px)!important;
+  background:#fff!important;color:#183e4b!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard .dl-live-access-details {order:2!important;}
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard .frc-home-tabs {display:none!important;}
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard #dlLiveDashboard :is(h2,h3,p,small,button,summary) {
+  writing-mode:horizontal-tb!important;text-orientation:mixed!important;word-break:normal!important;overflow-wrap:break-word!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard #dlLiveDashboard .dl-live-highlights {
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr))!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard #dlLiveDashboard .dl-live-charts {
+  display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))!important;
+ }
+ html#talcsys-app body.fr2-app-authorized #view-home.active.dl-cloud-dashboard #dlLiveDashboard .dl-live-tab-panel[hidden] {display:none!important;}
+}
+</style>
 </body></html>
