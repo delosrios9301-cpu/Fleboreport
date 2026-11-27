@@ -246,6 +246,9 @@ test('el centro de notificaciones puede mostrar avisos del dispositivo y consult
   assert.match(notifications, /postgres_changes/);
   assert.match(notifications, /visibilitychange/);
   assert.doesNotMatch(notifications, /setInterval\(/);
+  assert.match(notifications, /if\(homeReminderBusy\)\{if\(force\)homeReminderPending=true;return;\}/);
+  assert.match(notifications, /if\(homeReminderPending\)\{homeReminderPending=false;if\(userId&&workspaceId&&navigator.onLine\)void syncHomeVisitReminders\(true\);\}/);
+  assert.match(notifications, /if\(!androidNotifications\(\)\?\.syncHomeVisitReminders\)return;/);
 });
 
 
@@ -472,7 +475,7 @@ test('cada función llamada desde un botón HTML tiene un manejador definido', a
     'supabase-auth.js', 'flebo-engine.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
     'clinical-cloud-sync.js', 'domicilios.js', 'notifications-center.js',
     'configuracion.js', 'audit-history.js', 'notification-settings.js',
-    'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
+    'clinical-processing-simple.js', 'clinical-catalog-persistence.js', 'journey-report-share-hd.js'
   ];
   const scripts = await Promise.all(scriptPaths.map(path => readFile(new URL('../' + path, import.meta.url), 'utf8')));
   const source = html + '\n' + scripts.join('\n');
@@ -1513,7 +1516,7 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
  assert.match(visits,/sync_change_log/);
  assert.match(html,/patient-cloud-sync\.js\?v=20261113-remove1/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script actual versionado');
  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
  assert.doesNotThrow(()=>new Function(visits));
 });
@@ -1541,7 +1544,7 @@ test('privacy v285 hides sensitive invitation fields at API and client',async()=
  assert.match(client,/list_home_visit_invitation_previews/);
  assert.match(client,/patient_id:null,patient_phone:null,address:''/);
  assert.match(client,/if\(cloud\.role==='technician'\)visits=visits\.filter/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script actual versionado');
  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
@@ -1741,4 +1744,13 @@ test('fecha y hora finalizadas: solamente administración autorizada y sin alter
  assert.match(domicilios,/if\(closed\)\{address.readOnly=true;address.required=false;\}/);
  assert.match(domicilios,/if\(!closed&&a!==v.address\)changes.address=a/);
  assert.match(domicilios,/if\(closed\)request=request.eq\('status','completed'\)/);
+});
+
+
+test('Los recursos locales del HTML se precargan para que la interfaz funcione offline',()=>{
+ const shell=serviceWorker.match(/const APP_SHELL=\[([^\n]+)\];/);
+ assert.ok(shell,'Existe el manifiesto de recursos de la PWA');
+ for(const [,asset] of html.matchAll(/(?:src|href)="\.\/([^"]+\.(?:js|css)(?:\?[^"]+)?)"/g)){
+  assert.ok(shell[1].includes("'./"+asset+"'")||shell[1].includes("'./"+asset.split('?')[0]+"'"),'Falta recurso offline '+asset);
+ }
 });
