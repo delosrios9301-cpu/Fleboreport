@@ -241,14 +241,15 @@ async function loadServiceCatalog(){
   const normalize=value=>String(value||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es').replace(/[^a-z0-9]/g,'');
   if(cloud.role==='admin'){
    // El catálogo del administrador es la fuente maestra. Los elementos archivados se sincronizan como inactivos de forma explícita.
-   const masterCatalog=Array.from(new Map(localCatalog().filter(x=>x&&x.id&&x.name).map(x=>[String(x.id),x])).values());
+   const masterCatalog=localCatalog().filter(x=>x&&x.id&&x.name);
+   const uniqueMasterCatalog=Array.from(new Map(masterCatalog.map(x=>[String(x.id),x])).values());
    const claimedServices=new Set(),pendingUpdates=[];
    const matchesMaster=(row,item)=>{
     const sourceId=String(item.id),code=normalize(item.code||item.codigo||''),name=normalize(item.name);
     if(row.catalog_source_id)return String(row.catalog_source_id)===sourceId;
     return code?normalize(row.code)===code&&normalize(row.name)===name:normalize(row.name)===name;
    };
-   for(const item of masterCatalog){
+   for(const item of uniqueMasterCatalog){
     const matched=existingRows.find(x=>!claimedServices.has(x.id)&&String(x.catalog_source_id||'')===String(item.id))||existingRows.find(x=>!claimedServices.has(x.id)&&!x.catalog_source_id&&matchesMaster(x,item)),fields=serviceFields(item);
     if(matched)claimedServices.add(matched.id);
     const payload={
