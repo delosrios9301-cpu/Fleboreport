@@ -56,6 +56,16 @@ test('Android 2.7 entrega assets renovados, versión 18 y firma verificada', asy
  assert.match(name||'',/^\d+\.\d+(?:\.\d+)?$/);
  if(code===ota.versionCode)assert.equal(name,ota.versionName);
  assert.match(ota.sha256,/^[a-f0-9]{64}$/i);
- assert.ok(workflow.includes('TALCSYS-Lab-2.7.apk'));
- assert.ok(workflow.includes("ORIGINAL_CERT_SHA256"));
+ // El flujo de publicación conserva los dos alias compatibles y comprueba
+ // el certificado original, la versión y el hash antes de anunciar la APK.
+ assert.equal(ota.apkUrl,'https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v'+ota.versionName+'/FleboReport-'+ota.versionName+'.apk');
+ assert.ok(workflow.includes('TALCSYS-Lab-'+ota.versionName+'.apk'));
+ assert.ok(workflow.includes('FleboReport-'+ota.versionName+'.apk'));
+ const verify=workflow.indexOf('apksigner" verify --verbose --print-certs');
+ const guard=workflow.indexOf('test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" ||',verify);
+ const upload=workflow.indexOf('gh release upload android-v'+ota.versionName,guard);
+ assert.ok(verify>=0&&guard>verify&&upload>guard,'La firma original debe verificarse antes de publicar');
+ assert.ok(workflow.includes("versionCode='"+ota.versionCode+"'"));
+ assert.ok(workflow.includes("versionName='"+ota.versionName+"'"));
+ assert.ok(workflow.includes('sha256sum "$ASSET"'));
 });
