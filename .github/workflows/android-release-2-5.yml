@@ -1,10 +1,11 @@
-name: Publicar TALCSYS Lab Android 2.18
+name: Publicar TALCSYS Lab Android 2.19
 on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore:
-      - 'android-update.json'
+    paths:
+      - 'native/android/configure_android.py'
+      - '.github/workflows/android-release-2-5.yml'
 concurrency:
   group: talcsys-lab-android-signed-release
   cancel-in-progress: false
@@ -22,6 +23,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Validar suite completa antes de firmar
+        run: npm test
       - name: Recuperar firma Android original sin crear claves nuevas
         id: firma
         env:
@@ -87,40 +90,40 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
           test -s app/build/outputs/apk/release/app-release.apk
-          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.18.apk
+          cp app/build/outputs/apk/release/app-release.apk ../TALCSYS-Lab-2.19.apk
       - name: Verificar misma firma que Android 2.5
         run: |
           set -euo pipefail
-          APK="TALCSYS-Lab-2.18.apk"
+          APK="TALCSYS-Lab-2.19.apk"
           TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.18-cert.txt"
-          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.18-cert.txt" | head -1 | tr 'A-F' 'a-f')"
+          "$TOOLS/apksigner" verify --verbose --print-certs "$APK" > "$RUNNER_TEMP/talcsys-2.19-cert.txt"
+          CERT="$(sed -nE 's/.*certificate SHA-256 digest: ([[:xdigit:]]{64}).*/\1/p' "$RUNNER_TEMP/talcsys-2.19-cert.txt" | head -1 | tr 'A-F' 'a-f')"
           test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" || { echo "::error::Certificado distinto a TALCSYS Lab 2.5"; exit 1; }
           "$TOOLS/aapt" dump badging "$APK" > "$RUNNER_TEMP/talcsys-badging.txt"
           grep -F "name='com.fleboreport.app'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionCode='29'" "$RUNNER_TEMP/talcsys-badging.txt"
-          grep -F "versionName='2.18'" "$RUNNER_TEMP/talcsys-badging.txt"
-          echo "Certificado original y versión Android 2.18 verificados."
-      - name: Publicar versión 2.18
+          grep -F "versionCode='30'" "$RUNNER_TEMP/talcsys-badging.txt"
+          grep -F "versionName='2.19'" "$RUNNER_TEMP/talcsys-badging.txt"
+          echo "Certificado original y versión Android 2.19 verificados."
+      - name: Publicar versión 2.19
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view android-v2.18 >/dev/null 2>&1 || gh release create android-v2.18 --title 'TALCSYS Lab Android 2.18' --notes 'TALCSYS Lab 2.18: Confirmar y guardar muestras de domicilio; actualización de recuperación con firma original.'
+          gh release view android-v2.19 >/dev/null 2>&1 || gh release create android-v2.19 --title 'TALCSYS Lab Android 2.19' --notes 'TALCSYS Lab 2.19: Estabilidad de sincronización, caché y recordatorios; firma original.'
           # Publicar primero el nombre histórico para que Android 2.7 y anteriores
-          # puedan descargar la 2.18 con el instalador ya incorporado en su APK.
-          cp TALCSYS-Lab-2.18.apk FleboReport-2.18.apk
-          gh release upload android-v2.18 FleboReport-2.18.apk --clobber
-          gh release upload android-v2.18 TALCSYS-Lab-2.18.apk --clobber
+          # puedan descargar la 2.19 con el instalador ya incorporado en su APK.
+          cp TALCSYS-Lab-2.19.apk FleboReport-2.19.apk
+          gh release upload android-v2.19 FleboReport-2.19.apk --clobber
+          gh release upload android-v2.19 TALCSYS-Lab-2.19.apk --clobber
       - name: Verificar publicación y actualizar aviso Android
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           # El enlace del manifiesto usa el alias compatible con APK 2.7.
-          ASSET="FleboReport-2.18.apk"
-          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.18/${ASSET}"
-          gh release view android-v2.18 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
-          gh release view android-v2.18 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.18.apk"
+          ASSET="FleboReport-2.19.apk"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/android-v2.19/${ASSET}"
+          gh release view android-v2.19 --json assets --jq '.assets[].name' | grep -Fx "$ASSET"
+          gh release view android-v2.19 --json assets --jq '.assets[].name' | grep -Fx "TALCSYS-Lab-2.19.apk"
           curl --fail --location --silent --show-error --output /dev/null "$URL"
           SHA="$(sha256sum "$ASSET" | cut -d' ' -f1)"
           export URL SHA
@@ -136,10 +139,10 @@ jobs:
           from pathlib import Path
           p = Path("android-update.json")
           data = {
-              "versionCode": 29,
-              "versionName": "2.18",
-              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.18",
-              "notes": "Reapertura de domicilios y corrección de resultados autorizada desde historial y gesto.",
+              "versionCode": 30,
+              "versionName": "2.19",
+              "releasePage": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/tag/android-v2.19",
+              "notes": "Estabilidad de sincronización, caché y recordatorios.",
               "apkUrl": os.environ["URL"],
               "sha256": os.environ["SHA"]
           }
@@ -150,9 +153,9 @@ jobs:
               echo "El aviso Android ya está actualizado."
               exit 0
             fi
-            git commit -m "Publicar aviso Android 2.18 tras verificar APK firmado"
+            git commit -m "Publicar aviso Android 2.19 tras verificar APK firmado"
             if git push origin HEAD:main; then
-              echo "Aviso Android 2.18 publicado correctamente."
+              echo "Aviso Android 2.19 publicado correctamente."
               exit 0
             fi
             sleep 3
