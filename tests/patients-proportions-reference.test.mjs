@@ -56,7 +56,7 @@ test('Pantallas grandes mantienen altura controlada y no muestran KPI enormes',(
 test('PWA v322 incluye la hoja final con consulta de caché única',()=>{
  assert.match(html,/patients-exact-proportions\.css\?v=20261113-patient10/);
  assert.match(html,/patients-activity-ui\.js\?v=20261113-patient10/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(sw,/'\.\/patients-exact-proportions\.css'/);
 });
 
