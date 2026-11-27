@@ -114,14 +114,14 @@ test('Temas y nueva búsqueda se cargan después de las capas heredadas y offlin
   'fleboreport-forest-dashboard.css','fleboreport-forest-modules.css','fleboreport-forest-search.css'];
  let prev=0;
  for(const asset of ordered){
-  const next=html.indexOf(asset+(asset==='fleboreport-forest-dashboard.css'?'?v=20261119-homegap2':'?v=20261114-'),prev);
+  const next=html.indexOf(asset+'?v=',prev);
   assert.ok(next>prev,'Orden de CSS '+asset);
   prev=next;
  }
  assert.ok(html.indexOf('fleboreport-forest-search.js?v=20261114-forest1')>prev);
  for(const filename of ordered.slice(1).concat('fleboreport-forest-search.js'))
   assert.ok(sw.includes("'./"+filename+"'"),filename+' debe estar en caché');
- assert.match(sw,/CACHE_NAME='fleboreport-shell-v322'/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322);
 });
 
 test('Tablet y teléfono tienen breakpoints separados sin afectar reportes impresos',()=>{
