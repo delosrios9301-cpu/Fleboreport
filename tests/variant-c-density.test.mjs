@@ -31,6 +31,6 @@ test('campos clínicos y acciones siguen siendo pulsables >=44px y reporte intac
 test('la capa se publica después de Variante C y se precachea bajo versión nueva',()=>{
  assert.match(html,/variant-c-density\.css\?v=20261112-density1/);
  assert.ok(html.lastIndexOf('variant-c-density.css')>html.lastIndexOf('variant-c-compact.css'));
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(sw,/'\.\/variant-c-density.css'/);
 });
