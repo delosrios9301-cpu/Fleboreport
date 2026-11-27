@@ -29,7 +29,17 @@ assert.doesNotMatch(nativeScanner,/TextRecognizer|Leer texto impreso|licencia/i)
 assert.doesNotMatch(nativePlugin,/scan_mode|DOCUMENT_TEXT/);
 assert.match(source,/Escanear cédula/);
 assert.doesNotMatch(source,/extractIdentityQr|extractPrintedIdentity|Escanear cédula o licencia/);
-assert.match(androidConfig,/versionCode 15/);
-assert.match(androidConfig,/versionName "2\.4"/);
+// Verificar la configuración actual frente a la última versión publicada,
+// sin fijar el número a una versión histórica del lector.
+const ota=JSON.parse(readFileSync(new URL('../android-update.json',import.meta.url),'utf8'));
+const buildCode=Number(androidConfig.match(/replace\('versionCode 1','versionCode (\d+)'\)/)?.[1]);
+const buildName=androidConfig.match(/replace\('versionName "1\.0"','versionName "([\d.]+)"'\)/)?.[1];
+assert.ok(Number.isInteger(buildCode)&&buildCode>=15&&buildCode>=ota.versionCode);
+assert.match(buildName||'',/^\d+\.\d+(?:\.\d+)?$/);
+if(buildCode===ota.versionCode)assert.equal(buildName,ota.versionName);
+assert.match(androidConfig,/com\.google\.mlkit:barcode-scanning:/);
+assert.equal(extractQr('8-123-456|ANA|PEREZ|F|31/02/1998').birth,'');
+assert.equal(extractQr('8-123-456|ANA|PEREZ|F|29/02/2000').birth,'2000-02-29');
+assert.equal(extractQr('8-123-456|ANA|PEREZ|F|23/05/1998|01/01/2026').birth,'1998-05-23');
 assert.doesNotMatch(androidConfig,/text-recognition:16/);
 console.log('Restauración del lector QR de cédula comprobada sin soporte de licencia');
