@@ -33,7 +33,9 @@ test('Separaciones específicas en teléfono vertical y horizontal, sin alterar 
 });
 
 test('La barra superior de Inicio deja de reservar 80px en el teléfono y mantiene la campana',()=>{
- assert.match(html,/fleboreport-forest-dashboard\.css\?v=20261119-homegap2/);
+ const dashboardVersion=html.match(/fleboreport-forest-dashboard\.css\?v=(\d{8})-[^"']+/);
+ assert.ok(dashboardVersion && Number(dashboardVersion[1])>=20261119,'Inicio debe cargar una versión posterior o igual a la corrección de espaciado');
+ assert.ok(html.lastIndexOf('fleboreport-home-header-gap.css')>html.lastIndexOf('fleboreport-forest-dashboard.css'),'La corrección de cabecera debe seguir cargándose después del tema');
  assert.match(css,/#view-home\.active\)[\s\S]*?\.app-shell \.topbar\s*\{[\s\S]*?height:58px!important;min-height:58px!important;max-height:58px!important/);
  assert.match(css,/\.app-shell \.content:has\(> #view-home\.active\)\s*\{\s*padding-top:2px!important;/);
  assert.match(css,/\.topbar \.fr2-topbar-inner\s*\{[\s\S]*?height:100%!important;min-height:0!important/);
