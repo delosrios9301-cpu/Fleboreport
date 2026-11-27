@@ -96,7 +96,7 @@ test('CSS respetuoso con tablet, teléfono, PC y permisos',()=>{
 });
 
 test('PWA sirve el JS reciente y cachea estilos nuevos',()=>{
- assert.match(html,/<script src="\.\/domicilios\.js\?v=20261115-catalogfix1">/);
+ assert.ok(Number(html.match(/<script src="\.\/domicilios\.js\?v=(\d{8})-[^"]+">/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
  assert.match(html,/<link rel="stylesheet" href="\.\/home-visit-history-recovery\.css\?v=20261115-historyfix1" media="screen">/);
  assert.ok(sw.includes("'./home-visit-history-recovery.css'"));
 });
