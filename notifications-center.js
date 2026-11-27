@@ -157,12 +157,13 @@ async function openNotification(id){const notification=rows.find(n=>n.id===id);t
 async function readAll(){if(!client||!userId)return;const normalIds=rows.filter(n=>!n.isSla&&n.status!=='read').map(n=>n.id),slaIds=rows.filter(n=>n.isSla&&n.status!=='read').map(n=>n.id);if(normalIds.length){const {error}=await client.from('home_visit_notifications').update({status:'read',updated_at:new Date().toISOString()}).in('id',normalIds).eq('recipient_user_id',userId);if(error){console.warn('No se pudieron marcar las notificaciones:',error);return}}if(slaIds.length){const {error}=await client.from('workflow_sla_alerts').update({acknowledged_at:new Date().toISOString(),acknowledged_by:userId}).in('id',slaIds).eq('recipient_user_id',userId);if(error){console.warn('No se pudieron confirmar las alertas:',error);return}}rows.forEach(n=>{n.status='read'});render()}
 // Alertas locales sin depender de que el WebView siga abierto.
 // Solo se entregan UUID y horarios; nunca información de pacientes.
-let homeReminderBusy=false,homeReminderLast=0,homeReminderOwner='';
+let homeReminderBusy=false,homeReminderPending=false,homeReminderLast=0,homeReminderOwner='';
 async function syncHomeVisitReminders(force=false){
  const p=androidNotifications();
  if(!p||typeof p.syncHomeVisitReminders!=='function'||!client||!userId||!workspaceId)return;
  const owner=workspaceId+':'+userId,now=Date.now();
- if(homeReminderBusy||(!force&&owner===homeReminderOwner&&now-homeReminderLast<90000))return;
+ if(homeReminderBusy){if(force)homeReminderPending=true;return;}
+ if(!force&&owner===homeReminderOwner&&now-homeReminderLast<90000)return;
  homeReminderBusy=true;
  try{
   const {data,error}=await client.from('home_visits')
@@ -187,7 +188,10 @@ async function syncHomeVisitReminders(force=false){
   homeReminderOwner=owner;homeReminderLast=Date.now();
  }catch(error){
   console.warn('[TALCSYS Android] No se sincronizaron recordatorios:',error?.message||error);
- }finally{homeReminderBusy=false}
+ }finally{
+  homeReminderBusy=false;
+  if(homeReminderPending){homeReminderPending=false;if(userId&&workspaceId&&navigator.onLine)void syncHomeVisitReminders(true);}
+ }
 }
 function disconnect(){if(userId&&androidNotifications()?.clearHomeVisitReminders){void androidNotifications().clearHomeVisitReminders().catch(error=>console.warn('[TALCSYS Android] No se cancelaron alarmas:',error))}homeReminderOwner='';homeReminderLast=0;if(channel&&client){client.removeChannel(channel);channel=null}rows=[];userId=null;workspaceId=null;const count=$('frNotifCount');if(count)count.style.display='none';if($('frNotifPanel'))$('frNotifPanel').classList.remove('open')}
 async function connect(){const auth=window.FleboAuth;if(!auth)return;const c=await auth.init(),u=auth.user,m=auth.membership;if(!u||!m?.workspace_id||m.active!==true){disconnect();return}if(userId===u.id&&workspaceId===m.workspace_id&&client===c)return;disconnect();client=c;userId=u.id;workspaceId=m.workspace_id;await load();void syncHomeVisitReminders(true);channel=client.channel('fr-in-app-notifications-'+workspaceId+'-'+userId).on('postgres_changes',{event:'INSERT',schema:'public',table:'home_visit_notifications',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId&&payload.new?.channel==='in_app'){showDeviceNotification(payload.new);load()}}).on('postgres_changes',{event:'INSERT',schema:'public',table:'workflow_sla_alerts',filter:'workspace_id=eq.'+workspaceId},payload=>{if(payload.new?.recipient_user_id===userId){const a={...payload.new,isSla:true};showDeviceNotification({id:a.id,entity:a.entity,record_id:a.record_id,alert_code:a.alert_code,severity:a.severity,metadata:{title:titleOf(a)},message_body:messageOf(a),home_visit_id:a.entity==='home_visit'?a.record_id:null});load()}}).on('postgres_changes',{event:'*',schema:'public',table:'home_visits',filter:'workspace_id=eq.'+workspaceId},()=>{homeReminderLast=0;void syncHomeVisitReminders(true)}).on('postgres_changes',{event:'*',schema:'public',table:'home_visit_assignments',filter:'workspace_id=eq.'+workspaceId},()=>{homeReminderLast=0;void syncHomeVisitReminders(true)}).subscribe()}
@@ -199,5 +203,13 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 document.addEventListener('click',e=>{const p=$('frNotifPanel'),b=$('frNotifBell');if(p?.classList.contains('open')&&!p.contains(e.target)&&!b?.contains(e.target)){p.classList.remove('open');b?.setAttribute('aria-expanded','false')}});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 window.FleboNotifications={refresh:()=>{void syncHomeVisitReminders();return load()},close:()=>{$('frNotifPanel')?.classList.remove('open')}};
-setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&userId)void syncHomeVisitReminders()},180000);
+// La reconciliación de alarmas solo es necesaria en el Android nativo.
+function scheduleHomeReminderReconciliation(){
+ if(!androidNotifications()?.syncHomeVisitReminders)return;
+ setTimeout(async()=>{
+  try{if(document.visibilityState==='visible'&&navigator.onLine&&userId)await syncHomeVisitReminders();}
+  finally{scheduleHomeReminderReconciliation();}
+ },180000);
+}
+scheduleHomeReminderReconciliation();
 })();
