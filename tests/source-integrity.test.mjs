@@ -122,7 +122,8 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   }
   assert.match(domicilios, /Indica por qué no se pudo tomar esta prueba/);
   assert.match(domicilios, /Observación de no toma/);
-  assert.match(domicilios, /Registra cada prueba activa como tomada o no tomada antes de continuar/);
+  assert.match(domicilios, /Registra un estado válido para cada prueba activa antes de continuar/);
+  assert.match(domicilios, /activeTests\.some\(t=>!\['Pendiente','Tomada','No tomada'\]\.includes\(t\.status\)\)/);
   for (const feature of ['technicianFieldScreen', 'hv-field-screen', 'Abrir ubicación en Google Maps', 'Observaciones de campo', 'Resumen de recipientes', 'hvSaveFieldObservation']) {
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
@@ -748,7 +749,12 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
 test('la revisión de muestras permite recuperar una solicitud vacía desde el catálogo central sin confirmar por error', () => {
   assert.match(domicilios, /id="hvCorrectionSearch"/);
   assert.match(domicilios, /No se encontraron pruebas activas con ese nombre o código/);
-  assert.match(domicilios, /confirm\.disabled=reviewSaving\|\|c\.pending>0\|\|c\.taken\+c\.notTaken===0/);
+  assert.match(domicilios, /confirm\.disabled=reviewSaving\|\|c\.taken\+c\.notTaken\+c\.pending===0/);
+  assert.match(domicilios, /if\(!c\.taken&&!c\.notTaken&&!c\.pending\)\{say\('No hay pruebas activas para confirmar/);
+  const summarySource=domicilios.slice(domicilios.indexOf('function homeVisitResultSummary('),domicilios.indexOf('function homeVisitDisplayStatus('));
+  const summary=new Function(summarySource+';return homeVisitResultSummary')();
+  assert.deepEqual(summary([{status:'Pendiente'},{status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),{taken:0,notTaken:0,pending:1});
+  assert.deepEqual(summary([{status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),{taken:0,notTaken:0,pending:0});
 });
 
 test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () => {
@@ -844,6 +850,8 @@ test('la aceptación del flebotomista se confirma sin depender del guardado secu
 
 test('el catálogo de domicilios aplica archivados explícitos y actualiza servicios sin desactivar ausentes', () => {
   assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name\)/);
+  assert.match(domicilios, /const uniqueMasterCatalog=Array\.from\(new Map\(masterCatalog\.map\(x=>\[String\(x\.id\),x\]\)\)\.values\(\)\)/);
+  assert.match(domicilios, /for\(const item of uniqueMasterCatalog\)/);
   assert.match(domicilios, /const payload=\{/);
   assert.match(domicilios, /catalog_source_id:String\(item\.id\)/);
   assert.match(domicilios, /\.update\(item\.payload\)/);
@@ -1562,8 +1570,14 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document','performance','homeVisitDisplayStatus', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
     [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null},{now:()=>0},s=>s==='Muestras tomadas'?'Muestras registradas':s
   );
-  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Inválida'}]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),false);
   assert.equal(calls.length,0);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].tests,['Pendiente']);
+  assert.equal(visit.status,'En domicilio');
   const draft=[{id:'t1',status:'No tomada',notes:'No pudo entregar muestra'}];
   assert.equal(await run('demo','Muestras tomadas',true,draft),false);
   assert.equal(visit.status,'En domicilio');
@@ -1576,6 +1590,12 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   assert.equal(visit.status,'Finalizado');
   assert.equal(calls.at(-1).options.testsFirst,true);
   assert.equal(calls.at(-1).options.skipTests,true);
+  // También se permite finalizar con muestras pendientes sin convertirlas en tomadas.
+  visit.status='En domicilio';visit.completedAt=null;visit.tests=[{id:'t1',status:'Pendiente'}];
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),true);
+  assert.equal(await run('demo','Finalizado'),true);
+  assert.equal(visit.tests[0].status,'Pendiente');
+  assert.equal(visit.status,'Finalizado');
 });
 
 test('historial de domicilios no reintenta insertar eventos que ya existen',()=>{
