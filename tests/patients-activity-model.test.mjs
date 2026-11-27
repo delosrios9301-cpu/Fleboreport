@@ -110,7 +110,7 @@ test('Visual aprobado: KPI 2x2, búsqueda fuera del listado, filas horizontales 
  assert.match(html,/patients-activity-model\.js\?v=20261113-patient10/);
  assert.match(html,/patients-activity-ui\.js\?v=20261113-patient10/);
  assert.match(html,/patients-activity-ui\.css\?v=20261113-patient10/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  for(const path of ['patients-activity-model.js','patients-activity-ui.js','patients-activity-ui.css'])
   assert.ok(sw.includes("'./"+path+"'"),'Falta precache '+path);
 });
