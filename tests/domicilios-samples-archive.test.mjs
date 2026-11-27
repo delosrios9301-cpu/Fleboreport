@@ -6,7 +6,10 @@ const [app,style,index]=await Promise.all([read('domicilios.js'),read('domicilio
 
 test('Muestras tomadas: el paciente de la captura dispone de acción para autorizados',()=>{
  assert.match(app,/HV_ARCHIVE_STATES=new Set\(\['Pendiente de asignación','Pendiente de aceptación','Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
- assert.match(app,/if\(!canArchiveVisit\(v\)\)return card/);
+ assert.match(app,/const canDate=canEditVisit\(v\),canOpen=canOpenVisitEditor\(v\),canDelete=canArchiveVisit\(v\)/);
+ assert.match(app,/if\(!canDate&&!canOpen&&!canDelete\)return card/);
+ assert.match(app,/canDelete\?'<button type="button" class="hv-archive-action"/);
+ assert.match(app,/canArchiveVisit\(v\)\?'<button type="button" class="hv-ref-manage-archive"/);
  assert.match(app,/cloud\.role==='admin'\|\|/);
  assert.match(app,/window\.fleboCan\('domicilios','delete'\)/);
  assert.match(app,/visit\.status==='Muestras tomadas'\|\|visit\.status==='Finalizado'/);
@@ -16,7 +19,7 @@ test('Muestras tomadas: el paciente de la captura dispone de acción para autori
 });
 test('Swipe táctil funciona también al iniciarse sobre el botón de seguimiento',()=>{
  assert.match(app,/pointerdown/);
- assert.match(app,/event\.target\.closest\('\.hv-archive-action,input,select,textarea'\)/);
+ assert.match(app,/event\.target\.closest\('\.hv-archive-action,\.hv-edit-action,\.hv-ref-manage,input,select,textarea'\)/);
  assert.match(style,/\.hv-swipe-row \.hv-swipe-content :is\(button,\.hv-ref-visit,\.hv-ref-actions\)/);
  assert.match(style,/touch-action:pan-y!important/);
  assert.match(app,/hvIgnoreCardClickUntil=Date\.now\(\)\+350/);
