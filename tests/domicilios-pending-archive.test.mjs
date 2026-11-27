@@ -19,7 +19,7 @@ test('Las fichas pendientes muestran archivar sólo al administrador o usuario a
  assert.match(app,/pendingVisit\?'La solicitud dejará de aparecer en la agenda y las invitaciones/);
  assert.match(app,/cloud\.client\.rpc\('archive_home_visit',\{p_home_visit_id:String\(id\)\}\)/);
  assert.doesNotMatch(app,/\.from\('home_visits'\)\.delete\(/);
- assert.match(index,/domicilios\.js\?v=20261115-catalogfix1/);
+ assert.ok(Number(index.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
  assert.doesNotThrow(()=>new Function(app));
 });
 
