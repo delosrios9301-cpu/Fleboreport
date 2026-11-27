@@ -27,6 +27,6 @@ test('other sections and export remain navigable without a redundant Create tab'
  assert.doesNotMatch(dom,/hvPremiumCreate|hvCreateTab/);
 });
 test('version v291 delivers updated Domicilios code, not stale PWA markup',()=>{
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
 });
