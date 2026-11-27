@@ -34,8 +34,9 @@ test('Configuración muestra una columna horizontal en tablets, no tarjetas vert
 test('Las fichas de historial y agenda reales quedan centradas aunque haya una sola',()=>{
  assert.ok(domicilios.includes('id="hvHistoryRows" class="hv-visit-list"'));
  assert.ok(domicilios.includes('id="hvRows" class="hv-visit-list"'));
- assert.ok(domicilios.includes('class="hv-swipe-row"'));
- assert.ok(domicilios.includes("if(!canArchiveVisit(v))return card;"));
+ assert.ok(domicilios.includes('class="hv-swipe-row hv-touch-swipe"'));
+ assert.ok(domicilios.includes("if(!canDate&&!canOpen&&!canDelete)return card;"));
+ assert.match(domicilios,/canDelete\?'<button type="button" class="hv-archive-action"/);
  assert.match(css,/#hvWorkspace\s+:is\(#hvRows,#hvHistoryRows\)\.hv-visit-list/);
  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,320px\),380px\)\)!important/);
  assert.match(css,/justify-content:center!important;justify-items:stretch!important;/);
