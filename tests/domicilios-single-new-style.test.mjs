@@ -44,6 +44,6 @@ test('Sigue habiendo un solo botón y su flujo de creación no se modifica',()=>
 });
 test('Se publica CSS renovado y caché PWA v292 sin cambiar lógica clínica',()=>{
  assert.match(html,/domicilios-reference\.css\?v=20261112-reference3" media="screen"/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(sw,/'\.\/domicilios-reference.css'/);
 });
