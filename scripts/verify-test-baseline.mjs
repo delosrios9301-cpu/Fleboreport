@@ -30,6 +30,16 @@ const missingMandatory=mandatory.filter(x=>!passedTitles.has(x));
 console.log('Total de pruebas:',numTests);
 console.log('Fallos heredados ya documentados:',failureTitles.length-newFailures.length);
 console.log('Regresiones nuevas:',newFailures.length);
+// Conservar un diagnóstico accionable de cada fallo, incluso si es heredado.
+// No emitir valores de aserciones completos: pueden incluir el código entero.
+const blocks=output.split(/(?=^not ok \d+ - )/m).slice(1);
+for(const block of blocks){
+ const title=block.match(/^not ok \d+ - (.+)$/m)?.[1]?.trim();
+ if(!title)continue;
+ const location=block.match(/^\s*location: ['"]?([^\r\n'"]+)/m)?.[1]||'';
+ const type=block.match(/^\s*(?:error|code): (.{1,180})$/m)?.[1]||'';
+ console.log('[FALLO '+(known.has(title)?'HEREDADO':'NUEVO')+'] '+title+(location?' | '+location:'')+(type?' | '+type:''));
+}
 console.log('Pruebas de agenda anticipada superadas:',mandatory.length-missingMandatory.length,'/',mandatory.length);
 if(newFailures.length){
  console.error('REGRESIÓN: nuevas comprobaciones fallidas:\n'+newFailures.map(x=>' - '+x).join('\n'));
