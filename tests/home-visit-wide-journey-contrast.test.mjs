@@ -17,8 +17,11 @@ function light(hex){
 function ratio(a,b){const x=light(a),y=light(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)}
 
 test('Fichas Domicilios nuevas y archivables utilizan el mismo ancho real en PC',()=>{
- assert.match(visits,/if\(!canArchiveVisit\(v\)\)return card/);
- assert.match(visits,/return '<div class="hv-swipe-row"/);
+ assert.match(visits,/const canDate=canEditVisit\(v\),canOpen=canOpenVisitEditor\(v\),canDelete=canArchiveVisit\(v\)/);
+ assert.match(visits,/if\(!canDate&&!canOpen&&!canDelete\)return card/);
+ assert.match(visits,/canDelete\?'<button type="button" class="hv-archive-action"/);
+ assert.match(visits,/canArchiveVisit\(v\)\?'<button type="button" class="hv-ref-manage-archive"/);
+ assert.match(visits,/return '<div class="hv-swipe-row hv-touch-swipe"/);
  assert.match(visits,/class="hv-premium-visit hv-ref-visit"/);
  assert.match(css,/grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,570px\),1fr\)\)!important/);
  assert.match(css,/>.hv-ref-visit\s*\{[^}]*max-width:980px!important/s);

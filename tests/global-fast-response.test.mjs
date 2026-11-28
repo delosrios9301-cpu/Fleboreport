@@ -45,5 +45,5 @@ test('RenderAll prepara todas las vistas una vez y limita las reconstrucciones p
  assert.match(html,/if\(view==='view-reports'\)renderReport\(\)/);
  assert.match(html,/if\(view==='view-companies'\)renderCompanies\(\)/);
  assert.match(html,/if\(view==='view-catalog'\|\|view==='view-settings'\)renderCatalog\(\)/);
- assert.match(worker,/fleboreport-shell-v322/);
+ assert.ok(Number(worker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
 });

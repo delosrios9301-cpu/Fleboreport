@@ -60,5 +60,12 @@ test('avisos distinguen programados y extras y actualización PWA carga script n
  assert.match(edge,/Ya forma parte de tu agenda y no necesitas aceptarlo/);
  assert.match(edge,/Abre TALCSYS Lab para aceptar o rechazar el domicilio/);
  assert.match(html,/domicilios\.js\?v=20261122-agenda-anticipada-v2/);
- assert.match(sw,/fleboreport-shell-v334-20261122-agenda-anticipada/);
+ // La versión puede avanzar; se exige una generación no anterior a la
+ // primera versión de agenda anticipada y que precargue el script exacto del HTML.
+ const cacheGeneration=sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)-[^']+'/);
+ assert.ok(cacheGeneration && Number(cacheGeneration[1])>=334,'La caché debe estar versionada desde la entrega de agenda anticipada');
+ const versionedScript=html.match(/<script src="(\.\/domicilios\.js\?v=[^"]+)"/);
+ assert.ok(versionedScript,'HTML debe cargar un script de domicilios versionado');
+ const shell=sw.match(/const APP_SHELL=\[([^\n]+)\];/);
+ assert.ok(shell && shell[1].includes("'"+versionedScript[1]+"'"),'La caché debe incluir exactamente la versión de domicilios del HTML');
 });

@@ -308,9 +308,12 @@ function scheduleClinicalIncrementalRefresh(){
  if(clinicalRealtimeTimer)clearTimeout(clinicalRealtimeTimer);
  clinicalRealtimeTimer=setTimeout(async()=>{
   clinicalRealtimeTimer=null;
+  if(!ready||!navigator.onLine)return;
   if(clinicalRealtimeRunning){clinicalRealtimeAgain=true;return;}
+  // El sondeo de reconciliación retoma el delta cuando termina la edición o sincronización.
+  if(document.visibilityState!=='visible'||clinicalFullRefreshRunning||syncPromise||clinicalUiIsBusy())return;
   clinicalRealtimeRunning=true;
-  try{await loadRemoteSamples();refreshClinicalViewSafely();}
+  try{const updated=await loadRemoteSamples();if(updated)refreshClinicalViewSafely();}
   catch(error){console.error('[FleboReport Clinical Cloud] No se pudo aplicar el delta incremental:',error);}
   finally{clinicalRealtimeRunning=false;if(clinicalRealtimeAgain){clinicalRealtimeAgain=false;scheduleClinicalIncrementalRefresh();}}
  },300);

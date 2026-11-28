@@ -122,7 +122,8 @@ test('el módulo de domicilios valida incidencias y observaciones por prueba', (
   }
   assert.match(domicilios, /Indica por qué no se pudo tomar esta prueba/);
   assert.match(domicilios, /Observación de no toma/);
-  assert.match(domicilios, /Registra cada prueba activa como tomada o no tomada antes de continuar/);
+  assert.match(domicilios, /Registra un estado válido para cada prueba activa antes de continuar/);
+  assert.match(domicilios, /activeTests\.some\(t=>!\['Pendiente','Tomada','No tomada'\]\.includes\(t\.status\)\)/);
   for (const feature of ['technicianFieldScreen', 'hv-field-screen', 'Abrir ubicación en Google Maps', 'Observaciones de campo', 'Resumen de recipientes', 'hvSaveFieldObservation']) {
     assert.ok(domicilios.includes(feature), `falta experiencia de campo: ${feature}`);
   }
@@ -245,6 +246,9 @@ test('el centro de notificaciones puede mostrar avisos del dispositivo y consult
   assert.match(notifications, /postgres_changes/);
   assert.match(notifications, /visibilitychange/);
   assert.doesNotMatch(notifications, /setInterval\(/);
+  assert.match(notifications, /if\(homeReminderBusy\)\{if\(force\)homeReminderPending=true;return;\}/);
+  assert.match(notifications, /if\(homeReminderPending\)\{homeReminderPending=false;if\(userId&&workspaceId&&navigator.onLine\)void syncHomeVisitReminders\(true\);\}/);
+  assert.match(notifications, /if\(!androidNotifications\(\)\?\.syncHomeVisitReminders\)return;/);
 });
 
 
@@ -471,7 +475,7 @@ test('cada función llamada desde un botón HTML tiene un manejador definido', a
     'supabase-auth.js', 'flebo-engine.js', 'cloud-state-sync.js', 'patient-cloud-sync.js',
     'clinical-cloud-sync.js', 'domicilios.js', 'notifications-center.js',
     'configuracion.js', 'audit-history.js', 'notification-settings.js',
-    'clinical-processing-simple.js', 'clinical-catalog-persistence.js'
+    'clinical-processing-simple.js', 'clinical-catalog-persistence.js', 'journey-report-share-hd.js'
   ];
   const scripts = await Promise.all(scriptPaths.map(path => readFile(new URL('../' + path, import.meta.url), 'utf8')));
   const source = html + '\n' + scripts.join('\n');
@@ -626,7 +630,7 @@ test('la sincronización de fondo evita el repintado global y protege formulario
   assert.match(clinicalCloudSync, /async function syncConfiguration\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.match(clinicalCloudSync, /async function refreshSamples\(\)[\s\S]*?refreshClinicalViewSafely\(\)/);
   assert.doesNotMatch(clinicalCloudSync, /FleboAppState\.refresh\(\)/);
-  assert.match(serviceWorker, /CACHE_NAME='fleboreport-shell-v322'/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
   assert.match(serviceWorker, /self\.skipWaiting\(\)/);
   assert.match(serviceWorker, /self\.clients\.claim\(\)/);
   assert.match(serviceWorker, /showNotification\(data\.title\|\|'TALCSYS Lab',options\)[\s\S]*?recordPushDiagnostic\(entry\)/);
@@ -748,7 +752,12 @@ test('las invitaciones de domicilios se presentan como cuadro flotante con acept
 test('la revisión de muestras permite recuperar una solicitud vacía desde el catálogo central sin confirmar por error', () => {
   assert.match(domicilios, /id="hvCorrectionSearch"/);
   assert.match(domicilios, /No se encontraron pruebas activas con ese nombre o código/);
-  assert.match(domicilios, /confirm\.disabled=reviewSaving\|\|c\.pending>0\|\|c\.taken\+c\.notTaken===0/);
+  assert.match(domicilios, /confirm\.disabled=reviewSaving\|\|c\.taken\+c\.notTaken\+c\.pending===0/);
+  assert.match(domicilios, /if\(!c\.taken&&!c\.notTaken&&!c\.pending\)\{say\('No hay pruebas activas para confirmar/);
+  const summarySource=domicilios.slice(domicilios.indexOf('function homeVisitResultSummary('),domicilios.indexOf('function homeVisitDisplayStatus('));
+  const summary=new Function(summarySource+';return homeVisitResultSummary')();
+  assert.deepEqual(summary([{status:'Pendiente'},{status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),{taken:0,notTaken:0,pending:1});
+  assert.deepEqual(summary([{status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),{taken:0,notTaken:0,pending:0});
 });
 
 test('la confirmación de muestras normaliza UUID de pruebas y de eventos', () => {
@@ -844,6 +853,8 @@ test('la aceptación del flebotomista se confirma sin depender del guardado secu
 
 test('el catálogo de domicilios aplica archivados explícitos y actualiza servicios sin desactivar ausentes', () => {
   assert.match(domicilios, /const masterCatalog=localCatalog\(\)\.filter\(x=>x&&x\.id&&x\.name\)/);
+  assert.match(domicilios, /const uniqueMasterCatalog=Array\.from\(new Map\(masterCatalog\.map\(x=>\[String\(x\.id\),x\]\)\)\.values\(\)\)/);
+  assert.match(domicilios, /for\(const item of uniqueMasterCatalog\)/);
   assert.match(domicilios, /const payload=\{/);
   assert.match(domicilios, /catalog_source_id:String\(item\.id\)/);
   assert.match(domicilios, /\.update\(item\.payload\)/);
@@ -914,7 +925,7 @@ test('rechazar una invitación no intenta registrar un evento de domicilio acept
 });
 
 test('la caché de la PWA cambia al publicar la optimización de sincronización', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
   assert.match(serviceWorker, /fetch\(request,\{cache:'no-store'\}\)/);
   assert.match(serviceWorker, /url\.pathname\.endsWith\('\/supabase-auth\.js'\)/);
 });
@@ -1134,7 +1145,7 @@ test('las muestras clínicas se cargan de forma serializada para evitar sobrescr
 });
 
 test('la PWA valida en red los scripts antes de reutilizar una copia de caché', () => {
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
   assert.match(serviceWorker, /request\.destination==='script'\|\|request\.destination==='style'/);
   assert.match(serviceWorker, /cache:'no-cache'/);
 });
@@ -1187,7 +1198,7 @@ test('el botón de edición del catálogo permanece dentro de su tarjeta', () =>
   assert.match(html, /#view-catalog \.fr2-catalog-item>\.list-actions/);
   assert.match(html, /#settings-catalog #settingsCatalogList \.list-actions/);
   assert.match(html, /grid-template-columns:minmax\(0,1fr\)!important/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1203,7 +1214,7 @@ test('Jornada conserva borradores y reconstruye el selector tras sincronizar o v
   assert.match(html, /if\(hasWork&&!hasReport\)/);
   assert.match(cloudSync, /const localJourneyNewer=stamp\(localJourney\)>stamp\(remoteJourney\)/);
   assert.match(cloudSync, /new Event\('flebo:cloud-state-applied'\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1237,7 +1248,7 @@ test('Jornada 2.0 presenta indicadores, registro separado, seguimiento de muestr
   assert.match(journeyStyles, /#view-journey \.journey-layout/);
   assert.match(journeyStyles, /#view-journey \.journey-patient-progress-track/);
   assert.match(journeyStyles, /@media\(max-width:980px\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1256,7 +1267,7 @@ test('Jornada solo muestra coincidencias cuando el usuario escribe en la búsque
   assert.match(journeyStyles, /#view-journey \.journey-test-results\[hidden\]\{display:none!important\}/);
   assert.match(journeyStyles, /writing-mode:horizontal-tb!important/);
   assert.match(journeyStyles, /#journeyPatientTestChoices \.test-choice-copy \.choice-name/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación horizontal y ancho útil', () => {
@@ -1264,7 +1275,7 @@ test('las etiquetas y nombres de las pruebas en Jornada fuerzan orientación hor
   assert.match(journeyStyles, /label\.test-choice>span\.test-choice-copy\{\s*display:block!important/);
   assert.match(journeyStyles, /grid-template-columns:18px 38px minmax\(0,1fr\)!important/);
   assert.match(journeyStyles, /test-choice-copy \.choice-name,\s*#view-journey #journeyTestPicker/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1309,7 +1320,7 @@ test('Clinical Premium 2.2 renueva Jornada, Pacientes y Empresas sin cambiar sus
   assert.match(html, /onclick="registerJourneyPatient\(\)"/);
   assert.match(html, /onclick="openPatientForm\(\)"/);
   assert.match(html, /onclick="addCompany\(\)"/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1322,7 +1333,7 @@ test('Clinical Premium 2.3 mejora catálogo y flujos clínicos sin alterar sus a
   assert.match(html, /onclick="receiveClinicalSample\(\)"/);
   assert.match(html, /id="clinicalReviewRows"/);
   assert.match(html, /id="clinicalQueueRows"/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1335,7 +1346,7 @@ test('Clinical Premium 2.4 renueva Domicilios, Reportes, Historial y Configuraci
   assert.match(redesignStyles, /#view-settings>.settings-tabs/);
   assert.match(html, /onclick="generateReportPDF\(\)"/);
   assert.match(html, /onclick="downloadPNG\(\)"/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1408,7 +1419,7 @@ test('Clinical Modern 6.1 usa paleta 3D y exactamente un acceso móvil al panel'
   assert.match(css, /#fr2MenuToggle,[\s\S]*#cmContextMenu,[\s\S]*display:none!important/);
   assert.match(css, /linear-gradient\(175deg,#946dff/);
   assert.match(css, /#cmMobileDock \.cm-dock-button\[data-cm-nav="more"\]/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
   assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw4/);
   assert.match(html, /clinical-modern-workspace\.js\?v=20261113-cmw5/);
 });
@@ -1426,7 +1437,7 @@ test('Clinical Modern 6.2 mantiene marca/campana fijas y navega sin scroll anima
   assert.match(ui, /current\.id === 'view-' \+ key/);
   assert.match(ui, /window\.scrollTo\(0, 0\)/);
   assert.match(html, /window\.scrollTo\(\{top:0,behavior:'auto'\}\)/);
-  assert.match(serviceWorker, /fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
   assert.match(html, /clinical-modern-workspace\.css\?v=20261112-cmw4/);
   assert.match(html, /clinical-modern-workspace\.js\?v=20261113-cmw5/);
 });
@@ -1461,7 +1472,7 @@ test('Push de domicilios evita modificar suscripciones idénticas', async () => 
 test('la revisión operativa se distribuye mediante la nueva caché v280', () => {
   assert.match(html,/audit-history\.js\?v=20261113-one-history/);
   assert.match(html,/app-activity-cloud\.js\?v=20261112-audit1/);
-  assert.match(serviceWorker,/fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 
@@ -1476,7 +1487,7 @@ test('sincronización clínica evita consultas por técnico sin privilegios de l
 test('integración de seguridad por rol usa recursos versión 281',()=>{
   assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
   assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
-  assert.match(serviceWorker,/fleboreport-shell-v322/);
+  assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 test('sync 282 uses realtime invalidations and periodic recovery without dumping patient data', async()=>{
@@ -1505,14 +1516,14 @@ test('sync 282 retains domicilios realtime and adds cursor-based fallback',async
  assert.match(visits,/sync_change_log/);
  assert.match(html,/patient-cloud-sync\.js\?v=20261113-remove1/);
  assert.match(html,/clinical-cloud-sync\.js\?v=20261113-sync4/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(serviceWorker,/fleboreport-shell-v322/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script actual versionado');
+ assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
  assert.doesNotThrow(()=>new Function(visits));
 });
 
 test('PWA v283 versiona la escritura parcial sin alterar los módulos',()=>{
  assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
- assert.match(serviceWorker,/fleboreport-shell-v322/);
+ assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 test('modular sync v284 reads independent tables and guards concurrent module edits',async()=>{
@@ -1524,7 +1535,7 @@ test('modular sync v284 reads independent tables and guards concurrent module ed
  assert.match(js,/result\.authoritativeState\|\|merged/);
  assert.match(js,/modularReadFallbacks/);
  assert.match(html,/cloud-state-sync\.js\?v=20261113-remove1/);
- assert.match(serviceWorker,/fleboreport-shell-v322/);
+ assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
  assert.doesNotThrow(()=>new Function(js));
 });
 
@@ -1533,8 +1544,8 @@ test('privacy v285 hides sensitive invitation fields at API and client',async()=
  assert.match(client,/list_home_visit_invitation_previews/);
  assert.match(client,/patient_id:null,patient_phone:null,address:''/);
  assert.match(client,/if\(cloud\.role==='technician'\)visits=visits\.filter/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(serviceWorker,/fleboreport-shell-v322/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script actual versionado');
+ assert.ok(Number(serviceWorker.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación de la caché no debe retroceder respecto de v322');
 });
 
 test('La sincronización del catálogo se reintenta tras modificaciones concurrentes sin duplicar servicios',()=>{
@@ -1562,8 +1573,14 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   const run=new Function('visits','pendingVisitTransitions','cloud','say','isMyAssignedDomicile','$','markVisitTransitionPending','log','save','window','render','setTab','document','performance','homeVisitDisplayStatus', 'let selected="",detailOpen=false;'+source+';return changeStatus')(
     [visit],new Set(),{ready:true,role:'technician'},()=>{},()=>true,()=>null,()=>()=>{},(v,action,detail)=>v.events.unshift({action,detail}),async(v,options)=>{calls.push({status:v.status,tests:v.tests.map(t=>t.status),options});return success;},{},()=>{},()=>{},{querySelector:()=>null},{now:()=>0},s=>s==='Muestras tomadas'?'Muestras registradas':s
   );
-  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Inválida'}]),false);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'No tomada',notes:'[CORRECCION: RETIRADA]'}]),false);
   assert.equal(calls.length,0);
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),false);
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].tests,['Pendiente']);
+  assert.equal(visit.status,'En domicilio');
   const draft=[{id:'t1',status:'No tomada',notes:'No pudo entregar muestra'}];
   assert.equal(await run('demo','Muestras tomadas',true,draft),false);
   assert.equal(visit.status,'En domicilio');
@@ -1576,6 +1593,12 @@ test('confirmar y guardar verifica resultados antes de avanzar y no cierra ante 
   assert.equal(visit.status,'Finalizado');
   assert.equal(calls.at(-1).options.testsFirst,true);
   assert.equal(calls.at(-1).options.skipTests,true);
+  // También se permite finalizar con muestras pendientes sin convertirlas en tomadas.
+  visit.status='En domicilio';visit.completedAt=null;visit.tests=[{id:'t1',status:'Pendiente'}];
+  assert.equal(await run('demo','Muestras tomadas',true,[{id:'t1',status:'Pendiente'}]),true);
+  assert.equal(await run('demo','Finalizado'),true);
+  assert.equal(visit.tests[0].status,'Pendiente');
+  assert.equal(visit.status,'Finalizado');
 });
 
 test('historial de domicilios no reintenta insertar eventos que ya existen',()=>{
@@ -1721,4 +1744,13 @@ test('fecha y hora finalizadas: solamente administración autorizada y sin alter
  assert.match(domicilios,/if\(closed\)\{address.readOnly=true;address.required=false;\}/);
  assert.match(domicilios,/if\(!closed&&a!==v.address\)changes.address=a/);
  assert.match(domicilios,/if\(closed\)request=request.eq\('status','completed'\)/);
+});
+
+
+test('Los recursos locales del HTML se precargan para que la interfaz funcione offline',()=>{
+ const shell=serviceWorker.match(/const APP_SHELL=\[([^\n]+)\];/);
+ assert.ok(shell,'Existe el manifiesto de recursos de la PWA');
+ for(const [,asset] of html.matchAll(/(?:src|href)="\.\/([^"]+\.(?:js|css)(?:\?[^"]+)?)"/g)){
+  assert.ok(shell[1].includes("'./"+asset+"'")||shell[1].includes("'./"+asset.split('?')[0]+"'"),'Falta recurso offline '+asset);
+ }
 });

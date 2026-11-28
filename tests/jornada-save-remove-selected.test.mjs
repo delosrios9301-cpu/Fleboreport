@@ -101,7 +101,7 @@ test('Sin pruebas no registra un paciente incompleto',()=>{
 test('v297 actualiza JS, CSS y cache; mantiene formulario por cédula y reportes',()=>{
  assert.match(html,/jornada-premium\.css\?v=20261113-jornada8" media="screen"/);
  assert.match(html,/jornada-premium\.js\?v=20261113-jornada7/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(html,/id="journeyPatientId"/);
  assert.match(html,/function completeJourneyAfterExport\(\)/);
  assert.doesNotThrow(()=>new Function(js));

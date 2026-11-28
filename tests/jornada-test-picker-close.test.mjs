@@ -90,5 +90,5 @@ test('No altera el flujo de guardado de paciente y publica versión PWA',()=>{
  assert.match(html,/persistJourneyDraft\(\{selectedTestIds:Array\.from\(ids\),search:''\}\)/);
  assert.match(html,/if\(search\)\{search\.value='';search\.blur\(\);\}/);
  assert.match(html,/renderJourneyPatientChoices\(\)/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
 });

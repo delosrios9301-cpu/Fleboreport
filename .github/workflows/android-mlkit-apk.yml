@@ -35,21 +35,25 @@ jobs:
         run: |
           test -n "$ANDROID_HOME"
           test -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" || test -x "$ANDROID_HOME/cmdline-tools/16.0/bin/sdkmanager"
-      - name: Instalar Capacitor
-        working-directory: native/android
-        run: npm install --no-audit --no-fund
+      - name: Instalar Capacitor y dependencias de empaquetado OTA
+        run: npm install --no-save @capacitor/core@7.4.3 @capacitor/cli@7.4.3 @capacitor/android@7.4.3 @capgo/capacitor-updater@7.51.15 esbuild@0.25.5
+      - name: Preparar recursos web reales
+        run: node scripts/prepare-android-web.mjs
       - name: Generar proyecto Android
-        working-directory: native/android
         run: npx cap add android
+      - name: Sincronizar recursos Android
+        run: npx cap sync android
       - name: Configurar ML Kit
-        working-directory: native/android
-        run: python3 configure_android.py
+        run: python3 native/android/configure_android.py
       - name: Compilar APK de prueba
-        working-directory: native/android/android
+        working-directory: android
         run: bash gradlew assembleDebug --no-daemon --max-workers=2
+      - name: Verificar artefacto
+        run: test -s android/app/build/outputs/apk/debug/app-debug.apk
       - name: Publicar APK de prueba como artefacto privado de Actions
         uses: actions/upload-artifact@v4
         with:
           name: fleboreport-android-mlkit-debug
-          path: native/android/android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
           retention-days: 7

@@ -53,7 +53,7 @@ test('Permisos, cierre de sesión y caché PWA permanecen vigentes',()=>{
  assert.match(html,/bubble-navigation-catalog\.js\?v=20261113-bubble2/);
  assert.match(html,/audit-history\.js\?v=20261113-one-history/);
  assert.match(html,/fleboreport-v2-shell\.js\?v=20261119-startup5/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  for(const file of ["'./bubble-navigation-catalog.js'","'./audit-history.js'","'./fleboreport-v2-shell.js'"])
   assert.ok(sw.includes(file),file);
 });

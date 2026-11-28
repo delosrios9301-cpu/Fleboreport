@@ -62,8 +62,8 @@ test('mismo diseño premium, sin ocultar información y usable en Android tablet
 });
 test('caché y versión web incluyen el CSS y script específicos de Domicilios',()=>{
  assert.match(html,/domicilios-premium\.css\?v=20261112-hv1" media="screen"/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(sw,/'\.\/domicilios-premium.css'/);
 });
 
@@ -84,5 +84,5 @@ test('animaciones suaves e indicadores de estado respetan accesibilidad',()=>{
   assert.ok(css.includes(item),item);
  assert.match(html,/domicilios-premium-gestures\.js\?v=20261112-gestures1/);
  assert.match(sw,/'\.\/domicilios-premium-gestures.js'/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
 });

@@ -46,11 +46,26 @@ test('Android 2.7 entrega assets renovados, versión 18 y firma verificada', asy
  const sw = await read('service-worker.js');
  const android = await read('native/android/configure_android.py');
  const workflow = await read('.github/workflows/android-release-2-5.yml');
- assert.ok(html.includes('domicilios.js?v=20261122-accepted-edit-v27'));
- assert.ok(html.includes('domicilios-archive-swipe.css?v=20261122-accepted-edit-v27'));
- assert.ok(sw.includes('fleboreport-shell-v325-20261122-accepted-edit'));
- assert.ok(android.includes("versionCode 18"));
- assert.ok(android.includes('versionName "2.7"'));
- assert.ok(workflow.includes('TALCSYS-Lab-2.7.apk'));
- assert.ok(workflow.includes("ORIGINAL_CERT_SHA256"));
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261122);
+ assert.ok(Number(html.match(/domicilios-archive-swipe\.css\?v=(\d{8})-[^"']+/)?.[1])>=20261122);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=325);
+ const ota=JSON.parse(await read('android-update.json'));
+ const code=Number(android.match(/replace\('versionCode 1','versionCode (\d+)'\)/)?.[1]);
+ const name=android.match(/replace\('versionName "1\.0"','versionName "([\d.]+)"'\)/)?.[1];
+ assert.ok(code>=18&&code>=ota.versionCode);
+ assert.match(name||'',/^\d+\.\d+(?:\.\d+)?$/);
+ if(code===ota.versionCode)assert.equal(name,ota.versionName);
+ assert.match(ota.sha256,/^[a-f0-9]{64}$/i);
+ // El flujo de publicación conserva los dos alias compatibles y comprueba
+ // el certificado original, la versión y el hash antes de anunciar la APK.
+ assert.equal(ota.apkUrl,'https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v'+ota.versionName+'/FleboReport-'+ota.versionName+'.apk');
+ assert.ok(workflow.includes('TALCSYS-Lab-'+name+'.apk'));
+ assert.ok(workflow.includes('FleboReport-'+name+'.apk'));
+ const verify=workflow.indexOf('apksigner" verify --verbose --print-certs');
+ const guard=workflow.indexOf('test -n "$CERT" && test "$CERT" = "$ORIGINAL_CERT_SHA256" ||',verify);
+ const upload=workflow.indexOf('gh release upload android-v'+name,guard);
+ assert.ok(verify>=0&&guard>verify&&upload>guard,'La firma original debe verificarse antes de publicar');
+ assert.ok(workflow.includes("versionCode='"+code+"'"));
+ assert.ok(workflow.includes("versionName='"+name+"'"));
+ assert.ok(workflow.includes('sha256sum "$ASSET"'));
 });

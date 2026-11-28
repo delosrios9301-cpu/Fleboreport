@@ -41,5 +41,5 @@ test('Procesamiento no duplica acceso a Configuración de estudios',()=>{
 test('Cache y enlaces de rediseño actualizados',()=>{
  assert.match(html,/clinical-reference-panels\.js\?v=20261113-clinical6/);
  assert.match(html,/clinical-reference-panels\.css\?v=20261113-clinical4/);
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
 });

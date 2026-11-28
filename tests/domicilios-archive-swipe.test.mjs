@@ -9,7 +9,10 @@ const [js,css,html,sw]=await Promise.all([
 test('Solo admin o permiso domicilios.delete ven Eliminar; solo en visitas no realizadas',()=>{
  assert.match(js,/HV_ARCHIVE_STATES=new Set\(\['Pendiente de asignación','Pendiente de aceptación','Cancelado','Rechazado','No realizado','Paciente ausente','Paciente rechazó la toma','Muestras tomadas','Finalizado'\]\)/);
  assert.match(js,/cloud\.role==='admin'\|\|\(typeof window\.fleboCan==='function'&&window\.fleboCan\('domicilios','delete'\)\)/);
- assert.match(js,/if\(!canArchiveVisit\(v\)\)return card/);
+ assert.match(js,/const canDate=canEditVisit\(v\),canOpen=canOpenVisitEditor\(v\),canDelete=canArchiveVisit\(v\)/);
+ assert.match(js,/if\(!canDate&&!canOpen&&!canDelete\)return card/);
+ assert.match(js,/canDelete\?'<button type="button" class="hv-archive-action"/);
+ assert.match(js,/canArchiveVisit\(v\)\?'<button type="button" class="hv-ref-manage-archive"/);
  assert.match(js,/data-hv-archive/);
  assert.match(js,/if\(!canArchiveVisit\(visit\)\)/);
  assert.match(js,/cloud\.client\.rpc\('archive_home_visit'/);
@@ -21,12 +24,13 @@ test('Solo admin o permiso domicilios.delete ven Eliminar; solo en visitas no re
 test('El gesto táctil revela la acción pero no elimina automáticamente',()=>{
  assert.match(js,/function setupHomeVisitSwipe\(workspace\)/);
  assert.match(js,/workspace\.addEventListener\('pointerdown'/);
- assert.match(js,/event\.target\.closest\('\.hv-archive-action,input,select,textarea'\)/);
+ assert.match(js,/event\.target\.closest\('\.hv-archive-action,\.hv-edit-action,\.hv-ref-manage,input,select,textarea'\)/);
  assert.match(js,/workspace\.addEventListener\('pointermove'/);
  assert.match(js,/workspace\.addEventListener\('pointerup'/);
  assert.match(js,/workspace\.addEventListener\('pointercancel'/);
  assert.match(js,/Math\.abs\(dy\)>Math\.abs\(dx\)/);
- assert.match(js,/setHomeVisitSwipe\(g\.row,g\.startedOpen\?dx<42:dx<-43\)/);
+ assert.match(js,/if\(g\.startedOpen\)\{setHomeVisitSwipe\(g\.row,dx<42,'left'\);return;\}/);
+ assert.match(js,/setHomeVisitSwipe\(g\.row,dx<-43,'left'\)/);
  assert.match(css,/@media screen and \(pointer:coarse\)/);
  assert.match(css,/touch-action:pan-y/);
  assert.match(css,/\.hv-swipe-row \.hv-swipe-content :is\(button,\.hv-ref-visit,\.hv-ref-actions\)/);
@@ -47,8 +51,8 @@ test('Nube omite archivados; mantiene historiales clínicos',()=>{
  assert.match(js,/archivedAt:row\.archived_at\|\|null/);
  assert.match(js,/visits=visits\.filter\(v=>String\(v\.id\)!==String\(id\)\)/);
  assert.match(js,/saveHomeVisitCache\(\);render\(\);scheduleCloudVisitsRefresh\(\)/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
- assert.match(html,/domicilios-archive-swipe\.css\?v=20261114-archive3/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
+ assert.ok(Number(html.match(/domicilios-archive-swipe\.css\?v=(\d{8})-[^"']+/)?.[1])>=20261114,'Debe cargarse el estilo de gestos versionado');
  assert.match(sw,/'\.\/domicilios-archive-swipe\.css'/);
  assert.doesNotThrow(()=>new Function(js));
 });

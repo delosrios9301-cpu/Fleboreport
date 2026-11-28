@@ -14,12 +14,15 @@ const allowedUi="'Pendiente de asignación','Pendiente de aceptación','Cancelad
 test('Las fichas pendientes muestran archivar sólo al administrador o usuario autorizado',()=>{
  assert.ok(app.includes('HV_ARCHIVE_STATES=new Set(['+allowedUi+'])'));
  assert.match(app,/cloud\.role==='admin'\|\|\(typeof window\.fleboCan==='function'&&window\.fleboCan\('domicilios','delete'\)\)/);
- assert.match(app,/if\(!canArchiveVisit\(v\)\)return card/);
+ assert.match(app,/const canDate=canEditVisit\(v\),canOpen=canOpenVisitEditor\(v\),canDelete=canArchiveVisit\(v\)/);
+ assert.match(app,/if\(!canDate&&!canOpen&&!canDelete\)return card/);
+ assert.match(app,/canDelete\?'<button type="button" class="hv-archive-action"/);
+ assert.match(app,/canArchiveVisit\(v\)\?'<button type="button" class="hv-ref-manage-archive"/);
  assert.match(app,/if\(!canArchiveVisit\(visit\)\)/);
  assert.match(app,/pendingVisit\?'La solicitud dejará de aparecer en la agenda y las invitaciones/);
  assert.match(app,/cloud\.client\.rpc\('archive_home_visit',\{p_home_visit_id:String\(id\)\}\)/);
  assert.doesNotMatch(app,/\.from\('home_visits'\)\.delete\(/);
- assert.match(index,/domicilios\.js\?v=20261115-catalogfix1/);
+ assert.ok(Number(index.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
  assert.doesNotThrow(()=>new Function(app));
 });
 

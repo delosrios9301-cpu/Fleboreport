@@ -54,8 +54,8 @@ test('todas las herramientas siguen disponibles y responsive sin cuadros grandes
 });
 test('v290 publica la capa de referencia después de estilos premium sin impactar reportes',()=>{
  assert.match(html,/domicilios-reference\.css\?v=20261112-reference3" media="screen"/);
- assert.match(html,/domicilios\.js\?v=20261115-catalogfix1/);
+ assert.ok(Number(html.match(/domicilios\.js\?v=(\d{8})-[^"']+/)?.[1])>=20261115,'Debe cargarse el script de Domicilios versionado');
  assert.ok(html.lastIndexOf('domicilios-reference.css')>html.lastIndexOf('domicilios-premium.css'));
- assert.match(sw,/fleboreport-shell-v322/);
+ assert.ok(Number(sw.match(/const CACHE_NAME='fleboreport-shell-v(\d+)(?:-|')/)?.[1])>=322,'La generación PWA no debe retroceder respecto de v322');
  assert.match(sw,/'\.\/domicilios-reference.css'/);
 });
