@@ -1,8 +1,8 @@
 {
-  "versionCode": 29,
-  "versionName": "2.18",
-  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.18",
-  "notes": "Reapertura de domicilios y corrección de resultados autorizada desde historial y gesto.",
-  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.18/FleboReport-2.18.apk",
-  "sha256": "f1f29b81d6a391ab8cd6c6bff6dd2709d81d517faf53ee974457968c570c7677"
+  "versionCode": 30,
+  "versionName": "2.19",
+  "releasePage": "https://github.com/delosrios9301-cpu/Fleboreport/releases/tag/android-v2.19",
+  "notes": "Estabilidad de sincronización, caché y recordatorios.",
+  "apkUrl": "https://github.com/delosrios9301-cpu/Fleboreport/releases/download/android-v2.19/FleboReport-2.19.apk",
+  "sha256": "28039260da512de9dfa24eddd195df51c5eabbe0c3c50ba2b0eda3d529c1ad7f"
 }
