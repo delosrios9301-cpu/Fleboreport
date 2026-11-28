@@ -122,10 +122,10 @@
    const head=el('div','dl-live-head'),copy=el('div','dl-live-head-copy');
    copy.append(el('h2','','Actividad del laboratorio'),
     el('p','','Resumen verificado desde Supabase'));
-   const refresh=el('button','btn','Actualizar');refresh.id='dlLiveRefresh';refresh.type='button';
-   refresh.setAttribute('aria-label','Actualizar indicadores desde Supabase');
-   refresh.addEventListener('click',()=>{void refresh(true);});
-   head.append(copy,refresh);p.append(head);
+   const refreshButton=el('button','btn','Actualizar');refreshButton.id='dlLiveRefresh';refreshButton.type='button';
+   refreshButton.setAttribute('aria-label','Actualizar indicadores desde Supabase');
+   refreshButton.addEventListener('click',()=>{void refresh(true);});
+   head.append(copy,refreshButton);p.append(head);
    const status=el('p','dl-live-status','Verificando registros de la nube…');
    status.id='dlLiveStatus';attr(status,'role','status');attr(status,'aria-live','polite');p.append(status);
    const quick=el('div','dl-live-highlights');quick.id='dlLiveHighlights';
